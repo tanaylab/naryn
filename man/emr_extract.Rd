@@ -1,0 +1,48 @@
+\name{emr_extract}
+\alias{emr_extract}
+\title{
+Returns evaluated track expression
+}
+\description{
+Returns the result of track expressions evaluation for each of the iterator points. 
+}
+\usage{
+emr_extract(expr, tidy = F, sort = F, names = NULL,
+            stime = MINTIME, etime = MAXTIME, iterator = NULL,
+            keepref = F, filter = NULL)
+}
+%- maybe also 'usage' for other objects documented here.
+\arguments{
+  \item{expr}{vector of track expressions}
+  \item{tidy}{if 'TRUE' result is returned in "tidy"" format}
+  \item{sort}{if 'TRUE' result is sorted by id, time and reference}
+  \item{names}{names for the track expressions in the returned value. If 'NULL' names are set to the track expression themselves.}
+  \item{stime}{start time scope}
+  \item{etime}{end time scope}
+  \item{iterator}{track expression iterator. If 'NULL' iterator is determined implicitly based on track expressions.}
+  \item{keepref}{If 'TRUE' references are preserved in the iterator.}
+  \item{filter}{Iterator filter.}
+}
+\details{
+This function returns the result of track expressions evaluation for each of the iterator stops.
+
+If 'tidy' is 'TRUE' the returned value is a set of ID-Time points with two additional columns named 'expr' and 'value'. 'expr' marks the track expression that produced the value. Rows with NaN values are omitted from the tidy format.
+
+If 'tidy' is 'FALSE' the returned value is a set of ID-Time points with an additional column for the values of each of the track expressions.
+
+If 'sort' is 'TRUE' the returned value is sorted by id, time and reference, otherwise the order is not guaranteed especially for longer runs, when multitasking might be launched. Sorting requires additional time, so it is switched off by default.
+
+'names' parameter sets the labels for the track expressions in the return value. If 'names' is 'NULL' the labels are set to the track expression themselves.
+}
+\value{
+A set of ID-Time points with additional columns depending on the value of 'tidy' (see above).
+}
+
+\seealso{
+\code{\link{emr_screen}}
+}
+\examples{
+emr_db.init_examples()
+emr_extract("dense_track", stime = 1, etime = 3)
+}
+\keyword{ ~extract }

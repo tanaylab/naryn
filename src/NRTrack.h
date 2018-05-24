@@ -1,0 +1,932 @@
+#ifndef NRTRACK_H_INCLUDED
+#define NRTRACK_H_INCLUDED
+
+#include <cmath>
+#include <limits>
+#include <memory>
+#include <string.h>
+#include <typeinfo>
+#include <sys/mman.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unordered_set>
+
+#include "BinFinder.h"
+#include "BufferedFile.h"
+#include "NRInterval.h"
+#include "NRPoint.h"
+#include "NRTrackData.h"
+#include "StreamPercentiler.h"
+
+class NRTrack {
+public:
+	enum { FILE_ERROR, BAD_DATA_TYPE, BAD_FORMAT };
+
+	enum TrackType { SPARSE, DENSE, NUM_TRACK_TYPES };
+
+	enum DataType { FLOAT, DOUBLE, NUM_DATA_TYPES };
+
+	enum Func { VALUE, EXISTS, FREQUENT, SAMPLE, AVG, SIZE, MIN, MAX, EARLIEST, LATEST, CLOSEST,
+        EARLIEST_TIME, LATEST_TIME, CLOSEST_EARLIER_TIME, CLOSEST_LATER_TIME, STDDEV, SUM, QUANTILE,
+        PV_UPPER, PV_LOWER, PV_MIN_UPPER, PV_MIN_LOWER, PV_MAX_UPPER, PV_MAX_LOWER,
+        LM_SLOPE, LM_INTERCEPT, DT1_EARLIEST, DT1_LATEST, DT2_EARLIEST, DT2_LATEST, NUM_FUNCS
+    };
+
+    enum Flags { IS_CATEGORIAL = 0x1 };
+
+	static const int    SIGNATURE;
+	static const double DENSE_TRACK_MIN_DENSITY;
+	static const char *TRACK_TYPE_NAMES[NUM_TRACK_TYPES];
+	static const char *DATA_TYPE_NAMES[NUM_DATA_TYPES];
+
+    struct FuncInfo {
+        const char *name;
+        bool        categorial;
+        bool        quantitative;
+        bool        keepref;
+    };
+
+    static const FuncInfo FUNC_INFOS[NUM_FUNCS];
+
+	virtual ~NRTrack();
+
+    const char *name() const { return m_name.c_str(); }
+	TrackType track_type() const { return m_track_type; }
+	DataType data_type() const { return m_data_type; }
+
+    unsigned flags() const { return m_flags; }
+    bool     is_categorial() const { return m_flags & IS_CATEGORIAL; }
+    bool     is_quantitative() const { return !is_categorial(); }
+
+    unsigned minid() const { return m_min_id; }
+    unsigned maxid() const { return m_max_id; }
+    unsigned idrange() const { return maxid() - minid() + 1; }
+    unsigned mintime() const { return m_min_time; }
+    unsigned maxtime() const { return m_max_time; }
+    unsigned timerange() const { return maxtime() - mintime() + 1; }
+
+    virtual unsigned size() const = 0;
+    virtual unsigned unique_size() const = 0;
+    virtual void     unique_vals(vector<double> &vals) = 0;
+    virtual double   minval() const = 0;
+    virtual double   maxval() const = 0;
+    virtual float    percentile_upper(void *rec) const = 0;
+    virtual float    percentile_upper(double val) const = 0;
+    virtual float    percentile_lower(void *rec) const = 0;
+    virtual float    percentile_lower(double val) const = 0;
+
+    virtual void ids(vector<unsigned> &ids) = 0;
+	virtual void data_recs(NRTrackData<double>::DataRecs &data_recs) = 0;
+
+    virtual size_t count_ids(const vector<unsigned> &ids) const = 0;
+
+	template <class T>
+	static TrackType serialize(const char *filename, unsigned flags, const NRTrackData<T> &data);
+
+	static NRTrack *unserialize(const char *name, const char *filename);
+
+public:
+	class DataFetcher {
+	public:
+		DataFetcher() : m_track(NULL) {}
+		DataFetcher(NRTrack *track, unordered_set<double> vals2compare) : m_track(NULL) { init(track, move(vals2compare)); }
+
+		void init(NRTrack *track, unordered_set<double> &&vals2compare);
+		void register_function(Func func);
+		void set_vals(const NRInterval &interv);
+
+        Func func() const { return m_function; }
+        const unordered_set<double> &vals2compare() const { return m_vals2compare; }
+
+        // works for all functions except QUANTILE
+        double val() const { return m_val; }
+		double quantile(double percentile);
+
+protected:
+		friend class NRTrack;
+        template <class T> friend class NRTrackDense;
+        template <class T> friend class NRTrackSparse;
+
+		NRTrack               *m_track;
+        unsigned               m_last_id;
+        Func                   m_function;
+        unordered_set<double>  m_vals2compare;
+		unsigned               m_data_idx;   // last patient idx that is greater or equal than the last query
+		unsigned               m_rec_idx;    // last record idx that is greater or equal than the last query
+        double                 m_val;
+        vector<double>         m_frequent_vals;
+		StreamPercentiler<double> m_sp;
+	};
+
+public:
+	class Iterator {
+	public:
+		Iterator() : m_track(NULL), m_isend(true) {}
+        Iterator(NRTrack *track, unsigned stime = 0, unsigned etime = (unsigned)-1, unordered_set<double> &&vals = unordered_set<double>(), NRTimeStamp::Hour expiration = 0);
+
+        void init(NRTrack *track, unsigned stime = 0, unsigned etime = (unsigned)-1, unordered_set<double> &&vals = unordered_set<double>(), NRTimeStamp::Hour expiration = 0);
+
+		bool begin() { return m_track->begin(*this); }
+		bool next() { return m_track->next(*this); }
+        bool next(const NRPoint &jumpto) { return m_track->next(*this, jumpto); }   // reference in jumpto is ignored
+		bool isend() { return m_isend; }
+
+		NRPoint &point() { return m_point; }
+
+		// returns the maximal number of points iterator might produce;
+		// note size() returns only the potential upper bound which can be used in conjunction with idx() for progress estimation
+		unsigned size() const { return m_track->size(); }
+
+		// returns current running index within [0, size()] range
+		unsigned idx() const { return m_running_idx; }          // returns current index in [0, size()] range
+
+        const NRTrack *track() const { return m_track; }
+
+	protected:
+		friend class NRTrack;
+		template <class T> friend class NRTrackDense;
+		template <class T> friend class NRTrackSparse;
+
+		NRTrack              *m_track;
+		NRPoint               m_point;       // current iterator point
+		unsigned              m_running_idx; // current iterator index in [0, size()] range
+		unsigned              m_data_idx;    // last patient idx
+		unsigned              m_rec_idx;     // last record idx
+		unsigned              m_stime;       // time scope
+		unsigned              m_etime;       // time scope
+        unordered_set<double> m_vals;        // slice
+        NRTimeStamp::Hour     m_expiration;
+		bool                  m_isend;
+	};
+
+protected:
+    void           *m_shmem;
+    size_t          m_shmem_size;
+    string          m_name;
+	TrackType       m_track_type;
+	DataType        m_data_type;
+    unsigned        m_flags;
+    unsigned        m_min_id;
+    unsigned        m_max_id;
+    unsigned        m_min_time;
+    unsigned        m_max_time;
+
+	NRTrack(const char *name, TrackType track_type, DataType data_type, unsigned flags, void *&mem, size_t size, unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime);
+
+    template <class T>
+    static int read_datum(void *mem, size_t &pos, size_t size, T &t, const char *trackname);
+
+	virtual void set_vals(DataFetcher &df, const NRInterval &interv) = 0;
+    void set_nan_vals(DataFetcher &df);
+
+	virtual bool begin(Iterator &itr) = 0;
+	virtual bool next(Iterator &itr) = 0;
+    virtual bool next(Iterator &itr, const NRPoint &jumpto) = 0; // reference in jumpto is ignored
+
+    template <class T>
+    void calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec, const T &erec);
+};
+
+
+//------------------------------ IMPLEMENTATION ----------------------------------------
+
+#include "naryn.h"
+#include "NRTrackDense.h"
+#include "NRTrackSparse.h"
+
+inline double NRTrack::DataFetcher::quantile(double percentile)
+{
+	if (m_sp.stream_size()) {
+		bool is_estimated;
+		return m_sp.get_percentile(percentile, is_estimated);
+	}
+	return numeric_limits<float>::quiet_NaN();
+}
+
+inline void NRTrack::DataFetcher::set_vals(const NRInterval &interv)
+{
+    if (m_last_id != interv.id) {
+        m_data_idx = (unsigned)0;
+        m_rec_idx = (unsigned)0;
+        m_last_id = interv.id;
+    }
+	m_track->set_vals(*this, interv);
+}
+
+inline NRTrack::Iterator::Iterator(NRTrack *track, unsigned stime, unsigned etime, unordered_set<double> &&vals, NRTimeStamp::Hour expiration) :
+    m_track(NULL),
+    m_isend(true)
+{
+    init(track, stime, etime, move(vals), expiration);
+}
+
+inline NRTrack::NRTrack(const char *name, TrackType track_type, DataType data_type, unsigned flags,
+                        void *&mem, size_t size, unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime) :
+    m_name(name),
+	m_track_type(track_type),
+	m_data_type(data_type),
+    m_flags(flags),
+    m_shmem(MAP_FAILED),
+    m_shmem_size(size),
+    m_min_id(minid),
+    m_max_id(maxid),
+    m_min_time(mintime),
+    m_max_time(maxtime)
+{
+    swap(m_shmem, mem); // move the ownership of the shared memory to the class
+}
+
+inline NRTrack::~NRTrack()
+{
+    if (m_shmem != MAP_FAILED)
+        munmap(m_shmem, m_shmem_size);
+}
+
+template <class T>
+NRTrack::TrackType NRTrack::serialize(const char *filename, unsigned flags, const NRTrackData<T> &data)
+{
+    if (data.m_key2val.empty())
+        verror("Cannot create an empty track at file %s", filename);
+
+	TrackType track_type;
+	DataType data_type;
+
+	// determine min / max patient id
+	unsigned minid = numeric_limits<unsigned>::max();
+	unsigned maxid = 0;
+    unsigned mintime = NRTimeStamp::MAX_HOUR;
+    unsigned maxtime = 0;
+
+	for (typename NRTrackData<T>::Key2Val::const_iterator idata = data.m_key2val.begin(); idata != data.m_key2val.end(); ++idata) {
+		minid = min(minid, idata->first.id);
+		maxid = max(maxid, idata->first.id);
+        mintime = min(mintime, (unsigned)idata->first.timestamp.hour());
+        maxtime = max(maxtime, (unsigned)idata->first.timestamp.hour());
+	}
+
+	// determine the density of patient ids
+	double data_density = 0;
+	unsigned data_size = 0;
+
+	if (minid <= maxid) {
+		unsigned idrange = maxid - minid + 1;
+		vector<bool> idmap(idrange, false);
+
+		for (typename NRTrackData<T>::Key2Val::const_iterator idata = data.m_key2val.begin(); idata != data.m_key2val.end(); ++idata)
+			idmap[idata->first.id - minid] = true;
+
+		for (vector<bool>::const_iterator iidmap = idmap.begin(); iidmap != idmap.end(); ++iidmap) {
+			if (*iidmap) 
+				++data_size;
+		}
+
+		data_density = data_size / (double)idrange;
+	}
+
+	// based on patients density determine the format of the track
+	track_type = data_density > DENSE_TRACK_MIN_DENSITY ? DENSE : SPARSE;
+
+	if (typeid(T) == typeid(float))
+		data_type = FLOAT;
+	else if (typeid(T) == typeid(double))
+		data_type = DOUBLE;
+	else
+		TGLError<NRTrack>(BAD_DATA_TYPE, "Invalid data type %s used to create a track file %s", typeid(T).name(), filename);
+
+	BufferedFile bfile;
+
+	umask(07);
+
+    if (minid > maxid) {
+        minid = 1;
+        maxid = 0;
+    }
+
+    if (mintime > maxtime) {
+        mintime = 1;
+        maxtime = 0;
+    }
+
+	if (bfile.open(filename, "w"))
+		TGLError<NRTrack>(FILE_ERROR, "Opening a track file %s: %s", filename, strerror(errno));
+
+	if (bfile.write(&SIGNATURE, sizeof(SIGNATURE)) != sizeof(SIGNATURE) ||
+		bfile.write(&track_type, sizeof(track_type)) != sizeof(track_type) ||
+		bfile.write(&data_type, sizeof(data_type)) != sizeof(data_type) ||
+        bfile.write(&flags, sizeof(flags)) != sizeof(flags) ||
+        bfile.write(&minid, sizeof(minid)) != sizeof(minid) ||
+        bfile.write(&maxid, sizeof(maxid)) != sizeof(maxid) ||
+        bfile.write(&mintime, sizeof(mintime)) != sizeof(mintime) ||
+        bfile.write(&maxtime, sizeof(maxtime)) != sizeof(maxtime))
+	{
+		if (bfile.error())
+			TGLError<NRTrack>(FILE_ERROR, "Failed to write a track file %s: %s", filename, strerror(errno));
+		TGLError<NRTrack>(FILE_ERROR, "Failed to write a track file %s", filename);
+	}
+
+	if (track_type == SPARSE) 
+		NRTrackSparse<T>::serialize(bfile, data, data_size, flags);
+	else if (track_type == DENSE) 
+		NRTrackDense<T>::serialize(bfile, data, minid, maxid, flags);
+
+    return track_type;
+}
+
+inline void NRTrack::set_nan_vals(NRTrack::DataFetcher &df)
+{
+    df.m_val = df.m_function == SIZE ? 0 : numeric_limits<float>::quiet_NaN();
+
+    if (df.m_function == QUANTILE)
+        df.m_sp.reset();
+}
+
+template <class T>
+int NRTrack::read_datum(void *mem, size_t &pos, size_t size, T &t, const char *trackname)
+{
+    if (pos + sizeof(t) > size)
+        TGLError<NRTrack>(FILE_ERROR, "Invalid format of a track %s", trackname);
+    memcpy(&t, (char *)mem + pos, sizeof(t));
+    pos += sizeof(t);
+    return sizeof(t);
+}
+
+template <class T>
+void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec, const T &erec)
+{
+    switch (df.m_function) {
+    case VALUE:
+        {
+            df.m_val = numeric_limits<double>::quiet_NaN();
+
+            for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                    (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
+                {
+                    if (std::isnan(df.m_val))
+                        df.m_val = irec->v();
+                    else if (df.m_val != irec->v()) {
+                        df.m_val = -1;
+                        break;
+                    }
+                }
+            }
+        }
+        break;
+    case EXISTS:
+        {
+            df.m_val = 0;
+            for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                    (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
+                {
+                    df.m_val = 1;
+                    break;
+                }
+            }
+        }
+        break;
+    case FREQUENT:
+        {
+            df.m_frequent_vals.clear();
+
+            for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                    (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
+                    df.m_frequent_vals.push_back(irec->v());
+            }
+
+            sort(df.m_frequent_vals.begin(), df.m_frequent_vals.end());
+            if (df.m_frequent_vals.empty())
+                df.m_val = numeric_limits<double>::quiet_NaN();
+            else {
+                int max_frequency = 1;
+                int frequency = 1;
+                df.m_val = df.m_frequent_vals.front();
+
+                for (vector<double>::const_iterator ival = df.m_frequent_vals.begin() + 1; ival < df.m_frequent_vals.end(); ++ival) {
+                    if (*ival == *(ival - 1)) {
+                        ++frequency;
+                        if (frequency == max_frequency)
+                            df.m_val = -1;
+                        else if (frequency > max_frequency)
+                            df.m_val = *ival;
+                    } else {
+                        if (frequency > max_frequency)
+                            max_frequency = frequency;
+                        else if (max_frequency == 1)
+                            df.m_val = -1;
+                        frequency = 1;
+                    }
+                }
+            }
+        }
+        break;
+    case SAMPLE:
+        {
+            unsigned num_vs = 0;
+
+            for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                    (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
+                    ++num_vs;
+            }
+
+            if (num_vs) {
+                unsigned cnt = drand48() * num_vs;
+
+                for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
+                    if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                        (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
+                    {
+                        if (!cnt) {
+                            df.m_val = irec->v();
+                            break;
+                        }
+                        --cnt;
+                    }
+                }
+            } else
+                df.m_val = numeric_limits<double>::quiet_NaN();
+        }
+        break;
+    case AVG:
+        {
+            unsigned num_vs = 0;
+            double sum = 0;
+
+            for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT)) {
+                    sum += irec->v();
+                    ++num_vs;
+                }
+            }
+            df.m_val = num_vs > 0 ? sum / num_vs : numeric_limits<double>::quiet_NaN();
+        }
+        break;
+    case SIZE:
+        {
+            df.m_val = 0;
+
+            for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                    (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
+                    ++df.m_val;
+            }
+        }
+        break;
+    case SUM:
+        {
+            unsigned num_vs = 0;
+
+            df.m_val = 0;
+            for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT)) {
+                    df.m_val += irec->v();
+                    ++num_vs;
+                }
+            }
+            if (!num_vs)
+                df.m_val = numeric_limits<double>::quiet_NaN();
+        }
+        break;
+    case MIN:
+        {
+            unsigned num_vs = 0;
+
+            df.m_val = numeric_limits<double>::max();
+            for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT)) {
+                    df.m_val = min(df.m_val, irec->v());
+                    ++num_vs;
+                }
+            }
+            if (!num_vs)
+                df.m_val = numeric_limits<double>::quiet_NaN();
+        }
+        break;
+    case MAX:
+        {
+            unsigned num_vs = 0;
+
+            df.m_val = -numeric_limits<double>::max();
+            for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT)) {
+                    df.m_val = max(df.m_val, irec->v());
+                    ++num_vs;
+                }
+            }
+            if (!num_vs)
+                df.m_val = numeric_limits<double>::quiet_NaN();
+        }
+        break;
+    case STDDEV:
+        {
+            unsigned num_vs = 0;
+            double sum = 0;
+            double mean_square_sum = 0;
+
+            for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT)) {
+                    sum += irec->v();
+                    mean_square_sum += irec->v() * irec->v();
+                    ++num_vs;
+                }
+            }
+
+            if (num_vs > 0) {
+                double avg = sum / num_vs;
+                df.m_val = sqrt(mean_square_sum / (num_vs - 1) - (avg * avg) * (num_vs / (num_vs - 1)));
+            }
+            else
+                df.m_val = numeric_limits<double>::quiet_NaN();
+        }
+        break;
+    case PV_UPPER:
+        {
+            unsigned num_vs = 0;
+            double sum = 0;
+
+            for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT)) {
+                    sum += percentile_upper(irec);
+                    ++num_vs;
+                }
+            }
+            df.m_val = num_vs > 0 ? sum / num_vs : numeric_limits<double>::quiet_NaN();
+        }
+        break;
+    case PV_MIN_UPPER:
+        {
+            unsigned num_vs = 0;
+
+            df.m_val = numeric_limits<double>::max();
+            for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT)) {
+                    df.m_val = min(df.m_val, (double)percentile_upper(irec));
+                    ++num_vs;
+                }
+            }
+            if (!num_vs)
+                df.m_val = numeric_limits<double>::quiet_NaN();
+        }
+        break;
+    case PV_MAX_UPPER:
+        {
+            unsigned num_vs = 0;
+
+            df.m_val = -numeric_limits<double>::max();
+            for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT)) {
+                    df.m_val = max(df.m_val, (double)percentile_upper(irec));
+                    ++num_vs;
+                }
+            }
+            if (!num_vs)
+                df.m_val = numeric_limits<double>::quiet_NaN();
+        }
+        break;
+    case PV_LOWER:
+        {
+            unsigned num_vs = 0;
+            double sum = 0;
+
+            for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT)) {
+                    sum += percentile_lower(irec);
+                    ++num_vs;
+                }
+            }
+            df.m_val = num_vs > 0 ? sum / num_vs : numeric_limits<double>::quiet_NaN();
+        }
+        break;
+    case PV_MIN_LOWER:
+        {
+            unsigned num_vs = 0;
+
+            df.m_val = numeric_limits<double>::max();
+            for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT)) {
+                    df.m_val = min(df.m_val, (double)percentile_lower(irec));
+                    ++num_vs;
+                }
+            }
+            if (!num_vs)
+                df.m_val = numeric_limits<double>::quiet_NaN();
+        }
+        break;
+    case PV_MAX_LOWER:
+        {
+            unsigned num_vs = 0;
+
+            df.m_val = -numeric_limits<double>::max();
+            for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT)) {
+                    df.m_val = max(df.m_val, (double)percentile_lower(irec));
+                    ++num_vs;
+                }
+            }
+            if (!num_vs)
+                df.m_val = numeric_limits<double>::quiet_NaN();
+        }
+        break;
+    case QUANTILE:
+        {
+            df.m_sp.reset();
+            for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT))
+                    df.m_sp.add(irec->v(), drand48);
+            }
+        }
+        break;
+    case LM_SLOPE:
+    case LM_INTERCEPT:
+        {
+            unsigned num_vs = 0;
+            double x_sum = 0;
+            double y_sum = 0;
+            double xy_sum = 0;
+            double x2_sum = 0;
+
+            for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT)) {
+                    double hour = irec->time().hour();
+                    x_sum += hour;
+                    y_sum += irec->v();
+                    xy_sum += hour * irec->v();
+                    x2_sum += hour * hour;
+                    ++num_vs;
+                }
+            }
+
+            if (num_vs > 1) {
+                double x_avg = x_sum / num_vs;
+                double y_avg = y_sum / num_vs;
+                df.m_val = (xy_sum - x_sum * y_avg) / (x2_sum - x_sum * x_avg);
+                if (df.m_function == LM_INTERCEPT)
+                    df.m_val = y_avg - df.m_val * x_avg;
+            } else
+                df.m_val = numeric_limits<double>::quiet_NaN();
+        }
+        break;
+    case EARLIEST:
+        {
+            if (is_categorial()) {
+                unsigned hour = 0;
+                df.m_val = numeric_limits<double>::quiet_NaN();
+
+                for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
+                    if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                        (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
+                    {
+                        if (std::isnan(df.m_val))
+                            df.m_val = irec->v();
+                        else {
+                            if (irec->time().hour() != hour)
+                                break;
+                            if (df.m_val != irec->v()) {
+                                df.m_val = -1;
+                                break;
+                            }
+                        }
+                        hour = irec->time().hour();
+                    }
+                }
+            } else {
+                unsigned hour = 0;
+                unsigned num_vs = 0;
+                double sum = 0;
+
+                for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
+                    if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT)) {
+                        if (num_vs && irec->time().hour() != hour)
+                            break;
+                        hour = irec->time().hour();
+                        sum += irec->v();
+                        ++num_vs;
+                    }
+                }
+                df.m_val = num_vs ? sum / num_vs : numeric_limits<double>::quiet_NaN();
+            }
+        }
+        break;
+    case LATEST:
+        {
+            if (is_categorial()) {
+                unsigned hour = 0;
+                df.m_val = numeric_limits<double>::quiet_NaN();
+
+                for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
+                    if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                        (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
+                    {
+                        if (irec->time().hour() != hour)
+                            df.m_val = numeric_limits<double>::quiet_NaN();
+                        if (std::isnan(df.m_val))
+                            df.m_val = irec->v();
+                        else if (df.m_val != irec->v())
+                            df.m_val = -1;
+                        hour = irec->time().hour();
+                    }
+                }
+            } else {
+                unsigned hour = 0;
+                unsigned num_vs = 0;
+                double sum = 0;
+
+                for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
+                    if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT)) {
+                        if (num_vs && irec->time().hour() != hour) {
+                            sum = 0;
+                            num_vs = 0;
+                        }
+                        hour = irec->time().hour();
+                        sum += irec->v();
+                        ++num_vs;
+                    }
+                }
+                df.m_val = num_vs ? sum / num_vs : numeric_limits<double>::quiet_NaN();
+            }
+        }
+        break;
+    case CLOSEST:
+        {
+            if (is_categorial()) {
+                double mid_time = (interv.stime + interv.etime) / 2.;
+                double min_distance = numeric_limits<double>::max();
+                df.m_val = numeric_limits<double>::quiet_NaN();
+
+                for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
+                    if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                        (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
+                    {
+                        double distance = fabs(mid_time - irec->time().hour());
+
+                        if (min_distance < distance)
+                            break;
+
+                        if (min_distance > distance) {
+                            df.m_val = numeric_limits<double>::quiet_NaN();
+                            min_distance = distance;
+                        }
+
+                        if (std::isnan(df.m_val))
+                            df.m_val = irec->v();
+                        else if (df.m_val != irec->v())
+                            df.m_val = -1;
+                    }
+                }
+            } else {
+                double mid_time = (interv.stime + interv.etime) / 2.;
+                double min_distance = numeric_limits<double>::max();
+                unsigned num_vs = 0;
+                double sum = 0;
+
+                for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
+                    if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT)) {
+                        double distance = fabs(mid_time - irec->time().hour());
+
+                        if (min_distance < distance)
+                            break;
+
+                        if (min_distance > distance) {
+                            num_vs = 0;
+                            sum = 0;
+                            min_distance = distance;
+                        }
+                        sum += irec->v();
+                        ++num_vs;
+                    }
+                }
+                df.m_val = num_vs ? sum / num_vs : numeric_limits<double>::quiet_NaN();
+            }
+        }
+        break;
+    case EARLIEST_TIME:
+        {
+            df.m_val = numeric_limits<double>::quiet_NaN();
+
+            for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                    (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
+                {
+                    df.m_val = irec->time().hour();
+                    break;
+                }
+            }
+        }
+        break;
+    case LATEST_TIME:
+        {
+            df.m_val = numeric_limits<double>::quiet_NaN();
+
+            for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                    (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
+                    df.m_val = irec->time().hour();
+            }
+        }
+        break;
+    case CLOSEST_EARLIER_TIME:
+        {
+            double mid_time = (interv.stime + interv.etime) / 2.;
+            double min_distance = numeric_limits<double>::max();
+
+            df.m_val = numeric_limits<double>::quiet_NaN();
+
+            for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                    (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
+                {
+                    NRTimeStamp::Hour hour = irec->time().hour();
+                    double distance = fabs(mid_time - hour);
+
+                    if (min_distance < distance)
+                        break;
+
+                    if (min_distance > distance) {
+                        df.m_val = hour;
+                        min_distance = distance;
+                    }
+                }
+            }
+        }
+        break;
+    case CLOSEST_LATER_TIME:
+        {
+            double mid_time = (interv.stime + interv.etime) / 2.;
+            double min_distance = numeric_limits<double>::max();
+
+            df.m_val = numeric_limits<double>::quiet_NaN();
+
+            for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                    (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end())) {
+                    NRTimeStamp::Hour hour = irec->time().hour();
+                    double distance = fabs(mid_time - hour);
+
+                    if (min_distance < distance)
+                        break;
+
+                    if (min_distance >= distance) {
+                        df.m_val = hour;
+                        min_distance = distance;
+                    }
+                }
+            }
+        }
+        break;
+    case DT1_EARLIEST:
+        {
+            df.m_val = numeric_limits<double>::quiet_NaN();
+
+            for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                    (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
+                {
+                    df.m_val = irec->time().hour() - interv.stime;
+                    break;
+                }
+            }
+        }
+        break;
+    case DT1_LATEST:
+        {
+            df.m_val = numeric_limits<double>::quiet_NaN();
+
+            for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                    (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
+                    df.m_val = irec->time().hour() - interv.stime;
+            }
+        }
+        break;
+    case DT2_EARLIEST:
+        {
+            df.m_val = numeric_limits<double>::quiet_NaN();
+
+            for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                    (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
+                {
+                    df.m_val = interv.etime - irec->time().hour();
+                    break;
+                }
+            }
+        }
+        break;
+    case DT2_LATEST:
+        {
+            df.m_val = numeric_limits<double>::quiet_NaN();
+
+            for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                    (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
+                    df.m_val = interv.etime - irec->time().hour();
+            }
+        }
+        break;
+    }
+}
+
+#endif
+

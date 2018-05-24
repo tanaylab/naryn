@@ -1,0 +1,52 @@
+\name{emr_filter.create}
+\alias{emr_filter.create}
+\title{
+Creates a new named filter
+}
+\description{
+Creates a new named filter.
+}
+\usage{
+emr_filter.create(filter, src, keepref = F, time.shift = NULL,
+                  val = NULL, expiration = NULL)
+}
+%- maybe also 'usage' for other objects documented here.
+\arguments{
+  \item{filter}{filter name}
+  \item{src}{source (track name or id-time table)}
+  \item{keepref}{'TRUE' or 'FALSE'}
+  \item{time.shift}{time shift and expansion for iterator time}
+  \item{val}{selected values}
+  \item{expiration}{expiration period}
+}
+\details{
+This function creates a new named filter.
+
+'src' can be either a track name or an id-time table - data frame with the first columns named "id", "time" and an optional "ref".
+
+If 'val' is not 'NULL', the time window of the filter is required to contain at least one value from the vector of 'val'.
+
+'val' is allowed to be used only when 'src' is a name of a categorial track.
+
+If 'expiration' is not 'NULL' and the filter window contains a value at time 't', the existence of previous values in the time window of [t-expiration, t-1] (aka: "expiration window") is checked. If no such values are found in the expiration window, the filter returns 'TRUE', otherwise 'FALSE'.
+
+'expiration' is allowed to be used only when 'src' is a name of a categorial track and 'keepref' is 'FALSE'.
+
+If both 'val' and 'expiration' are not 'NULL' then only values from 'val' vector are checked both in time window and expiration window.
+
+Note: 'time.shift' can be used only when 'keepref' is 'FALSE'.
+}
+\value{
+None.
+}
+
+\seealso{
+\code{\link{emr_filter.ls}}, \code{\link{emr_filter.exists}}, \code{\link{emr_filter.rm}}
+}
+\examples{
+emr_db.init_examples()
+emr_filter.create("f1", "dense_track", time.shift = c(2,4))
+emr_filter.create("f2", "dense_track", keepref = T)
+emr_extract("sparse_track", filter = "!f1 & f2")
+}
+\keyword{ ~filter }
