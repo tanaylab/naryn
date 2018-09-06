@@ -137,6 +137,9 @@ public:
 	// Returns the size of the buffer used to store highest/lowest values for high-precision computation of quantiles
 	uint64_t quantile_edge_data_size() const { return m_quantile_edge_data_size; }
 
+    // Returns the threshold above which a beat iterator warning is issued (-1 for suppressing warning)
+    uint64_t beat_itr_warning_size() const { return m_beat_itr_warning_size; }
+
     static void set_alarm(int msecs);   // time is given in milliseconds
     static void reset_alarm();
     static int alarm_fired() { return s_sigalrm_fired; }
@@ -209,6 +212,7 @@ protected:
     int                         m_max_processes;
 	uint64_t                    m_max_data_size;
 	uint64_t                    m_quantile_edge_data_size;
+    uint64_t                    m_beat_itr_warning_size;
 
 	void load_options();
 

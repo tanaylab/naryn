@@ -8,16 +8,18 @@ Creates a new virtual track.
 }
 \usage{
 emr_vtrack.create(vtrack, src, func = NULL, params = NULL,
-                  keepref = F, time.shift = NULL, id.map = NULL)
+                  keepref = F, time.shift = NULL, id.map = NULL,
+                  filter = NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{vtrack}{virtual track name}
-  \item{src}{source (track name)}
-  \item{func, params}{see below}
-  \item{keepref}{see below}
-  \item{time.shift}{time shift and expansion for iterator time}
-  \item{id.map}{id mapping}
+  \item{vtrack}{virtual track name.}
+  \item{src}{source (track name).}
+  \item{func, params}{see below.}
+  \item{keepref}{see below.}
+  \item{time.shift}{time shift and expansion for iterator time.}
+  \item{id.map}{id mapping.}
+  \item{filter}{virtual track filter.}
 }
 \details{
 This function creates a new virtual track named 'vtrack'.
@@ -30,7 +32,7 @@ If 'id.map' is 'NULL' then ID1 == ID2, otherwise ID2 is derived from the transla
 
 Both 'time.shift' parameter and 'time.shift' column within 'id.map' may be used simultaneously. In this case the time shifts are applied sequentially.
 
-At the next step the values from 'src' that fall into the new id-time interval are collected. If 'keepref' is 'TRUE' the reference of these values must match 'Ref' unless either the reference or 'Ref' are '-1'.
+At the next step the values from 'src' that fall into the new id-time interval and pass the 'filter' are collected. If 'keepref' is 'TRUE' the reference of these values must match 'Ref' unless either the reference or 'Ref' are '-1'.
 
 Function 'func' (with 'params') is applied then on the collected values and produces a single value which is considered to be the value of 'vtrack' for the given iterator point.
 
@@ -42,7 +44,8 @@ CATEGORIAL TRACKS
     FUNC \tab PARAM \tab DESCRIPTION \cr
     value \tab vals/NULL \tab A track value or -1 if there is more than one. \cr
     exists \tab vals \tab 1 if any of the 'vals' exist otherwise 0. \cr
-    sample \tab vals/NULL \tab uniformly sample a track value. \cr
+    sample \tab NULL \tab Uniformly sampled track value. \cr
+    sample.time \tab NULL \tab Time of the uniformly sampled track value. \cr
     frequent \tab vals/NULL \tab The most frequent track value or -1 if there is more than one value. \cr
     size \tab vals/NULL \tab Number of values. \cr
     earliest \tab vals/NULL \tab Earliest value or -1 if there is more than one. \cr
@@ -67,7 +70,8 @@ QUANTITATIVE TRACKS
     avg \tab NULL \tab Average of all values. \cr
     min \tab NULL \tab Minimal value. \cr
     max \tab NULL \tab Maximal value. \cr
-    sample \tab NULL \tab uniformly sample a track value. \cr
+    sample \tab NULL \tab Uniformly sampled track value. \cr
+    sample.time \tab NULL \tab Time of the uniformly sampled track value. \cr
     size \tab NULL \tab Number of values. \cr
     earliest \tab NULL \tab Average of the earliest values. \cr
     latest \tab NULL \tab Average of the latest values. \cr
@@ -93,7 +97,7 @@ QUANTITATIVE TRACKS
     dt2.latest \tab NULL \tab Time difference between T2 and the latest value \cr
 }
 
-* Percentile is calculated based on the values of the whole track even if a subset is defined.
+* Percentile is calculated based on the values of the whole track even if a subset or a filter are defined.
 
 Note: 'time.shift' can be used only when 'keepref' is 'FALSE'. Also when 'keepref' is 'TRUE' only 'avg', 'percentile.upper' and 'percentile.lower' can be used in 'func'.
 
@@ -103,7 +107,7 @@ None.
 }
 
 \seealso{
-\code{\link{emr_vtrack.ls}}, \code{\link{emr_vtrack.exists}}, \code{\link{emr_vtrack.rm}}
+\code{\link{emr_vtrack.attr.src}}, \code{\link{emr_vtrack.ls}}, \code{\link{emr_vtrack.exists}}, \code{\link{emr_vtrack.rm}}
 }
 \examples{
 emr_db.init_examples()

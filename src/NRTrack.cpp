@@ -18,9 +18,16 @@
 
 //-------------------------------- NRTrack::DataFetcher -----------------------------------
 
-void NRTrack::DataFetcher::init(NRTrack *track, unordered_set<double> &&vals)
+NRTrack::DataFetcher::~DataFetcher()
+{
+    if (m_track_ownership)
+        delete m_track;
+}
+
+void NRTrack::DataFetcher::init(NRTrack *track, bool track_ownership, unordered_set<double> &&vals)
 {
 	m_track = track;
+    m_track_ownership = track_ownership;
     m_vals2compare = move(vals);
 	m_data_idx = (unsigned)0;
 	m_rec_idx = (unsigned)0;
@@ -61,12 +68,14 @@ const double NRTrack::DENSE_TRACK_MIN_DENSITY = 0.4;
 const char *NRTrack::TRACK_TYPE_NAMES[NUM_TRACK_TYPES] = { "sparse", "dense" };
 const char *NRTrack::DATA_TYPE_NAMES[NUM_DATA_TYPES] = { "float", "double" };
 
+// When adding a new function do not forget to update BinsManager::BinsManager()
 const NRTrack::FuncInfo NRTrack::FUNC_INFOS[NRTrack::NUM_FUNCS] = {
     // name                   categorial  quantitative  keepref
     { "value",                true,       false,        true  },
     { "exists",               true,       false,        true  },
     { "frequent",             true,       false,        false },
     { "sample",               true,       true,         false },
+    { "sample.time",          true,       true,         false },
     { "avg",                  false,      true,         true  },
     { "size",                 true,       true,         false },
     { "min",                  false,      true,         false },

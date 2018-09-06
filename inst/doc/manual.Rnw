@@ -91,20 +91,33 @@ This is where virtual tracks come in use.
 Virtual track is a named set of rules that describe how the track should be proceeded, and how the time of the iterator point should be modified. Virtual tracks are created by \texttt{emr\_vtrack.create} function:
 
 \begin{verbatim}
-emr_vtrack.create("annual_glucose", "glucose_track", func="quantile", param=0.5,
-                  time.shift=c(-24*365, 0))
+emr_vtrack.create("annual_glucose", src="glucose_track", func="quantile",
+                  param=0.5, time.shift=c(-365*24, 0))
 \end{verbatim}
 
-This call creates a new virtual track named \texttt{annual\_glucose} based on the underlying physical track \texttt{glucose\_track}. For each iterator point with time \texttt{T} we look at values of \texttt{glucose\_track} in the time window of \texttt{[T-24*365, T]}, i.e. one year prior to \texttt{T}. We calculate then the median over the values (\texttt{func="quantile"}, \texttt{param=0.5}).
+This call creates a new virtual track named \texttt{annual\_glucose} based on the underlying physical \emph{source track} \texttt{glucose\_track}. For each iterator point with time \texttt{T} we look at values of \texttt{glucose\_track} in the time window of \texttt{[T-365*24,T]}, i.e. one year prior to \texttt{T}. We calculate then the median over the values (\texttt{func="quantile"}, \texttt{param=0.5}).
 
 There is a rich set of various functions besides "quantile" that can be applied to the track values. Some of these functions can be used only with categorial tracks, other ones - only with quantitative tracks and some functions can be applied to both types of the track. Please refer the documentation of \texttt{emr\_vtrack.create}.
 
 Once a virtual track is created it can be used in a track expression:
 \begin{verbatim}
-emr_extract("annual_glucose")
+emr_extract("annual_glucose", iterator=list(365*24, ‘date_of_birth_track’))
 \end{verbatim}
 
-In addition to altering (expanding or shifting) the time of the iterator point virtual tracks allow also to remap the patient id. This is done via \texttt{id.map} parameter which accepts a data frame that defines the id mapping. Remapping ids might be useful if family ties are explored. For example, instead of glucose level of the patient we are interested to check the glucose level of one of its family members.
+This would give us a median of an annual glucose level in year-steps starting from the patient's birthday. (This example makes use of an \emph{Extended Beat Iterator} that would be expalained later.)
+
+Let's expand our example further and ignore in our calculations the glucose readings that had been made within a week after steroids had been prescribed. We can use an additional \texttt{filter} parameter to do that.
+
+\begin{verbatim}
+emr_filter.create("steroids_filter", "steroids_track", time.shift=c(-24*7, 0))
+emr_vtrack.create("annual_glucose", src="glucose_track", func="quantile",
+                  param=0.5, time.shift=c(-365*24,0), filter="!steroids_filter")
+emr_extract("annual_glucose", iterator=list(365*24, ‘date_of_birth_track’))
+\end{verbatim}
+
+\emph{Filter} is applied to the ID-Time points of the source track (e.g. \texttt{glucose\_track} in our example). The virtual track function (\texttt{quantile}, ...) is applied then only to the points that pass the filter. The concept of filters is explained extensively in a separate chapter.
+
+Virtual tracks allow also to remap the patient ids. This is done via \texttt{id.map} parameter which accepts a data frame that defines the id mapping. Remapping ids might be useful if family ties are explored. For example, instead of glucose level of the patient we are interested to check the glucose level of one of his family members.
 
 \subsection{Iterators}
 
@@ -177,6 +190,12 @@ emr_extract("alcohol_level_track", iterator=data.frame(stime=c(stime1, stime2),
             etime=c(etime1, etime2)))
 \end{verbatim}
 
+\subsubsection{Id-Time Intervals Iterator}
+
+\emph{Id-Time intervals iterator} generates for each id points that cover \texttt{['stime', 'etime']} time range as specified in \emph{id-time intervals table} (see: Appendix). Each time starts at the beginning of the time interval and runs to the end of it with a step of 1. That being said the points that lie outside of \texttt{[stime, etime]} range are skipped.
+
+If \texttt{keepref=T} for each id-time pair the iterator generates 255 points with references running from \texttt{0} to \texttt{254}. If \texttt{keepref=F} only one point is generated for the given id and time, and its reference is set to \texttt{-1}.
+
 \subsubsection{Beat Iterator}
 
 \emph{Beat Iterator} generates a "time beat" at the given period for each existing patient id. The period is given always in hours.
@@ -222,7 +241,9 @@ emr_extract("emr_time2dayofmonth(EMR_TIME)", iterator = "sparse_track")
 
 \subsection{Filters}
 
-\emph{Filter} expands the functionality of the iterator by allowing to filter out certain iterator points. Filter is a logical expression consisting of \emph{named} or \emph{unnamed} \emph{elementary filters} (the "building bricks" of the filter) connected with the logical operators: \texttt{\&}, \texttt{|}, \texttt{!} and brackets \texttt{()}.
+\emph{Filter} is used to approve / reject an ID-Time point. It can be applied to an iterator, in which case the iterator points are required to be approved by the filter before they are passed further to the track expression. Filter may also be used by a virtual track. In this case the virtual track function (see \texttt{func} parameter of \texttt{emr\_vitrack.create}) is applied only to the points from the source track (\texttt{src} parameter) that pass the filter.
+
+Filter has a form of a logical expression consisting of \emph{named} or \emph{unnamed} \emph{elementary filters} (the "building bricks" of the filter) connected with the logical operators: \texttt{\&}, \texttt{|}, \texttt{!} and brackets \texttt{()}.
 
 \subsubsection{Named Filters}
 
@@ -241,12 +262,23 @@ Each call to \texttt{emr\_filter.create} creates a \emph{named elementary filter
 
 In our previous example we created three named filters based on three tracks. If time window was not required, we could have used the names of the tracks directly in the filter, like: \texttt{filter = "(drugX | drugY) \& !drugZ"}.
 
-In addition to track names other types of objects can be used within the filter. These are: \emph{Id-Time Points Table}, \emph{Ids Table} and \emph{Time Intervals Table} (see \emph{Appendix} for the format of these tables). When used in the filter the object should be constructed in advanced and be referred by its name. "In place" construction (aka: \texttt{filter = "data.frame(...)"} is not allowed.
+In addition to track names other types of objects can be used within the filter. These are: \emph{Id-Time Points Table}, \emph{Ids Table}, \emph{Time Intervals Table} and \emph{Id-Time Intervals Table} (see \emph{Appendix} for the format of these tables). When used in the filter the object should be constructed in advanced and be referred by its name. "In place" construction (aka: \texttt{filter = "data.frame(...)"} is not allowed.
+
+\subsubsection{Managing Reference in Filters}
+
+The ID-Time Point embeds within itself a reference value. Named filters allow to specify whether the reference should be used for matching or not. When \texttt{keepref=TRUE} is set within \texttt{emr\_filter.create}, the candidate point's reference is matched with the filter's reference. Otherwise the references are ignored.
+
+It is important to remember that references are always ignored when any object but a named filter is used within a filter. For instance, if \texttt{filter = "drug"} and \texttt{drug} is a name of a track (and not a name of a named filter), then the references will be ignored during the matching. To ensure the filter matches the references of \texttt{drug} track, one must define a named filter with \texttt{keepref=TRUE} parameter:
+
+\begin{verbatim}
+emr_filter.create("drug_filter", "drug", keepref=TRUE)
+emr_extract(my.track.expression, filter="drug_filter", keepref=TRUE)
+\end{verbatim}
 
 \section{Advanced Naryn}
 
 \subsection{Random Algorithms}
-Various functions of Naryn such as \texttt{emr\_quantiles} make use of pseudo-random number generator that requires a \emph{seed} - an integer value that determines the particular sequence of the pseudo-random numbers. Thus two identical calls to a function might produce different results if the function uses pseudo-random number generator and the seed has been altered between the calls. Similarly the two calls will generate identical results if the seed did not change between the calls. The value of the seed is controlled by an option \texttt{emr\_rnd.seed}. Any integer number can be used as a seed. The default is \texttt{1}. If \texttt{emr\_rnd.seed} is set to \texttt{0} the actual value of the seed is picked up randomly by the function itself.
+Various functions in the library such as \texttt{emr\_quantiles} make use of pseudo-random number generator. Each time the function is invoked a unique series of random numbers is issued. Hence two identical calls might produce different results. To guarantee reproducible results call \texttt{set.seed} before invoking the function.
 
 \subsection{Multitasking}
 
@@ -278,7 +310,7 @@ Naryn supports the following options (see: \texttt{options} and \texttt{getOptio
   & & \\
   \texttt{emr\_eval.buf.size} & \texttt{1000} & Size of the track expression evaluation buffer.  \\
   & & \\
-  \texttt{emr\_rnd.seed} & \texttt{1} & Seed value for pseudo-random number generator. If '0' seed is set randomally.  \\
+  \texttt{emr\_warning.itr.no.filter.size} & \texttt{100000} & Threshold above which "beat iterator used without filter" warning is issued.  \\
 \hline
 \end{tabular}
 
@@ -291,10 +323,14 @@ Id-Time Points table is a data frame having two first columns named ``id'' and `
 
 \subsection{Ids Table}
 
-Ids table is a data frame having the first column named ``id''. Each id must appear only once. Additional columns of the data frame if presented are ignored.
+Ids table is a data frame having the first column named 'id'. Each id must appear only once. Additional columns of the data frame if presented are ignored.
 
 \subsection{Time Intervals Table}
 
-Time Intervals table is a data frame having two first columns named ``stime'' and ``etime'' (i.e. start time and end time). Additional columns if presented are ignored.
+Time Intervals table is a data frame having two first columns named 'stime' and 'etime' (i.e. start time and end time). Additional columns if presented are ignored.
+
+\subsection{Id-Time Intervals Table}
+
+Id-Time Intervals table is a data frame having three first columns named 'id', 'stime' and 'etime' (i.e. start time and end time). Additional columns if presented are ignored.
 
 \end{document}

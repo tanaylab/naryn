@@ -10,8 +10,9 @@
 
 #include "naryn.h"
 #include "NRDb.h"
-#include "NRIteratorFilter.h"
+#include "NRIdTimeIntervalsIterator.h"
 #include "NRIdsIterator.h"
+#include "NRIteratorFilter.h"
 #include "NRPointsIterator.h"
 #include "NRTimesIterator.h"
 #include "NRTrackIterator.h"
@@ -61,7 +62,7 @@ void NRIteratorFilter::init(SEXP filter, unsigned stime, unsigned etime)
         }
     } else {
         if (!isString(filter) && !isSymbol(filter) || Rf_length(filter) != 1)
-            verror("Invalid iterator filter (1)");
+            verror("Invalid filter (1)");
 
         m_tree = create_filter_item(filters, rfilter_names, CHAR(asChar(filter)), false, stime, etime);
     }
@@ -77,7 +78,7 @@ void NRIteratorFilter::build_subtree(vector<SEXP> &filters, vector<SEXP> &rfilte
 
         if (isLanguage(data)) {
             if (idx > 2)
-                verror("Syntax error in iterator filter (2)");
+                verror("Syntax error in filter (2)");
             build_subtree(filters, rfilter_names, data, *tree ? &(*tree)->m_child[idx - 1] : tree, operator_not, stime, etime, depth + 1);
         } else {
             const char *str = CHAR(asChar(data));
@@ -85,7 +86,7 @@ void NRIteratorFilter::build_subtree(vector<SEXP> &filters, vector<SEXP> &rfilte
             if (!idx && !strcmp(str, "(")) {
                 filter = CDR(filter);
                 if (isNull(filter))
-                    verror("Syntax error in iterator filter (3)");
+                    verror("Syntax error in filter (3)");
                 continue;
             }
 
@@ -109,12 +110,12 @@ void NRIteratorFilter::build_subtree(vector<SEXP> &filters, vector<SEXP> &rfilte
                     operator_not = !operator_not;
                     filter = CDR(filter);
                     if (isNull(filter))
-                        verror("Syntax error in iterator filter (4)");
+                        verror("Syntax error in filter (4)");
                     continue;
                 } else if (!strlen(str))
-                    verror("Syntax error in iterator filter (5)");
+                    verror("Syntax error in filter (5)");
                 else if (!isalpha(str[0]) && str[0] != '.')
-                    verror("Unsupported operator '%s' used in iterator filter (6)", str);
+                    verror("Unsupported operator '%s' used in filter (6)", str);
                 else {
                     // track or list surrounded by brackets
 //for (int j = 0; j < depth; ++j)
@@ -122,12 +123,12 @@ void NRIteratorFilter::build_subtree(vector<SEXP> &filters, vector<SEXP> &rfilte
 //printf("track %s surrounded by brackets (not: %d)\n", str, operator_not);
 
                     if (!isNull(CDR(filter)))
-                        verror("Syntax error in iterator filter (6)");
+                        verror("Syntax error in filter (6)");
 
                     *tree = create_filter_item(filters, rfilter_names, str, operator_not, stime, etime);
                 }
             } else if (idx > 2)
-                verror("Syntax error in iterator filter (7)");
+                verror("Syntax error in filter (7)");
             else
 //{
 //for (int j = 0; j < depth; ++j)
@@ -196,6 +197,24 @@ NRIteratorFilterItem *NRIteratorFilter::create_filter_item(vector<SEXP> &filters
             }
         }
 
+        NRIdTimeIntervals id_time_intervs;
+        try {
+            NRIdTimeIntervals::convert_rid_time_intervals(rval, &id_time_intervs);
+            success = true;
+        } catch (TGLException &e) {
+            if (e.type() == typeid(NRIdTimeIntervals) && e.code() != NRIdTimeIntervals::BAD_FORMAT) 
+                verror("Filter item %s: %s", str, e.msg());
+        }
+
+        if (success) {
+            try {
+                filter->m_itr = new NRIdTimeIntervalsIterator(id_time_intervs, filter->m_keepref, stime, etime);
+                return filter;
+            } catch (TGLException &e) {
+                verror("Filter item %s: %s", str, e.msg());
+            }
+        }
+
         vector<unsigned> ids;
         try {
             NRPoint::convert_rids(rval, &ids);
@@ -214,9 +233,9 @@ NRIteratorFilterItem *NRIteratorFilter::create_filter_item(vector<SEXP> &filters
             }
         }
 
-        NRTimeIntervals intervs;
+        NRTimeIntervals time_intervs;
         try {
-            NRTimeIntervals::convert_rtime_intervals(rval, &intervs);
+            NRTimeIntervals::convert_rtime_intervals(rval, &time_intervs);
             success = true;
         } catch (TGLException &e) {
             if (e.type() == typeid(NRTimeIntervals) && e.code() != NRTimeIntervals::BAD_FORMAT) 
@@ -225,7 +244,7 @@ NRIteratorFilterItem *NRIteratorFilter::create_filter_item(vector<SEXP> &filters
 
         if (success) {
             try {
-                filter->m_itr = new NRTimesIterator(intervs, filter->m_keepref, stime, etime);
+                filter->m_itr = new NRTimesIterator(time_intervs, filter->m_keepref, stime, etime);
                 return filter;
             } catch (TGLException &e) {
                 verror("Filter item %s: %s", str, e.msg());
@@ -234,10 +253,10 @@ NRIteratorFilterItem *NRIteratorFilter::create_filter_item(vector<SEXP> &filters
 
         if (strlen(str)) {
             if (isalpha(str[0]) || str[0] == '.')
-                verror("Iterator filter: track %s does not exist (9)", str);
-            verror("Unsupported operator '%s' used in iterator filter (10)", str);
+                verror("Filter: %s neither a track nor a named filter (9)", str);
+            verror("Unsupported operator '%s' used in the filter (10)", str);
         }
-        verror("Syntax error in iterator filter (11)");
+        verror("Syntax error in filter (11)");
     }
     catch (...) {
         delete filter;
@@ -263,7 +282,7 @@ NRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const c
             filter->m_sshift = filter->m_eshift = 0;
         else {
             if (!(isReal(rtshift) || isInteger(rtshift)) || Rf_length(rtshift) < 1 || Rf_length(rtshift) > 2)
-                verror("Filter %s: time.shift must be an integer or a pair of integers", name);
+                verror("Filter %s: 'time.shift' must be an integer or a pair of integers", name);
 
             if (Rf_length(rtshift) == 1)
                 filter->m_sshift = filter->m_eshift = isReal(rtshift) ? (int)REAL(rtshift)[0] : INTEGER(rtshift)[0];
@@ -276,7 +295,7 @@ NRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const c
 
             if (filter->m_sshift < -(int)NRTimeStamp::MAX_HOUR || filter->m_sshift > (int)NRTimeStamp::MAX_HOUR ||
                 filter->m_eshift < -(int)NRTimeStamp::MAX_HOUR || filter->m_eshift > (int)NRTimeStamp::MAX_HOUR)
-                verror("Filter %s: time.shift is out of range", name);
+                verror("Filter %s: 'time.shift' is out of range", name);
         }
 
         int _stime = filter->m_stime + filter->m_sshift;
@@ -289,11 +308,11 @@ NRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const c
         SEXP rkeepref = get_rvector_col(rfilter, "keepref", name, true);
 
         if (!isLogical(rkeepref) || Rf_length(rkeepref) != 1 || asLogical(rkeepref) == NA_LOGICAL)
-            verror("Filter %s: keepref must be a logical value", name);
+            verror("Filter %s: 'keepref' must be a logical value", name);
         filter->m_keepref = asLogical(rkeepref);
 
         if (filter->m_keepref && (filter->m_sshift || filter->m_eshift))
-            verror("Filter %s: time shift is not allowed when keepref is 'TRUE'", name);
+            verror("Filter %s: 'time.shift' is not allowed when keepref is 'TRUE'", name);
 
         SEXP rval = get_rvector_col(rfilter, "val", name, false);
         SEXP rexpiration = get_rvector_col(rfilter, "expiration", name, false);
@@ -301,7 +320,7 @@ NRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const c
 
         if (isString(rsrc)) { // track name
             if (Rf_length(rsrc) != 1)
-                verror("Filter %s: invalid source", name);
+                verror("Filter %s: invalid 'src'", name);
 
             const char *track_name = CHAR(STRING_ELT(rsrc, 0));
             NRTrack *track = g_db->track(track_name);
@@ -310,10 +329,10 @@ NRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const c
                 verror("Filter %s: track %s does not exist", name, track_name);
 
             if (!isNull(rval) && !track->is_categorial())
-                verror("Filter %s: val parameter can be used only with categorial tracks", name);
+                verror("Filter %s: 'val' parameter can be used only with categorial tracks", name);
 
             if (!isNull(rval) && (!isReal(rval) && !isInteger(rval)))
-                verror("Filter %s: val must be numeric vector", name);
+                verror("Filter %s: 'val' must be a numeric vector", name);
 
             unordered_set<double> vals;
             for (int i = 0; i < Rf_length(rval); ++i)
@@ -325,17 +344,17 @@ NRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const c
             if (isNull(rexpiration))
                 expiration = 0;
             else if (!isReal(rexpiration) && !isInteger(rexpiration) || Rf_length(rexpiration) != 1)
-                verror("Filter %s: expiration must be a positive integer", name);
+                verror("Filter %s: 'expiration' must be a positive integer", name);
             else if (filter->m_keepref)
-                verror("Filter %s: expiration cannot be used when keepref is TRUE", name);
+                verror("Filter %s: 'expiration' cannot be used when keepref is 'TRUE'", name);
             else if (!track->is_categorial())
-                verror("Filter %s: expiration can be used only with categorial tracks", name);
+                verror("Filter %s: 'expiration' can be used only with categorial tracks", name);
             else {
                 expiration = asReal(rexpiration);
                 if (expiration < 1 || expiration != (int)expiration)
-                    verror("Filter %s: expiration must be a positive integer", name);
+                    verror("Filter %s: 'expiration' must be a positive integer", name);
                 if (expiration > NRTimeStamp::MAX_HOUR)
-                    verror("Filter %s: expiration is out of range", name);
+                    verror("Filter %s: 'expiration' is out of range", name);
             }
 
             filter->m_itr = new NRTrackIterator(track, filter->m_keepref, _stime, _etime, move(vals), expiration);
@@ -345,15 +364,15 @@ NRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const c
                 NRPoint::convert_rpoints(rsrc, &points);
 
                 if (!isNull(rval))
-                    verror("val parameter can be used only with categorial tracks");
+                    verror("'val' parameter can be used only with categorial tracks");
 
                 if (!isNull(rexpiration))
-                    verror("expiration parameter can be used only with tracks");
+                    verror("'expiration' parameter can be used only with tracks");
 
                 filter->m_itr = new NRPointsIterator(points, filter->m_keepref, _stime, _etime);
             } catch (TGLException &e) {
                 if (e.type() == typeid(NRPoint) && e.code() != NRPoint::BAD_FORMAT) 
-                    verror("Filter %s: source is neigther a track nor an id-time data frame", name);
+                    verror("Filter %s: 'src' is neigther a track nor an id-time data frame", name);
 
                 verror("Filter item %s: %s", name, e.msg());
             }
@@ -465,6 +484,57 @@ SEXP emr_check_named_filter(SEXP _filter, SEXP _name, SEXP _envir)
 		rerror("%s", e.msg());
 	}
 	return R_NilValue;
+}
+
+SEXP emr_check_filter_attr_time_shift(SEXP _tshift, SEXP _envir)
+{
+	try {
+		Naryn naryn(_envir);
+
+		// check the arguments
+        if (!(isReal(_tshift) || isInteger(_tshift)) || Rf_length(_tshift) < 1 || Rf_length(_tshift) > 2)
+            verror("'time.shift' must be an integer or a pair of integers");
+
+        int sshift, eshift;
+
+        if (Rf_length(_tshift) == 1)
+            sshift = eshift = isReal(_tshift) ? (int)REAL(_tshift)[0] : INTEGER(_tshift)[0];
+        else {
+            sshift = isReal(_tshift) ? (int)REAL(_tshift)[0] : INTEGER(_tshift)[0];
+            eshift = isReal(_tshift) ? (int)REAL(_tshift)[1] : INTEGER(_tshift)[1];
+        }
+
+        if (sshift < -(int)NRTimeStamp::MAX_HOUR || sshift > (int)NRTimeStamp::MAX_HOUR ||
+            eshift < -(int)NRTimeStamp::MAX_HOUR || eshift > (int)NRTimeStamp::MAX_HOUR)
+            verror("'time.shift' is out of range");
+	} catch (TGLException &e) {
+		rerror("%s", e.msg());
+	}
+	rreturn(R_NilValue);
+}
+
+SEXP emr_check_filter_attr_expiration(SEXP _expiration, SEXP _envir)
+{
+	try {
+		Naryn naryn(_envir);
+
+		// check the arguments
+        double expiration;
+        if (isNull(_expiration))
+            expiration = 0;
+        else if (!isReal(_expiration) && !isInteger(_expiration) || Rf_length(_expiration) != 1)
+            verror("'expiration' must be a positive integer");
+        else {
+            expiration = asReal(_expiration);
+            if (expiration < 1 || expiration != (int)expiration)
+                verror("'expiration' must be a positive integer");
+            if (expiration > NRTimeStamp::MAX_HOUR)
+                verror("'expiration' is out of range");
+        }
+	} catch (TGLException &e) {
+		rerror("%s", e.msg());
+	}
+	rreturn(R_NilValue);
 }
 
 }

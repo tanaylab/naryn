@@ -14,7 +14,7 @@
 
 extern "C" {
 
-SEXP emr_dist(SEXP _exprs, SEXP _breaks, SEXP _include_lowest, SEXP _stime, SEXP _etime, SEXP _iterator_policy, SEXP _keepref, SEXP _filter, SEXP _envir)
+SEXP emr_dist(SEXP _exprs, SEXP _breaks, SEXP _include_lowest, SEXP _right, SEXP _stime, SEXP _etime, SEXP _iterator_policy, SEXP _keepref, SEXP _filter, SEXP _envir)
 {
 	try {
         Naryn naryn(_envir);
@@ -27,7 +27,7 @@ SEXP emr_dist(SEXP _exprs, SEXP _breaks, SEXP _include_lowest, SEXP _stime, SEXP
         NRTrackExprScanner scanner;
         scanner.begin(_exprs, NRTrackExprScanner::REAL_T, _stime, _etime, _iterator_policy, _keepref, _filter);
 
-        BinsManager bins_manager(_breaks, _include_lowest, &scanner.get_track_exprs(), &scanner.get_expr_vars());
+        BinsManager bins_manager(_breaks, _include_lowest, _right, &scanner.get_track_exprs(), &scanner.get_expr_vars());
 
         if (bins_manager.get_num_bin_finders() != num_exprs)
             verror("Number of breaks sets must be equal to the number of tracks used");

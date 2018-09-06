@@ -7,15 +7,16 @@ Calculates distribution of track expressions
 Calculates distribution of track expressions' values over the given set of bins. 
 }
 \usage{
-emr_dist([expr, breaks]+, include.lowest = F, stime = MINTIME,
-         etime = MAXTIME, iterator = NULL, keepref = F,
-         filter = NULL)
+emr_dist([expr, breaks]+, include.lowest = F, right = T,
+         stime = MINTIME, etime = MAXTIME, iterator = NULL,
+         keepref = F, filter = NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{expr}{track expression}
   \item{breaks}{breaks that determine the bin or 'NULL'}
-  \item{include.lowest}{if 'TRUE', the lowest value of the range determined by breaks is included}
+  \item{include.lowest}{if 'TRUE', the lowest (or highest, for ‘right = FALSE’) value of the range determined by breaks is included}
+  \item{right}{if 'TRUE' the intervals are closed on the right (and open on the left), otherwise vice versa.}
   \item{stime}{start time scope}
   \item{etime}{end time scope}
   \item{iterator}{track expression iterator. If 'NULL' iterator is determined implicitly based on track expressions.}
@@ -29,8 +30,6 @@ The range of bins is determined by 'breaks' argument. For example: 'breaks=c(x1,
 
 If the track expression constitutes of a categorial track or a virtual track which source is a categorial track, the 'breaks' is allowed to be 'NULL' meaning that the breaks are derived implicitly from the unique values of the underlying track.
 
-If 'include.lowest' is 'TRUE' the the lowest value will be included in the first interval, i.e. in [x1, x2]
-
 'emr_dist' can work with any number of dimensions. If more than one 'expr'-'breaks' pair is passed, the result is a multidimensional vector, and an individual value can be accessed by [i1,i2,...,iN] notation, where 'i1' is the first track and 'iN' is the last track expression.
 }
 \value{
@@ -38,7 +37,7 @@ N-dimensional vector where N is the number of 'expr'-'breaks' pairs.
 }
 
 \seealso{
-\code{\link{emr_cor}}
+\code{\link{emr_cor}}, \code{\link{cut}}
 }
 \examples{
 emr_db.init_examples()

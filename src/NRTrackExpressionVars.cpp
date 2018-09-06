@@ -3,6 +3,8 @@
 
 #include "naryn.h"
 #include "NRDb.h"
+#include "NRIteratorFilter.h"
+#include "NRTrackExpressionScanner.h"
 #include "NRTrackExpressionVars.h"
 
 #include <R.h>
@@ -17,7 +19,7 @@ NRTrackExpressionVars::NRTrackExpressionVars()
 	m_imanagers.reserve(10000);
 }
 
-void NRTrackExpressionVars::parse_exprs(const vector<string> &track_exprs)
+void NRTrackExpressionVars::parse_exprs(const vector<string> &track_exprs, bool only_check, unsigned stime, unsigned etime)
 {
 	SEXP emr_vtracks = R_NilValue;
     vector<SEXP> rvtracknames;
@@ -70,7 +72,7 @@ void NRTrackExpressionVars::parse_exprs(const vector<string> &track_exprs)
 
     				while ((pos = iexpr->find(track, pos)) != string::npos) {
     					if (is_var(*iexpr, pos, pos + track.size())) {
-    						add_vtrack_var(track, VECTOR_ELT(vtracks[i], itrack));
+    						add_vtrack_var(track, VECTOR_ELT(vtracks[i], itrack), only_check, stime, etime);
     						break;
     					}
     					pos += track.size();
@@ -95,7 +97,7 @@ NRTrackExpressionVars::IteratorManager *NRTrackExpressionVars::add_imanager(cons
 			verror("Reached the limit of maximal number of simultaneously used virtual tracks");
 
 		m_imanagers.push_back(imanager);
-		m_imanagers.back().data_fetcher.init(track, move(vals));
+		m_imanagers.back().data_fetcher.init(track, imanager.filter != R_NilValue, move(vals));
         m_imanagers.back().data_fetcher.register_function(func);
 		return &m_imanagers.back();
 	}
@@ -103,7 +105,7 @@ NRTrackExpressionVars::IteratorManager *NRTrackExpressionVars::add_imanager(cons
 	return &*iimanager;
 }
 
-void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack)
+void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, bool only_check, unsigned stime, unsigned etime)
 {
 	for (TrackVars::const_iterator ivar = m_track_vars.begin(); ivar != m_track_vars.end(); ++ivar) {
 		if (ivar->var_name == vtrack)
@@ -118,10 +120,10 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack)
 		verror("Invalid format of a virtual track %s", vtrack.c_str());
 
 	imanager.name = CHAR(STRING_ELT(rsrc, 0));
-	NRTrack *track = g_db->track(imanager.name.c_str());
+    NRTrack *track = g_db->track(imanager.name.c_str());
 
-	if (!track)
-		verror("Invalid source %s used in virtual track %s", imanager.name.c_str(), vtrack.c_str());
+    if (!track)
+        verror("Invalid source %s used in a virtual track %s", imanager.name.c_str(), vtrack.c_str());
 
 	SEXP rtshift = get_rvector_col(rvtrack, "time_shift", vtrack.c_str(), false);
 
@@ -129,7 +131,7 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack)
 		imanager.sshift = imanager.eshift = 0;
 	else {
 		if (!(isReal(rtshift) || isInteger(rtshift)) || Rf_length(rtshift) < 1 || Rf_length(rtshift) > 2)
-			verror("Virtual track %s: time_shift must be an integer or a pair of integers", vtrack.c_str());
+			verror("Virtual track %s: 'time.shift' must be an integer or a pair of integers", vtrack.c_str());
 
 		if (Rf_length(rtshift) == 1)
 			imanager.sshift = imanager.eshift = isReal(rtshift) ? (int)REAL(rtshift)[0] : INTEGER(rtshift)[0];
@@ -142,7 +144,7 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack)
 
         if (imanager.sshift < -(int)NRTimeStamp::MAX_HOUR || imanager.sshift > (int)NRTimeStamp::MAX_HOUR ||
             imanager.eshift < -(int)NRTimeStamp::MAX_HOUR || imanager.eshift > (int)NRTimeStamp::MAX_HOUR)
-            verror("Virtual track %s: time_shift is out of range", vtrack.c_str());
+            verror("Virtual track %s: 'time.shift' is out of range", vtrack.c_str());
 	}
 
     SEXP rkeepref = get_rvector_col(rvtrack, "keepref", vtrack.c_str(), true);
@@ -239,23 +241,23 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack)
         }
 
         if (!isVector(rid_map) || xlength(rid_map) < NUM_COLS - 1)
-            verror("Virtual track %s: invalid format of id map", vtrack.c_str());
+            verror("Virtual track %s: invalid format of 'id.map'", vtrack.c_str());
 
         SEXP colnames = getAttrib(rid_map, R_NamesSymbol);
 
         if (!isString(colnames) || xlength(colnames) < NUM_COLS - 1)
-            verror("Virtual track %s: invalid format of id map", vtrack.c_str());
+            verror("Virtual track %s: invalid format of 'id.map'", vtrack.c_str());
 
         for (unsigned i = 0; i < NUM_COLS - 1; i++) {
             if (strcmp(CHAR(STRING_ELT(colnames, i)), COL_NAMES[i]))
-                verror("Virtual track %s: invalid format of id map", vtrack.c_str());
+                verror("Virtual track %s: invalid format of 'id.map'", vtrack.c_str());
         }
 
         bool time_shift_used = xlength(rid_map) >= NUM_COLS && xlength(colnames) >= NUM_COLS &&
             !strcmp(CHAR(STRING_ELT(colnames, TIME_SHIFT)), COL_NAMES[TIME_SHIFT]);
 
         if (time_shift_used && imanager.keepref)
-            verror("Time shift in id.map is not supported when keepref is 'TRUE'");
+            verror("Time shift in 'id.map' is not supported when 'keepref' is 'TRUE'");
 
         SEXP rids1 = VECTOR_ELT(rid_map, ID1);
         SEXP rids2 = VECTOR_ELT(rid_map, ID2);
@@ -264,8 +266,7 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack)
 
         if (!isReal(rids1) && !isInteger(rids1) || !isReal(rids2) && !isInteger(rids2) || xlength(rids1) != xlength(rids2) ||
             time_shift_used && xlength(rids1) != xlength(rtime_shift))
-            verror("Virtual track %s: invalid format of id map", vtrack.c_str());
-
+            verror("Virtual track %s: invalid format of 'id.map'", vtrack.c_str());
 
         for (unsigned i = 0; i < num_ids; ++i) {
             double id1 = isReal(rids1) ? REAL(rids1)[i] : INTEGER(rids1)[i];
@@ -276,15 +277,55 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack)
                 time_shift = isReal(rtime_shift) ? REAL(rtime_shift)[i] : INTEGER(rtime_shift)[i];
 
             if (id1 < g_db->minid() || id1 > g_db->maxid() || id1 != (int)id1)
-                verror("Virtual track %s: invalid id (%g) within id map", vtrack.c_str(), id1);
+                verror("Virtual track %s: invalid id (%g) within 'id.map'", vtrack.c_str(), id1);
             if (id2 < g_db->minid() || id2 > g_db->maxid() || id2 != (int)id2)
-                verror("Virtual track %s: invalid id (%g) within id map", vtrack.c_str(), id2);
+                verror("Virtual track %s: invalid id (%g) within 'id.map'", vtrack.c_str(), id2);
 
             IdMap::const_iterator iid_map = imanager.id_map.find((unsigned)id1);
             if (iid_map != imanager.id_map.end())
-                verror("Virtual track %s: id (%d) is mapped more than once within id map", vtrack.c_str(), (unsigned)id1);
+                verror("Virtual track %s: id (%d) is mapped more than once within 'id.map'", vtrack.c_str(), (unsigned)id1);
 
             imanager.id_map[(unsigned)id1] = {(unsigned)id2, time_shift};
+        }
+    }
+
+    SEXP rfilter = get_rvector_col(rvtrack, "filter", vtrack.c_str(), false);
+
+    if (!isNull(rfilter)) {
+        if (only_check) {
+            NRIteratorFilter filter;
+            filter.init(rfilter, g_db->mintime(), g_db->maxtime());
+        } else {
+            // Create an intermediate track by applying the filter to the original track
+            track = g_db->track(imanager.name.c_str());
+
+            NRTrackData<float> track_data_float;
+            NRTrackData<double> track_data_double;
+            vector<string> track_expr;
+
+            track_expr.push_back(imanager.name);
+
+            NRTrackExprScanner scanner;
+
+            scanner.report_progress(false);
+
+            for (scanner.begin(track_expr, NRTrackExprScanner::REAL_T,
+                               max((int)stime + imanager.sshift, (int)g_db->mintime()),
+                               min((int)etime + imanager.eshift, (int)g_db->maxtime()),
+                               R_NilValue, true, rfilter); !scanner.isend(); scanner.next())
+            {
+                if (track->data_type() == NRTrack::FLOAT)
+                    track_data_float.add_data(scanner.point().id, scanner.point().timestamp, scanner.real());
+                else
+                    track_data_double.add_data(scanner.point().id, scanner.point().timestamp, scanner.real());
+            }
+
+            if (track->data_type() == NRTrack::FLOAT)
+                track = NRTrack::construct((vtrack + ".filtered").c_str(), track, track->flags(), track_data_float);
+            else
+                track = NRTrack::construct((vtrack + ".filtered").c_str(), track, track->flags(), track_data_double);
+
+            imanager.filter = rfilter;
         }
     }
 

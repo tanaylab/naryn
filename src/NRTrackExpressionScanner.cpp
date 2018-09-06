@@ -17,6 +17,7 @@
 #include "HashFunc.h"
 #include "NRBeatIterator.h"
 #include "NRBeatExtIterator.h"
+#include "NRIdTimeIntervalsIterator.h"
 #include "NRIdsIterator.h"
 #include "NRPointsIterator.h"
 #include "NRTimesIterator.h"
@@ -160,7 +161,7 @@ void NRTrackExprScanner::check(const vector<string> &track_exprs, unsigned stime
 	m_eval_doubles.resize(m_track_exprs.size(), NULL);
 	m_eval_ints.resize(m_track_exprs.size(), NULL);
 
-	m_expr_vars.parse_exprs(m_track_exprs);
+	m_expr_vars.parse_exprs(m_track_exprs, false, stime, etime);
 
 	// initiate the expression iterator
 	create_expr_iterator(&m_itr, iterator_policy, keepref, m_expr_vars, m_track_exprs, stime, etime, filter);
@@ -222,6 +223,17 @@ bool NRTrackExprScanner::begin(const vector<string> &track_exprs, ValType valtyp
             runprotect(res);
         }
 	}
+
+    if (isNull(filter) && (typeid(m_itr.itr()) == typeid(NRBeatIterator) || typeid(m_itr.itr()) == typeid(NRBeatExtIterator)) &&
+        g_naryn->beat_itr_warning_size() != (uint64_t)-1 && m_itr.itr().size() > g_naryn->beat_itr_warning_size())
+    {
+        if (typeid(m_itr.itr()) == typeid(NRBeatIterator))
+            vwarning("The Beat Iterator is going to produce %llu points.\n"
+                     "To improve performance please consider using a filter.\n", m_itr.itr().size());
+        else
+            vwarning("The Extended Beat Iterator might produce up to %llu points.\n"
+                     "To improve performance please consider using a filter.\n", m_itr.itr().size());
+    }
 
 	m_num_evals = 0;
 	m_last_progress_reported = -1;
@@ -340,7 +352,7 @@ void NRTrackExprScanner::start_multitasking()
         ids_subset.clear();
         ids_subset.reserve(ids_subset_size);
         for (size_t i = 0; i < ids_subset_size; ++i) {
-            size_t idx = (size_t)(drand48() * ids_left.size());
+            size_t idx = (size_t)(unif_rand() * ids_left.size());
             ids_subset.push_back(ids_left[idx]);
             swap(ids_left[idx], ids_left[ids_left.size() - 1]);
             ids_left.pop_back();
@@ -377,7 +389,7 @@ void NRTrackExprScanner::start_multitasking()
 
 void NRTrackExprScanner::kid_main_loop(vector<unsigned> &ids_subset)
 {
-    g_db->ids_subset(ids_subset, 1, false, 0);
+    g_db->ids_subset(ids_subset, "", 1, false);
 
     m_mtask_buf_size = m_mtask_record_size * m_eval_buf_limit;
     delete []m_mtask_buf;
@@ -468,10 +480,10 @@ void NRTrackExprScanner::create_expr_iterator(SEXP rtrack_exprs, SEXP rstime, SE
     for (int i = 0; i < Rf_length(rtrack_exprs); ++i)
         m_track_exprs[i] = CHAR(STRING_ELT(rtrack_exprs, i));
 
-    m_expr_vars.parse_exprs(m_track_exprs);
-
     unsigned stime, etime;
     convert_rscope(rstime, retime, &stime, &etime);
+
+    m_expr_vars.parse_exprs(m_track_exprs, false, stime, etime);
 
     // initiate the expression iterator
     create_expr_iterator(&m_itr, iterator_policy, convert_rkeepref(rkeepref), m_expr_vars, m_track_exprs, stime, etime, filter, call_begin);
@@ -481,7 +493,6 @@ void NRTrackExprScanner::create_expr_iterator(IteratorWithFilter *itr, SEXP rite
                                               const vector<string> &track_exprs, unsigned stime, unsigned etime, SEXP filter, bool call_begin)
 {
     NRTrackExpressionIterator *expr_itr = NULL;
-
 
     if ((isReal(riterator) || isInteger(riterator)) && Rf_length(riterator) == 1)            // iterator == period
         expr_itr = new NRBeatIterator(asInteger(riterator), keepref, stime, etime);
@@ -526,6 +537,26 @@ void NRTrackExprScanner::create_expr_iterator(IteratorWithFilter *itr, SEXP rite
                 expr_itr = new NRPointsIterator(points, keepref, stime, etime);
             } catch (TGLException &e) {
                 verror("Iterator: %s", e.msg());
+            }
+        }
+
+        if (!success) {
+            NRIdTimeIntervals intervs;
+
+            try {
+                NRIdTimeIntervals::convert_rid_time_intervals(riterator, &intervs);
+                success = true;
+            } catch (TGLException &e) {
+                if (e.type() == typeid(NRIdTimeIntervals) && e.code() != NRIdTimeIntervals::BAD_FORMAT) 
+                    verror("Iterator: %s", e.msg());
+            }
+
+            if (success) {
+                try {
+                    expr_itr = new NRIdTimeIntervalsIterator(intervs, keepref, stime, etime);
+                } catch (TGLException &e) {
+                    verror("Iterator: %s", e.msg());
+                }
             }
         }
 

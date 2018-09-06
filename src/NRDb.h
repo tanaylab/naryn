@@ -47,11 +47,11 @@ public:
     void unload_track(const char *track_name);
 
     const IdsSubset &ids_subset() const { return m_ids_subset; }
+    const string &ids_subset_src() const { return m_ids_subset_src; }
     double ids_subset_fraction() const { return m_ids_subset_fraction; }
     bool   ids_subset_complementary() const { return m_ids_subset_complementary; }
-    int    ids_subset_seed() const { return m_ids_subset_seed; }
 
-    void ids_subset(vector<unsigned> &ids, double fraction, bool complementary, int seed);
+    void ids_subset(vector<unsigned> &ids, const char *src, double fraction, bool complementary);
     bool is_in_subset(unsigned id) const { return m_ids_subset.empty() || m_ids_subset.find(id) != m_ids_subset.end(); }
     void clear_ids_subset();
 
@@ -65,9 +65,9 @@ protected:
     vector<string>   m_global_track_names;
     vector<string>   m_user_track_names;
     IdsSubset        m_ids_subset;
+    string           m_ids_subset_src;
     double           m_ids_subset_fraction;
     bool             m_ids_subset_complementary;
-    int              m_ids_subset_seed;
 	string           m_grootdir;
     string           m_urootdir;
     unsigned         m_minid;

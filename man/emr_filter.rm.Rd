@@ -11,7 +11,7 @@ emr_filter.rm(filter)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{filter}{virtual track name}
+  \item{filter}{filter name}
 }
 \details{
 This function deletes a named filter from current R environment.
@@ -31,4 +31,4 @@ emr_filter.ls()
 emr_filter.rm("f1")
 emr_filter.ls()
 }
-\keyword{ ~virtual }
+\keyword{ ~filter }

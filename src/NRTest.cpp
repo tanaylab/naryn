@@ -7,6 +7,7 @@
 #include <R.h>
 #include <Rinternals.h>
 #include <R_ext/BLAS.h>
+#include <R_ext/Parse.h>
 
 #ifdef length
 #undef length
@@ -181,9 +182,9 @@ SEXP nrtest_regressiondb_create(SEXP envir)
             NRTrackData<float> data;
 
             for (size_t ival = 0; ival < num_vals[itrack]; ++ival) {
-                float val = is_categorial[itrack] ? (unsigned)(drand48() * max_val_categorial) : (unsigned)(drand48() * max_val);
-                unsigned id = (unsigned)(drand48() * max_patients);
-                unsigned hour = (unsigned)(drand48() * max_time);
+                float val = is_categorial[itrack] ? (unsigned)(unif_rand() * max_val_categorial) : (unsigned)(unif_rand() * max_val);
+                unsigned id = (unsigned)(unif_rand() * max_patients);
+                unsigned hour = (unsigned)(unif_rand() * max_time);
                 
                 for (int ref = 0; ref < NRTimeStamp::MAX_REFCOUNT; ++ref) {
                     try {
@@ -203,8 +204,8 @@ SEXP nrtest_regressiondb_create(SEXP envir)
             if (track_type == NRTrack::DENSE) {
                 // sparse is created when density falls beyond the limit
                 unsigned id = (unsigned)(max_patients / NRTrack::DENSE_TRACK_MIN_DENSITY) + 10;
-                float val = (unsigned)(drand48() * max_val);
-                unsigned hour = (unsigned)(drand48() * max_time);
+                float val = (unsigned)(unif_rand() * max_val);
+                unsigned hour = (unsigned)(unif_rand() * max_time);
 
                 data.add_data(id, NRTimeStamp(hour, 0), val);
                 sprintf(filename, "%s/track%d_sparse%s", g_db->grootdir().c_str(), itrack, NRDb::TRACK_FILE_EXT.c_str());
@@ -277,7 +278,7 @@ SEXP nrtest_vtrack(SEXP _track, SEXP envir)
             }
 
             if (i < NRTrack::NUM_FUNCS) {
-                df.init(t, unordered_set<double>());
+                df.init(t, false, unordered_set<double>());
                 df.register_function((NRTrack::Func)f);
                 interv.init(0, 0, 0, 0);
             } else if (f == -1)
@@ -527,7 +528,7 @@ SEXP nrimport_clalit(SEXP _dirname, SEXP _envir)
 
 					for (unsigned char refcount = 0; ; ++refcount) {
 						// for now put random timestamp
-						timestamp.init((unsigned)(drand48() * 1000000), refcount);
+						timestamp.init((unsigned)(unif_rand() * 1000000), refcount);
 
 						if (datasets.find(testcode) == datasets.end())
 							datasets[testcode] = new NRTrackData<float>();
@@ -769,6 +770,48 @@ SEXP emr_test_pipe(SEXP _num_processes, SEXP _timeout, SEXP _envir)
 
         vdebug("End\n");
         printf("Received: %ld bytes, rate: %ld bytes / sec\n", bytes_read, bytes_read / timeout);
+	} catch (TGLException &e) {
+		rerror("%s", e.msg());
+	}
+
+	rreturn(R_NilValue);
+}
+
+SEXP emr_test_eval(SEXP _expr, SEXP _n, SEXP _envir)
+{
+	try {
+		Naryn naryn(_envir);
+
+        if (!isString(_expr) || Rf_length(_expr) != 1)
+            verror("'expr' argument must be a string");
+
+        if ((!isInteger(_n) && !isReal(_n)) || Rf_length(_n) != 1)
+            verror("'n' argument must be an integer value");
+
+        const char *expr_str = { CHAR(asChar(_expr)) };
+        int n = asInteger(_n);
+
+        SEXP aaa, bbb;
+        rprotect(aaa = allocVector(REALSXP, 1));
+        rprotect(bbb = allocVector(REALSXP, 1));
+        defineVar(install("aaa"), aaa, g_naryn->env());
+        defineVar(install("bbb"), bbb, g_naryn->env());
+
+        // parse R expression
+        ParseStatus status;
+        SEXP parsed_expr;
+        rprotect(parsed_expr = R_ParseVector(_expr, -1, &status, R_NilValue));
+        if (status != PARSE_OK)
+            verror("R parsing failed");
+        SEXP eval_expr = VECTOR_ELT(parsed_expr, 0);
+        for (int i = 0; i < n; ++i) {
+            REAL(aaa)[0] = i;
+            REAL(bbb)[0] = i + 1;
+            SEXP res = eval_in_R(eval_expr, g_naryn->env());
+            int lres = REAL(res)[0];
+//            printf("res: %g\n", REAL(res)[0]);
+            runprotect(res);
+        }
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
 	}

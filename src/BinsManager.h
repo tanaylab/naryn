@@ -15,7 +15,7 @@ using namespace std;
 
 class BinsManager {
 public:
-	BinsManager(SEXP breaks, SEXP include_lowest, const vector<string> *exprs, const NRTrackExpressionVars *expr_vars);
+	BinsManager(SEXP breaks, SEXP include_lowest, SEXP _right, const vector<string> *exprs, const NRTrackExpressionVars *expr_vars);
 
 	// returns -1 if any of the values does not fall into a bin
 	int vals2idx(const vector<double> &vals) const;
@@ -33,6 +33,7 @@ private:
     vector<NRTrack *> m_tracks;
 	unsigned          m_totalbins;
 	bool              m_include_lowest;
+    bool              m_right;
 };
 
 

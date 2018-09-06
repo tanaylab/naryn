@@ -63,24 +63,24 @@ inline bool NRBeatExtIterator::begin()
         if (itr_hour >= m_stime) {
             m_point.init(itr_id, itr_hour, m_keepref ? 0 : NRTimeStamp::NA_REFCOUNT);
             return true;
-        } else {
-            while (1) {
-                NRTimeStamp::Hour hour = m_period * (unsigned)ceil((m_stime - itr_hour) / (double)m_period) + itr_hour;
+        }
 
-                if (hour <= m_etime) {
-                    m_point.init(itr_id, hour, m_keepref ? 0 : NRTimeStamp::NA_REFCOUNT);
-                    return true;
-                }
+        while (1) {
+            NRTimeStamp::Hour hour = m_period * (unsigned)ceil((m_stime - itr_hour) / (double)m_period) + itr_hour;
 
-                if (!m_itr->next())
-                    break;
-
-                if (m_itr->point().id == itr_id)
-                    verror("Id %d appears multiple times in the initiation table of the beat iterator", itr_id);
-
-                itr_id = m_itr->point().id;
-                itr_hour = m_itr->point().timestamp.hour();
+            if (hour <= m_etime) {
+                m_point.init(itr_id, hour, m_keepref ? 0 : NRTimeStamp::NA_REFCOUNT);
+                return true;
             }
+
+            if (!m_itr->next())
+                break;
+
+            if (m_itr->point().id == itr_id)
+                verror("Id %d appears multiple times in the initiation table of the beat iterator", itr_id);
+
+            itr_id = m_itr->point().id;
+            itr_hour = m_itr->point().timestamp.hour();
         }
     }
 

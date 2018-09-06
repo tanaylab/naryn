@@ -2,17 +2,21 @@
 #include "NRDb.h"
 #include "naryn.h"
 
-BinsManager::BinsManager(SEXP _breaks, SEXP _include_lowest, const vector<string> *exprs, const NRTrackExpressionVars *expr_vars)
+BinsManager::BinsManager(SEXP _breaks, SEXP _include_lowest, SEXP _right, const vector<string> *exprs, const NRTrackExpressionVars *expr_vars)
 {
 	if (!isVector(_breaks))
-		TGLError<BinsManager>("Breaks argument must be a vector");
+		TGLError<BinsManager>("'breaks' argument must be a vector");
 
 	if (!isLogical(_include_lowest) || Rf_length(_include_lowest) != 1)
-		TGLError<BinsManager>("include.lowest argument is not logical");
+		TGLError<BinsManager>("'include.lowest' argument is not logical");
+
+    if (!isLogical(_right) || Rf_length(_right) != 1)
+        TGLError<BinsManager>("'right' argument is not logical");
 
 	unsigned num_breaks_sets = Rf_length(_breaks);
 
-	m_include_lowest = LOGICAL(_include_lowest)[0];
+	m_include_lowest = asLogical(_include_lowest);
+    m_right = asLogical(_right);
 	m_bin_finders.reserve(num_breaks_sets);
 	m_track_mult.resize(num_breaks_sets);
     m_tracks.resize(num_breaks_sets, NULL);
@@ -31,9 +35,9 @@ BinsManager::BinsManager(SEXP _breaks, SEXP _include_lowest, const vector<string
 
 			for (int i = 0; i < Rf_length(breaks); i++)
 				double_breaks[i] = INTEGER(breaks)[i];
-			m_bin_finders.back().init(double_breaks, m_include_lowest);
+			m_bin_finders.back().init(double_breaks, m_include_lowest, m_right);
 		} else if (isReal(breaks))
-			m_bin_finders.back().init(REAL(breaks), Rf_length(breaks), m_include_lowest);
+			m_bin_finders.back().init(REAL(breaks), Rf_length(breaks), m_include_lowest, m_right);
         else {  // breaks is NULL
             const NRTrackExpressionVars::TrackVar *var = expr_vars->var((*exprs)[i].c_str());
 
@@ -48,6 +52,7 @@ BinsManager::BinsManager(SEXP _breaks, SEXP _include_lowest, const vector<string
             if (var->imanager->data_fetcher.func() != NRTrack::VALUE &&
                 var->imanager->data_fetcher.func() != NRTrack::FREQUENT &&
                 var->imanager->data_fetcher.func() != NRTrack::SAMPLE &&
+                var->imanager->data_fetcher.func() != NRTrack::SAMPLE_TIME &&
                 var->imanager->data_fetcher.func() != NRTrack::EARLIEST &&
                 var->imanager->data_fetcher.func() != NRTrack::LATEST &&
                 var->imanager->data_fetcher.func() != NRTrack::CLOSEST)
@@ -97,7 +102,10 @@ void BinsManager::set_dims(SEXP dim, SEXP dimnames, SEXP breaks_set) const
 
     		for (int j = 0; j < numbins; j++) {
     			char buf[100];
-    			sprintf(buf, "%c%g,%g]", j || !m_include_lowest ? '(' : '[', bin_finder.get_breaks()[j], bin_finder.get_breaks()[j + 1]);
+                if (m_right)
+                    sprintf(buf, "%c%g,%g]", j || !m_include_lowest ? '(' : '[', bin_finder.get_breaks()[j], bin_finder.get_breaks()[j + 1]);
+                else
+                    sprintf(buf, "[%g,%g%c", j != numbins - 1 || !m_include_lowest ? ')' : ']', bin_finder.get_breaks()[j], bin_finder.get_breaks()[j + 1]);
     			SET_STRING_ELT(dimname, j, mkChar(buf));
                 REAL(breaks)[j] = bin_finder.get_breaks()[j];
     		}

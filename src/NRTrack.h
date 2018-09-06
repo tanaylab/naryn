@@ -26,7 +26,7 @@ public:
 
 	enum DataType { FLOAT, DOUBLE, NUM_DATA_TYPES };
 
-	enum Func { VALUE, EXISTS, FREQUENT, SAMPLE, AVG, SIZE, MIN, MAX, EARLIEST, LATEST, CLOSEST,
+	enum Func { VALUE, EXISTS, FREQUENT, SAMPLE, SAMPLE_TIME, AVG, SIZE, MIN, MAX, EARLIEST, LATEST, CLOSEST,
         EARLIEST_TIME, LATEST_TIME, CLOSEST_EARLIER_TIME, CLOSEST_LATER_TIME, STDDEV, SUM, QUANTILE,
         PV_UPPER, PV_LOWER, PV_MIN_UPPER, PV_MIN_LOWER, PV_MAX_UPPER, PV_MAX_LOWER,
         LM_SLOPE, LM_INTERCEPT, DT1_EARLIEST, DT1_LATEST, DT2_EARLIEST, DT2_LATEST, NUM_FUNCS
@@ -67,7 +67,7 @@ public:
 
     virtual unsigned size() const = 0;
     virtual unsigned unique_size() const = 0;
-    virtual void     unique_vals(vector<double> &vals) = 0;
+    virtual void     unique_vals(vector<double> &vals) const = 0;
     virtual double   minval() const = 0;
     virtual double   maxval() const = 0;
     virtual float    percentile_upper(void *rec) const = 0;
@@ -80,6 +80,10 @@ public:
 
     virtual size_t count_ids(const vector<unsigned> &ids) const = 0;
 
+    // Construct an intermediate track for virtual track queries based on NRTrackData and the original track
+    template <class T>
+    static NRTrack *construct(const char *name, NRTrack *base_track, unsigned flags, const NRTrackData<T> &data);
+
 	template <class T>
 	static TrackType serialize(const char *filename, unsigned flags, const NRTrackData<T> &data);
 
@@ -89,9 +93,11 @@ public:
 	class DataFetcher {
 	public:
 		DataFetcher() : m_track(NULL) {}
-		DataFetcher(NRTrack *track, unordered_set<double> vals2compare) : m_track(NULL) { init(track, move(vals2compare)); }
+		DataFetcher(NRTrack *track, bool track_ownership, unordered_set<double> vals2compare) : m_track(NULL) { init(track, track_ownership, move(vals2compare)); }
 
-		void init(NRTrack *track, unordered_set<double> &&vals2compare);
+        ~DataFetcher();
+
+		void init(NRTrack *track, bool track_ownership, unordered_set<double> &&vals2compare);
 		void register_function(Func func);
 		void set_vals(const NRInterval &interv);
 
@@ -108,6 +114,7 @@ protected:
         template <class T> friend class NRTrackSparse;
 
 		NRTrack               *m_track;
+        bool                   m_track_ownership;
         unsigned               m_last_id;
         Func                   m_function;
         unordered_set<double>  m_vals2compare;
@@ -160,18 +167,21 @@ public:
 	};
 
 protected:
+    char           *m_mem{NULL};             // used for an intermediate track built in memory
     void           *m_shmem;
     size_t          m_shmem_size;
     string          m_name;
 	TrackType       m_track_type;
 	DataType        m_data_type;
     unsigned        m_flags;
+    NRTrack        *m_base_track{NULL};     // if the track is intermediate (for virtual track queries), then base track is the one that is used as a source
     unsigned        m_min_id;
     unsigned        m_max_id;
     unsigned        m_min_time;
     unsigned        m_max_time;
 
-	NRTrack(const char *name, TrackType track_type, DataType data_type, unsigned flags, void *&mem, size_t size, unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime);
+    NRTrack(const char *name, TrackType track_type, DataType data_type, unsigned flags, void *&mem, size_t size, unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime);
+	NRTrack(const char *name, TrackType track_type, DataType data_type, unsigned flags, NRTrack *base_track, unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime);
 
     template <class T>
     static int read_datum(void *mem, size_t &pos, size_t size, T &t, const char *trackname);
@@ -236,10 +246,94 @@ inline NRTrack::NRTrack(const char *name, TrackType track_type, DataType data_ty
     swap(m_shmem, mem); // move the ownership of the shared memory to the class
 }
 
+inline NRTrack::NRTrack(const char *name, TrackType track_type, DataType data_type, unsigned flags, NRTrack *base_track,
+                        unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime) :
+    m_name(name),
+	m_track_type(track_type),
+	m_data_type(data_type),
+    m_flags(flags),
+    m_base_track(base_track),
+    m_shmem(MAP_FAILED),
+    m_shmem_size(0),
+    m_min_id(minid),
+    m_max_id(maxid),
+    m_min_time(mintime),
+    m_max_time(maxtime)
+{}
+
 inline NRTrack::~NRTrack()
 {
+    delete m_mem;
     if (m_shmem != MAP_FAILED)
         munmap(m_shmem, m_shmem_size);
+}
+
+template <class T>
+NRTrack *NRTrack::construct(const char *name, NRTrack *base_track, unsigned flags, const NRTrackData<T> &data)
+{
+    TrackType track_type;
+    DataType data_type;
+
+    // determine min / max patient id
+    unsigned minid = numeric_limits<unsigned>::max();
+    unsigned maxid = 0;
+    unsigned mintime = NRTimeStamp::MAX_HOUR;
+    unsigned maxtime = 0;
+
+    for (typename NRTrackData<T>::Key2Val::const_iterator idata = data.m_key2val.begin(); idata != data.m_key2val.end(); ++idata) {
+        minid = min(minid, idata->first.id);
+        maxid = max(maxid, idata->first.id);
+        mintime = min(mintime, (unsigned)idata->first.timestamp.hour());
+        maxtime = max(maxtime, (unsigned)idata->first.timestamp.hour());
+    }
+
+    // determine the density of patient ids
+    double data_density = 0;
+    unsigned data_size = 0;
+
+    if (minid <= maxid) {
+        unsigned idrange = maxid - minid + 1;
+        vector<bool> idmap(idrange, false);
+
+        for (typename NRTrackData<T>::Key2Val::const_iterator idata = data.m_key2val.begin(); idata != data.m_key2val.end(); ++idata)
+            idmap[idata->first.id - minid] = true;
+
+        for (vector<bool>::const_iterator iidmap = idmap.begin(); iidmap != idmap.end(); ++iidmap) {
+            if (*iidmap) 
+                ++data_size;
+        }
+
+        data_density = data_size / (double)idrange;
+    }
+
+    // based on patients density determine the format of the track
+    track_type = data_density > DENSE_TRACK_MIN_DENSITY ? DENSE : SPARSE;
+
+    if (typeid(T) == typeid(float))
+        data_type = FLOAT;
+    else if (typeid(T) == typeid(double))
+        data_type = DOUBLE;
+    else
+        TGLError<NRTrack>(BAD_DATA_TYPE, "Invalid data type %s used to create a track", typeid(T).name());
+
+    if (minid > maxid) {
+        minid = 1;
+        maxid = 0;
+    }
+
+    if (mintime > maxtime) {
+        mintime = 1;
+        maxtime = 0;
+    }
+
+    NRTrack *track = NULL;
+
+    if (track_type == SPARSE)
+        track = new NRTrackSparse<T>(name, base_track, data, data_size, data_type, flags, minid, maxid, mintime, maxtime);
+    else if (track_type == DENSE)
+        track = new NRTrackDense<T>(name, base_track, data, data_type, flags, minid, maxid, mintime, maxtime);
+
+    return track;
 }
 
 template <class T>
@@ -432,7 +526,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
             }
 
             if (num_vs) {
-                unsigned cnt = drand48() * num_vs;
+                unsigned cnt = unif_rand() * num_vs;
 
                 for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
                     if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
@@ -440,6 +534,34 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
                     {
                         if (!cnt) {
                             df.m_val = irec->v();
+                            break;
+                        }
+                        --cnt;
+                    }
+                }
+            } else
+                df.m_val = numeric_limits<double>::quiet_NaN();
+        }
+        break;
+    case SAMPLE_TIME:
+        {
+            unsigned num_vs = 0;
+
+            for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                    (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
+                    ++num_vs;
+            }
+
+            if (num_vs) {
+                unsigned cnt = unif_rand() * num_vs;
+
+                for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
+                    if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                        (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
+                    {
+                        if (!cnt) {
+                            df.m_val = irec->time().hour();
                             break;
                         }
                         --cnt;
@@ -634,7 +756,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
             df.m_sp.reset();
             for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
                 if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT))
-                    df.m_sp.add(irec->v(), drand48);
+                    df.m_sp.add(irec->v(), unif_rand);
             }
         }
         break;

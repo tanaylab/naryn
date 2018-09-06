@@ -41,7 +41,7 @@ None.
 }
 
 \seealso{
-\code{\link{emr_filter.ls}}, \code{\link{emr_filter.exists}}, \code{\link{emr_filter.rm}}
+\code{\link{emr_filter.attr.src}}, \code{\link{emr_filter.ls}}, \code{\link{emr_filter.exists}}, \code{\link{emr_filter.rm}}
 }
 \examples{
 emr_db.init_examples()

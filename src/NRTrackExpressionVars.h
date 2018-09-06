@@ -33,8 +33,9 @@ public:
         bool                  keepref;
         NRInterval            interv;
         IdMap                 id_map;
+        SEXP                  filter;
 
-        IteratorManager() : sshift(0), eshift(0), keepref(false) {}
+        IteratorManager() : sshift(0), eshift(0), keepref(false), filter(R_NilValue) {}
         bool operator==(const IteratorManager &o) const;
 
         void transform(const NRPoint &point, NRTimeStamp::Refcount refcount);
@@ -54,7 +55,7 @@ public:
 
 	const string &get_track_name(unsigned ivar) const { return m_track_vars[ivar].imanager->name; }
 
-	void parse_exprs(const vector<string> &track_exprs);
+	void parse_exprs(const vector<string> &track_exprs, bool only_check, unsigned stime = 0, unsigned etime = 0);
 	void define_r_vars(unsigned size);
     const TrackVar *var(const char *var_name) const;
 
@@ -71,7 +72,7 @@ private:
 
 	IteratorManager     *add_imanager(const IteratorManager &imanager, NRTrack *track, NRTrack::Func func, unordered_set<double> &&vals);
 	TrackVar            &add_track_var(const string &track);
-	void                 add_vtrack_var(const string &track, SEXP rvtrack);
+	void                 add_vtrack_var(const string &track, SEXP rvtrack, bool only_check, unsigned stime, unsigned etime);
 
 	bool is_var(const string &str, size_t start, size_t end) const { return (!start || !is_R_var_char(str[start - 1])) && (end == str.size() || !is_R_var_char(str[end])); }
 };
@@ -81,7 +82,7 @@ private:
 
 inline bool NRTrackExpressionVars::IteratorManager::operator==(const IteratorManager &o) const
 {
-    return id_map.empty() && o.id_map.empty() && name == o.name && sshift == o.sshift && eshift == o.eshift && keepref == o.keepref;
+    return id_map.empty() && o.id_map.empty() && filter == R_NilValue && o.filter == R_NilValue && name == o.name && sshift == o.sshift && eshift == o.eshift && keepref == o.keepref;
 }
 
 inline void NRTrackExpressionVars::IteratorManager::transform(const NRPoint &point, NRTimeStamp::Refcount refcount)

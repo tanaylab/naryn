@@ -11,14 +11,14 @@ template <class T>
 class NRTrackDense : public NRTrack {
 public:
     virtual unsigned size() const { return m_num_recs; }
-    virtual unsigned unique_size() const { return m_num_percentiles; }
-    virtual void     unique_vals(vector<double> &vals);
+    virtual unsigned unique_size() const { return m_base_track ? m_base_track->unique_size() : m_num_percentiles; }
+    virtual void     unique_vals(vector<double> &vals) const;
     virtual float    percentile_upper(void *rec) const;
     virtual float    percentile_upper(double val) const;
     virtual float    percentile_lower(void *rec) const;
     virtual float    percentile_lower(double val) const;
-    virtual double   minval() const { return (double)m_sorted_unique_vals[0]; }
-    virtual double   maxval() const { return (double)m_sorted_unique_vals[m_num_percentiles - 1]; }
+    virtual double   minval() const { return m_base_track ? m_base_track->minval() : (double)m_sorted_unique_vals[0]; }
+    virtual double   maxval() const { return m_base_track ? m_base_track->maxval() : (double)m_sorted_unique_vals[m_num_percentiles - 1]; }
 
     virtual void ids(vector<unsigned> &ids);
 	virtual void data_recs(NRTrackData<double>::DataRecs &data_recs);
@@ -56,6 +56,9 @@ protected:
 
 	NRTrackDense(const char *name, DataType data_type, unsigned flags, void *&mem, size_t &pos, size_t size,
                  unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime);
+
+    NRTrackDense(const char *name, NRTrack *base_track, const NRTrackData<T> &track_data, DataType data_type,
+                 unsigned flags, unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime);
 
     unsigned data_size() const { return m_max_id - m_min_id + 1; }
     unsigned num_recs(unsigned dataidx) const;
@@ -108,6 +111,62 @@ NRTrackDense<T>::NRTrackDense(const char *name, DataType data_type, unsigned fla
         m_percentiles = (float *)((char *)m_shmem + pos);
         pos += m_num_percentiles * sizeof(float);
     }
+}
+
+template <class T>
+NRTrackDense<T>::NRTrackDense(const char *name, NRTrack *base_track, const NRTrackData<T> &track_data, DataType data_type,
+                              unsigned flags, unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime) :
+	NRTrack(name, DENSE, data_type, flags, base_track, minid, maxid, mintime, maxtime)
+{
+    m_num_recs = track_data.m_key2val.size();
+
+    typename NRTrackData<T>::DataRecs data_recs;
+    data_recs.reserve(track_data.m_key2val.size());
+
+    unsigned data_size = maxid - minid + 1;
+    vector<unsigned> data(data_size, (unsigned)-1);
+    vector<Rec> recs(m_num_recs);
+
+    for (typename NRTrackData<T>::Key2Val::const_iterator idata = track_data.m_key2val.begin(); idata != track_data.m_key2val.end(); ++idata) {
+        typename NRTrackData<T>::DataRec rec;
+        rec.id = idata->first.id;
+        rec.timestamp = idata->first.timestamp;
+        rec.val = idata->second;
+        data_recs.push_back(rec);
+    }
+    sort(data_recs.begin(), data_recs.end());
+
+    unsigned rec_idx = 0;
+
+    for (typename NRTrackData<T>::DataRecs::const_iterator irec = data_recs.begin(); irec != data_recs.end(); ++irec) {
+        unsigned &_rec_idx = data[irec->id - minid];
+
+        if (_rec_idx == (unsigned)-1)
+            _rec_idx = rec_idx;
+        recs[rec_idx].timestamp = irec->timestamp;
+        recs[rec_idx].val = irec->val;
+        ++rec_idx;
+    }
+
+    size_t mem_size = sizeof(unsigned) * data.size() + sizeof(Rec) * recs.size();
+
+    if (posix_memalign((void **)&m_mem, 64, mem_size))
+        verror("%s", strerror(errno));
+
+    size_t pos = 0;
+
+    memcpy(m_mem + pos, &data.front(), sizeof(unsigned) * data.size());
+    m_data = (unsigned *)(m_mem + pos);
+    pos += sizeof(unsigned) * data.size();
+
+    memcpy(m_mem + pos, &recs.front(), sizeof(Rec) * recs.size());
+    m_recs = (Rec *)(m_mem + pos);
+    pos += sizeof(Rec) * recs.size();
+
+    // percentiles are taken from the base track
+    m_num_percentiles = 0;
+    m_sorted_unique_vals = NULL;
+    m_percentiles = NULL;
 }
 
 template <class T>
@@ -186,12 +245,16 @@ unsigned NRTrackDense<T>::next_dataidx(unsigned dataidx) const
 }
 
 template <class T>
-void NRTrackDense<T>::unique_vals(vector<double> &vals)
+void NRTrackDense<T>::unique_vals(vector<double> &vals) const
 {
-    vals.clear();
-    vals.reserve(m_num_percentiles);
-    for (size_t i = 0; i < m_num_percentiles; ++i)
-        vals.push_back((double)m_sorted_unique_vals[i]);
+    if (m_base_track)
+        m_base_track->unique_vals(vals);
+    else {
+        vals.clear();
+        vals.reserve(m_num_percentiles);
+        for (size_t i = 0; i < m_num_percentiles; ++i)
+            vals.push_back((double)m_sorted_unique_vals[i]);
+    }
 }
 
 template <class T>
@@ -204,6 +267,9 @@ unsigned NRTrackDense<T>::num_recs(unsigned dataidx) const
 template <class T>
 float NRTrackDense<T>::percentile_upper(void *rec) const
 {
+    if (m_base_track)
+        return m_base_track->percentile_upper((double)((Rec *)rec)->v());
+
     T *ival = lower_bound(m_sorted_unique_vals, m_sorted_unique_vals + m_num_percentiles, ((Rec *)rec)->v());
     return m_percentiles[ival - m_sorted_unique_vals];
 }
@@ -211,6 +277,9 @@ float NRTrackDense<T>::percentile_upper(void *rec) const
 template <class T>
 float NRTrackDense<T>::percentile_upper(double value) const
 {
+    if (m_base_track)
+        return m_base_track->percentile_upper(value);
+
     T *ival = lower_bound(m_sorted_unique_vals, m_sorted_unique_vals + m_num_percentiles, (T)value);
     return m_percentiles[ival - m_sorted_unique_vals];
 }
@@ -218,6 +287,9 @@ float NRTrackDense<T>::percentile_upper(double value) const
 template <class T>
 float NRTrackDense<T>::percentile_lower(void *rec) const
 {
+    if (m_base_track)
+        return m_base_track->percentile_lower((double)((Rec *)rec)->v());
+
     T *ival = lower_bound(m_sorted_unique_vals, m_sorted_unique_vals + m_num_percentiles, ((Rec *)rec)->v());
     return ival == m_sorted_unique_vals ? 0 : m_percentiles[ival - m_sorted_unique_vals - 1];
 }
@@ -225,6 +297,9 @@ float NRTrackDense<T>::percentile_lower(void *rec) const
 template <class T>
 float NRTrackDense<T>::percentile_lower(double value) const
 {
+    if (m_base_track)
+        return m_base_track->percentile_lower(value);
+
     T *ival = lower_bound(m_sorted_unique_vals, m_sorted_unique_vals + m_num_percentiles, (T)value);
     return ival == m_sorted_unique_vals ? 0 : m_percentiles[ival - m_sorted_unique_vals - 1];
 }

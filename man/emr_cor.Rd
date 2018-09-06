@@ -7,7 +7,7 @@ Calculates correlation statistics for pairs of track expressions
 Calculates correlation statistics for pairs of track expressions.
 }
 \usage{
-emr_cor([expr, breaks]+, cor.exprs, include.lowest = F,
+emr_cor([expr, breaks]+, cor.exprs, include.lowest = F, right = T,
         stime = MINTIME, etime = MAXTIME, iterator = NULL,
         keepref = F, filter = NULL)
 }
@@ -16,7 +16,8 @@ emr_cor([expr, breaks]+, cor.exprs, include.lowest = F,
   \item{expr}{track expression.}
   \item{breaks}{breaks that determine the bin or 'NULL'.}
   \item{cor.exprs}{vector of track expressions for which correlation statistics is calculated.}
-  \item{include.lowest}{if 'TRUE', the lowest value of the range determined by breaks is included.}
+  \item{include.lowest}{if 'TRUE', the lowest (or highest, for ‘right = FALSE’) value of the range determined by breaks is included.}
+  \item{right}{if 'TRUE' the intervals are closed on the right (and open on the left), otherwise vice versa.}
   \item{stime}{start time scope.}
   \item{etime}{end time scope.}
   \item{iterator}{track expression iterator. If 'NULL' iterator is determined implicitly based on track expressions.}
@@ -39,7 +40,7 @@ A list of 5 elements each containing a N-dimensional vector (N is the number of 
 }
 
 \seealso{
-\code{\link{emr_dist}}, \code{\link{emr_track.unique}}
+\code{\link{emr_dist}}, \code{\link{cut}}, \code{\link{emr_track.unique}}
 }
 \examples{
 emr_db.init_examples()

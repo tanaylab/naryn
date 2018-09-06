@@ -341,10 +341,9 @@ void NRDb::clear_ids_subset()
     m_ids_subset.clear();
     m_ids_subset_fraction = 1;
     m_ids_subset_complementary = false;
-    m_ids_subset_seed = 0;
 }
 
-void NRDb::ids_subset(vector<unsigned> &ids, double fraction, bool complementary, int seed)
+void NRDb::ids_subset(vector<unsigned> &ids, const char *src, double fraction, bool complementary)
 {
     if (fraction < 0 || fraction > 1)
         verror("Invalid value of fraction, must be in [0,1] range.");
@@ -358,14 +357,12 @@ void NRDb::ids_subset(vector<unsigned> &ids, double fraction, bool complementary
         verror("The subset is empty. Please choose a different fraction value.");
 
     clear_ids_subset();
+    m_ids_subset_src = src;
     m_ids_subset_fraction = fraction;
     m_ids_subset_complementary = complementary;
-    m_ids_subset_seed = seed;
-
-    srand48(seed);
 
     for (size_t i = 0; i < subset_size; ++i) {
-        size_t idx = (size_t)(drand48() * (ids.size() - subset_size));
+        size_t idx = (size_t)(unif_rand() * (ids.size() - subset_size));
 
         if (!complementary)
             m_ids_subset.insert(ids[idx]);
@@ -446,7 +443,7 @@ SEXP emr_dbunload(SEXP envir)
 	return R_NilValue;
 }
 
-SEXP emr_db_subset(SEXP _src, SEXP _fraction, SEXP _complementary, SEXP _seed, SEXP _envir)
+SEXP emr_db_subset(SEXP _src, SEXP _fraction, SEXP _complementary, SEXP _envir)
 {
 	try {
 		Naryn naryn(_envir);
@@ -460,23 +457,21 @@ SEXP emr_db_subset(SEXP _src, SEXP _fraction, SEXP _complementary, SEXP _seed, S
             if (!isLogical(_complementary) || Rf_length(_complementary) != 1 || LOGICAL(_complementary)[0] == NA_LOGICAL)
                 verror("\"complementary\" argument must be a logical value");
 
-            if (!isReal(_seed) && !isInteger(_seed))
-                verror("\"seed\" argument must be an integer");
-
             double fraction = asReal(_fraction);
             bool complementary = asLogical(_complementary);
-            int seed = asInteger(_seed);
+            string src;
             vector<unsigned> ids;
 
             if (isString(_src) && Rf_length(_src) == 1) {
-                const char *trackname = CHAR(STRING_ELT(_src, 0));
-                NRTrack *track = g_db->track(trackname);
+                src = CHAR(STRING_ELT(_src, 0));
+                NRTrack *track = g_db->track(src.c_str());
 
                 if (!track)
-                    verror("Track %s does not exist.", trackname);
+                    verror("Track %s does not exist.", src.c_str());
 
                 track->ids(ids);
             } else {
+                src = "<Ids Table>";
                 try {
                     NRPoint::convert_rids(_src, &ids);
                 } catch (TGLException &e) {
@@ -490,7 +485,7 @@ SEXP emr_db_subset(SEXP _src, SEXP _fraction, SEXP _complementary, SEXP _seed, S
                 ids.erase(last, ids.end());
             }
 
-            g_db->ids_subset(ids, fraction, complementary, seed);
+            g_db->ids_subset(ids, src.c_str(), fraction, complementary);
         }
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
@@ -528,22 +523,20 @@ SEXP emr_db_subset_info(SEXP _envir)
         if (g_db->ids_subset().empty())
             return R_NilValue;
 
-        enum { FRACTION, COMPLEMENTARY, SEED, NUM_COLS };
+        enum { SRC, FRACTION, COMPLEMENTARY, NUM_COLS };
 
-        const char *COL_NAMES[NUM_COLS] = { "fraction", "complementary", "seed" };
+        const char *COL_NAMES[NUM_COLS] = { "src", "fraction", "complementary" };
         SEXP answer, names;
 
         rprotect(answer = allocVector(VECSXP, NUM_COLS));
         rprotect(names = allocVector(STRSXP, NUM_COLS));
 
+        SET_VECTOR_ELT(answer, SRC, mkString(g_db->ids_subset_src().c_str()));
         SET_VECTOR_ELT(answer, FRACTION, allocVector(REALSXP, 1));
         REAL(VECTOR_ELT(answer, FRACTION))[0] = g_db->ids_subset_fraction();
 
         SET_VECTOR_ELT(answer, COMPLEMENTARY, allocVector(LGLSXP, 1));
         LOGICAL(VECTOR_ELT(answer, COMPLEMENTARY))[0] = g_db->ids_subset_complementary();
-
-        SET_VECTOR_ELT(answer, SEED, allocVector(REALSXP, 1));
-        REAL(VECTOR_ELT(answer, SEED))[0] = g_db->ids_subset_seed();
 
         for (int i = 0; i < NUM_COLS; ++i)
             SET_STRING_ELT(names, i, mkChar(COL_NAMES[i]));

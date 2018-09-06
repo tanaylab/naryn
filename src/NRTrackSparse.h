@@ -10,14 +10,14 @@ template <class T>
 class NRTrackSparse : public NRTrack {
 public:
     virtual unsigned size() const { return m_num_recs; }
-    virtual unsigned unique_size() const { return m_num_percentiles; }
-    virtual void     unique_vals(vector<double> &vals);
+    virtual unsigned unique_size() const { return m_base_track ? m_base_track->unique_size() : m_num_percentiles; }
+    virtual void     unique_vals(vector<double> &vals) const;
     virtual float    percentile_upper(void *rec) const;
     virtual float    percentile_upper(double val) const;
     virtual float    percentile_lower(void *rec) const;
     virtual float    percentile_lower(double val) const;
-    virtual double   minval() const { return (double)m_sorted_unique_vals[0]; }
-    virtual double   maxval() const { return (double)m_sorted_unique_vals[m_num_percentiles - 1]; }
+    virtual double   minval() const { return m_base_track ? m_base_track->minval() : (double)m_sorted_unique_vals[0]; }
+    virtual double   maxval() const { return m_base_track ? m_base_track->maxval() : (double)m_sorted_unique_vals[m_num_percentiles - 1]; }
 
     virtual void ids(vector<unsigned> &ids);
 	virtual void data_recs(NRTrackData<double>::DataRecs &data_recs);
@@ -66,6 +66,9 @@ protected:
 	NRTrackSparse(const char *name, DataType data_type, unsigned flags, void *&mem, size_t &pos, size_t size,
                   unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime);
 
+    NRTrackSparse(const char *name, NRTrack *base_track, const NRTrackData<T> &track_data, unsigned data_size, DataType data_type,
+                  unsigned flags, unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime);
+
     unsigned num_recs(Data *idata) const;
 
 	void serialize(const char *filename);
@@ -111,6 +114,66 @@ NRTrackSparse<T>::NRTrackSparse(const char *name, DataType data_type, unsigned f
         m_percentiles = (float *)((char *)m_shmem + pos);
         pos += m_num_percentiles * sizeof(float);
     }
+}
+
+template <class T>
+NRTrackSparse<T>::NRTrackSparse(const char *name, NRTrack *base_track, const NRTrackData<T> &track_data, unsigned data_size, DataType data_type,
+                                unsigned flags, unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime) :
+	NRTrack(name, SPARSE, data_type, flags, base_track, minid, maxid, mintime, maxtime)
+{
+    m_data_size = data_size;
+    m_num_recs = track_data.m_key2val.size();
+
+    typename NRTrackData<T>::DataRecs data_recs;
+    data_recs.reserve(track_data.m_key2val.size());
+
+    vector<Data> data(data_size);
+    vector<Rec> recs(m_num_recs);
+
+    for (typename NRTrackData<T>::Key2Val::const_iterator idata = track_data.m_key2val.begin(); idata != track_data.m_key2val.end(); ++idata) {
+        typename NRTrackData<T>::DataRec rec;
+        rec.id = idata->first.id;
+        rec.timestamp = idata->first.timestamp;
+        rec.val = idata->second;
+        data_recs.push_back(rec);
+    }
+    sort(data_recs.begin(), data_recs.end());
+
+    unsigned cur_dataid = (unsigned)-1;
+    unsigned data_idx = 0;
+    unsigned rec_idx = 0;
+
+    for (typename NRTrackData<T>::DataRecs::const_iterator irec = data_recs.begin(); irec != data_recs.end(); ++irec) {
+        if (irec->id != cur_dataid) {
+            cur_dataid = irec->id;
+            data[data_idx].id = irec->id;
+            data[data_idx].rec_idx = rec_idx;
+            ++data_idx;
+        }
+        recs[rec_idx].timestamp = irec->timestamp;
+        recs[rec_idx].val = irec->val;
+        ++rec_idx;
+    }
+
+    size_t mem_size = sizeof(Data) * data.size() + sizeof(Rec) * recs.size();
+
+    if (posix_memalign((void **)&m_mem, 64, mem_size))
+        verror("%s", strerror(errno));
+
+    size_t pos = 0;
+
+    memcpy(m_mem + pos, &data.front(), sizeof(Data) * data.size());
+    m_data = (Data *)(m_mem + pos);
+    pos += sizeof(Data) * data.size();
+
+    memcpy(m_mem + pos, &recs.front(), sizeof(Rec) * recs.size());
+    m_recs = (Rec *)(m_mem + pos);
+    pos += sizeof(Rec) * recs.size();
+
+    // percentiles are taken from the base track
+    m_num_percentiles = 0;
+    m_sorted_unique_vals = NULL;
+    m_percentiles = NULL;
 }
 
 template <class T>
@@ -183,12 +246,15 @@ void NRTrackSparse<T>::serialize(BufferedFile &bfile, const NRTrackData<T> &trac
 }
 
 template <class T>
-void NRTrackSparse<T>::unique_vals(vector<double> &vals)
+void NRTrackSparse<T>::unique_vals(vector<double> &vals) const
 {
-    vals.clear();
-    vals.reserve(m_num_percentiles);
-    for (size_t i = 0; i < m_num_percentiles; ++i)
-        vals.push_back((double)m_sorted_unique_vals[i]);
+    if (m_base_track)
+        m_base_track->unique_vals(vals);
+    else {
+        vals.reserve(m_num_percentiles);
+        for (size_t i = 0; i < m_num_percentiles; ++i)
+            vals.push_back((double)m_sorted_unique_vals[i]);
+    }
 }
 
 template <class T>
@@ -247,6 +313,9 @@ size_t NRTrackSparse<T>::count_ids(const vector<unsigned> &ids) const
 template <class T>
 float NRTrackSparse<T>::percentile_upper(void *rec) const
 {
+    if (m_base_track)
+        return m_base_track->percentile_upper((double)((Rec *)rec)->v());
+
     T *ival = lower_bound(m_sorted_unique_vals, m_sorted_unique_vals + m_num_percentiles, ((Rec *)rec)->v());
     return m_percentiles[ival - m_sorted_unique_vals];
 }
@@ -254,6 +323,9 @@ float NRTrackSparse<T>::percentile_upper(void *rec) const
 template <class T>
 float NRTrackSparse<T>::percentile_upper(double value) const
 {
+    if (m_base_track)
+        return m_base_track->percentile_upper(value);
+
     T *ival = lower_bound(m_sorted_unique_vals, m_sorted_unique_vals + m_num_percentiles, (T)value);
     return m_percentiles[ival - m_sorted_unique_vals];
 }
@@ -261,6 +333,9 @@ float NRTrackSparse<T>::percentile_upper(double value) const
 template <class T>
 float NRTrackSparse<T>::percentile_lower(void *rec) const
 {
+    if (m_base_track)
+        return m_base_track->percentile_lower((double)((Rec *)rec)->v());
+
     T *ival = lower_bound(m_sorted_unique_vals, m_sorted_unique_vals + m_num_percentiles, ((Rec *)rec)->v());
     return ival == m_sorted_unique_vals ? 0 : m_percentiles[ival - m_sorted_unique_vals - 1];
 }
@@ -268,6 +343,9 @@ float NRTrackSparse<T>::percentile_lower(void *rec) const
 template <class T>
 float NRTrackSparse<T>::percentile_lower(double value) const
 {
+    if (m_base_track)
+        return m_base_track->percentile_lower(value);
+
     T *ival = lower_bound(m_sorted_unique_vals, m_sorted_unique_vals + m_num_percentiles, (T)value);
     return ival == m_sorted_unique_vals ? 0 : m_percentiles[ival - m_sorted_unique_vals - 1];
 }

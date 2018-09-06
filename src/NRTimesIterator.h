@@ -24,9 +24,6 @@ public:
 protected:
 	NRTimeIntervals                 m_intervs;
     NRTimeIntervals::const_iterator m_iinterv;
-    vector<NRTimeStamp::Hour>       m_interv_stimes;
-    unsigned                        m_stime;
-    unsigned                        m_etime;
     uint64_t                        m_num_steps;
     vector<uint64_t>                m_num_steps4id;
 };
@@ -37,8 +34,6 @@ protected:
 inline void NRTimesIterator::init(const NRTimeIntervals &intervs, bool keepref, unsigned stime, unsigned etime)
 {
     m_keepref = keepref;
-    m_stime = stime;
-    m_etime = etime;
     m_intervs = intervs;
     m_intervs.sort_and_unify_overlaps(stime, etime);
 

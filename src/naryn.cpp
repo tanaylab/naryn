@@ -556,24 +556,11 @@ void Naryn::load_options()
 	else
 		m_quantile_edge_data_size = 0;
 
-	SEXP r_rnd_seed = GetOption(install("emr_rnd.seed"), R_NilValue);
-	uint64_t rnd_seed;
-
-	if (isReal(r_rnd_seed))
-		rnd_seed = (uint64_t)REAL(r_rnd_seed)[0];
-	else if (isInteger(r_rnd_seed))
-		rnd_seed = INTEGER(r_rnd_seed)[0];
-	else
-		rnd_seed = 0;
-
-	if (!rnd_seed) {
-		struct timeval tv;
-		gettimeofday(&tv, NULL);
-		// for better randomness combine global time in seconds with the lower 12 bits of current microseconds
-		rnd_seed = (time(NULL) << 12) | (tv.tv_usec & 0xfff);
-	}
-
-	srand48(rnd_seed);
+    rvar = GetOption(install("emr_warning.itr.no.filter.size"), R_NilValue);
+    if (isReal(rvar) || isInteger(rvar))
+        m_beat_itr_warning_size = (uint64_t)asReal(rvar);
+    else
+        m_beat_itr_warning_size = 100000;
 }
 
 void Naryn::out_of_memory()
@@ -653,7 +640,7 @@ void vwarning(const char *fmt, ...)
 	vsnprintf(buf, sizeof(buf), fmt, ap);
 	va_end(ap);
 
-	Rf_warning(buf);
+	Rf_warningcall_immediate(R_NilValue, buf);
 }
 
 void vdebug(const char *fmt, ...)

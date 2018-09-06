@@ -82,7 +82,7 @@ SEXP emr_quantiles(SEXP _expr, SEXP _percentiles, SEXP _stime, SEXP _etime, SEXP
 			float val = scanner.real();
 
 			if (!std::isnan(val))
-				sp.add(val, drand48);
+				sp.add(val, unif_rand);
 		}
 
 		vector<double> medians(percentiles.size(), numeric_limits<float>::quiet_NaN());

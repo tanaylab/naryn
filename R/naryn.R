@@ -20,6 +20,7 @@
 	options(emr_pv.middle.size = 0.96)
 	options(emr_pv.middle.precision = 10^(-4))
 	options(emr_pv.edge.precision = 10^(-9))
+    options(emr_warning.itr.no.filter.size = 100000)
 
 	# if emr_rnd.seed==0, the seed is determined internally in a random manner
 	options(emr_rnd.seed = 1)
@@ -162,12 +163,12 @@ emr_db.reload <- function() {
 	retv <- 0 # suppress return value
 }
 
-emr_db.subset <- function(src = "", fraction = NULL, complementary = NULL, seed = 0) {
+emr_db.subset <- function(src = "", fraction = NULL, complementary = NULL) {
     if (!is.null(src) && src == "")
-        stop("Usage: emr_db.subset(src, fraction, complementary, seed = 0)", call. = F)
+        stop("Usage: emr_db.subset(src, fraction, complementary)", call. = F)
     .emr_checkroot()
 
-    .emr_call("emr_db_subset", src, fraction, complementary, seed, new.env(parent = parent.frame()))
+    .emr_call("emr_db_subset", src, fraction, complementary, new.env(parent = parent.frame()))
     retv <- NULL
 }
 
@@ -449,6 +450,139 @@ emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val =
 	retv <- NULL
 }
 
+emr_filter.attr.src <- function(filter, src) {
+	if (missing(filter))
+		stop("Usage: emr_filter.attr.src(filter, src)", call. = F)
+    .emr_checkroot()
+
+    root <- get("EMR_GROOT", envir = .GlobalEnv)
+    filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[root]][[filter]]
+    if (is.null(filter.var)) {
+        root <- get("EMR_UROOT", envir = .GlobalEnv)
+        filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[root]][[filter]]
+    }
+
+    if (is.null(filter.var))
+        stop(sprintf("Filter \"%s\" does not exist", filter), call. = F)
+
+    if (missing(src))
+        filter.var$src
+    else {
+        if (!emr_track.exists(src))
+            stop(sprintf("Track \"%s\" does not exist", src), call. = F)
+
+        EMR_FILTERS[[root]][[filter]] <<- NULL
+
+        filter.var$src <- src
+        if (!is.na(match(src, .emr_call("emr_user_track_names", new.env(parent = parent.frame()), silent = TRUE))))
+            root <- get("EMR_UROOT", envir = .GlobalEnv)
+        else
+            root <- get("EMR_GROOT", envir = .GlobalEnv)
+        EMR_FILTERS[[root]][[filter]] <<- filter.var
+        retv <- NULL
+    }
+}
+
+emr_filter.attr.keepref <- function(filter, keepref) {
+	if (missing(filter))
+		stop("Usage: emr_filter.attr.keepref(filter, keepref)", call. = F)
+    .emr_checkroot()
+
+    root <- get("EMR_GROOT", envir = .GlobalEnv)
+    filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[root]][[filter]]
+    if (is.null(filter.var)) {
+        root <- get("EMR_UROOT", envir = .GlobalEnv)
+        filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[root]][[filter]]
+    }
+
+    if (is.null(filter.var))
+        stop(sprintf("Filter \"%s\" does not exist", filter), call. = F)
+
+    if (missing(keepref))
+        filter.var$keepref
+    else {
+        if (!is.logical(keepref) || is.na(keepref))
+            stop("'keepref' parameter must be logical", call. = F)
+
+        EMR_FILTERS[[root]][[filter]]['keepref'] <<- list(keepref)
+        retv <- NULL
+    }
+}
+
+emr_filter.attr.time.shift <- function(filter, time.shift) {
+	if (missing(filter))
+		stop("Usage: emr_filter.attr.time.shift(filter, time.shift)", call. = F)
+    .emr_checkroot()
+
+    root <- get("EMR_GROOT", envir = .GlobalEnv)
+    filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[root]][[filter]]
+    if (is.null(filter.var)) {
+        root <- get("EMR_UROOT", envir = .GlobalEnv)
+        filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[root]][[filter]]
+    }
+
+    if (is.null(filter.var))
+        stop(sprintf("Filter \"%s\" does not exist", filter), call. = F)
+
+    if (missing(time.shift))
+        filter.var$time_shift
+    else {
+        .emr_call("emr_check_filter_attr_time_shift", time.shift, new.env(parent = parent.frame()))
+        EMR_FILTERS[[root]][[filter]]['time_shift'] <<- list(time.shift)
+        retv <- NULL
+    }
+}
+
+emr_filter.attr.val <- function(filter, val) {
+	if (missing(filter))
+		stop("Usage: emr_filter.attr.val(filter, val)", call. = F)
+    .emr_checkroot()
+
+    root <- get("EMR_GROOT", envir = .GlobalEnv)
+    filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[root]][[filter]]
+    if (is.null(filter.var)) {
+        root <- get("EMR_UROOT", envir = .GlobalEnv)
+        filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[root]][[filter]]
+    }
+
+    if (is.null(filter.var))
+        stop(sprintf("Filter \"%s\" does not exist", filter), call. = F)
+
+    if (missing(val))
+        filter.var$val
+    else {
+        if (!is.numeric(val))
+            stop("'val' parameter must be a numeric vector", call. = F)
+
+        EMR_FILTERS[[root]][[filter]]['val'] <<- list(val)
+        retv <- NULL
+    }
+}
+
+emr_filter.attr.expiration <- function(filter, expiration) {
+	if (missing(filter))
+		stop("Usage: emr_filter.attr.expiration(filter, expiration)", call. = F)
+    .emr_checkroot()
+
+    root <- get("EMR_GROOT", envir = .GlobalEnv)
+    filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[root]][[filter]]
+    if (is.null(filter.var)) {
+        root <- get("EMR_UROOT", envir = .GlobalEnv)
+        filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[root]][[filter]]
+    }
+
+    if (is.null(filter.var))
+        stop(sprintf("Filter \"%s\" does not exist", filter), call. = F)
+
+    if (missing(expiration))
+        filter.var$expiration
+    else {
+        .emr_call("emr_check_filter_attr_expiration", expiration, new.env(parent = parent.frame()))
+        EMR_FILTERS[[root]][[filter]]['expiration'] <<- list(expiration)
+        retv <- NULL
+    }
+}
+
 emr_filter.exists <- function(filter) {
     if (missing(filter))
         stop("Usage: emr_filter.exists(filter)", call. = F)
@@ -524,9 +658,9 @@ emr_filter.rm <- function(filter) {
 	retv <- NULL
 }
 
-emr_vtrack.create <- function(vtrack, src, func = NULL, params = NULL, keepref = F, time.shift = NULL, id.map = NULL) {
+emr_vtrack.create <- function(vtrack, src, func = NULL, params = NULL, keepref = F, time.shift = NULL, id.map = NULL, filter = NULL) {
 	if (missing(vtrack) || missing(src))
-		stop("Usage: emr_vtrack.create(vtrack, src, func = NULL, params = NULL, keepref = F, time.shift = NULL, id.map = NULL)", call. = F)
+		stop("Usage: emr_vtrack.create(vtrack, src, func = NULL, params = NULL, keepref = F, time.shift = NULL, id.map = NULL, filter = NULL)", call. = F)
     .emr_checkroot()
 
     if (vtrack != make.names(vtrack))
@@ -547,7 +681,7 @@ emr_vtrack.create <- function(vtrack, src, func = NULL, params = NULL, keepref =
         root <- get("EMR_GROOT", envir = .GlobalEnv)
 
     old.vtrack <- EMR_VTRACKS[[root]][[vtrack]]
-	EMR_VTRACKS[[root]][[vtrack]] <<- list(src = src, time_shift = time.shift, func = func, params = params, keepref = keepref, id_map = id.map)
+	EMR_VTRACKS[[root]][[vtrack]] <<- list(src = src, time_shift = time.shift, func = func, params = params, keepref = keepref, id_map = id.map, filter = .emr_filter(filter))
 	
     success <- F
     tryCatch({
@@ -560,6 +694,184 @@ emr_vtrack.create <- function(vtrack, src, func = NULL, params = NULL, keepref =
     })
 
 	retv <- NULL
+}
+
+emr_vtrack.attr.src <- function(vtrack, src) {
+	if (missing(vtrack))
+		stop("Usage: emr_vtrack.attr.src(vtrack, src)", call. = F)
+    .emr_checkroot()
+
+    root <- get("EMR_GROOT", envir = .GlobalEnv)
+    vtrack.var <- get("EMR_VTRACKS", envir = .GlobalEnv)[[root]][[vtrack]]
+    if (is.null(vtrack.var)) {
+        root <- get("EMR_UROOT", envir = .GlobalEnv)
+        vtrack.var <- get("EMR_VTRACKS", envir = .GlobalEnv)[[root]][[vtrack]]
+    }
+
+    if (is.null(vtrack.var))
+        stop(sprintf("Virtual track \"%s\" does not exist", vtrack), call. = F)
+
+    if (missing(src))
+        vtrack.var$src
+    else {
+        if (!emr_track.exists(src))
+            stop(sprintf("Track \"%s\" does not exist", src), call. = F)
+
+        EMR_VTRACKS[[root]][[vtrack]] <<- NULL
+
+        vtrack.var$src <- src
+        if (!is.na(match(src, .emr_call("emr_user_track_names", new.env(parent = parent.frame()), silent = TRUE))))
+            root <- get("EMR_UROOT", envir = .GlobalEnv)
+        else
+            root <- get("EMR_GROOT", envir = .GlobalEnv)
+        EMR_VTRACKS[[root]][[vtrack]] <<- vtrack.var
+        retv <- NULL
+    }
+}
+
+emr_vtrack.attr.func <- function(vtrack, func) {
+	if (missing(vtrack))
+		stop("Usage: emr_vtrack.attr.func(vtrack, func)", call. = F)
+    .emr_checkroot()
+
+    root <- get("EMR_GROOT", envir = .GlobalEnv)
+    vtrack.var <- get("EMR_VTRACKS", envir = .GlobalEnv)[[root]][[vtrack]]
+    if (is.null(vtrack.var)) {
+        root <- get("EMR_UROOT", envir = .GlobalEnv)
+        vtrack.var <- get("EMR_VTRACKS", envir = .GlobalEnv)[[root]][[vtrack]]
+    }
+
+    if (is.null(vtrack.var))
+        stop(sprintf("Virtual track \"%s\" does not exist", vtrack), call. = F)
+
+    if (missing(func))
+        vtrack.var$func
+    else {
+        .emr_call("emr_check_vtrack_attr_func", func, new.env(parent = parent.frame()))
+        EMR_VTRACKS[[root]][[vtrack]]['func'] <<- list(func)
+        retv <- NULL
+    }
+}
+
+emr_vtrack.attr.params <- function(vtrack, params) {
+	if (missing(vtrack))
+		stop("Usage: emr_vtrack.attr.params(vtrack, params)", call. = F)
+    .emr_checkroot()
+
+    root <- get("EMR_GROOT", envir = .GlobalEnv)
+    vtrack.var <- get("EMR_VTRACKS", envir = .GlobalEnv)[[root]][[vtrack]]
+    if (is.null(vtrack.var)) {
+        root <- get("EMR_UROOT", envir = .GlobalEnv)
+        vtrack.var <- get("EMR_VTRACKS", envir = .GlobalEnv)[[root]][[vtrack]]
+    }
+
+    if (is.null(vtrack.var))
+        stop(sprintf("Virtual track \"%s\" does not exist", vtrack), call. = F)
+
+    if (missing(params))
+        vtrack.var$params
+    else {
+        EMR_VTRACKS[[root]][[vtrack]]['params'] <<- list(params)
+        retv <- NULL
+    }
+}
+
+emr_vtrack.attr.keepref <- function(vtrack, keepref) {
+	if (missing(vtrack))
+		stop("Usage: emr_vtrack.attr.keepref(vtrack, keepref)", call. = F)
+    .emr_checkroot()
+
+    root <- get("EMR_GROOT", envir = .GlobalEnv)
+    vtrack.var <- get("EMR_VTRACKS", envir = .GlobalEnv)[[root]][[vtrack]]
+    if (is.null(vtrack.var)) {
+        root <- get("EMR_UROOT", envir = .GlobalEnv)
+        vtrack.var <- get("EMR_VTRACKS", envir = .GlobalEnv)[[root]][[vtrack]]
+    }
+
+    if (is.null(vtrack.var))
+        stop(sprintf("Virtual track \"%s\" does not exist", vtrack), call. = F)
+
+    if (missing(keepref))
+        vtrack.var$keepref
+    else {
+        if (!is.logical(keepref) || is.na(keepref))
+            stop("'keepref' parameter must be logical", call. = F)
+
+        EMR_VTRACKS[[root]][[vtrack]]['keepref'] <<- list(keepref)
+        retv <- NULL
+    }
+}
+
+emr_vtrack.attr.time.shift <- function(vtrack, time.shift) {
+	if (missing(vtrack))
+		stop("Usage: emr_vtrack.attr.time.shift(vtrack, time.shift)", call. = F)
+    .emr_checkroot()
+
+    root <- get("EMR_GROOT", envir = .GlobalEnv)
+    vtrack.var <- get("EMR_VTRACKS", envir = .GlobalEnv)[[root]][[vtrack]]
+    if (is.null(vtrack.var)) {
+        root <- get("EMR_UROOT", envir = .GlobalEnv)
+        vtrack.var <- get("EMR_VTRACKS", envir = .GlobalEnv)[[root]][[vtrack]]
+    }
+
+    if (is.null(vtrack.var))
+        stop(sprintf("Virtual track \"%s\" does not exist", vtrack), call. = F)
+
+    if (missing(time.shift))
+        vtrack.var$time_shift
+    else {
+        .emr_call("emr_check_vtrack_attr_time_shift", time.shift, new.env(parent = parent.frame()))
+        EMR_VTRACKS[[root]][[vtrack]]['time_shift'] <<- list(time.shift)
+        retv <- NULL
+    }
+}
+
+emr_vtrack.attr.id.map <- function(vtrack, id.map) {
+	if (missing(vtrack))
+		stop("Usage: emr_vtrack.attr.id.map(vtrack, id.map)", call. = F)
+    .emr_checkroot()
+
+    root <- get("EMR_GROOT", envir = .GlobalEnv)
+    vtrack.var <- get("EMR_VTRACKS", envir = .GlobalEnv)[[root]][[vtrack]]
+    if (is.null(vtrack.var)) {
+        root <- get("EMR_UROOT", envir = .GlobalEnv)
+        vtrack.var <- get("EMR_VTRACKS", envir = .GlobalEnv)[[root]][[vtrack]]
+    }
+
+    if (is.null(vtrack.var))
+        stop(sprintf("Virtual track \"%s\" does not exist", vtrack), call. = F)
+
+    if (missing(id.map))
+        vtrack.var$id.map
+    else {
+        .emr_call("emr_check_vtrack_attr_id_map", id.map, new.env(parent = parent.frame()))
+        EMR_VTRACKS[[root]][[vtrack]]['id.map'] <<- list(id.map)
+        retv <- NULL
+    }
+}
+
+emr_vtrack.attr.filter <- function(vtrack, filter) {
+	if (missing(vtrack))
+		stop("Usage: emr_vtrack.attr.filter(vtrack, filter)", call. = F)
+    .emr_checkroot()
+
+    root <- get("EMR_GROOT", envir = .GlobalEnv)
+    vtrack.var <- get("EMR_VTRACKS", envir = .GlobalEnv)[[root]][[vtrack]]
+    if (is.null(vtrack.var)) {
+        root <- get("EMR_UROOT", envir = .GlobalEnv)
+        vtrack.var <- get("EMR_VTRACKS", envir = .GlobalEnv)[[root]][[vtrack]]
+    }
+
+    if (is.null(vtrack.var))
+        stop(sprintf("Virtual track \"%s\" does not exist", vtrack), call. = F)
+
+    if (missing(filter))
+        vtrack.var$filter
+    else {
+        .emr_call("emr_check_vtrack_attr_filter", .emr_filter(filter), new.env(parent = parent.frame()))
+        EMR_VTRACKS[[root]][[vtrack]]['filter'] <<- list(.emr_filter(filter))
+        retv <- NULL
+    }
 }
 
 emr_vtrack.exists <- function(vtrack) {
@@ -637,10 +949,10 @@ emr_vtrack.rm <- function(vtrack) {
 	retv <- NULL
 }
 
-emr_cor <- function(..., cor.exprs = NULL, include.lowest = FALSE, stime = get("MINTIME", envir = .GlobalEnv), etime = get("MAXTIME", envir = .GlobalEnv), iterator = NULL, keepref = F, filter = NULL) {
+emr_cor <- function(..., cor.exprs = NULL, include.lowest = FALSE, right = TRUE, stime = get("MINTIME", envir = .GlobalEnv), etime = get("MAXTIME", envir = .GlobalEnv), iterator = NULL, keepref = F, filter = NULL) {
 	args <- list(...)
 	if (length(args) < 2 || (length(args) %% 2 != 0 && (length(args) - 1) %% 2 != 0) || is.null(cor.exprs))
-		stop("Usage: emr_cor([factor.expr, breaks]+, cor.exprs, include.lowest = FALSE, stime = MINTIME, etime = MAXTIME, iterator = NULL, keepref = F, filter = NULL)", call. = F)
+		stop("Usage: emr_cor([factor.expr, breaks]+, cor.exprs, include.lowest = F, right = T, stime = MINTIME, etime = MAXTIME, iterator = NULL, keepref = F, filter = NULL)", call. = F)
     .emr_checkroot()
 
 	exprs <- c()
@@ -653,14 +965,14 @@ emr_cor <- function(..., cor.exprs = NULL, include.lowest = FALSE, stime = get("
 
     exprs <- append(exprs, cor.exprs)
 
-	res <- .emr_call("emr_covariance", exprs, breaks, include.lowest, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
+	res <- .emr_call("emr_covariance", exprs, breaks, include.lowest, right, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
 	res
 }
 
-emr_dist <- function(..., include.lowest = FALSE, stime = get("MINTIME", envir = .GlobalEnv), etime = get("MAXTIME", envir = .GlobalEnv), iterator = NULL, keepref = F, filter = NULL) {
+emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = get("MINTIME", envir = .GlobalEnv), etime = get("MAXTIME", envir = .GlobalEnv), iterator = NULL, keepref = FALSE, filter = NULL) {
 	args <- list(...)
 	if (length(args) < 2 || (length(args) %% 2 != 0 && (length(args) - 1) %% 2 != 0))
-		stop("Usage: emr_dist([expr, breaks]+, include.lowest = FALSE, stime = MINTIME, etime = MAXTIME, iterator = NULL, keepref = F, filter = NULL)", call. = F)
+		stop("Usage: emr_dist([expr, breaks]+, include.lowest = F, right = T, stime = MINTIME, etime = MAXTIME, iterator = NULL, keepref = F, filter = NULL)", call. = F)
     .emr_checkroot()
 
 	exprs <- c()
@@ -671,7 +983,7 @@ emr_dist <- function(..., include.lowest = FALSE, stime = get("MINTIME", envir =
 	    breaks[length(breaks) + 1] <- list(args[[i * 2 + 2]])
 	}
 
-	res <- .emr_call("emr_dist", exprs, breaks, include.lowest, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
+	res <- .emr_call("emr_dist", exprs, breaks, include.lowest, right, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
 	res
 }
 
