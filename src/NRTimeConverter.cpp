@@ -140,7 +140,7 @@ SEXP emr_time2hour(SEXP _t, SEXP _envir)
             verror("Invalid format of 'time' argument");
 
         SEXP answer = R_NilValue;
-        rprotect(answer = allocVector(REALSXP, Rf_length(_t)));
+        rprotect(answer = RSaneAllocVector(REALSXP, Rf_length(_t)));
 
         for (int i = 0; i < Rf_length(_t); ++i) {
             double t = isInteger(_t) ? INTEGER(_t)[i] : REAL(_t)[i];
@@ -158,7 +158,9 @@ SEXP emr_time2hour(SEXP _t, SEXP _envir)
         return answer;
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 
 	return R_NilValue;
 }
@@ -172,7 +174,7 @@ SEXP emr_time2dayofmonth(SEXP _t, SEXP _envir)
             verror("Invalid format of 'time' argument");
 
         SEXP answer = R_NilValue;
-        rprotect(answer = allocVector(REALSXP, Rf_length(_t)));
+        rprotect(answer = RSaneAllocVector(REALSXP, Rf_length(_t)));
 
         for (int i = 0; i < Rf_length(_t); ++i) {
             double t = isInteger(_t) ? INTEGER(_t)[i] : REAL(_t)[i];
@@ -190,7 +192,9 @@ SEXP emr_time2dayofmonth(SEXP _t, SEXP _envir)
         return answer;
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 
 	return R_NilValue;
 }
@@ -204,7 +208,7 @@ SEXP emr_time2month(SEXP _t, SEXP _envir)
             verror("Invalid format of 'time' argument");
 
         SEXP answer = R_NilValue;
-        rprotect(answer = allocVector(REALSXP, Rf_length(_t)));
+        rprotect(answer = RSaneAllocVector(REALSXP, Rf_length(_t)));
 
         for (int i = 0; i < Rf_length(_t); ++i) {
             double t = isInteger(_t) ? INTEGER(_t)[i] : REAL(_t)[i];
@@ -222,7 +226,9 @@ SEXP emr_time2month(SEXP _t, SEXP _envir)
         return answer;
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 
 	return R_NilValue;
 }
@@ -236,7 +242,7 @@ SEXP emr_time2year(SEXP _t, SEXP _envir)
             verror("Invalid format of 'time' argument");
 
         SEXP answer = R_NilValue;
-        rprotect(answer = allocVector(REALSXP, Rf_length(_t)));
+        rprotect(answer = RSaneAllocVector(REALSXP, Rf_length(_t)));
 
         for (int i = 0; i < Rf_length(_t); ++i) {
             double t = isInteger(_t) ? INTEGER(_t)[i] : REAL(_t)[i];
@@ -254,7 +260,9 @@ SEXP emr_time2year(SEXP _t, SEXP _envir)
         return answer;
 	} catch (TGLException &e) {
         rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 
 	return R_NilValue;
 }
@@ -281,7 +289,7 @@ SEXP emr_date2time(SEXP _date, SEXP _envir)
         int num_rows = Rf_length(rcols[0]);
 
         SEXP answer;
-        rprotect(answer = allocVector(INTSXP, num_rows));
+        rprotect(answer = RSaneAllocVector(INTSXP, num_rows));
 
         for (int i = 0; i < num_rows; ++i) {
             double hour = isInteger(rcols[HOUR]) ? INTEGER(rcols[HOUR])[i] : REAL(rcols[HOUR])[i];
@@ -307,7 +315,9 @@ SEXP emr_date2time(SEXP _date, SEXP _envir)
         return answer;
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 
 	return R_NilValue;
 }

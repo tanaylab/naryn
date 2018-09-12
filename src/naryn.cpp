@@ -92,9 +92,6 @@ Naryn::Naryn(SEXP _env, bool check_db) :
 
 		m_old_error_handler = TGLException::set_error_handler(TGLException::throw_error_handler);
 
-		// install out of memory handler
-		m_old_new_handler = set_new_handler(out_of_memory);
-
 		struct sigaction new_act;
 
 		// install a new SIGINT handler
@@ -177,10 +174,6 @@ Naryn::~Naryn()
             close(s_fifo_fd);
 
         TGLException::set_error_handler(m_old_error_handler);
-
-		// install old out of memory handler
-		if (m_old_new_handler)
-			set_new_handler(m_old_new_handler);
 
         // reset alarm, otherwise it might fire later when we exit from the library
         alarm(0);
@@ -563,12 +556,6 @@ void Naryn::load_options()
         m_beat_itr_warning_size = 100000;
 }
 
-void Naryn::out_of_memory()
-{
-    Rprintf("\nOut of memory\n");
-    verror("Out of memory\n");
-}
-
 void Naryn::sigint_handler(int)
 {
 	++s_sigint_fired;
@@ -741,7 +728,7 @@ SEXP run_in_R(const char *command, SEXP envir)
 	SEXP parsed_expr;
 	ParseStatus status;
 
-	rprotect(expr = allocVector(STRSXP, 1));
+	rprotect(expr = RSaneAllocVector(STRSXP, 1));
 	SET_STRING_ELT(expr, 0, mkChar(command));
 	rprotect(parsed_expr = R_ParseVector(expr, -1, &status, R_NilValue));
 	if (status != PARSE_OK)
@@ -829,6 +816,30 @@ SEXP RSaneUnserialize(const char *fname)
 
 	fclose(fp);
 	return retv;
+}
+
+struct RSaneAllocVectorData {
+    SEXPTYPE type;
+    R_xlen_t len;
+    SEXP     retv;
+};
+
+static void RSaneAllocVectorCallback(void *_data)
+{
+	RSaneAllocVectorData *data = (RSaneAllocVectorData *)_data;
+    data->retv = allocVector(data->type, data->len);
+}
+
+SEXP RSaneAllocVector(SEXPTYPE type, R_xlen_t len)
+{
+    RSaneAllocVectorData data;
+
+    data.type = type;
+    data.len = len;
+    Rboolean ok = R_ToplevelExec(RSaneAllocVectorCallback, &data);
+    if (!ok)
+        verror("Allocation failed");
+    return data.retv;
 }
 
 SEXP get_rvector_col(SEXP v, const char *colname, const char *varname, bool error_if_missing)

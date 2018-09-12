@@ -84,8 +84,8 @@ void BinsManager::set_dims(SEXP dim, SEXP dimnames, SEXP breaks_set) const
             vector<double> vals;
             m_tracks[i]->unique_vals(vals);
             INTEGER(dim)[i] = vals.size();
-            rprotect(dimname = allocVector(STRSXP, vals.size()));
-            rprotect(breaks = allocVector(INTSXP, vals.size()));
+            rprotect(dimname = RSaneAllocVector(STRSXP, vals.size()));
+            rprotect(breaks = RSaneAllocVector(INTSXP, vals.size()));
 
             for (vector<double>::const_iterator ival = vals.begin(); ival < vals.end(); ++ival) {
                 char buf[100];
@@ -97,8 +97,8 @@ void BinsManager::set_dims(SEXP dim, SEXP dimnames, SEXP breaks_set) const
     		const BinFinder &bin_finder = m_bin_finders[i];
     		int numbins = bin_finder.get_numbins();
     		INTEGER(dim)[i] = numbins;
-    		rprotect(dimname = allocVector(STRSXP, numbins));
-            rprotect(breaks = allocVector(REALSXP, numbins + 1));
+    		rprotect(dimname = RSaneAllocVector(STRSXP, numbins));
+            rprotect(breaks = RSaneAllocVector(REALSXP, numbins + 1));
 
     		for (int j = 0; j < numbins; j++) {
     			char buf[100];

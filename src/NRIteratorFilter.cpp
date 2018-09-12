@@ -482,7 +482,9 @@ SEXP emr_check_named_filter(SEXP _filter, SEXP _name, SEXP _envir)
 		NRIteratorFilter::check_named_filter(_filter, CHAR(STRING_ELT(_name, 0)));
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 	return R_NilValue;
 }
 
@@ -509,7 +511,9 @@ SEXP emr_check_filter_attr_time_shift(SEXP _tshift, SEXP _envir)
             verror("'time.shift' is out of range");
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 	rreturn(R_NilValue);
 }
 
@@ -533,7 +537,9 @@ SEXP emr_check_filter_attr_expiration(SEXP _expiration, SEXP _envir)
         }
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 	rreturn(R_NilValue);
 }
 

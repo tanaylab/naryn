@@ -96,8 +96,8 @@ SEXP emr_quantiles(SEXP _expr, SEXP _percentiles, SEXP _stime, SEXP _etime, SEXP
 		SEXP answer;
 		SEXP colnames;
 
-		rprotect(answer = allocVector(REALSXP, percentiles.size()));
-		rprotect(colnames = allocVector(STRSXP, percentiles.size()));
+		rprotect(answer = RSaneAllocVector(REALSXP, percentiles.size()));
+		rprotect(colnames = RSaneAllocVector(STRSXP, percentiles.size()));
 
 		for (vector<Percentile>::const_iterator ip = percentiles.begin(); ip != percentiles.end(); ++ip) {
 			char buf[100];
@@ -113,7 +113,9 @@ SEXP emr_quantiles(SEXP _expr, SEXP _percentiles, SEXP _stime, SEXP _etime, SEXP
 		rreturn(answer);
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 	rreturn(R_NilValue);
 }
 

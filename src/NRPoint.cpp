@@ -18,15 +18,15 @@ SEXP NRPoint::create_rpoints_skeleton(size_t size, unsigned num_cols, bool null_
     SEXP row_names;
     SEXP col_names;
 
-    rprotect(answer = allocVector(VECSXP, num_cols));
+    rprotect(answer = RSaneAllocVector(VECSXP, num_cols));
 
-    SET_VECTOR_ELT(answer, ID, allocVector(INTSXP, size));
-    SET_VECTOR_ELT(answer, TIME, allocVector(INTSXP, size));
-    SET_VECTOR_ELT(answer, REF, allocVector(INTSXP, size));
+    SET_VECTOR_ELT(answer, ID, RSaneAllocVector(INTSXP, size));
+    SET_VECTOR_ELT(answer, TIME, RSaneAllocVector(INTSXP, size));
+    SET_VECTOR_ELT(answer, REF, RSaneAllocVector(INTSXP, size));
 
-    setAttrib(answer, R_NamesSymbol, (col_names = allocVector(STRSXP, num_cols)));
+    setAttrib(answer, R_NamesSymbol, (col_names = RSaneAllocVector(STRSXP, num_cols)));
     setAttrib(answer, R_ClassSymbol, mkString("data.frame"));
-    setAttrib(answer, R_RowNamesSymbol, (row_names = allocVector(INTSXP, size)));
+    setAttrib(answer, R_RowNamesSymbol, (row_names = RSaneAllocVector(INTSXP, size)));
 
     for (size_t i = 0; i < size; ++i)
         INTEGER(row_names)[i] = i + 1;
@@ -160,13 +160,13 @@ SEXP NRPoint::convert_ids(const vector<unsigned> &ids, unsigned num_cols, bool n
     SEXP row_names;
     SEXP col_names;
 
-    rprotect(answer = allocVector(VECSXP, num_cols));
+    rprotect(answer = RSaneAllocVector(VECSXP, num_cols));
 
-    SET_VECTOR_ELT(answer, 0, (rids = allocVector(INTSXP, ids.size())));
+    SET_VECTOR_ELT(answer, 0, (rids = RSaneAllocVector(INTSXP, ids.size())));
 
-    setAttrib(answer, R_NamesSymbol, (col_names = allocVector(STRSXP, num_cols)));
+    setAttrib(answer, R_NamesSymbol, (col_names = RSaneAllocVector(STRSXP, num_cols)));
     setAttrib(answer, R_ClassSymbol, mkString("data.frame"));
-    setAttrib(answer, R_RowNamesSymbol, (row_names = allocVector(INTSXP, ids.size())));
+    setAttrib(answer, R_RowNamesSymbol, (row_names = RSaneAllocVector(INTSXP, ids.size())));
 
     for (vector<unsigned>::const_iterator iid = ids.begin(); iid != ids.end(); ++iid) {
         size_t index = iid - ids.begin();

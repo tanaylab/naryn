@@ -90,12 +90,12 @@ SEXP emr_covariance(SEXP _exprs, SEXP _breaks, SEXP _include_lowest, SEXP _right
 
         SEXP answer, dim, dimnames, breaks, stat_names;
         size_t num_vals = totalbins * num_cov_exprs * num_cov_exprs;
-        rprotect(answer = allocVector(VECSXP, NUM_STATS));
+        rprotect(answer = RSaneAllocVector(VECSXP, NUM_STATS));
 
         double *stat[NUM_STATS];
 
         for (int i = 0; i < NUM_STATS; ++i) {
-            SET_VECTOR_ELT(answer, i, allocVector(REALSXP, num_vals));
+            SET_VECTOR_ELT(answer, i, RSaneAllocVector(REALSXP, num_vals));
             stat[i] = REAL(VECTOR_ELT(answer, i));
         }
 
@@ -129,17 +129,17 @@ SEXP emr_covariance(SEXP _exprs, SEXP _breaks, SEXP _include_lowest, SEXP _right
             }
         }
 
-        rprotect(dim = allocVector(INTSXP, num_breaks_exprs + 2));
-        rprotect(dimnames = allocVector(VECSXP, num_breaks_exprs + 2));
-        rprotect(breaks = allocVector(VECSXP, num_breaks_exprs));
+        rprotect(dim = RSaneAllocVector(INTSXP, num_breaks_exprs + 2));
+        rprotect(dimnames = RSaneAllocVector(VECSXP, num_breaks_exprs + 2));
+        rprotect(breaks = RSaneAllocVector(VECSXP, num_breaks_exprs));
         bins_manager.set_dims(dim, dimnames, breaks);
 
         INTEGER(dim)[num_breaks_exprs] = num_cov_exprs;
         INTEGER(dim)[num_breaks_exprs + 1] = num_cov_exprs;
 
         SEXP dimname[2];
-        rprotect(dimname[0] = allocVector(STRSXP, num_cov_exprs));
-        rprotect(dimname[1] = allocVector(STRSXP, num_cov_exprs));
+        rprotect(dimname[0] = RSaneAllocVector(STRSXP, num_cov_exprs));
+        rprotect(dimname[1] = RSaneAllocVector(STRSXP, num_cov_exprs));
 
         for (int i = 0; i < num_cov_exprs; i++) {
             SET_STRING_ELT(dimname[0], i, STRING_ELT(_exprs, num_breaks_exprs + i));
@@ -155,14 +155,16 @@ SEXP emr_covariance(SEXP _exprs, SEXP _breaks, SEXP _include_lowest, SEXP _right
 
         setAttrib(answer, install("breaks"), breaks);
 
-        setAttrib(answer, R_NamesSymbol, (stat_names = allocVector(STRSXP, NUM_STATS)));
+        setAttrib(answer, R_NamesSymbol, (stat_names = RSaneAllocVector(STRSXP, NUM_STATS)));
         for (int i = 0; i < NUM_STATS; i++)
             SET_STRING_ELT(stat_names, i, mkChar(STAT_NAMES[i]));
 
         rreturn(answer);
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 	rreturn(R_NilValue);
 }
 

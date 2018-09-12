@@ -63,7 +63,9 @@ SEXP emr_track_create(SEXP _track, SEXP _space, SEXP _categorial, SEXP _expr, SE
         g_db->load_track(trackname, space == "global");
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 	rreturn(R_NilValue);
 }
 

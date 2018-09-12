@@ -61,7 +61,9 @@ SEXP netta_bug(SEXP envir)
 		}
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 
 	return R_NilValue;
 }
@@ -155,7 +157,9 @@ SEXP nrtest_track_create(SEXP envir)
 		}
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 
 	return R_NilValue;
 }
@@ -215,7 +219,9 @@ SEXP nrtest_regressiondb_create(SEXP envir)
         }
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 
 	return R_NilValue;
 }
@@ -319,7 +325,9 @@ SEXP nrtest_vtrack(SEXP _track, SEXP envir)
         }
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 
 	return R_NilValue;
 }
@@ -422,7 +430,9 @@ SEXP nrtest_iterator(SEXP envir)
         }
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 
 	return R_NilValue;
 }
@@ -444,7 +454,9 @@ SEXP nrtrack(SEXP _track, SEXP _envir)
 			printf("Patient %d, time %s, val %g\n", ipr->id, ipr->timestamp.tostr().c_str(), ipr->val);
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 
 	return R_NilValue;
 }
@@ -559,7 +571,9 @@ SEXP nrimport_clalit(SEXP _dirname, SEXP _envir)
 		for (Datasets::iterator idataset = datasets.begin(); idataset != datasets.end(); ++idataset) 
 			delete idataset->second;
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 
 	return R_NilValue;
 }
@@ -631,7 +645,9 @@ SEXP nrtest_substitute(SEXP _expr, SEXP _envir)
             printf("PLAIN %s\n", CHAR(asChar(_expr)));
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 
 	return R_NilValue;
 }
@@ -673,7 +689,9 @@ SEXP nrfilter(SEXP _expr, SEXP _stime, SEXP _etime, SEXP _envir)
         }
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 
 	return R_NilValue;
 }
@@ -721,7 +739,9 @@ SEXP nrtest_time_iterator(SEXP _times, SEXP _stime, SEXP _etime, SEXP _keepref, 
         }
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 
 	return R_NilValue;
 }
@@ -772,7 +792,9 @@ SEXP emr_test_pipe(SEXP _num_processes, SEXP _timeout, SEXP _envir)
         printf("Received: %ld bytes, rate: %ld bytes / sec\n", bytes_read, bytes_read / timeout);
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 
 	rreturn(R_NilValue);
 }
@@ -792,8 +814,8 @@ SEXP emr_test_eval(SEXP _expr, SEXP _n, SEXP _envir)
         int n = asInteger(_n);
 
         SEXP aaa, bbb;
-        rprotect(aaa = allocVector(REALSXP, 1));
-        rprotect(bbb = allocVector(REALSXP, 1));
+        rprotect(aaa = RSaneAllocVector(REALSXP, 1));
+        rprotect(bbb = RSaneAllocVector(REALSXP, 1));
         defineVar(install("aaa"), aaa, g_naryn->env());
         defineVar(install("bbb"), bbb, g_naryn->env());
 
@@ -814,7 +836,9 @@ SEXP emr_test_eval(SEXP _expr, SEXP _n, SEXP _envir)
         }
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 
 	rreturn(R_NilValue);
 }

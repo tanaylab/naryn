@@ -424,7 +424,9 @@ SEXP emr_dbload(SEXP _gdir, SEXP _udir, SEXP _load_on_demand, SEXP envir)
 		delete g_db;
 		g_db = NULL;
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 
 	return R_NilValue;
 }
@@ -438,7 +440,9 @@ SEXP emr_dbunload(SEXP envir)
 		g_db = NULL;
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 
 	return R_NilValue;
 }
@@ -489,7 +493,9 @@ SEXP emr_db_subset(SEXP _src, SEXP _fraction, SEXP _complementary, SEXP _envir)
         }
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 
 	rreturn(R_NilValue);
 }
@@ -510,7 +516,9 @@ SEXP emr_db_subset_ids(SEXP _envir)
         return NRPoint::convert_ids(ids);
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 
 	rreturn(R_NilValue);
 }
@@ -528,14 +536,14 @@ SEXP emr_db_subset_info(SEXP _envir)
         const char *COL_NAMES[NUM_COLS] = { "src", "fraction", "complementary" };
         SEXP answer, names;
 
-        rprotect(answer = allocVector(VECSXP, NUM_COLS));
-        rprotect(names = allocVector(STRSXP, NUM_COLS));
+        rprotect(answer = RSaneAllocVector(VECSXP, NUM_COLS));
+        rprotect(names = RSaneAllocVector(STRSXP, NUM_COLS));
 
         SET_VECTOR_ELT(answer, SRC, mkString(g_db->ids_subset_src().c_str()));
-        SET_VECTOR_ELT(answer, FRACTION, allocVector(REALSXP, 1));
+        SET_VECTOR_ELT(answer, FRACTION, RSaneAllocVector(REALSXP, 1));
         REAL(VECTOR_ELT(answer, FRACTION))[0] = g_db->ids_subset_fraction();
 
-        SET_VECTOR_ELT(answer, COMPLEMENTARY, allocVector(LGLSXP, 1));
+        SET_VECTOR_ELT(answer, COMPLEMENTARY, RSaneAllocVector(LGLSXP, 1));
         LOGICAL(VECTOR_ELT(answer, COMPLEMENTARY))[0] = g_db->ids_subset_complementary();
 
         for (int i = 0; i < NUM_COLS; ++i)
@@ -545,7 +553,9 @@ SEXP emr_db_subset_info(SEXP _envir)
         rreturn(answer);
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 
 	rreturn(R_NilValue);
 }
@@ -557,14 +567,16 @@ SEXP emr_track_names(SEXP envir)
 
 		SEXP answer;
 
-        rprotect(answer = allocVector(STRSXP, g_db->track_names().size()));
+        rprotect(answer = RSaneAllocVector(STRSXP, g_db->track_names().size()));
         for (vector<string>::const_iterator itrack_name = g_db->track_names().begin(); itrack_name < g_db->track_names().end(); ++itrack_name)
             SET_STRING_ELT(answer, itrack_name - g_db->track_names().begin(), mkChar(itrack_name->c_str()));
 
 		return answer;
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 
 	return R_NilValue;
 }
@@ -576,14 +588,16 @@ SEXP emr_global_track_names(SEXP envir)
 
 		SEXP answer;
 
-        rprotect(answer = allocVector(STRSXP, g_db->global_track_names().size()));
+        rprotect(answer = RSaneAllocVector(STRSXP, g_db->global_track_names().size()));
         for (vector<string>::const_iterator itrack_name = g_db->global_track_names().begin(); itrack_name < g_db->global_track_names().end(); ++itrack_name)
             SET_STRING_ELT(answer, itrack_name - g_db->global_track_names().begin(), mkChar(itrack_name->c_str()));
 
 		return answer;
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 
 	return R_NilValue;
 }
@@ -595,14 +609,16 @@ SEXP emr_user_track_names(SEXP _from, SEXP envir)
 
 		SEXP answer;
 
-        rprotect(answer = allocVector(STRSXP, g_db->user_track_names().size()));
+        rprotect(answer = RSaneAllocVector(STRSXP, g_db->user_track_names().size()));
         for (vector<string>::const_iterator itrack_name = g_db->user_track_names().begin(); itrack_name < g_db->user_track_names().end(); ++itrack_name)
             SET_STRING_ELT(answer, itrack_name - g_db->user_track_names().begin(), mkChar(itrack_name->c_str()));
 
 		return answer;
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 
 	return R_NilValue;
 }
@@ -618,6 +634,8 @@ SEXP emr_minid(SEXP envir)
         return answer;
     } catch (TGLException &e) {
         rerror("%s", e.msg());
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
     }
 
     return R_NilValue;
@@ -634,6 +652,8 @@ SEXP emr_maxid(SEXP envir)
         return answer;
     } catch (TGLException &e) {
         rerror("%s", e.msg());
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
     }
 
     return R_NilValue;
@@ -650,6 +670,8 @@ SEXP emr_mintime(SEXP envir)
         return answer;
     } catch (TGLException &e) {
         rerror("%s", e.msg());
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
     }
 
     return R_NilValue;
@@ -666,6 +688,8 @@ SEXP emr_maxtime(SEXP envir)
         return answer;
     } catch (TGLException &e) {
         rerror("%s", e.msg());
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
     }
 
     return R_NilValue;

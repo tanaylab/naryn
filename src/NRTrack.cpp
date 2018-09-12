@@ -204,7 +204,9 @@ SEXP emr_track_rm(SEXP _track, SEXP _envir)
         g_db->unload_track(trackname);
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 	return R_NilValue;
 }
 
@@ -230,55 +232,55 @@ SEXP emr_track_info(SEXP _track, SEXP _envir)
         if (!track)
             verror("Track %s does not exist", trackname);
 
-        rprotect(answer = allocVector(VECSXP, NUM_COLS));
-        rprotect(names = allocVector(STRSXP, NUM_COLS));
+        rprotect(answer = RSaneAllocVector(VECSXP, NUM_COLS));
+        rprotect(names = RSaneAllocVector(STRSXP, NUM_COLS));
 
         // path
-        SET_VECTOR_ELT(answer, PATH, allocVector(STRSXP, 1));
+        SET_VECTOR_ELT(answer, PATH, RSaneAllocVector(STRSXP, 1));
         SET_STRING_ELT(VECTOR_ELT(answer, PATH), 0, mkChar(track_info->filename.c_str()));
 
         // type
-        SET_VECTOR_ELT(answer, TYPE, allocVector(STRSXP, 1));
+        SET_VECTOR_ELT(answer, TYPE, RSaneAllocVector(STRSXP, 1));
         SET_STRING_ELT(VECTOR_ELT(answer, TYPE), 0, mkChar(NRTrack::TRACK_TYPE_NAMES[track->track_type()]));
 
         // data.type
-        SET_VECTOR_ELT(answer, DATA_TYPE, allocVector(STRSXP, 1));
+        SET_VECTOR_ELT(answer, DATA_TYPE, RSaneAllocVector(STRSXP, 1));
         SET_STRING_ELT(VECTOR_ELT(answer, DATA_TYPE), 0, mkChar(NRTrack::DATA_TYPE_NAMES[track->data_type()]));
 
         // categorial
-        SET_VECTOR_ELT(answer, CATEGORIAL, allocVector(LGLSXP, 1));
+        SET_VECTOR_ELT(answer, CATEGORIAL, RSaneAllocVector(LGLSXP, 1));
         LOGICAL(VECTOR_ELT(answer, CATEGORIAL))[0] = track->is_categorial();
 
         // num.vals
-        SET_VECTOR_ELT(answer, NUM_VALS, allocVector(INTSXP, 1));
+        SET_VECTOR_ELT(answer, NUM_VALS, RSaneAllocVector(INTSXP, 1));
         INTEGER(VECTOR_ELT(answer, NUM_VALS))[0] = track->size();
         
         // num.unique.vals
-        SET_VECTOR_ELT(answer, NUM_UNIQUE_VALS, allocVector(INTSXP, 1));
+        SET_VECTOR_ELT(answer, NUM_UNIQUE_VALS, RSaneAllocVector(INTSXP, 1));
         INTEGER(VECTOR_ELT(answer, NUM_UNIQUE_VALS))[0] = track->unique_size();
 
         // min.val
-        SET_VECTOR_ELT(answer, MIN_VAL, allocVector(REALSXP, 1));
+        SET_VECTOR_ELT(answer, MIN_VAL, RSaneAllocVector(REALSXP, 1));
         REAL(VECTOR_ELT(answer, MIN_VAL))[0] = track->minval();
 
         // max.val
-        SET_VECTOR_ELT(answer, MAX_VAL, allocVector(REALSXP, 1));
+        SET_VECTOR_ELT(answer, MAX_VAL, RSaneAllocVector(REALSXP, 1));
         REAL(VECTOR_ELT(answer, MAX_VAL))[0] = track->maxval();
 
         // min.id
-        SET_VECTOR_ELT(answer, MIN_ID, allocVector(INTSXP, 1));
+        SET_VECTOR_ELT(answer, MIN_ID, RSaneAllocVector(INTSXP, 1));
         INTEGER(VECTOR_ELT(answer, MIN_ID))[0] = track->minid();
 
         // max.id
-        SET_VECTOR_ELT(answer, MAX_ID, allocVector(INTSXP, 1));
+        SET_VECTOR_ELT(answer, MAX_ID, RSaneAllocVector(INTSXP, 1));
         INTEGER(VECTOR_ELT(answer, MAX_ID))[0] = track->maxid();
 
         // min.time
-        SET_VECTOR_ELT(answer, MIN_TIME, allocVector(INTSXP, 1));
+        SET_VECTOR_ELT(answer, MIN_TIME, RSaneAllocVector(INTSXP, 1));
         INTEGER(VECTOR_ELT(answer, MIN_TIME))[0] = track->mintime();
 
         // max.time
-        SET_VECTOR_ELT(answer, MAX_TIME, allocVector(INTSXP, 1));
+        SET_VECTOR_ELT(answer, MAX_TIME, RSaneAllocVector(INTSXP, 1));
         INTEGER(VECTOR_ELT(answer, MAX_TIME))[0] = track->maxtime();
 
         for (int i = 0; i < NUM_COLS; ++i)
@@ -289,7 +291,9 @@ SEXP emr_track_info(SEXP _track, SEXP _envir)
         return answer;
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 	return R_NilValue;
 }
 
@@ -315,7 +319,9 @@ SEXP emr_track_ids(SEXP _track, SEXP _envir)
         return NRPoint::convert_ids(ids, 1, false);
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 	return R_NilValue;
 }
 
@@ -336,7 +342,7 @@ SEXP emr_track_unique(SEXP _track, SEXP _envir)
             verror("Track %s does not exist", trackname);
 
         g_naryn->verify_max_data_size(track->unique_size(), "Result");
-        rprotect(answer = allocVector(REALSXP, track->unique_size()));
+        rprotect(answer = RSaneAllocVector(REALSXP, track->unique_size()));
 
         vector<double> unique_vals;
         track->unique_vals(unique_vals);
@@ -347,7 +353,9 @@ SEXP emr_track_unique(SEXP _track, SEXP _envir)
         return answer;
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 	return R_NilValue;
 }
 
@@ -378,7 +386,7 @@ SEXP emr_track_percentile(SEXP _track, SEXP _value, SEXP _lower, SEXP _envir)
         SEXP answer;
         int num_vals = Rf_length(_value);
 
-        rprotect(answer = allocVector(REALSXP, num_vals));
+        rprotect(answer = RSaneAllocVector(REALSXP, num_vals));
 
         if (asLogical(_lower)) {
             if (isReal(_value)) {
@@ -401,7 +409,9 @@ SEXP emr_track_percentile(SEXP _track, SEXP _value, SEXP _lower, SEXP _envir)
         return answer;
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 	return R_NilValue;
 }
 

@@ -190,6 +190,8 @@ SEXP emr_import(SEXP _track, SEXP _space, SEXP _categorial, SEXP _src, SEXP _add
         g_db->load_track(trackname.c_str(), is_global);
     } catch (TGLException &e) {
         rerror("%s", e.msg());
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
     }
 
     rreturn(R_NilValue);

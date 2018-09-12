@@ -356,7 +356,7 @@ NRTrackExpressionVars::TrackVar &NRTrackExpressionVars::add_track_var(const stri
 void NRTrackExpressionVars::define_r_vars(unsigned size)
 {
 	for (TrackVars::iterator ivar = m_track_vars.begin(); ivar != m_track_vars.end(); ivar++) {
-		rprotect(ivar->rvar = allocVector(REALSXP, size));
+		rprotect(ivar->rvar = RSaneAllocVector(REALSXP, size));
 		defineVar(install(ivar->var_name.c_str()), ivar->rvar, g_naryn->env());
 		ivar->var = REAL(ivar->rvar);
         for (int i = 0; i < size; ++i)

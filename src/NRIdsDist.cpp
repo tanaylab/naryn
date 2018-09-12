@@ -59,7 +59,7 @@ SEXP emr_ids_dist(SEXP _ids, SEXP _tracks, SEXP _envir)
         // pack the answer
         SEXP answer;
 
-        rprotect(answer = allocVector(INTSXP, res.size()));
+        rprotect(answer = RSaneAllocVector(INTSXP, res.size()));
 
         for (vector<unsigned>::const_iterator ires = res.begin(); ires != res.end(); ++ires)
             INTEGER(answer)[ires - res.begin()] = *ires;
@@ -69,7 +69,9 @@ SEXP emr_ids_dist(SEXP _ids, SEXP _tracks, SEXP _envir)
         rreturn(answer);
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 	rreturn(R_NilValue);
 }
 
@@ -108,7 +110,7 @@ SEXP emr_ids_dist_with_iterator(SEXP _ids, SEXP _tracks, SEXP _stime, SEXP _etim
             tracks.push_back(track);
         }
 
-        rprotect(riterator = allocVector(STRSXP, 1));
+        rprotect(riterator = RSaneAllocVector(STRSXP, 1));
 
         progress.init(tracks.size(), 1);
         for (auto itrack = tracks.begin(); itrack != tracks.end(); ++itrack) {
@@ -129,7 +131,7 @@ SEXP emr_ids_dist_with_iterator(SEXP _ids, SEXP _tracks, SEXP _stime, SEXP _etim
         // pack the answer
         SEXP answer;
 
-        rprotect(answer = allocVector(INTSXP, res.size()));
+        rprotect(answer = RSaneAllocVector(INTSXP, res.size()));
 
         for (vector<unsigned>::const_iterator ires = res.begin(); ires != res.end(); ++ires)
             INTEGER(answer)[ires - res.begin()] = *ires;
@@ -139,7 +141,9 @@ SEXP emr_ids_dist_with_iterator(SEXP _ids, SEXP _tracks, SEXP _stime, SEXP _etim
         rreturn(answer);
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 	rreturn(R_NilValue);
 }
 
@@ -198,7 +202,7 @@ SEXP emr_ids_vals_dist(SEXP _ids, SEXP _tracks, SEXP _stime, SEXP _etime, SEXP _
 
         res.resize(Rf_length(_tracks));
 
-        rprotect(riterator = allocVector(STRSXP, 1));
+        rprotect(riterator = RSaneAllocVector(STRSXP, 1));
 
         progress.init(tracks.size(), 1);
         for (vector<NRTrack *>::const_iterator itrack = tracks.begin(); itrack != tracks.end(); ++itrack) {
@@ -240,18 +244,18 @@ SEXP emr_ids_vals_dist(SEXP _ids, SEXP _tracks, SEXP _stime, SEXP _etime, SEXP _
         SEXP row_names;
         SEXP col_names;
 
-        rprotect(answer = allocVector(VECSXP, NUM_COLS));
+        rprotect(answer = RSaneAllocVector(VECSXP, NUM_COLS));
 
-        SET_VECTOR_ELT(answer, TRACK, (rtracks_idx = allocVector(INTSXP, tot_num_vals)));
-        SET_VECTOR_ELT(answer, VAL, (rvals = allocVector(REALSXP, tot_num_vals)));
-        SET_VECTOR_ELT(answer, COUNT, (rcounts = allocVector(INTSXP, tot_num_vals)));
+        SET_VECTOR_ELT(answer, TRACK, (rtracks_idx = RSaneAllocVector(INTSXP, tot_num_vals)));
+        SET_VECTOR_ELT(answer, VAL, (rvals = RSaneAllocVector(REALSXP, tot_num_vals)));
+        SET_VECTOR_ELT(answer, COUNT, (rcounts = RSaneAllocVector(INTSXP, tot_num_vals)));
 
-        setAttrib(rtracks_idx, R_LevelsSymbol, (rtracks = allocVector(STRSXP, tracks.size())));
+        setAttrib(rtracks_idx, R_LevelsSymbol, (rtracks = RSaneAllocVector(STRSXP, tracks.size())));
         setAttrib(rtracks_idx, R_ClassSymbol, mkString("factor"));
 
-        setAttrib(answer, R_NamesSymbol, (col_names = allocVector(STRSXP, NUM_COLS)));
+        setAttrib(answer, R_NamesSymbol, (col_names = RSaneAllocVector(STRSXP, NUM_COLS)));
         setAttrib(answer, R_ClassSymbol, mkString("data.frame"));
-        setAttrib(answer, R_RowNamesSymbol, (row_names = allocVector(INTSXP, tot_num_vals)));
+        setAttrib(answer, R_RowNamesSymbol, (row_names = RSaneAllocVector(INTSXP, tot_num_vals)));
 
         for (vector<NRTrack *>::const_iterator itrack = tracks.begin(); itrack != tracks.end(); ++itrack)
             SET_STRING_ELT(rtracks, itrack - tracks.begin(), mkChar((*itrack)->name()));
@@ -283,7 +287,9 @@ SEXP emr_ids_vals_dist(SEXP _ids, SEXP _tracks, SEXP _stime, SEXP _etime, SEXP _
         rreturn(answer);
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 	rreturn(R_NilValue);
 }
 

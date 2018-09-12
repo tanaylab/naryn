@@ -79,8 +79,8 @@ SEXP emr_summary(SEXP _expr, SEXP _stime, SEXP _etime, SEXP _iterator_policy, SE
         SEXP answer;
         SEXP colnames;
 
-        rprotect(answer = allocVector(REALSXP, NUM_COLS));
-        rprotect(colnames = allocVector(STRSXP, NUM_COLS));
+        rprotect(answer = RSaneAllocVector(REALSXP, NUM_COLS));
+        rprotect(colnames = RSaneAllocVector(STRSXP, NUM_COLS));
 
         REAL(answer)[TOTAL_BINS] = summary.num_bins;
         REAL(answer)[TOTAL_NAN_BINS] = summary.num_bins - summary.num_non_nan_bins;
@@ -98,7 +98,9 @@ SEXP emr_summary(SEXP _expr, SEXP _stime, SEXP _etime, SEXP _iterator_policy, SE
         rreturn(answer);
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 	rreturn(R_NilValue);
 }
 

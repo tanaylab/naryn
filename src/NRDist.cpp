@@ -49,15 +49,15 @@ SEXP emr_dist(SEXP _exprs, SEXP _breaks, SEXP _include_lowest, SEXP _right, SEXP
 
         // pack the answer
         SEXP answer, dim, dimnames, breaks;
-        rprotect(answer = allocVector(REALSXP, totalbins));
+        rprotect(answer = RSaneAllocVector(REALSXP, totalbins));
         double *panswer = REAL(answer);
 
         for (unsigned i = 0; i < totalbins; i++)
             panswer[i] = distribution[i];
 
-        rprotect(dim = allocVector(INTSXP, num_exprs));
-        rprotect(dimnames = allocVector(VECSXP, num_exprs));
-        rprotect(breaks = allocVector(VECSXP, num_exprs));
+        rprotect(dim = RSaneAllocVector(INTSXP, num_exprs));
+        rprotect(dimnames = RSaneAllocVector(VECSXP, num_exprs));
+        rprotect(breaks = RSaneAllocVector(VECSXP, num_exprs));
         bins_manager.set_dims(dim, dimnames, breaks);
         setAttrib(answer, R_DimSymbol, dim);
         setAttrib(answer, R_DimNamesSymbol, dimnames);
@@ -65,7 +65,9 @@ SEXP emr_dist(SEXP _exprs, SEXP _breaks, SEXP _include_lowest, SEXP _right, SEXP
         rreturn(answer);
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 	rreturn(R_NilValue);
 }
 

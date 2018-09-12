@@ -30,7 +30,9 @@ SEXP emr_check_vtrack(SEXP _vtrack, SEXP _envir)
 		parser.parse_exprs(exprs, true);
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 	rreturn(R_NilValue);
 }
 
@@ -53,7 +55,9 @@ SEXP emr_check_vtrack_attr_func(SEXP _func, SEXP _envir)
         verror("Invalid function \"%s\"", func.c_str());
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 	rreturn(R_NilValue);
 }
 
@@ -80,7 +84,9 @@ SEXP emr_check_vtrack_attr_time_shift(SEXP _tshift, SEXP _envir)
             verror("'time.shift' is out of range");
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 	rreturn(R_NilValue);
 }
 
@@ -148,7 +154,9 @@ SEXP emr_check_vtrack_attr_id_map(SEXP _id_map, SEXP _envir)
         }
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 	rreturn(R_NilValue);
 }
 
@@ -163,7 +171,9 @@ SEXP emr_check_vtrack_attr_filter(SEXP _filter, SEXP _envir)
         }
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 	rreturn(R_NilValue);
 }
 

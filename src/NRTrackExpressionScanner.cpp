@@ -106,7 +106,7 @@ void NRTrackExprScanner::define_r_vars(unsigned eval_buf_limit)
 	m_expr_itr_points.resize(m_eval_buf_limit);
 
     runprotect(m_ritr_times);
-    rprotect(m_ritr_times = allocVector(REALSXP, m_eval_buf_limit));
+    rprotect(m_ritr_times = RSaneAllocVector(REALSXP, m_eval_buf_limit));
     m_itr_times = REAL(m_ritr_times);
     for (unsigned i = 0; i < eval_buf_limit; ++i)
         m_itr_times[i] = 0;
@@ -169,7 +169,7 @@ void NRTrackExprScanner::check(const vector<string> &track_exprs, unsigned stime
 	for (unsigned iexpr = 0; iexpr < m_track_exprs.size(); ++iexpr) {
         if (!m_expr_vars.var(m_track_exprs[iexpr].c_str())) {   // track expression is not a virtual track
     		SEXP expr;
-    		rprotect(expr = allocVector(STRSXP, 1));
+    		rprotect(expr = RSaneAllocVector(STRSXP, 1));
     		SET_STRING_ELT(expr, 0, mkChar(m_track_exprs[iexpr].c_str()));
 
     		// parse R expression

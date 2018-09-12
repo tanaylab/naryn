@@ -82,6 +82,9 @@ void RSaneSerialize(SEXP rexp, const char *fname);
 SEXP RSaneUnserialize(FILE *fp);
 SEXP RSaneUnserialize(const char *fname);
 
+// Same as above: replaces allocVector which can fail on memory allocation and then R makes a longmp, skipping all the destructors
+SEXP RSaneAllocVector(SEXPTYPE type, R_xlen_t len);
+
 SEXP get_rvector_col(SEXP v, const char *colname, const char *varname, bool error_if_missing);
 
 string get_bound_colname(const char *str, unsigned maxlen = 40);
@@ -202,7 +205,6 @@ protected:
 	SEXP                        m_env;
 	mode_t                      m_old_umask;
 	TGLException::Error_handler m_old_error_handler;
-	new_handler                 m_old_new_handler;
 	unsigned                    m_old_protect_count;
 	set<int>                    m_old_open_fds;
 
@@ -220,7 +222,6 @@ protected:
     static string  get_fifo_sem_name();
     static string  get_fifo_name();
     static void    handle_error(const char *msg);
-	static void    out_of_memory();
 	static void    sigint_handler(int);
     static void    sigalrm_handler(int);
     static void    sigchld_handler(int);

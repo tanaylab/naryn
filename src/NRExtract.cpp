@@ -76,10 +76,10 @@ SEXP emr_extract(SEXP _exprs, SEXP _names, SEXP _tidy, SEXP _sort, SEXP _stime, 
             SEXP answer = NRPoint::convert_points(out_points, NRPoint::NUM_COLS + NUM_COLS, false, do_sort, &ppoints);
             SEXP rexprs, rexpr_idx, rexpr_vals;
 
-            SET_VECTOR_ELT(answer, NRPoint::NUM_COLS + EXPR, (rexpr_idx = allocVector(INTSXP, out_points.size())));
-            SET_VECTOR_ELT(answer, NRPoint::NUM_COLS + VAL, (rexpr_vals = allocVector(REALSXP, out_points.size())));
+            SET_VECTOR_ELT(answer, NRPoint::NUM_COLS + EXPR, (rexpr_idx = RSaneAllocVector(INTSXP, out_points.size())));
+            SET_VECTOR_ELT(answer, NRPoint::NUM_COLS + VAL, (rexpr_vals = RSaneAllocVector(REALSXP, out_points.size())));
 
-            setAttrib(rexpr_idx, R_LevelsSymbol, (rexprs = allocVector(STRSXP, num_exprs)));
+            setAttrib(rexpr_idx, R_LevelsSymbol, (rexprs = RSaneAllocVector(STRSXP, num_exprs)));
             setAttrib(rexpr_idx, R_ClassSymbol, mkString("factor"));
 
             for (vector<NRPoint *>::const_iterator ippoint = ppoints.begin(); ippoint != ppoints.end(); ++ippoint) {
@@ -116,7 +116,7 @@ SEXP emr_extract(SEXP _exprs, SEXP _names, SEXP _tidy, SEXP _sort, SEXP _stime, 
 
              for (unsigned iexpr = 0; iexpr < num_exprs; ++iexpr) {
                  SEXP rexpr_vals;
-                 rprotect(rexpr_vals = allocVector(REALSXP, values[iexpr].size()));
+                 rprotect(rexpr_vals = RSaneAllocVector(REALSXP, values[iexpr].size()));
                  SET_VECTOR_ELT(answer, NRPoint::NUM_COLS + iexpr, rexpr_vals);
                  for (vector<NRPoint *>::const_iterator ippoint = ppoints.begin(); ippoint != ppoints.end(); ++ippoint)
                      REAL(rexpr_vals)[ippoint - ppoints.begin()] = values[iexpr][*ippoint - &out_points.front()];
@@ -134,7 +134,9 @@ SEXP emr_extract(SEXP _exprs, SEXP _names, SEXP _tidy, SEXP _sort, SEXP _stime, 
         }
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
-	}
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 	rreturn(R_NilValue);
 }
 
