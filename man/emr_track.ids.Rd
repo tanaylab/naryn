@@ -27,7 +27,7 @@ An Ids Table
 }
 \examples{
 emr_db.init_examples()
-emr_track.ids("categorial_track")
+emr_track.ids("categorical_track")
 }
 \keyword{ ~track }
 \keyword{ ~ids }

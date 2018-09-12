@@ -38,7 +38,7 @@ Function 'func' (with 'params') is applied then on the collected values and prod
 
 Use the following table for a reference of all valid functions and parameters combinations.
 
-CATEGORIAL TRACKS
+CATEGORICAL TRACKS
 
 \tabular{lll}{
     FUNC \tab PARAM \tab DESCRIPTION \cr

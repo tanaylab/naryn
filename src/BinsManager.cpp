@@ -46,8 +46,8 @@ BinsManager::BinsManager(SEXP _breaks, SEXP _include_lowest, SEXP _right, const 
 
             NRTrack *track = g_db->track(var->imanager->name.c_str());
 
-            if (!track->is_categorial())
-                TGLError<BinsManager>("breaks[%d]: breaks can be NULL only when the underyling track is categorial", i + 1);
+            if (!track->is_categorical())
+                TGLError<BinsManager>("breaks[%d]: breaks can be NULL only when the underyling track is categorical", i + 1);
 
             if (var->imanager->data_fetcher.func() != NRTrack::VALUE &&
                 var->imanager->data_fetcher.func() != NRTrack::FREQUENT &&

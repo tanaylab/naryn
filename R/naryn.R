@@ -192,11 +192,11 @@ emr_track.addto <- function(track, src) {
     retv <- NULL
 }
 
-emr_track.create <- function(track, space, categorial, expr, stime = get("MINTIME", envir = .GlobalEnv), etime = get("MAXTIME", envir = .GlobalEnv),
+emr_track.create <- function(track, space, categorical, expr, stime = get("MINTIME", envir = .GlobalEnv), etime = get("MAXTIME", envir = .GlobalEnv),
                              iterator = NULL, keepref = F, filter = NULL)
 {
-	if (missing(track) || missing(space) || missing(categorial) || missing(expr))
-		stop("Usage: emr_track.create(track, space = \"user\", categorial, expr, stime = MINTIME, etime = MAXTIME, iterator = NULL, keepref = F, filter = NULL)", call. = F)
+	if (missing(track) || missing(space) || missing(categorical) || missing(expr))
+		stop("Usage: emr_track.create(track, space = \"user\", categorical, expr, stime = MINTIME, etime = MAXTIME, iterator = NULL, keepref = F, filter = NULL)", call. = F)
     .emr_checkroot()
 
     space = tolower(space)
@@ -212,7 +212,7 @@ emr_track.create <- function(track, space, categorial, expr, stime = get("MINTIM
     if (emr_filter.exists(track))
         stop(sprintf("Filter %s already exists", track), call. = F)
 
-	.emr_call("emr_track_create", track, space, categorial, expr, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
+	.emr_call("emr_track_create", track, space, categorical, expr, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
     .emr_db_constants_load()
     retv <- NULL
 }
@@ -232,9 +232,9 @@ emr_track.ids <- function(track) {
 	.emr_call("emr_track_ids", track, new.env(parent = parent.frame()))
 }
 
-emr_track.import <- function(track, space, categorial, src) {
-	if (missing(track) || missing(space) || missing(src) || missing(categorial))
-		stop("Usage: emr_track.import(track, space, categorial, src)", call. = F)
+emr_track.import <- function(track, space, categorical, src) {
+	if (missing(track) || missing(space) || missing(src) || missing(categorical))
+		stop("Usage: emr_track.import(track, space, categorical, src)", call. = F)
     .emr_checkroot()
 
     space = tolower(space)
@@ -247,7 +247,7 @@ emr_track.import <- function(track, space, categorial, src) {
     if (emr_filter.exists(track))
         stop(sprintf("Filter %s already exists", track), call. = F)
 
-	.emr_call("emr_import", track, space, categorial, src, F, new.env(parent = parent.frame()))
+	.emr_call("emr_import", track, space, categorical, src, F, new.env(parent = parent.frame()))
     .emr_db_constants_load()
     retv <- NULL
 }

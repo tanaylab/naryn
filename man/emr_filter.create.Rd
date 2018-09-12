@@ -26,11 +26,11 @@ This function creates a new named filter.
 
 If 'val' is not 'NULL', the time window of the filter is required to contain at least one value from the vector of 'val'.
 
-'val' is allowed to be used only when 'src' is a name of a categorial track.
+'val' is allowed to be used only when 'src' is a name of a categorical track.
 
 If 'expiration' is not 'NULL' and the filter window contains a value at time 't', the existence of previous values in the time window of [t-expiration, t-1] (aka: "expiration window") is checked. If no such values are found in the expiration window, the filter returns 'TRUE', otherwise 'FALSE'.
 
-'expiration' is allowed to be used only when 'src' is a name of a categorial track and 'keepref' is 'FALSE'.
+'expiration' is allowed to be used only when 'src' is a name of a categorical track and 'keepref' is 'FALSE'.
 
 If both 'val' and 'expiration' are not 'NULL' then only values from 'val' vector are checked both in time window and expiration window.
 

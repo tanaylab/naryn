@@ -27,7 +27,7 @@ A vector of values
 }
 \examples{
 emr_db.init_examples()
-emr_track.unique("categorial_track")
+emr_track.unique("categorical_track")
 }
 \keyword{ ~track }
 \keyword{ ~unique }

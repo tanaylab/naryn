@@ -70,7 +70,7 @@ const char *NRTrack::DATA_TYPE_NAMES[NUM_DATA_TYPES] = { "float", "double" };
 
 // When adding a new function do not forget to update BinsManager::BinsManager()
 const NRTrack::FuncInfo NRTrack::FUNC_INFOS[NRTrack::NUM_FUNCS] = {
-    // name                   categorial  quantitative  keepref
+    // name                   categorical quantitative  keepref
     { "value",                true,       false,        true  },
     { "exists",               true,       false,        true  },
     { "frequent",             true,       false,        false },
@@ -219,9 +219,9 @@ SEXP emr_track_info(SEXP _track, SEXP _envir)
 		if (!isString(_track) || Rf_length(_track) != 1)
 			verror("Track argument is not a string");
 
-        enum { PATH, TYPE, DATA_TYPE, CATEGORIAL, NUM_VALS, NUM_UNIQUE_VALS, MIN_VAL, MAX_VAL, MIN_ID, MAX_ID, MIN_TIME, MAX_TIME, NUM_COLS };
+        enum { PATH, TYPE, DATA_TYPE, CATEGORICAL, NUM_VALS, NUM_UNIQUE_VALS, MIN_VAL, MAX_VAL, MIN_ID, MAX_ID, MIN_TIME, MAX_TIME, NUM_COLS };
 
-        const char *COL_NAMES[NUM_COLS] = { "path", "type", "data.type", "categorial", "num.vals", "num.unique.vals", "min.val", "max.val", "min.id", "max.id", "min.time", "max.time" };
+        const char *COL_NAMES[NUM_COLS] = { "path", "type", "data.type", "categorical", "num.vals", "num.unique.vals", "min.val", "max.val", "min.id", "max.id", "min.time", "max.time" };
 
 		const char *trackname = CHAR(STRING_ELT(_track, 0));
         SEXP answer;
@@ -247,9 +247,9 @@ SEXP emr_track_info(SEXP _track, SEXP _envir)
         SET_VECTOR_ELT(answer, DATA_TYPE, RSaneAllocVector(STRSXP, 1));
         SET_STRING_ELT(VECTOR_ELT(answer, DATA_TYPE), 0, mkChar(NRTrack::DATA_TYPE_NAMES[track->data_type()]));
 
-        // categorial
-        SET_VECTOR_ELT(answer, CATEGORIAL, RSaneAllocVector(LGLSXP, 1));
-        LOGICAL(VECTOR_ELT(answer, CATEGORIAL))[0] = track->is_categorial();
+        // categorical
+        SET_VECTOR_ELT(answer, CATEGORICAL, RSaneAllocVector(LGLSXP, 1));
+        LOGICAL(VECTOR_ELT(answer, CATEGORICAL))[0] = track->is_categorical();
 
         // num.vals
         SET_VECTOR_ELT(answer, NUM_VALS, RSaneAllocVector(INTSXP, 1));
@@ -380,8 +380,8 @@ SEXP emr_track_percentile(SEXP _track, SEXP _value, SEXP _lower, SEXP _envir)
         if (!track)
             verror("Track %s does not exist", trackname);
 
-        if (track->is_categorial()) 
-            verror("Track %s is categorial: percentile queries are not supported", trackname);
+        if (track->is_categorical()) 
+            verror("Track %s is categorical: percentile queries are not supported", trackname);
 
         SEXP answer;
         int num_vals = Rf_length(_value);

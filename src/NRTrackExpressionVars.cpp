@@ -164,7 +164,7 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
 	string func;
 
 	if (isNull(rfunc)) {
-        if (track->is_categorial())
+        if (track->is_categorical())
             func = NRTrack::FUNC_INFOS[NRTrack::VALUE].name;
         else
             func = NRTrack::FUNC_INFOS[NRTrack::AVG].name;
@@ -184,8 +184,8 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
             if (imanager.keepref && !NRTrack::FUNC_INFOS[ifunc].keepref)
                 verror("Function %s is not supported when keepref is 'TRUE'", NRTrack::FUNC_INFOS[ifunc].name);
 
-            if (track->is_categorial() && !NRTrack::FUNC_INFOS[ifunc].categorial)
-                verror("Function %s is not supported with categorial tracks", NRTrack::FUNC_INFOS[ifunc].name);
+            if (track->is_categorical() && !NRTrack::FUNC_INFOS[ifunc].categorical)
+                verror("Function %s is not supported with categorical tracks", NRTrack::FUNC_INFOS[ifunc].name);
 
             if (track->is_quantitative() && !NRTrack::FUNC_INFOS[ifunc].quantitative)
                 verror("Function %s is not supported with quantitative tracks", NRTrack::FUNC_INFOS[ifunc].name);
@@ -204,7 +204,7 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
                 if (ifunc == NRTrack::EXISTS && isNull(rparams))
                     verror("Virtual track %s: function %s requires an additional parameter", vtrack.c_str(), func.c_str());
 
-                if (track->is_categorial()) {
+                if (track->is_categorical()) {
                     if (!isNull(rparams)) {
                         if (!isReal(rparams) && !isInteger(rparams))
                             verror("Virtual track %s: invalid parameters used for function %s", vtrack.c_str(), func.c_str());
@@ -214,7 +214,7 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
                             vals.insert(isReal(rparams) ? (float)REAL(rparams)[i] : (float)INTEGER(rparams)[i]);
                     }
                 } else if (!isNull(rparams)) {
-                    if (NRTrack::FUNC_INFOS[ifunc].categorial)
+                    if (NRTrack::FUNC_INFOS[ifunc].categorical)
                         verror("Virtual track %s: function %s does not accept any parameters when applied to quantative tracks", vtrack.c_str(), func.c_str());
                     verror("Virtual track %s: function %s does not accept any parameters", vtrack.c_str(), func.c_str());
                 }
@@ -349,7 +349,7 @@ NRTrackExpressionVars::TrackVar &NRTrackExpressionVars::add_track_var(const stri
 	TrackVar &var = m_track_vars.back();
 	var.var_name = track_name;
 	var.percentile = numeric_limits<double>::quiet_NaN();
-	var.imanager = add_imanager(imanager, track, track->is_categorial() ? NRTrack::VALUE : NRTrack::AVG, unordered_set<double>());
+	var.imanager = add_imanager(imanager, track, track->is_categorical() ? NRTrack::VALUE : NRTrack::AVG, unordered_set<double>());
 	return var;
 }
 

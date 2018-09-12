@@ -194,8 +194,8 @@ SEXP emr_ids_vals_dist(SEXP _ids, SEXP _tracks, SEXP _stime, SEXP _etime, SEXP _
             if (!track)
                 verror("Track %s does not exist", trackname);
 
-            if (!track->is_categorial())
-                verror("Track %s is not categorial", trackname);
+            if (!track->is_categorical())
+                verror("Track %s is not categorical", trackname);
 
             tracks.push_back(track);
         }

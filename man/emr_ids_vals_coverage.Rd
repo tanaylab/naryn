@@ -19,7 +19,7 @@ emr_ids_vals_coverage(ids, tracks, stime = MINTIME,
   \item{filter}{iterator filter}
 }
 \details{
-This function accepts a set of ids and a vector of categorial tracks. For each track value it calculates how many ids share this value. Each id is counted only once. A data frame with 3 columns 'track', 'val' and 'count'.
+This function accepts a set of ids and a vector of categorical tracks. For each track value it calculates how many ids share this value. Each id is counted only once. A data frame with 3 columns 'track', 'val' and 'count'.
 
 Ids can come from various source such as a track or an Ids Table.
 
@@ -34,6 +34,6 @@ A data frame containing the number of ids for each track value.
 }
 \examples{
 emr_db.init_examples()
-emr_ids_vals_coverage(data.frame(id=c(24,27)), "categorial_track")
+emr_ids_vals_coverage(data.frame(id=c(24,27)), "categorical_track")
 }
 \keyword{ ~coverage }

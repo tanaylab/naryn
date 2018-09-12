@@ -7,13 +7,13 @@ Imports a track from a file or data-frame
 Imports a track from a file or data-frame.
 }
 \usage{
-emr_track.import(track, space, categorial, src)
+emr_track.import(track, space, categorical, src)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{track}{the name of the newly created track}
   \item{space}{"user" or "global" space}
-  \item{categorial}{if 'TRUE' track is marked as categorial}
+  \item{categorical}{if 'TRUE' track is marked as categorical}
   \item{src}{file name or data-frame containing the track records}
 }
 \details{

@@ -18,7 +18,7 @@
 
 extern "C" {
 
-SEXP emr_import(SEXP _track, SEXP _space, SEXP _categorial, SEXP _src, SEXP _add, SEXP _envir)
+SEXP emr_import(SEXP _track, SEXP _space, SEXP _categorical, SEXP _src, SEXP _add, SEXP _envir)
 {
     try {
         enum { ID, TIME, REF, VALUE, NUM_COLS };
@@ -33,7 +33,7 @@ SEXP emr_import(SEXP _track, SEXP _space, SEXP _categorial, SEXP _src, SEXP _add
         bool do_add = asLogical(_add);
         string trackname = { CHAR(asChar(_track)) };
         string track_filename;
-        bool categorial;
+        bool categorical;
         bool is_global;
         NRTrackData<float> data;
 
@@ -46,17 +46,17 @@ SEXP emr_import(SEXP _track, SEXP _space, SEXP _categorial, SEXP _src, SEXP _add
                 verror("Track %s not found", trackname.c_str());
 
             track_filename = track_info->filename;
-            categorial = track->is_categorial();
+            categorical = track->is_categorical();
             is_global = track_info->is_global;
             track->data_recs(data_recs);
 
             for (NRTrackData<double>::DataRecs::const_iterator irec = data_recs.begin(); irec != data_recs.end(); ++irec)
                 data.add_data(irec->id, irec->timestamp, (float)irec->val);
         } else {
-            if (!isLogical(_categorial) || Rf_length(_categorial) != 1 || asLogical(_categorial) == NA_LOGICAL)
-                verror("'categorial' argument must be logical");
+            if (!isLogical(_categorical) || Rf_length(_categorical) != 1 || asLogical(_categorical) == NA_LOGICAL)
+                verror("'categorical' argument must be logical");
 
-            categorial = asLogical(_categorial);
+            categorical = asLogical(_categorical);
 
             if (!isString(_space) || Rf_length(_space) != 1)
                 verror("'space' argument must be a string");
@@ -182,11 +182,11 @@ SEXP emr_import(SEXP _track, SEXP _space, SEXP _categorial, SEXP _src, SEXP _add
 
         if (access(track_filename.c_str(), F_OK) != -1) {
             string tmp_filename = track_filename + ".tmp";
-            NRTrack::serialize(tmp_filename.c_str(), categorial ? NRTrack::IS_CATEGORIAL : 0, data);
+            NRTrack::serialize(tmp_filename.c_str(), categorical ? NRTrack::IS_CATEGORICAL : 0, data);
             unlink(track_filename.c_str());
             rename(tmp_filename.c_str(), track_filename.c_str());
         } else
-            NRTrack::serialize(track_filename.c_str(), categorial, data);
+            NRTrack::serialize(track_filename.c_str(), categorical, data);
         g_db->load_track(trackname.c_str(), is_global);
     } catch (TGLException &e) {
         rerror("%s", e.msg());

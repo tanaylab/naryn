@@ -44,9 +44,9 @@ A list of 5 elements each containing a N-dimensional vector (N is the number of 
 }
 \examples{
 emr_db.init_examples()
-emr_cor("categorial_track", c(0, 2, 5),
+emr_cor("categorical_track", c(0, 2, 5),
         cor.exprs = c("sparse_track", "1/dense_track"),
-        include.lowest = T, iterator = "categorial_track",
+        include.lowest = T, iterator = "categorical_track",
         keepref = T)
 }
 \keyword{ ~correlation }

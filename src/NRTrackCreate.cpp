@@ -15,7 +15,7 @@
 
 extern "C" {
 
-SEXP emr_track_create(SEXP _track, SEXP _space, SEXP _categorial, SEXP _expr, SEXP _stime, SEXP _etime, SEXP _iterator_policy, SEXP _keepref, SEXP _filter, SEXP _envir)
+SEXP emr_track_create(SEXP _track, SEXP _space, SEXP _categorical, SEXP _expr, SEXP _stime, SEXP _etime, SEXP _iterator_policy, SEXP _keepref, SEXP _filter, SEXP _envir)
 {
 	try {
         Naryn naryn(_envir);
@@ -26,8 +26,8 @@ SEXP emr_track_create(SEXP _track, SEXP _space, SEXP _categorial, SEXP _expr, SE
 		if (!isString(_expr) || Rf_length(_expr) != 1)
 			verror("'expr' parameter must be a string");
 
-        if (!isLogical(_categorial) || Rf_length(_categorial) != 1)
-            verror("'categorial' parameter must be logical");
+        if (!isLogical(_categorical) || Rf_length(_categorical) != 1)
+            verror("'categorical' parameter must be logical");
 
         if (!isString(_space) || Rf_length(_space) != 1)
             verror("'space' parameter must be a string");
@@ -47,7 +47,7 @@ SEXP emr_track_create(SEXP _track, SEXP _space, SEXP _categorial, SEXP _expr, SE
         NRDb::check_track_name(trackname);
 
         string track_filename = (space == "global" ? g_db->grootdir() : g_db->urootdir()) + string("/") + trackname + NRDb::TRACK_FILE_EXT;
-        bool categorial = asLogical(_categorial);
+        bool categorical = asLogical(_categorical);
 		NRTrackExprScanner scanner;
         NRTrackData<float> data;
 
@@ -59,7 +59,7 @@ SEXP emr_track_create(SEXP _track, SEXP _space, SEXP _categorial, SEXP _expr, SE
         if (!data.size())
             verror("Track expression did not produce any values.");
 
-        NRTrack::serialize(track_filename.c_str(), categorial, data);
+        NRTrack::serialize(track_filename.c_str(), categorical, data);
         g_db->load_track(trackname, space == "global");
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());

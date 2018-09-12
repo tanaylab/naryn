@@ -43,13 +43,13 @@ Time resolution is always in hours. It might happen that two different blood tes
 
 In the situations when two or more values share identical \texttt{id} and \texttt{time} Naryn requires them to use then different \texttt{ref} (\emph{references}). Reference is an integer number in the range of [-1, 254], which when no time collision occurs is normally set to -1. However in cases of ambiguity it can give additional resolution to the time. In our blood example the results of the first lab could have been recorded with \texttt{ref = 0} wherever the second lab would do it with \texttt{ref = 1}. This way the two hemoglobin readings could later be separated and correctly linked to their originating labs.
 
-\subsubsection{Categorial and Quantitative Tracks}
+\subsubsection{Categorical and Quantitative Tracks}
 
-Tracks store numerical values assigned to the patients and times. The numerical data however can have different meaning and hence impose different set of operations to be applied to it. Laboratory codes, diagnosis codes, binary information such as date of birth or doctor visits are one type of data which we call \emph{categorial}. Another type of data indicate usually the readings of different instruments such as the heartbeat rate or glucose level. This type of data is called \emph{quantitative}.
+Tracks store numerical values assigned to the patients and times. The numerical data however can have different meaning and hence impose different set of operations to be applied to it. Laboratory codes, diagnosis codes, binary information such as date of birth or doctor visits are one type of data which we call \emph{categorical}. Another type of data indicate usually the readings of different instruments such as the heartbeat rate or glucose level. This type of data is called \emph{quantitative}.
 
-The operations that can be applied to both of these types can be very different. One might want to search for the specific diagnosis code, yet it makes little sense to search for the very specific heartbeat rate, say "68". On contrary hearbeat rate readings from different times can be averaged or a mean value might be calculated - something that has no meaning in case of categorial data.
+The operations that can be applied to both of these types can be very different. One might want to search for the specific diagnosis code, yet it makes little sense to search for the very specific heartbeat rate, say "68". On contrary hearbeat rate readings from different times can be averaged or a mean value might be calculated - something that has no meaning in case of categorical data.
 
-During the track creation one must specify the type of the track: categorial or quantitative. Various operations that can be later applied to the track are bound to the track type.
+During the track creation one must specify the type of the track: categorical or quantitative. Various operations that can be later applied to the track are bound to the track type.
 
 \subsubsection{Track Variables}
 
@@ -80,7 +80,7 @@ Every track expression is accompanied by an \emph{iterator} that produces a set 
 
 If the track expression contains a track (or virtual track) name, then the values from the track are fetched one-by-one into the identically named R variable based on \texttt{id}, \texttt{time} and \texttt{ref} of the iterator point. If however \texttt{ref} of the iterator point equals to \texttt{-1}, we treat it as a "wildcard": matching is required then only for \texttt{id} and \texttt{time}.
 
-"Wildcard" reference in the iterator might create a new issue: more than one track value might match then a single iterator point. In this case the value placed in the track variable (e.g. \texttt{mytrack}) depends on the type of the track. If the track is categorial the track variable is set to \texttt{-1}, otherwise it is set to the average of all matching values.
+"Wildcard" reference in the iterator might create a new issue: more than one track value might match then a single iterator point. In this case the value placed in the track variable (e.g. \texttt{mytrack}) depends on the type of the track. If the track is categorical the track variable is set to \texttt{-1}, otherwise it is set to the average of all matching values.
 
 \subsubsection{Virtual Tracks}
 
@@ -97,7 +97,7 @@ emr_vtrack.create("annual_glucose", src="glucose_track", func="quantile",
 
 This call creates a new virtual track named \texttt{annual\_glucose} based on the underlying physical \emph{source track} \texttt{glucose\_track}. For each iterator point with time \texttt{T} we look at values of \texttt{glucose\_track} in the time window of \texttt{[T-365*24,T]}, i.e. one year prior to \texttt{T}. We calculate then the median over the values (\texttt{func="quantile"}, \texttt{param=0.5}).
 
-There is a rich set of various functions besides "quantile" that can be applied to the track values. Some of these functions can be used only with categorial tracks, other ones - only with quantitative tracks and some functions can be applied to both types of the track. Please refer the documentation of \texttt{emr\_vtrack.create}.
+There is a rich set of various functions besides "quantile" that can be applied to the track values. Some of these functions can be used only with categorical tracks, other ones - only with quantitative tracks and some functions can be applied to both types of the track. Please refer the documentation of \texttt{emr\_vtrack.create}.
 
 Once a virtual track is created it can be used in a track expression:
 \begin{verbatim}

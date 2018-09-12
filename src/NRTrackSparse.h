@@ -105,7 +105,7 @@ NRTrackSparse<T>::NRTrackSparse(const char *name, DataType data_type, unsigned f
     m_sorted_unique_vals = (T *)((char *)m_shmem + pos);
     pos += m_num_percentiles * sizeof(T);
 
-    if (is_categorial())
+    if (is_categorical())
         m_percentiles = NULL;
     else {
         if (pos + m_num_percentiles * sizeof(float) > m_shmem_size)
@@ -237,7 +237,7 @@ void NRTrackSparse<T>::serialize(BufferedFile &bfile, const NRTrackData<T> &trac
         bfile.write(&recs.front(), sizeof(Rec) * recs.size()) != sizeof(Rec) * recs.size() ||
         num_percentiles &&
         (bfile.write(&sorted_unique_vals[0], sizeof(sorted_unique_vals[0]) * num_percentiles) != sizeof(sorted_unique_vals[0]) * num_percentiles ||
-        !(flags & IS_CATEGORIAL) && bfile.write(&percentiles[0], sizeof(percentiles[0]) * num_percentiles) != sizeof(percentiles[0]) * num_percentiles))
+        !(flags & IS_CATEGORICAL) && bfile.write(&percentiles[0], sizeof(percentiles[0]) * num_percentiles) != sizeof(percentiles[0]) * num_percentiles))
     {
 		if (bfile.error())
 			TGLError<NRTrack>(FILE_ERROR, "Failed to write a track file %s: %s", bfile.file_name().c_str(), strerror(errno));

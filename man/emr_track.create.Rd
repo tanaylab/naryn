@@ -7,7 +7,7 @@ Creates a track from a track expression
 Creates a track from a track expression.
 }
 \usage{
-emr_track.create(track, space, categorial, expr, stime = MINTIME,
+emr_track.create(track, space, categorical, expr, stime = MINTIME,
                  etime = MAXTIME, iterator = NULL, keepref = F,
                  filter = NULL)
 }
@@ -15,7 +15,7 @@ emr_track.create(track, space, categorial, expr, stime = MINTIME,
 \arguments{
   \item{track}{the name of the newly created track}
   \item{space}{"user" or "global" space}
-  \item{categorial}{if 'TRUE' track is marked as categorial}
+  \item{categorical}{if 'TRUE' track is marked as categorical}
   \item{expr}{track expression}
   \item{stime}{start time scope}
   \item{etime}{end time scope}

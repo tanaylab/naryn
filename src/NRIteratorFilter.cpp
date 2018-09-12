@@ -328,8 +328,8 @@ NRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const c
             if (!track)
                 verror("Filter %s: track %s does not exist", name, track_name);
 
-            if (!isNull(rval) && !track->is_categorial())
-                verror("Filter %s: 'val' parameter can be used only with categorial tracks", name);
+            if (!isNull(rval) && !track->is_categorical())
+                verror("Filter %s: 'val' parameter can be used only with categorical tracks", name);
 
             if (!isNull(rval) && (!isReal(rval) && !isInteger(rval)))
                 verror("Filter %s: 'val' must be a numeric vector", name);
@@ -347,8 +347,8 @@ NRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const c
                 verror("Filter %s: 'expiration' must be a positive integer", name);
             else if (filter->m_keepref)
                 verror("Filter %s: 'expiration' cannot be used when keepref is 'TRUE'", name);
-            else if (!track->is_categorial())
-                verror("Filter %s: 'expiration' can be used only with categorial tracks", name);
+            else if (!track->is_categorical())
+                verror("Filter %s: 'expiration' can be used only with categorical tracks", name);
             else {
                 expiration = asReal(rexpiration);
                 if (expiration < 1 || expiration != (int)expiration)
@@ -364,7 +364,7 @@ NRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const c
                 NRPoint::convert_rpoints(rsrc, &points);
 
                 if (!isNull(rval))
-                    verror("'val' parameter can be used only with categorial tracks");
+                    verror("'val' parameter can be used only with categorical tracks");
 
                 if (!isNull(rexpiration))
                     verror("'expiration' parameter can be used only with tracks");

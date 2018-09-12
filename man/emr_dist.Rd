@@ -28,7 +28,7 @@ This function calculates the distribution of values of the numeric track express
 
 The range of bins is determined by 'breaks' argument. For example: 'breaks=c(x1, x2, x3, x4)' represents three different intervals (bins): (x1, x2], (x2, x3], (x3, x4].
 
-If the track expression constitutes of a categorial track or a virtual track which source is a categorial track, the 'breaks' is allowed to be 'NULL' meaning that the breaks are derived implicitly from the unique values of the underlying track.
+If the track expression constitutes of a categorical track or a virtual track which source is a categorical track, the 'breaks' is allowed to be 'NULL' meaning that the breaks are derived implicitly from the unique values of the underlying track.
 
 'emr_dist' can work with any number of dimensions. If more than one 'expr'-'breaks' pair is passed, the result is a multidimensional vector, and an individual value can be accessed by [i1,i2,...,iN] notation, where 'i1' is the first track and 'iN' is the last track expression.
 }

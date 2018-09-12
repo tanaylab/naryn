@@ -144,15 +144,15 @@ SEXP nrtest_track_create(SEXP envir)
         data[3].add_data(28, NRTimeStamp(1, 3), 4);
 
 		string filename[NUM_TRACKS];
-        bool is_categorial[NUM_TRACKS] = { false, false, true, true };
+        bool is_categorical[NUM_TRACKS] = { false, false, true, true };
 
 		filename[0] = g_db->grootdir() + "/sparse_track" + NRDb::TRACK_FILE_EXT;
 		filename[1] = g_db->grootdir() + "/dense_track" + NRDb::TRACK_FILE_EXT;
-        filename[2] = g_db->grootdir() + "/categorial_track" + NRDb::TRACK_FILE_EXT;
-        filename[3] = g_db->grootdir() + "/categorial_track2" + NRDb::TRACK_FILE_EXT;
+        filename[2] = g_db->grootdir() + "/categorical_track" + NRDb::TRACK_FILE_EXT;
+        filename[3] = g_db->grootdir() + "/categorical_track2" + NRDb::TRACK_FILE_EXT;
 
 		for (int i = 0; i < NUM_TRACKS; ++i) {
-			NRTrack::serialize(filename[i].c_str(), is_categorial[i], data[i]);
+			NRTrack::serialize(filename[i].c_str(), is_categorical[i], data[i]);
 			printf("Track %s created...\n", filename[i].c_str());
 		}
 	} catch (TGLException &e) {
@@ -175,18 +175,18 @@ SEXP nrtest_regressiondb_create(SEXP envir)
         const int NUM_TRACKS = 11;
 
         size_t num_vals[NUM_TRACKS] = { 100000L, 500000L, 2500000L, 100L, 500L, 2500L, 400L, 100000L, 2500000L, 100L, 200L };
-        bool is_categorial[NUM_TRACKS] = { false, false, false, false, false, false, true, true, true, false, true };
+        bool is_categorical[NUM_TRACKS] = { false, false, false, false, false, false, true, true, true, false, true };
         bool is_global[NUM_TRACKS] = { true, true, true, true, true, true, true, true, true, false, false };
         size_t max_patients = 1000L;
         size_t max_time = 10000L;
         size_t max_val = 1000L;
-        size_t max_val_categorial = 10L;
+        size_t max_val_categorical = 10L;
 
         for (int itrack = 0; itrack < NUM_TRACKS; itrack++) {
             NRTrackData<float> data;
 
             for (size_t ival = 0; ival < num_vals[itrack]; ++ival) {
-                float val = is_categorial[itrack] ? (unsigned)(unif_rand() * max_val_categorial) : (unsigned)(unif_rand() * max_val);
+                float val = is_categorical[itrack] ? (unsigned)(unif_rand() * max_val_categorical) : (unsigned)(unif_rand() * max_val);
                 unsigned id = (unsigned)(unif_rand() * max_patients);
                 unsigned hour = (unsigned)(unif_rand() * max_time);
                 
@@ -201,7 +201,7 @@ SEXP nrtest_regressiondb_create(SEXP envir)
             char filename[1000];
 
             sprintf(filename, "%s/track%d%s", is_global[itrack] ? g_db->grootdir().c_str() : g_db->urootdir().c_str(), itrack, NRDb::TRACK_FILE_EXT.c_str());
-            NRTrack::TrackType track_type = NRTrack::serialize(filename, is_categorial[itrack], data);
+            NRTrack::TrackType track_type = NRTrack::serialize(filename, is_categorical[itrack], data);
             printf("Track %s created (%s)...\n", filename, NRTrack::TRACK_TYPE_NAMES[track_type]);
 
             // if dense track is created create another one in sparse format
@@ -213,7 +213,7 @@ SEXP nrtest_regressiondb_create(SEXP envir)
 
                 data.add_data(id, NRTimeStamp(hour, 0), val);
                 sprintf(filename, "%s/track%d_sparse%s", g_db->grootdir().c_str(), itrack, NRDb::TRACK_FILE_EXT.c_str());
-                NRTrack::TrackType track_type = NRTrack::serialize(filename, is_categorial[itrack], data);
+                NRTrack::TrackType track_type = NRTrack::serialize(filename, is_categorical[itrack], data);
                 printf("Track %s created (%s)...\n", filename, NRTrack::TRACK_TYPE_NAMES[track_type]);
             }
         }

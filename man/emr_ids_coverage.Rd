@@ -19,7 +19,7 @@ emr_ids_coverage(ids, tracks, stime = MINTIME, etime = MAXTIME,
   \item{filter}{iterator filter}
 }
 \details{
-This function accepts a set of ids and a vector of categorial tracks. For each track it calculates how many ids appear in the track. Each id is counted only once.
+This function accepts a set of ids and a vector of categorical tracks. For each track it calculates how many ids appear in the track. Each id is counted only once.
 
 Ids can come from various source such as a track or an Ids Table.
 
@@ -34,6 +34,6 @@ A vector containing the ids count for each track.
 }
 \examples{
 emr_db.init_examples()
-emr_ids_coverage(data.frame(id=c(24,27)), "categorial_track")
+emr_ids_coverage(data.frame(id=c(24,27)), "categorical_track")
 }
 \keyword{ ~coverage }

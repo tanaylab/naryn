@@ -32,7 +32,7 @@ public:
         LM_SLOPE, LM_INTERCEPT, DT1_EARLIEST, DT1_LATEST, DT2_EARLIEST, DT2_LATEST, NUM_FUNCS
     };
 
-    enum Flags { IS_CATEGORIAL = 0x1 };
+    enum Flags { IS_CATEGORICAL = 0x1 };
 
 	static const int    SIGNATURE;
 	static const double DENSE_TRACK_MIN_DENSITY;
@@ -41,7 +41,7 @@ public:
 
     struct FuncInfo {
         const char *name;
-        bool        categorial;
+        bool        categorical;
         bool        quantitative;
         bool        keepref;
     };
@@ -55,8 +55,8 @@ public:
 	DataType data_type() const { return m_data_type; }
 
     unsigned flags() const { return m_flags; }
-    bool     is_categorial() const { return m_flags & IS_CATEGORIAL; }
-    bool     is_quantitative() const { return !is_categorial(); }
+    bool     is_categorical() const { return m_flags & IS_CATEGORICAL; }
+    bool     is_quantitative() const { return !is_categorical(); }
 
     unsigned minid() const { return m_min_id; }
     unsigned maxid() const { return m_max_id; }
@@ -792,7 +792,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
         break;
     case EARLIEST:
         {
-            if (is_categorial()) {
+            if (is_categorical()) {
                 unsigned hour = 0;
                 df.m_val = numeric_limits<double>::quiet_NaN();
 
@@ -833,7 +833,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
         break;
     case LATEST:
         {
-            if (is_categorial()) {
+            if (is_categorical()) {
                 unsigned hour = 0;
                 df.m_val = numeric_limits<double>::quiet_NaN();
 
@@ -872,7 +872,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
         break;
     case CLOSEST:
         {
-            if (is_categorial()) {
+            if (is_categorical()) {
                 double mid_time = (interv.stime + interv.etime) / 2.;
                 double min_distance = numeric_limits<double>::max();
                 df.m_val = numeric_limits<double>::quiet_NaN();
