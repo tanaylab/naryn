@@ -93,7 +93,7 @@ void NRTimeIntervals::convert_rtime_intervals(SEXP rintervs, NRTimeIntervals *in
         if (stime > etime)
             TGLError<NRTimeIntervals>(BAD_VALUE, "%sStart time (%d) exceeds end time (%d) at time intervals, row %d", error_msg_prefix, stime, etime, i + 1);
 
-        intervs->push_back(NRTimeInterval((NRTimeStamp::Hour)stime, (NRTimeStamp::Hour)etime));
+        intervs->push_back(NRTimeInterval((EMRTimeStamp::Hour)stime, (EMRTimeStamp::Hour)etime));
     }
 }
 

@@ -1,30 +1,23 @@
 #include <errno.h>
 #include <sys/timeb.h>
-
+#include <unistd.h>
 #include <set>
 #include <unordered_set>
 
-#include "port.h"
-
-#include <R.h>
-#include <Rinternals.h>
-#include <R_ext/Parse.h>
-
-#ifdef length
-#undef length
-#endif
-
+#include "EMRTrack.h"
 #include "HashFunc.h"
 #include "NRBeatIterator.h"
 #include "NRBeatExtIterator.h"
 #include "NRIdTimeIntervalsIterator.h"
 #include "NRIdsIterator.h"
+#include "NRPoint.h"
 #include "NRPointsIterator.h"
 #include "NRTimesIterator.h"
-#include "NRTrack.h"
 #include "NRTrackExpressionScanner.h"
 #include "NRTrackExpressionVars.h"
 #include "NRTrackIterator.h"
+
+#include <R_ext/Parse.h>
 
 const int NRTrackExprScanner::INIT_REPORT_STEP = 10000;
 const int NRTrackExprScanner::REPORT_INTERVAL = 3000;
@@ -204,11 +197,7 @@ bool NRTrackExprScanner::begin(const vector<string> &track_exprs, ValType valtyp
 
 	// check whether m_eval_buf_limit == 1000 will correctly work for the expression
     vdebug("Defining R variables\n");
-	SEXP eval_buf_size = GetOption(install("emr_eval.buf.size"), R_NilValue);
-	if (!isReal(eval_buf_size) || REAL(eval_buf_size)[0] < 1)
-		define_r_vars(1000);
-	else
-		define_r_vars((unsigned)REAL(eval_buf_size)[0]);
+    define_r_vars(g_naryn->eval_buf_size());
 
     vdebug("Determining evaluation buffer size\n");
 	for (unsigned iexpr = 0; iexpr < m_track_exprs.size(); ++iexpr) {
@@ -333,7 +322,7 @@ void NRTrackExprScanner::start_multitasking()
 
     g_naryn->prepare4multitasking();
 
-    m_mtask_record_size = NRPoint::packed_size();
+    m_mtask_record_size = EMRPoint::packed_size();
     switch (m_valtype) {
     case REAL_T:
         m_mtask_record_size += m_eval_exprs.size() * sizeof(double);
@@ -400,7 +389,7 @@ void NRTrackExprScanner::kid_main_loop(vector<unsigned> &ids_subset)
         m_eval_buf_size = 0;
 
         while (m_eval_buf_size < m_eval_buf_limit) {
-            const NRPoint &point = m_itr.itr().point();
+            const EMRPoint &point = m_itr.itr().point();
 
             // Even though we set a new ids subset, our iterator might still point to an id that was used by the parent before the multitasking was launched.
             // This id might be not part of the new subset, yet the iterator might continue working with it.
@@ -445,7 +434,7 @@ void NRTrackExprScanner::kid_main_loop(vector<unsigned> &ids_subset)
 
         for (int ieval = 0; ieval < m_eval_buf_size; ++ieval) {
             m_expr_itr_points[ieval].pack(p);
-            p += NRPoint::packed_size();
+            p += EMRPoint::packed_size();
             
             switch (m_valtype) {
             case REAL_T:
@@ -522,7 +511,7 @@ void NRTrackExprScanner::create_expr_iterator(IteratorWithFilter *itr, SEXP rite
         expr_itr = new NRTrackIterator(g_db->track(track_name.c_str()), keepref, stime, etime);
     } else {
         bool success = false;
-        NRPoints points;
+        EMRPoints points;
 
         try {
             NRPoint::convert_rpoints(riterator, &points);

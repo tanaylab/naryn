@@ -1,16 +1,10 @@
 #include <algorithm>
 
+#include "EMRProgressReporter.h"
+#include "EMRTrack.h"
 #include "naryn.h"
-#include "NRProgressReporter.h"
-#include "NRTrack.h"
+#include "NRPoint.h"
 #include "NRTrackExpressionScanner.h"
-
-#include <R.h>
-#include <Rinternals.h>
-
-#ifdef length
-#undef length
-#endif
 
 extern "C" {
 
@@ -23,13 +17,13 @@ SEXP emr_ids_dist(SEXP _ids, SEXP _tracks, SEXP _envir)
             verror("'tracks' argument must be a vector of strings");
 
         vector<unsigned> ids;
-        vector<NRTrack *> tracks;
+        vector<EMRTrack *> tracks;
         vector<unsigned> res;
-        NRProgressReporter progress;
+        EMRProgressReporter progress;
 
         if (isString(_ids) && Rf_length(_ids) == 1) { // it's a track name
             const char *trackname = CHAR(STRING_ELT(_ids, 0));
-            NRTrack *track = g_db->track(trackname);
+            EMRTrack *track = g_db->track(trackname);
             if (!track)
                 verror("Track %s does not exist", trackname);
             track->ids(ids);
@@ -42,14 +36,14 @@ SEXP emr_ids_dist(SEXP _ids, SEXP _tracks, SEXP _envir)
 
         for (int i = 0; i < Rf_length(_tracks); ++i) {
             const char *trackname = CHAR(STRING_ELT(_tracks, i));
-            NRTrack *track = g_db->track(trackname);
+            EMRTrack *track = g_db->track(trackname);
             if (!track)
                 verror("Track %s does not exist", trackname);
             tracks.push_back(track);
         }
 
         progress.init(tracks.size(), 1);
-        for (vector<NRTrack *>::const_iterator itrack = tracks.begin(); itrack != tracks.end(); ++itrack) {
+        for (vector<EMRTrack *>::const_iterator itrack = tracks.begin(); itrack != tracks.end(); ++itrack) {
             res.push_back((*itrack)->count_ids(ids));
             progress.report(1);
             check_interrupt();
@@ -84,14 +78,14 @@ SEXP emr_ids_dist_with_iterator(SEXP _ids, SEXP _tracks, SEXP _stime, SEXP _etim
             verror("'tracks' argument must be a vector of strings");
 
         vector<unsigned> ids;
-        vector<NRTrack *> tracks;
+        vector<EMRTrack *> tracks;
         vector<unsigned> res;
         SEXP riterator;
-        NRProgressReporter progress;
+        EMRProgressReporter progress;
 
         if (isString(_ids) && Rf_length(_ids) == 1) { // it's a track name
             const char *trackname = CHAR(STRING_ELT(_ids, 0));
-            NRTrack *track = g_db->track(trackname);
+            EMRTrack *track = g_db->track(trackname);
             if (!track)
                 verror("Track %s does not exist", trackname);
             track->ids(ids);
@@ -104,7 +98,7 @@ SEXP emr_ids_dist_with_iterator(SEXP _ids, SEXP _tracks, SEXP _stime, SEXP _etim
 
         for (int i = 0; i < Rf_length(_tracks); ++i) {
             const char *trackname = CHAR(STRING_ELT(_tracks, i));
-            NRTrack *track = g_db->track(trackname);
+            EMRTrack *track = g_db->track(trackname);
             if (!track)
                 verror("Track %s does not exist", trackname);
             tracks.push_back(track);
@@ -167,15 +161,15 @@ SEXP emr_ids_vals_dist(SEXP _ids, SEXP _tracks, SEXP _stime, SEXP _etime, SEXP _
 
         unordered_set<unsigned> ids;
         vector<unsigned> ids_vec;
-        vector<NRTrack *> tracks;
+        vector<EMRTrack *> tracks;
         vector<Val2Count> res;
-        NRProgressReporter progress;
+        EMRProgressReporter progress;
         SEXP riterator;
         size_t tot_num_vals = 0;
 
         if (isString(_ids) && Rf_length(_ids) == 1) { // it's a track name
             const char *trackname = CHAR(STRING_ELT(_ids, 0));
-            NRTrack *track = g_db->track(trackname);
+            EMRTrack *track = g_db->track(trackname);
 
             if (!track)
                 verror("Track %s does not exist", trackname);
@@ -189,7 +183,7 @@ SEXP emr_ids_vals_dist(SEXP _ids, SEXP _tracks, SEXP _stime, SEXP _etime, SEXP _
 
         for (int i = 0; i < Rf_length(_tracks); ++i) {
             const char *trackname = CHAR(STRING_ELT(_tracks, i));
-            NRTrack *track = g_db->track(trackname);
+            EMRTrack *track = g_db->track(trackname);
 
             if (!track)
                 verror("Track %s does not exist", trackname);
@@ -205,7 +199,7 @@ SEXP emr_ids_vals_dist(SEXP _ids, SEXP _tracks, SEXP _stime, SEXP _etime, SEXP _
         rprotect(riterator = RSaneAllocVector(STRSXP, 1));
 
         progress.init(tracks.size(), 1);
-        for (vector<NRTrack *>::const_iterator itrack = tracks.begin(); itrack != tracks.end(); ++itrack) {
+        for (vector<EMRTrack *>::const_iterator itrack = tracks.begin(); itrack != tracks.end(); ++itrack) {
             NRTrackExprScanner scanner;
             Val2Count &val2count = res[itrack - tracks.begin()];
             vector<double> unique_vals;
@@ -257,7 +251,7 @@ SEXP emr_ids_vals_dist(SEXP _ids, SEXP _tracks, SEXP _stime, SEXP _etime, SEXP _
         setAttrib(answer, R_ClassSymbol, mkString("data.frame"));
         setAttrib(answer, R_RowNamesSymbol, (row_names = RSaneAllocVector(INTSXP, tot_num_vals)));
 
-        for (vector<NRTrack *>::const_iterator itrack = tracks.begin(); itrack != tracks.end(); ++itrack)
+        for (vector<EMRTrack *>::const_iterator itrack = tracks.begin(); itrack != tracks.end(); ++itrack)
             SET_STRING_ELT(rtracks, itrack - tracks.begin(), mkChar((*itrack)->name()));
 
         for (int i = 0; i < NUM_COLS; i++)

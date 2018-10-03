@@ -4,25 +4,19 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include <R.h>
-#include <Rinternals.h>
-#include <R_ext/BLAS.h>
-#include <R_ext/Parse.h>
-
-#ifdef length
-#undef length
-#endif
-
+#include "EMRDb.h"
+#include "EMRProgressReporter.h"
+#include "EMRTrack.h"
 #include "naryn.h"
-#include "NRDb.h"
 #include "NRIteratorFilter.h"
-#include "NRProgressReporter.h"
 #include "NRTimesIterator.h"
-#include "NRTrack.h"
 #include "NRTrackIterator.h"
 #include "strutil.h"
 
-typedef unordered_map<int, NRTrackData<float> *> Datasets;
+#include <R_ext/BLAS.h>
+#include <R_ext/Parse.h>
+
+typedef unordered_map<int, EMRTrackData<float> *> Datasets;
 
 extern "C" {
 
@@ -32,31 +26,31 @@ SEXP netta_bug(SEXP envir)
 		Naryn naryn(envir);
 
         const int NUM_TRACKS = 2;
-        NRTrackData<float> data[NUM_TRACKS];
+        EMRTrackData<float> data[NUM_TRACKS];
 
-        data[0].add_data(5918, NRTimeStamp(1194898, 227), 1);
-        data[0].add_data(5918, NRTimeStamp(1197420, 228), 1);
-        data[0].add_data(5920, NRTimeStamp(1223183, 229), 11);
-        data[0].add_data(5920, NRTimeStamp(1296408, 230), 10);
-        data[0].add_data(5921, NRTimeStamp(1223183, 2), 11);
-        data[0].add_data(5921, NRTimeStamp(1296408, 3), 10);
+        data[0].add_data(5918, EMRTimeStamp(1194898, 227), 1);
+        data[0].add_data(5918, EMRTimeStamp(1197420, 228), 1);
+        data[0].add_data(5920, EMRTimeStamp(1223183, 229), 11);
+        data[0].add_data(5920, EMRTimeStamp(1296408, 230), 10);
+        data[0].add_data(5921, EMRTimeStamp(1223183, 2), 11);
+        data[0].add_data(5921, EMRTimeStamp(1296408, 3), 10);
 
-        data[1].add_data(5918, NRTimeStamp(1194898, 227), 1);
-        data[1].add_data(5918, NRTimeStamp(1197420, 228), 1);
-        data[1].add_data(5920, NRTimeStamp(1223183, 229), 11);
-        data[1].add_data(5920, NRTimeStamp(1296408, 230), 10);
-        data[1].add_data(7000, NRTimeStamp(1223183, 2), 11);
-        data[1].add_data(7000, NRTimeStamp(1296408, 3), 10);
-        data[1].add_data(8000, NRTimeStamp(1223183, 0), 11);
-        data[1].add_data(8000, NRTimeStamp(1296408, 1), 10);
+        data[1].add_data(5918, EMRTimeStamp(1194898, 227), 1);
+        data[1].add_data(5918, EMRTimeStamp(1197420, 228), 1);
+        data[1].add_data(5920, EMRTimeStamp(1223183, 229), 11);
+        data[1].add_data(5920, EMRTimeStamp(1296408, 230), 10);
+        data[1].add_data(7000, EMRTimeStamp(1223183, 2), 11);
+        data[1].add_data(7000, EMRTimeStamp(1296408, 3), 10);
+        data[1].add_data(8000, EMRTimeStamp(1223183, 0), 11);
+        data[1].add_data(8000, EMRTimeStamp(1296408, 1), 10);
 
 		string filename[NUM_TRACKS];
 
-		filename[0] = g_db->grootdir() + "/netta1" + NRDb::TRACK_FILE_EXT;
-		filename[1] = g_db->grootdir() + "/netta2" + NRDb::TRACK_FILE_EXT;
+		filename[0] = g_db->grootdir() + "/netta1" + EMRDb::TRACK_FILE_EXT;
+		filename[1] = g_db->grootdir() + "/netta2" + EMRDb::TRACK_FILE_EXT;
 
 		for (int i = 0; i < NUM_TRACKS; ++i) {
-			NRTrack::serialize(filename[i].c_str(), true, data[i]);
+			EMRTrack::serialize(filename[i].c_str(), true, data[i]);
 			printf("Track %s created...\n", filename[i].c_str());
 		}
 	} catch (TGLException &e) {
@@ -74,85 +68,85 @@ SEXP nrtest_track_create(SEXP envir)
 		Naryn naryn(envir);
 
         const int NUM_TRACKS = 4;
-		NRTrackData<double> data[NUM_TRACKS];
+		EMRTrackData<double> data[NUM_TRACKS];
 
-		data[0].add_data(25, NRTimeStamp(1, 0), 10);
-        data[0].add_data(25, NRTimeStamp(2, 0), 20);
-        data[0].add_data(25, NRTimeStamp(2, 2), 22);
-        data[0].add_data(25, NRTimeStamp(2, 8), 28);
-        data[0].add_data(25, NRTimeStamp(2, 4), 24);
-        data[0].add_data(25, NRTimeStamp(2, 6), 26);
-        data[0].add_data(25, NRTimeStamp(3, 4), 34);
-        data[0].add_data(25, NRTimeStamp(6, 0), 60);
-        data[0].add_data(25, NRTimeStamp(6, 2), 62);
-        data[0].add_data(25, NRTimeStamp(8, 1), 80);
-        data[0].add_data(25, NRTimeStamp(8, 4), 84);
-        data[0].add_data(25, NRTimeStamp(9, 2), 92);
-        data[0].add_data(25, NRTimeStamp(9, 4), 94);
-        data[0].add_data(25, NRTimeStamp(10, 4), 104);
-        data[0].add_data(25, NRTimeStamp(12, 4), 124);
-        data[0].add_data(27, NRTimeStamp(23, 4), 234);
-		data[0].add_data(33, NRTimeStamp(23, 4), 234);
-        data[0].add_data(33, NRTimeStamp(50, 0), 500);
-        data[0].add_data(5, NRTimeStamp(1, 3), 13);
-        data[0].add_data(10, NRTimeStamp(1, 3), 13);
-        data[0].add_data(40, NRTimeStamp(1, 3), 13);
+		data[0].add_data(25, EMRTimeStamp(1, 0), 10);
+        data[0].add_data(25, EMRTimeStamp(2, 0), 20);
+        data[0].add_data(25, EMRTimeStamp(2, 2), 22);
+        data[0].add_data(25, EMRTimeStamp(2, 8), 28);
+        data[0].add_data(25, EMRTimeStamp(2, 4), 24);
+        data[0].add_data(25, EMRTimeStamp(2, 6), 26);
+        data[0].add_data(25, EMRTimeStamp(3, 4), 34);
+        data[0].add_data(25, EMRTimeStamp(6, 0), 60);
+        data[0].add_data(25, EMRTimeStamp(6, 2), 62);
+        data[0].add_data(25, EMRTimeStamp(8, 1), 80);
+        data[0].add_data(25, EMRTimeStamp(8, 4), 84);
+        data[0].add_data(25, EMRTimeStamp(9, 2), 92);
+        data[0].add_data(25, EMRTimeStamp(9, 4), 94);
+        data[0].add_data(25, EMRTimeStamp(10, 4), 104);
+        data[0].add_data(25, EMRTimeStamp(12, 4), 124);
+        data[0].add_data(27, EMRTimeStamp(23, 4), 234);
+		data[0].add_data(33, EMRTimeStamp(23, 4), 234);
+        data[0].add_data(33, EMRTimeStamp(50, 0), 500);
+        data[0].add_data(5, EMRTimeStamp(1, 3), 13);
+        data[0].add_data(10, EMRTimeStamp(1, 3), 13);
+        data[0].add_data(40, EMRTimeStamp(1, 3), 13);
 
-        data[1].add_data(25, NRTimeStamp(1, 0), 10);
-        data[1].add_data(25, NRTimeStamp(2, 0), 20);
-        data[1].add_data(25, NRTimeStamp(2, 2), 22);
-        data[1].add_data(25, NRTimeStamp(2, 8), 28);
-        data[1].add_data(25, NRTimeStamp(2, 5), 24);
-        data[1].add_data(25, NRTimeStamp(2, 6), 26);
-        data[1].add_data(25, NRTimeStamp(3, 4), 34);
-        data[1].add_data(25, NRTimeStamp(6, 0), 60);
-        data[1].add_data(25, NRTimeStamp(6, 2), 62);
-        data[1].add_data(25, NRTimeStamp(8, 1), 80);
-        data[1].add_data(25, NRTimeStamp(8, 4), 84);
-        data[1].add_data(25, NRTimeStamp(9, 2), 92);
-        data[1].add_data(25, NRTimeStamp(9, 4), 94);
-        data[1].add_data(25, NRTimeStamp(10, 4), 104);
-        data[1].add_data(25, NRTimeStamp(12, 4), 124);
-        data[1].add_data(27, NRTimeStamp(23, 4), 234);
-        data[1].add_data(27, NRTimeStamp(50, 0), 500);
-        data[1].add_data(24, NRTimeStamp(1, 3), 13);
-        data[1].add_data(22, NRTimeStamp(1, 3), 13);
-        data[1].add_data(28, NRTimeStamp(1, 3), 13);
+        data[1].add_data(25, EMRTimeStamp(1, 0), 10);
+        data[1].add_data(25, EMRTimeStamp(2, 0), 20);
+        data[1].add_data(25, EMRTimeStamp(2, 2), 22);
+        data[1].add_data(25, EMRTimeStamp(2, 8), 28);
+        data[1].add_data(25, EMRTimeStamp(2, 5), 24);
+        data[1].add_data(25, EMRTimeStamp(2, 6), 26);
+        data[1].add_data(25, EMRTimeStamp(3, 4), 34);
+        data[1].add_data(25, EMRTimeStamp(6, 0), 60);
+        data[1].add_data(25, EMRTimeStamp(6, 2), 62);
+        data[1].add_data(25, EMRTimeStamp(8, 1), 80);
+        data[1].add_data(25, EMRTimeStamp(8, 4), 84);
+        data[1].add_data(25, EMRTimeStamp(9, 2), 92);
+        data[1].add_data(25, EMRTimeStamp(9, 4), 94);
+        data[1].add_data(25, EMRTimeStamp(10, 4), 104);
+        data[1].add_data(25, EMRTimeStamp(12, 4), 124);
+        data[1].add_data(27, EMRTimeStamp(23, 4), 234);
+        data[1].add_data(27, EMRTimeStamp(50, 0), 500);
+        data[1].add_data(24, EMRTimeStamp(1, 3), 13);
+        data[1].add_data(22, EMRTimeStamp(1, 3), 13);
+        data[1].add_data(28, EMRTimeStamp(1, 3), 13);
 
-        data[2].add_data(24, NRTimeStamp(1, 0), 2);
-        data[2].add_data(24, NRTimeStamp(3, 0), 3);
-        data[2].add_data(24, NRTimeStamp(3, 2), 2);
-        data[2].add_data(25, NRTimeStamp(2, 2), 1);
-        data[2].add_data(25, NRTimeStamp(2, 6), 4);
-        data[2].add_data(25, NRTimeStamp(6, 0), 1);
-        data[2].add_data(25, NRTimeStamp(6, 2), 0);
-        data[2].add_data(27, NRTimeStamp(20, 0), 4);
-        data[2].add_data(27, NRTimeStamp(23, 4), 3);
-        data[2].add_data(27, NRTimeStamp(25, 1), 2);
-        data[2].add_data(28, NRTimeStamp(1, 3), 0);
+        data[2].add_data(24, EMRTimeStamp(1, 0), 2);
+        data[2].add_data(24, EMRTimeStamp(3, 0), 3);
+        data[2].add_data(24, EMRTimeStamp(3, 2), 2);
+        data[2].add_data(25, EMRTimeStamp(2, 2), 1);
+        data[2].add_data(25, EMRTimeStamp(2, 6), 4);
+        data[2].add_data(25, EMRTimeStamp(6, 0), 1);
+        data[2].add_data(25, EMRTimeStamp(6, 2), 0);
+        data[2].add_data(27, EMRTimeStamp(20, 0), 4);
+        data[2].add_data(27, EMRTimeStamp(23, 4), 3);
+        data[2].add_data(27, EMRTimeStamp(25, 1), 2);
+        data[2].add_data(28, EMRTimeStamp(1, 3), 0);
 
-        data[3].add_data(24, NRTimeStamp(1, 0), 5);
-        data[3].add_data(24, NRTimeStamp(3, 0), 2);
-        data[3].add_data(24, NRTimeStamp(3, 2), 1);
-        data[3].add_data(25, NRTimeStamp(2, 2), 0);
-        data[3].add_data(25, NRTimeStamp(2, 6), 4);
-        data[3].add_data(25, NRTimeStamp(6, 0), 3);
-        data[3].add_data(25, NRTimeStamp(6, 2), 2);
-        data[3].add_data(27, NRTimeStamp(20, 0), 1);
-        data[3].add_data(27, NRTimeStamp(23, 4), 0);
-        data[3].add_data(27, NRTimeStamp(25, 1), 2);
-        data[3].add_data(28, NRTimeStamp(1, 3), 4);
+        data[3].add_data(24, EMRTimeStamp(1, 0), 5);
+        data[3].add_data(24, EMRTimeStamp(3, 0), 2);
+        data[3].add_data(24, EMRTimeStamp(3, 2), 1);
+        data[3].add_data(25, EMRTimeStamp(2, 2), 0);
+        data[3].add_data(25, EMRTimeStamp(2, 6), 4);
+        data[3].add_data(25, EMRTimeStamp(6, 0), 3);
+        data[3].add_data(25, EMRTimeStamp(6, 2), 2);
+        data[3].add_data(27, EMRTimeStamp(20, 0), 1);
+        data[3].add_data(27, EMRTimeStamp(23, 4), 0);
+        data[3].add_data(27, EMRTimeStamp(25, 1), 2);
+        data[3].add_data(28, EMRTimeStamp(1, 3), 4);
 
 		string filename[NUM_TRACKS];
         bool is_categorical[NUM_TRACKS] = { false, false, true, true };
 
-		filename[0] = g_db->grootdir() + "/sparse_track" + NRDb::TRACK_FILE_EXT;
-		filename[1] = g_db->grootdir() + "/dense_track" + NRDb::TRACK_FILE_EXT;
-        filename[2] = g_db->grootdir() + "/categorical_track" + NRDb::TRACK_FILE_EXT;
-        filename[3] = g_db->grootdir() + "/categorical_track2" + NRDb::TRACK_FILE_EXT;
+		filename[0] = g_db->grootdir() + "/sparse_track" + EMRDb::TRACK_FILE_EXT;
+		filename[1] = g_db->grootdir() + "/dense_track" + EMRDb::TRACK_FILE_EXT;
+        filename[2] = g_db->grootdir() + "/categorical_track" + EMRDb::TRACK_FILE_EXT;
+        filename[3] = g_db->grootdir() + "/categorical_track2" + EMRDb::TRACK_FILE_EXT;
 
 		for (int i = 0; i < NUM_TRACKS; ++i) {
-			NRTrack::serialize(filename[i].c_str(), is_categorical[i], data[i]);
+			EMRTrack::serialize(filename[i].c_str(), is_categorical[i], data[i]);
 			printf("Track %s created...\n", filename[i].c_str());
 		}
 	} catch (TGLException &e) {
@@ -183,16 +177,16 @@ SEXP nrtest_regressiondb_create(SEXP envir)
         size_t max_val_categorical = 10L;
 
         for (int itrack = 0; itrack < NUM_TRACKS; itrack++) {
-            NRTrackData<float> data;
+            EMRTrackData<float> data;
 
             for (size_t ival = 0; ival < num_vals[itrack]; ++ival) {
                 float val = is_categorical[itrack] ? (unsigned)(unif_rand() * max_val_categorical) : (unsigned)(unif_rand() * max_val);
                 unsigned id = (unsigned)(unif_rand() * max_patients);
                 unsigned hour = (unsigned)(unif_rand() * max_time);
                 
-                for (int ref = 0; ref < NRTimeStamp::MAX_REFCOUNT; ++ref) {
+                for (int ref = 0; ref < EMRTimeStamp::MAX_REFCOUNT; ++ref) {
                     try {
-                        data.add_data(id, NRTimeStamp(hour, ref), val);
+                        data.add_data(id, EMRTimeStamp(hour, ref), val);
                         break;
                     } catch (...) {}
                 }
@@ -200,21 +194,21 @@ SEXP nrtest_regressiondb_create(SEXP envir)
 
             char filename[1000];
 
-            sprintf(filename, "%s/track%d%s", is_global[itrack] ? g_db->grootdir().c_str() : g_db->urootdir().c_str(), itrack, NRDb::TRACK_FILE_EXT.c_str());
-            NRTrack::TrackType track_type = NRTrack::serialize(filename, is_categorical[itrack], data);
-            printf("Track %s created (%s)...\n", filename, NRTrack::TRACK_TYPE_NAMES[track_type]);
+            sprintf(filename, "%s/track%d%s", is_global[itrack] ? g_db->grootdir().c_str() : g_db->urootdir().c_str(), itrack, EMRDb::TRACK_FILE_EXT.c_str());
+            EMRTrack::TrackType track_type = EMRTrack::serialize(filename, is_categorical[itrack], data);
+            printf("Track %s created (%s)...\n", filename, EMRTrack::TRACK_TYPE_NAMES[track_type]);
 
             // if dense track is created create another one in sparse format
-            if (track_type == NRTrack::DENSE) {
+            if (track_type == EMRTrack::DENSE) {
                 // sparse is created when density falls beyond the limit
-                unsigned id = (unsigned)(max_patients / NRTrack::DENSE_TRACK_MIN_DENSITY) + 10;
+                unsigned id = (unsigned)(max_patients / EMRTrack::DENSE_TRACK_MIN_DENSITY) + 10;
                 float val = (unsigned)(unif_rand() * max_val);
                 unsigned hour = (unsigned)(unif_rand() * max_time);
 
-                data.add_data(id, NRTimeStamp(hour, 0), val);
-                sprintf(filename, "%s/track%d_sparse%s", g_db->grootdir().c_str(), itrack, NRDb::TRACK_FILE_EXT.c_str());
-                NRTrack::TrackType track_type = NRTrack::serialize(filename, is_categorical[itrack], data);
-                printf("Track %s created (%s)...\n", filename, NRTrack::TRACK_TYPE_NAMES[track_type]);
+                data.add_data(id, EMRTimeStamp(hour, 0), val);
+                sprintf(filename, "%s/track%d_sparse%s", g_db->grootdir().c_str(), itrack, EMRDb::TRACK_FILE_EXT.c_str());
+                EMRTrack::TrackType track_type = EMRTrack::serialize(filename, is_categorical[itrack], data);
+                printf("Track %s created (%s)...\n", filename, EMRTrack::TRACK_TYPE_NAMES[track_type]);
             }
         }
 	} catch (TGLException &e) {
@@ -232,16 +226,16 @@ SEXP nrtest_vtrack(SEXP _track, SEXP envir)
 		Naryn naryn(envir);
 
         const char *trackname = CHAR(STRING_ELT(_track, 0));
-        NRTrack *t = g_db->track(trackname);
+        EMRTrack *t = g_db->track(trackname);
         if (!t)
             verror("Track %s does not exist", trackname);
 
-        NRTrack::DataFetcher df;
-        NRInterval interv(0, 0, 0, 0);
+        EMRTrack::DataFetcher df;
+        EMRInterval interv(0, 0, 0, 0);
 
-        printf("Track loaded %s... Type: %s, Data: %s\n", t->name(), NRTrack::TRACK_TYPE_NAMES[t->track_type()], NRTrack::DATA_TYPE_NAMES[t->data_type()]);
+        printf("Track loaded %s... Type: %s, Data: %s\n", t->name(), EMRTrack::TRACK_TYPE_NAMES[t->track_type()], EMRTrack::DATA_TYPE_NAMES[t->data_type()]);
 
-        NRTrackData<double>::DataRecs data_recs;
+        EMRTrackData<double>::DataRecs data_recs;
         int f = -1;
         while (1) {
             char buf[1000];
@@ -257,35 +251,35 @@ SEXP nrtest_vtrack(SEXP _track, SEXP envir)
             if (!strcmp(buf, "print")) {
                 t->data_recs(data_recs);
                 printf("Num patients: %ld\n", data_recs.size());
-                for (NRTrackData<double>::DataRecs::const_iterator ipr = data_recs.begin(); ipr != data_recs.end(); ++ipr)
+                for (EMRTrackData<double>::DataRecs::const_iterator ipr = data_recs.begin(); ipr != data_recs.end(); ++ipr)
                     printf("Patient %d, time %s, val %g\n", ipr->id, ipr->timestamp.tostr().c_str(), ipr->val);
                 continue;
             }
 
             if (!strcmp(buf, "func")) {
-                for (int i = 0; i < NRTrack::NUM_FUNCS; ++i)
-                    printf("%s ", NRTrack::FUNC_INFOS[i].name);
+                for (int i = 0; i < EMRTrack::NUM_FUNCS; ++i)
+                    printf("%s ", EMRTrack::FUNC_INFOS[i].name);
                 printf("\n\n");
                 continue;
             }
 
             int i;
-            for (i = 0; i < NRTrack::NUM_FUNCS; ++i) {
-                if (!strcmp(NRTrack::FUNC_INFOS[i].name, buf)) {
+            for (i = 0; i < EMRTrack::NUM_FUNCS; ++i) {
+                if (!strcmp(EMRTrack::FUNC_INFOS[i].name, buf)) {
                     f = i;
-                    if (f == NRTrack::QUANTILE) {
+                    if (f == EMRTrack::QUANTILE) {
                         printf("Enter percentile: ");
                         if (scanf("%lf", &percentile) != 1)
                             continue;
                     }
-                    printf("Function %s was defined\n", NRTrack::FUNC_INFOS[f].name);
+                    printf("Function %s was defined\n", EMRTrack::FUNC_INFOS[f].name);
                     break;
                 }
             }
 
-            if (i < NRTrack::NUM_FUNCS) {
+            if (i < EMRTrack::NUM_FUNCS) {
                 df.init(t, false, unordered_set<double>());
-                df.register_function((NRTrack::Func)f);
+                df.register_function((EMRTrack::Func)f);
                 interv.init(0, 0, 0, 0);
             } else if (f == -1)
                 printf("Function must be defined first\n");
@@ -317,7 +311,7 @@ SEXP nrtest_vtrack(SEXP _track, SEXP envir)
                 interv.init(pid, stime, etime, ref);
                 df.set_vals(interv);
 
-                if ((NRTrack::Func)f == NRTrack::QUANTILE)
+                if ((EMRTrack::Func)f == EMRTrack::QUANTILE)
                     printf("Res: %g\n", df.quantile(percentile));
                 else
                     printf("Res: %g\n", df.val());
@@ -337,49 +331,49 @@ SEXP nrtest_iterator(SEXP envir)
 	try {
 		Naryn naryn(envir);
 
-		NRTrackData<double> data[2];
+		EMRTrackData<double> data[2];
 
-		data[0].add_data(25, NRTimeStamp(1, 0), 10);
-        data[0].add_data(25, NRTimeStamp(2, 0), 20);
-        data[0].add_data(25, NRTimeStamp(2, 2), 22);
-        data[0].add_data(25, NRTimeStamp(2, 8), 28);
-        data[0].add_data(25, NRTimeStamp(2, 4), 24);
-        data[0].add_data(25, NRTimeStamp(2, 6), 26);
-        data[0].add_data(25, NRTimeStamp(3, 4), 34);
-        data[0].add_data(25, NRTimeStamp(6, 0), 60);
-        data[0].add_data(25, NRTimeStamp(6, 2), 62);
-        data[0].add_data(25, NRTimeStamp(8, 1), 80);
-        data[0].add_data(25, NRTimeStamp(8, 4), 84);
-        data[0].add_data(25, NRTimeStamp(9, 2), 92);
-        data[0].add_data(25, NRTimeStamp(9, 4), 94);
-        data[0].add_data(25, NRTimeStamp(10, 4), 104);
-        data[0].add_data(25, NRTimeStamp(12, 4), 124);
-		data[0].add_data(33, NRTimeStamp(23, 4), 234);
-        data[0].add_data(33, NRTimeStamp(50, 0), 500);
-        data[0].add_data(5, NRTimeStamp(1, 3), 13);
-        data[0].add_data(10, NRTimeStamp(1, 3), 13);
-        data[0].add_data(40, NRTimeStamp(1, 3), 13);
+		data[0].add_data(25, EMRTimeStamp(1, 0), 10);
+        data[0].add_data(25, EMRTimeStamp(2, 0), 20);
+        data[0].add_data(25, EMRTimeStamp(2, 2), 22);
+        data[0].add_data(25, EMRTimeStamp(2, 8), 28);
+        data[0].add_data(25, EMRTimeStamp(2, 4), 24);
+        data[0].add_data(25, EMRTimeStamp(2, 6), 26);
+        data[0].add_data(25, EMRTimeStamp(3, 4), 34);
+        data[0].add_data(25, EMRTimeStamp(6, 0), 60);
+        data[0].add_data(25, EMRTimeStamp(6, 2), 62);
+        data[0].add_data(25, EMRTimeStamp(8, 1), 80);
+        data[0].add_data(25, EMRTimeStamp(8, 4), 84);
+        data[0].add_data(25, EMRTimeStamp(9, 2), 92);
+        data[0].add_data(25, EMRTimeStamp(9, 4), 94);
+        data[0].add_data(25, EMRTimeStamp(10, 4), 104);
+        data[0].add_data(25, EMRTimeStamp(12, 4), 124);
+		data[0].add_data(33, EMRTimeStamp(23, 4), 234);
+        data[0].add_data(33, EMRTimeStamp(50, 0), 500);
+        data[0].add_data(5, EMRTimeStamp(1, 3), 13);
+        data[0].add_data(10, EMRTimeStamp(1, 3), 13);
+        data[0].add_data(40, EMRTimeStamp(1, 3), 13);
 
-        data[1].add_data(25, NRTimeStamp(1, 0), 10);
-        data[1].add_data(25, NRTimeStamp(2, 0), 20);
-        data[1].add_data(25, NRTimeStamp(2, 2), 22);
-        data[1].add_data(25, NRTimeStamp(2, 8), 28);
-        data[1].add_data(25, NRTimeStamp(2, 4), 24);
-        data[1].add_data(25, NRTimeStamp(2, 6), 26);
-        data[1].add_data(25, NRTimeStamp(3, 4), 34);
-        data[1].add_data(25, NRTimeStamp(6, 0), 60);
-        data[1].add_data(25, NRTimeStamp(6, 2), 62);
-        data[1].add_data(25, NRTimeStamp(8, 1), 80);
-        data[1].add_data(25, NRTimeStamp(8, 4), 84);
-        data[1].add_data(25, NRTimeStamp(9, 2), 92);
-        data[1].add_data(25, NRTimeStamp(9, 4), 94);
-        data[1].add_data(25, NRTimeStamp(10, 4), 104);
-        data[1].add_data(25, NRTimeStamp(12, 4), 124);
-        data[1].add_data(27, NRTimeStamp(23, 4), 234);
-        data[1].add_data(27, NRTimeStamp(50, 0), 500);
-        data[1].add_data(24, NRTimeStamp(1, 3), 13);
-        data[1].add_data(22, NRTimeStamp(1, 3), 13);
-        data[1].add_data(28, NRTimeStamp(1, 3), 13);
+        data[1].add_data(25, EMRTimeStamp(1, 0), 10);
+        data[1].add_data(25, EMRTimeStamp(2, 0), 20);
+        data[1].add_data(25, EMRTimeStamp(2, 2), 22);
+        data[1].add_data(25, EMRTimeStamp(2, 8), 28);
+        data[1].add_data(25, EMRTimeStamp(2, 4), 24);
+        data[1].add_data(25, EMRTimeStamp(2, 6), 26);
+        data[1].add_data(25, EMRTimeStamp(3, 4), 34);
+        data[1].add_data(25, EMRTimeStamp(6, 0), 60);
+        data[1].add_data(25, EMRTimeStamp(6, 2), 62);
+        data[1].add_data(25, EMRTimeStamp(8, 1), 80);
+        data[1].add_data(25, EMRTimeStamp(8, 4), 84);
+        data[1].add_data(25, EMRTimeStamp(9, 2), 92);
+        data[1].add_data(25, EMRTimeStamp(9, 4), 94);
+        data[1].add_data(25, EMRTimeStamp(10, 4), 104);
+        data[1].add_data(25, EMRTimeStamp(12, 4), 124);
+        data[1].add_data(27, EMRTimeStamp(23, 4), 234);
+        data[1].add_data(27, EMRTimeStamp(50, 0), 500);
+        data[1].add_data(24, EMRTimeStamp(1, 3), 13);
+        data[1].add_data(22, EMRTimeStamp(1, 3), 13);
+        data[1].add_data(28, EMRTimeStamp(1, 3), 13);
 
 		string filename[2];
         string trackname[2];
@@ -387,18 +381,18 @@ SEXP nrtest_iterator(SEXP envir)
         trackname[0] = "sparse_track";
         trackname[1] = "dense_track";
 
-        filename[0] = g_db->grootdir() + "/" + trackname[0] + NRDb::TRACK_FILE_EXT;
-        filename[1] = g_db->grootdir() + "/" + trackname[1] + NRDb::TRACK_FILE_EXT;
+        filename[0] = g_db->grootdir() + "/" + trackname[0] + EMRDb::TRACK_FILE_EXT;
+        filename[1] = g_db->grootdir() + "/" + trackname[1] + EMRDb::TRACK_FILE_EXT;
 
-        NRTrack *t[2];
+        EMRTrack *t[2];
 
 		for (int i = 0; i < 2; ++i) {
-			NRTrack::serialize(filename[i].c_str(), false, data[i]);
+			EMRTrack::serialize(filename[i].c_str(), false, data[i]);
 			printf("Track %s created...\n", filename[i].c_str());
-			t[i] = NRTrack::unserialize(trackname[i].c_str(), filename[i].c_str());
+			t[i] = EMRTrack::unserialize(trackname[i].c_str(), filename[i].c_str());
 		}
 
-		NRTrackData<double>::DataRecs data_recs;
+		EMRTrackData<double>::DataRecs data_recs;
         NRTrackIterator itr;
 
         int idx = -1;
@@ -415,7 +409,7 @@ SEXP nrtest_iterator(SEXP envir)
 
 			t[idx]->data_recs(data_recs);
 			printf("Num patients: %ld\n", data_recs.size());
-			for (NRTrackData<double>::DataRecs::const_iterator ipr = data_recs.begin(); ipr != data_recs.end(); ++ipr)
+			for (EMRTrackData<double>::DataRecs::const_iterator ipr = data_recs.begin(); ipr != data_recs.end(); ++ipr)
 				printf("Patient %d, time %s, val %g\n", ipr->id, ipr->timestamp.tostr().c_str(), ipr->val);
 
 			printf("Enter time scope and keep_ref (0/1): ");
@@ -443,14 +437,14 @@ SEXP nrtrack(SEXP _track, SEXP _envir)
 		Naryn naryn(_envir);
 
 		const char *trackname = CHAR(STRING_ELT(_track, 0));
-		NRTrack *track = g_db->track(trackname);
-		NRTrackData<double>::DataRecs data_recs;
+		EMRTrack *track = g_db->track(trackname);
+		EMRTrackData<double>::DataRecs data_recs;
 
 		if (!track) 
 			verror("Track %s not found", trackname);
 
 		track->data_recs(data_recs);
-		for (NRTrackData<double>::DataRecs::const_iterator ipr = data_recs.begin(); ipr != data_recs.end(); ++ipr)
+		for (EMRTrackData<double>::DataRecs::const_iterator ipr = data_recs.begin(); ipr != data_recs.end(); ++ipr)
 			printf("Patient %d, time %s, val %g\n", ipr->id, ipr->timestamp.tostr().c_str(), ipr->val);
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
@@ -505,7 +499,7 @@ SEXP nrimport_clalit(SEXP _dirname, SEXP _envir)
 					char *endptr;
 					unsigned patientid;
 					unsigned testcode;
-					NRTimeStamp timestamp;
+					EMRTimeStamp timestamp;
 					float res;
 
 					check_interrupt();
@@ -543,7 +537,7 @@ SEXP nrimport_clalit(SEXP _dirname, SEXP _envir)
 						timestamp.init((unsigned)(unif_rand() * 1000000), refcount);
 
 						if (datasets.find(testcode) == datasets.end())
-							datasets[testcode] = new NRTrackData<float>();
+							datasets[testcode] = new EMRTrackData<float>();
 						try {
 							datasets[testcode]->add_data(patientid, timestamp, res);
 							break;
@@ -561,8 +555,8 @@ SEXP nrimport_clalit(SEXP _dirname, SEXP _envir)
 			char filename[PATH_MAX + 100];
 
 			printf("Writing track %d\n", idataset->first);
-			sprintf(filename, "%s/t%d%s", g_db->grootdir().c_str(), idataset->first, NRDb::TRACK_FILE_EXT.c_str());
-			NRTrack::serialize(filename, false, *idataset->second);
+			sprintf(filename, "%s/t%d%s", g_db->grootdir().c_str(), idataset->first, EMRDb::TRACK_FILE_EXT.c_str());
+			EMRTrack::serialize(filename, false, *idataset->second);
 		}
 
 		for (Datasets::iterator idataset = datasets.begin(); idataset != datasets.end(); ++idataset) 
@@ -677,7 +671,7 @@ SEXP nrfilter(SEXP _expr, SEXP _stime, SEXP _etime, SEXP _envir)
                     ref = -1;
 
                 printf("Filtering....\n");
-                NRPoint point(id, NRTimeStamp(time, (unsigned char)ref));
+                EMRPoint point(id, EMRTimeStamp(time, (unsigned char)ref));
                 if (filter.is_passed(point))
                     printf("PASSED\n");
                 else
@@ -727,7 +721,7 @@ SEXP nrtest_time_iterator(SEXP _times, SEXP _stime, SEXP _etime, SEXP _keepref, 
                 if (retv == 2)
                     ref = -1;
 
-                itr.next(NRPoint(id, NRTimeStamp(time, -1)));
+                itr.next(EMRPoint(id, EMRTimeStamp(time, -1)));
                 if (itr.isend()) {
                     printf("End\n");
                     break;

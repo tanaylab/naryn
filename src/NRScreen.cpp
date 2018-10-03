@@ -1,4 +1,5 @@
 #include "naryn.h"
+#include "NRPoint.h"
 #include "NRTrackExpressionScanner.h"
 
 #include <R.h>
@@ -27,7 +28,7 @@ SEXP emr_screen(SEXP _expr, SEXP _sort, SEXP _stime, SEXP _etime, SEXP _iterator
             verror("The value of 'sort' parameter cannot be NA");
 
 		NRTrackExprScanner scanner;
-        NRPoints out_points;
+        EMRPoints out_points;
 
 		for (scanner.begin(_expr, NRTrackExprScanner::LOGICAL_T, _stime, _etime, _iterator_policy, _keepref, _filter); !scanner.isend(); scanner.next()) {
 			if (scanner.logical() == 1)  // beware: in addition to true / false the result might also be nan
@@ -35,7 +36,7 @@ SEXP emr_screen(SEXP _expr, SEXP _sort, SEXP _stime, SEXP _etime, SEXP _iterator
 			g_naryn->verify_max_data_size(out_points.size(), "Result");
 		}
 
-        vector<NRPoint *> ppoints;
+        vector<EMRPoint *> ppoints;
 		rreturn(NRPoint::convert_points(out_points, NRPoint::NUM_COLS, false, do_sort, &ppoints));
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());

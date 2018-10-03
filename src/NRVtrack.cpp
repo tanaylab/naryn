@@ -1,10 +1,3 @@
-#include <R.h>
-#include <Rinternals.h>
-
-#ifdef length
-#undef length
-#endif
-
 #include "naryn.h"
 #include "NRIteratorFilter.h"
 #include "NRTrackExpressionVars.h"
@@ -48,8 +41,8 @@ SEXP emr_check_vtrack_attr_func(SEXP _func, SEXP _envir)
 		string func = CHAR(STRING_ELT(_func, 0));
         transform(func.begin(), func.end(), func.begin(), ::tolower);
 
-        for (int ifunc = 0; ifunc < NRTrack::NUM_FUNCS; ++ifunc) {
-            if (!strcmp(func.c_str(), NRTrack::FUNC_INFOS[ifunc].name))
+        for (int ifunc = 0; ifunc < EMRTrack::NUM_FUNCS; ++ifunc) {
+            if (!strcmp(func.c_str(), EMRTrack::FUNC_INFOS[ifunc].name))
                 rreturn(R_NilValue);
         }
         verror("Invalid function \"%s\"", func.c_str());
@@ -79,8 +72,8 @@ SEXP emr_check_vtrack_attr_time_shift(SEXP _tshift, SEXP _envir)
             eshift = isReal(_tshift) ? (int)REAL(_tshift)[1] : INTEGER(_tshift)[1];
         }
 
-        if (sshift < -(int)NRTimeStamp::MAX_HOUR || sshift > (int)NRTimeStamp::MAX_HOUR ||
-            eshift < -(int)NRTimeStamp::MAX_HOUR || eshift > (int)NRTimeStamp::MAX_HOUR)
+        if (sshift < -(int)EMRTimeStamp::MAX_HOUR || sshift > (int)EMRTimeStamp::MAX_HOUR ||
+            eshift < -(int)EMRTimeStamp::MAX_HOUR || eshift > (int)EMRTimeStamp::MAX_HOUR)
             verror("'time.shift' is out of range");
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());

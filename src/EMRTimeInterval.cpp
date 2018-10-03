@@ -1,11 +1,6 @@
-#include "NRTimeStamp.h"
+#include "EMRTimeStamp.h"
 
-//const NRTimeStamp::Hour     NRTimeStamp::MAX_HOUR = (Hour)(0xffffff - 1);
-//const NRTimeStamp::Hour     NRTimeStamp::NA_HOUR = (Hour)0xffffff;
-//const NRTimeStamp::Refcount NRTimeStamp::MAX_REFCOUNT = (Refcount)(0xff - 1);
-//const NRTimeStamp::Refcount NRTimeStamp::NA_REFCOUNT = (Refcount)0xff;
-
-void NRTimeStamp::serialize(BufferedFile &bfile)
+void EMRTimeStamp::serialize(BufferedFile &bfile)
 {
     if (bfile.write(&m_timestamp, sizeof(m_timestamp)) != sizeof(m_timestamp)) {
         if (bfile.error())
@@ -14,7 +9,7 @@ void NRTimeStamp::serialize(BufferedFile &bfile)
     }
 }
 
-void NRTimeStamp::unserialize(BufferedFile &bfile)
+void EMRTimeStamp::unserialize(BufferedFile &bfile)
 {
     if (bfile.read(&m_timestamp, sizeof(m_timestamp)) != sizeof(m_timestamp)) {
         if (bfile.error())

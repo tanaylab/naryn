@@ -1,7 +1,7 @@
 #ifndef NRTRACKEXPRESSIONITERATOR_H_INCLUDED
 #define NRTRACKEXPRESSIONITERATOR_H_INCLUDED
 
-#include "NRPoint.h"
+#include "EMRPoint.h"
 
 class NRTrackExpressionIterator {
 public:
@@ -9,7 +9,7 @@ public:
 	virtual ~NRTrackExpressionIterator() {}
 
 	// returns last point of the interval
-	const NRPoint &point() const { return m_point; }
+	const EMRPoint &point() const { return m_point; }
 
     // returns false if end is reached
     virtual bool begin() = 0;
@@ -18,7 +18,7 @@ public:
 	virtual bool next() = 0;
 
     // returns next point which time is equal or greater than jumpto (reference in jumpto is ignored)
-    virtual bool next(const NRPoint &jumpto) = 0;
+    virtual bool next(const EMRPoint &jumpto) = 0;
 
     bool isend() const { return m_isend; }
 
@@ -34,7 +34,7 @@ public:
 protected:
     bool        m_keepref;
 	bool        m_isend;  // true if iterator reached the end
-	NRPoint     m_point;  // current point
+	EMRPoint    m_point;  // current point
 };
 
 #endif

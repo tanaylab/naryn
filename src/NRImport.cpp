@@ -1,19 +1,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <R.h>
-#include <Rinternals.h>
-
-#ifdef length
-#undef length
-#endif
-#ifdef error
-#undef error
-#endif
-
+#include "EMRDb.h"
+#include "EMRTrack.h"
 #include "naryn.h"
-#include "NRDb.h"
-#include "NRTrack.h"
 #include "strutil.h"
 
 extern "C" {
@@ -35,12 +25,12 @@ SEXP emr_import(SEXP _track, SEXP _space, SEXP _categorical, SEXP _src, SEXP _ad
         string track_filename;
         bool categorical;
         bool is_global;
-        NRTrackData<float> data;
+        EMRTrackData<float> data;
 
         if (do_add) {
-            NRTrackData<double>::DataRecs data_recs;
-            NRTrack *track = g_db->track(trackname);
-            const NRDb::TrackInfo *track_info = g_db->track_info(trackname);
+            EMRTrackData<double>::DataRecs data_recs;
+            EMRTrack *track = g_db->track(trackname);
+            const EMRDb::TrackInfo *track_info = g_db->track_info(trackname);
 
             if (!track)
                 verror("Track %s not found", trackname.c_str());
@@ -50,7 +40,7 @@ SEXP emr_import(SEXP _track, SEXP _space, SEXP _categorical, SEXP _src, SEXP _ad
             is_global = track_info->is_global;
             track->data_recs(data_recs);
 
-            for (NRTrackData<double>::DataRecs::const_iterator irec = data_recs.begin(); irec != data_recs.end(); ++irec)
+            for (EMRTrackData<double>::DataRecs::const_iterator irec = data_recs.begin(); irec != data_recs.end(); ++irec)
                 data.add_data(irec->id, irec->timestamp, (float)irec->val);
         } else {
             if (!isLogical(_categorical) || Rf_length(_categorical) != 1 || asLogical(_categorical) == NA_LOGICAL)
@@ -77,9 +67,9 @@ SEXP emr_import(SEXP _track, SEXP _space, SEXP _categorical, SEXP _src, SEXP _ad
             if (g_db->track(trackname))
                 verror("Track %s already exists", trackname.c_str());
 
-            NRDb::check_track_name(trackname);
+            EMRDb::check_track_name(trackname);
 
-            track_filename = (is_global ? g_db->grootdir() : g_db->urootdir()) + string("/") + trackname + NRDb::TRACK_FILE_EXT;
+            track_filename = (is_global ? g_db->grootdir() : g_db->urootdir()) + string("/") + trackname + EMRDb::TRACK_FILE_EXT;
 
             if (access(track_filename.c_str(), F_OK) != -1)
                 verror("File %s already exists", track_filename.c_str());
@@ -124,18 +114,18 @@ SEXP emr_import(SEXP _track, SEXP _space, SEXP _categorical, SEXP _src, SEXP _ad
                     verror("%s, line %d: invalid id", filename, lineno);
 
                 hour = strtol(fields[TIME].c_str(), &endptr, 10);
-                if (*endptr || hour < 0 || hour > NRTimeStamp::MAX_HOUR)
+                if (*endptr || hour < 0 || hour > EMRTimeStamp::MAX_HOUR)
                     verror("%s, line %d: invalid time", filename, lineno);
 
                 ref = strtol(fields[REF].c_str(), &endptr, 10);
-                if (*endptr || ref < 0 && ref != -1 || ref > NRTimeStamp::MAX_REFCOUNT)
+                if (*endptr || ref < 0 && ref != -1 || ref > EMRTimeStamp::MAX_REFCOUNT)
                     verror("%s, line %d: invalid reference", filename, lineno);
 
                 val = strtod(fields[VALUE].c_str(), &endptr);
                 if (*endptr)
                     verror("%s, line %d: invalid data format", filename, lineno);
 
-                data.add_data(id, NRTimeStamp((NRTimeStamp::Hour)hour, (NRTimeStamp::Refcount)ref), val);
+                data.add_data(id, EMRTimeStamp((EMRTimeStamp::Hour)hour, (EMRTimeStamp::Refcount)ref), val);
             }
         } else {
             if (TYPEOF(_src) == PROMSXP) {
@@ -172,21 +162,21 @@ SEXP emr_import(SEXP _track, SEXP _space, SEXP _categorical, SEXP _src, SEXP _ad
 
             for (unsigned i = 0; i < num_points; ++i) {
                 unsigned id = (unsigned)(isReal(rcol[ID]) ? REAL(rcol[ID])[i] : INTEGER(rcol[ID])[i]);
-                NRTimeStamp::Hour hour = (NRTimeStamp::Hour)(isReal(rcol[TIME]) ? REAL(rcol[TIME])[i] : INTEGER(rcol[TIME])[i]);
-                NRTimeStamp::Refcount ref = ref_used ? (NRTimeStamp::Refcount)(isReal(rcol[REF]) ? REAL(rcol[REF])[i] : INTEGER(rcol[REF])[i]) : NRTimeStamp::NA_REFCOUNT;
+                EMRTimeStamp::Hour hour = (EMRTimeStamp::Hour)(isReal(rcol[TIME]) ? REAL(rcol[TIME])[i] : INTEGER(rcol[TIME])[i]);
+                EMRTimeStamp::Refcount ref = ref_used ? (EMRTimeStamp::Refcount)(isReal(rcol[REF]) ? REAL(rcol[REF])[i] : INTEGER(rcol[REF])[i]) : EMRTimeStamp::NA_REFCOUNT;
                 float val = (float)(isReal(rcol[VALUE]) ? REAL(rcol[VALUE])[i] : INTEGER(rcol[VALUE])[i]);
 
-                data.add_data(id, NRTimeStamp(hour, ref), val);
+                data.add_data(id, EMRTimeStamp(hour, ref), val);
             }
         }
 
         if (access(track_filename.c_str(), F_OK) != -1) {
             string tmp_filename = track_filename + ".tmp";
-            NRTrack::serialize(tmp_filename.c_str(), categorical ? NRTrack::IS_CATEGORICAL : 0, data);
+            EMRTrack::serialize(tmp_filename.c_str(), categorical ? EMRTrack::IS_CATEGORICAL : 0, data);
             unlink(track_filename.c_str());
             rename(tmp_filename.c_str(), track_filename.c_str());
         } else
-            NRTrack::serialize(track_filename.c_str(), categorical, data);
+            EMRTrack::serialize(track_filename.c_str(), categorical, data);
         g_db->load_track(trackname.c_str(), is_global);
     } catch (TGLException &e) {
         rerror("%s", e.msg());

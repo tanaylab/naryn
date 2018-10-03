@@ -12,171 +12,10 @@
 #undef length
 #endif
 
+#include "EMRDb.h"
+#include "EMRTrack.h"
 #include "naryn.h"
-#include "NRDb.h"
-#include "NRTrack.h"
-
-//-------------------------------- NRTrack::DataFetcher -----------------------------------
-
-NRTrack::DataFetcher::~DataFetcher()
-{
-    if (m_track_ownership)
-        delete m_track;
-}
-
-void NRTrack::DataFetcher::init(NRTrack *track, bool track_ownership, unordered_set<double> &&vals)
-{
-	m_track = track;
-    m_track_ownership = track_ownership;
-    m_vals2compare = move(vals);
-	m_data_idx = (unsigned)0;
-	m_rec_idx = (unsigned)0;
-    m_last_id = 0;
-    m_val = numeric_limits<double>::quiet_NaN();
-    m_sp.reset();
-}
-
-void NRTrack::DataFetcher::register_function(NRTrack::Func func)
-{
-	if (func == QUANTILE)
-		m_sp.init(g_naryn->max_data_size(), g_naryn->quantile_edge_data_size(), g_naryn->quantile_edge_data_size());
-
-    m_function = func;
-}
-
-
-//-------------------------------- NRTrack::Iterator -----------------------------------
-
-void NRTrack::Iterator::init(NRTrack *track, unsigned stime, unsigned etime, unordered_set<double> &&vals, NRTimeStamp::Hour expiration)
-{
-    m_track = track;
-    m_data_idx = (unsigned)0;
-    m_rec_idx = (unsigned)0;
-    m_isend = false;
-    m_stime = stime;
-    m_etime = etime;
-    m_vals = move(vals);
-    m_expiration = expiration;
-}
-
-
-//-------------------------------- NRTrack -------------------------------------------------
-
-const int    NRTrack::SIGNATURE = 0xc0ffee;
-const double NRTrack::DENSE_TRACK_MIN_DENSITY = 0.4;
-
-const char *NRTrack::TRACK_TYPE_NAMES[NUM_TRACK_TYPES] = { "sparse", "dense" };
-const char *NRTrack::DATA_TYPE_NAMES[NUM_DATA_TYPES] = { "float", "double" };
-
-// When adding a new function do not forget to update BinsManager::BinsManager()
-const NRTrack::FuncInfo NRTrack::FUNC_INFOS[NRTrack::NUM_FUNCS] = {
-    // name                   categorical quantitative  keepref
-    { "value",                true,       false,        true  },
-    { "exists",               true,       false,        true  },
-    { "frequent",             true,       false,        false },
-    { "sample",               true,       true,         false },
-    { "sample.time",          true,       true,         false },
-    { "avg",                  false,      true,         true  },
-    { "size",                 true,       true,         false },
-    { "min",                  false,      true,         false },
-    { "max",                  false,      true,         false },
-    { "earliest",             true,       true,         false },
-    { "latest",               true,       true,         false },
-    { "closest",              true,       true,         false },
-    { "earliest.time",        true,       true,         true  },
-    { "latest.time",          true,       true,         true  },
-    { "closest.earlier.time", true,       true,         true  },
-    { "closest.later.time",   true,       true,         true  },
-    { "stddev",               false,      true,         false },
-    { "sum",                  false,      true,         false },
-    { "quantile",             false,      true,         false },
-    { "percentile.upper",     false,      true,         true  },
-    { "percentile.lower",     false,      true,         true  },
-    { "percentile.upper.min", false,      true,         false },
-    { "percentile.lower.min", false,      true,         false },
-    { "percentile.upper.max", false,      true,         false },
-    { "percentile.lower.max", false,      true,         false },
-    { "lm.slope",             false,      true,         false },
-    { "lm.intercept",         false,      true,         false },
-    { "dt1.earliest",         true,       true,         false },
-    { "dt1.latest",           true,       true,         false },
-    { "dt2.earliest",         true,       true,         false },
-    { "dt2.latest",           true,       true,         false }
-};
-
-NRTrack *NRTrack::unserialize(const char *name, const char *filename)
-{
-    int fd = -1;
-    struct stat sb;
-    void *mem = MAP_FAILED;
-
-    try {
-        if ((fd = open(filename, O_RDONLY, 0)) == -1)
-            verror("Opening file %s: %s", filename, strerror(errno));
-
-        if (fstat(fd, &sb) == -1)
-            verror("stat failed on file %s: %s", filename, strerror(errno));
-
-        if (!sb.st_size)
-            TGLError<NRTrack>(BAD_FORMAT, "Track file %s is empty (0)", filename);
-
-        if ((mem = mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE | MAP_POPULATE, fd, 0)) == MAP_FAILED)
-            verror("mmap failed on file %s: %s", filename, strerror(errno));
-
-        close(fd);
-        fd = -1;
-
-        size_t pos = 0;
-    	int signature;
-    	int track_type;
-    	int data_type;
-        unsigned flags;
-        unsigned minid;
-        unsigned maxid;
-        unsigned mintime;
-        unsigned maxtime;
-
-        read_datum(mem, pos, sb.st_size, signature, name);
-        read_datum(mem, pos, sb.st_size, track_type, name);
-        read_datum(mem, pos, sb.st_size, data_type, name);
-        read_datum(mem, pos, sb.st_size, flags, name);
-        read_datum(mem, pos, sb.st_size, minid, name);
-        read_datum(mem, pos, sb.st_size, maxid, name);
-        read_datum(mem, pos, sb.st_size, mintime, name);
-        read_datum(mem, pos, sb.st_size, maxtime, name);
-
-    	if (signature != SIGNATURE) 
-    		TGLError<NRTrack>(BAD_FORMAT, "Invalid format of a track %s (1)", name);
-
-        NRTrack *track;
-
-    	if (track_type == SPARSE) {
-    		if (data_type == FLOAT) 
-    			track = new NRTrackSparse<float>(name, FLOAT, flags, mem, pos, sb.st_size, minid, maxid, mintime, maxtime);
-    		else if (data_type == DOUBLE) 
-    			track = new NRTrackSparse<double>(name, DOUBLE, flags, mem, pos, sb.st_size, minid, maxid, mintime, maxtime);
-    	} else if (track_type == DENSE) {
-    		if (data_type == FLOAT) 
-    			track = new NRTrackDense<float>(name, FLOAT, flags, mem, pos, sb.st_size, minid, maxid, mintime, maxtime);
-    		else if (data_type == DOUBLE) 
-    			track = new NRTrackDense<double>(name, DOUBLE, flags, mem, pos, sb.st_size, minid, maxid, mintime, maxtime);
-    	}
-
-        if (!track)
-            TGLError<NRTrack>(BAD_FORMAT, "Invalid format of a track %s (5)", name);
-
-    	return track;
-    }
-    catch (...) {
-        if (fd != -1)
-            close(fd);
-        if (mem != MAP_FAILED)
-            munmap(mem, sb.st_size);
-        throw;
-    }
-
-    return NULL;
-}
+#include "NRPoint.h"
 
 extern "C" {
 
@@ -192,7 +31,7 @@ SEXP emr_track_rm(SEXP _track, SEXP _envir)
 		const char *trackname = CHAR(STRING_ELT(_track, 0));
         vdebug("Removing track %s\n", trackname);
         SEXP answer;
-        const NRDb::TrackInfo *track_info = g_db->track_info(trackname);
+        const EMRDb::TrackInfo *track_info = g_db->track_info(trackname);
 
         if (!track_info)
             verror("Track %s does not exist", trackname);
@@ -226,8 +65,8 @@ SEXP emr_track_info(SEXP _track, SEXP _envir)
 		const char *trackname = CHAR(STRING_ELT(_track, 0));
         SEXP answer;
         SEXP names;
-        NRTrack *track = g_db->track(trackname);
-        const NRDb::TrackInfo *track_info = g_db->track_info(trackname);
+        EMRTrack *track = g_db->track(trackname);
+        const EMRDb::TrackInfo *track_info = g_db->track_info(trackname);
 
         if (!track)
             verror("Track %s does not exist", trackname);
@@ -241,11 +80,11 @@ SEXP emr_track_info(SEXP _track, SEXP _envir)
 
         // type
         SET_VECTOR_ELT(answer, TYPE, RSaneAllocVector(STRSXP, 1));
-        SET_STRING_ELT(VECTOR_ELT(answer, TYPE), 0, mkChar(NRTrack::TRACK_TYPE_NAMES[track->track_type()]));
+        SET_STRING_ELT(VECTOR_ELT(answer, TYPE), 0, mkChar(EMRTrack::TRACK_TYPE_NAMES[track->track_type()]));
 
         // data.type
         SET_VECTOR_ELT(answer, DATA_TYPE, RSaneAllocVector(STRSXP, 1));
-        SET_STRING_ELT(VECTOR_ELT(answer, DATA_TYPE), 0, mkChar(NRTrack::DATA_TYPE_NAMES[track->data_type()]));
+        SET_STRING_ELT(VECTOR_ELT(answer, DATA_TYPE), 0, mkChar(EMRTrack::DATA_TYPE_NAMES[track->data_type()]));
 
         // categorical
         SET_VECTOR_ELT(answer, CATEGORICAL, RSaneAllocVector(LGLSXP, 1));
@@ -309,7 +148,7 @@ SEXP emr_track_ids(SEXP _track, SEXP _envir)
 		const char *trackname = CHAR(STRING_ELT(_track, 0));
         SEXP answer;
         vector<unsigned> ids;
-        NRTrack *track = g_db->track(trackname);
+        EMRTrack *track = g_db->track(trackname);
 
         if (!track)
             verror("Track %s does not exist", trackname);
@@ -336,7 +175,7 @@ SEXP emr_track_unique(SEXP _track, SEXP _envir)
 
 		const char *trackname = CHAR(STRING_ELT(_track, 0));
         SEXP answer;
-        NRTrack *track = g_db->track(trackname);
+        EMRTrack *track = g_db->track(trackname);
 
         if (!track)
             verror("Track %s does not exist", trackname);
@@ -375,7 +214,7 @@ SEXP emr_track_percentile(SEXP _track, SEXP _value, SEXP _lower, SEXP _envir)
             verror("'lower' argument must be a logical value");
 
 		const char *trackname = CHAR(STRING_ELT(_track, 0));
-        NRTrack *track = g_db->track(trackname);
+        EMRTrack *track = g_db->track(trackname);
 
         if (!track)
             verror("Track %s does not exist", trackname);

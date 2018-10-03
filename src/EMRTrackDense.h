@@ -1,14 +1,14 @@
-#ifndef NRTRACKDENSE_H_INCLUDED
-#define NRTRACKDENSE_H_INCLUDED
+#ifndef EMRTRACKDENSE_H_INCLUDED
+#define EMRTRACKDENSE_H_INCLUDED
 
 #include <algorithm>
 #include <cmath>
 
-#include "NRDb.h"
-#include "NRTrack.h"
+#include "EMRDb.h"
+#include "EMRTrack.h"
 
 template <class T>
-class NRTrackDense : public NRTrack {
+class EMRTrackDense : public EMRTrack {
 public:
     virtual unsigned size() const { return m_num_recs; }
     virtual unsigned unique_size() const { return m_base_track ? m_base_track->unique_size() : m_num_percentiles; }
@@ -21,28 +21,28 @@ public:
     virtual double   maxval() const { return m_base_track ? m_base_track->maxval() : (double)m_sorted_unique_vals[m_num_percentiles - 1]; }
 
     virtual void ids(vector<unsigned> &ids);
-	virtual void data_recs(NRTrackData<double>::DataRecs &data_recs);
+	virtual void data_recs(EMRTrackData<double>::DataRecs &data_recs);
 
     virtual size_t count_ids(const vector<unsigned> &ids) const;
 
-	static void serialize(BufferedFile &bfile, const NRTrackData<T> &data, unsigned minid, unsigned maxid, unsigned flags);
+	static void serialize(BufferedFile &bfile, const EMRTrackData<T> &data, unsigned minid, unsigned maxid, unsigned flags);
 
 protected:
-	friend class NRTrack;
+	friend class EMRTrack;
 
 #pragma pack(push)
 #pragma pack(1)
 
 	struct __attribute__((__packed__)) Rec {
-        NRTimeStamp timestamp;
-        T           val;
+        EMRTimeStamp timestamp;
+        T            val;
 
         Rec() {}
-        Rec(const NRTimeStamp &_timestamp, T _val) : timestamp(_timestamp), val(_val) {}
+        Rec(const EMRTimeStamp &_timestamp, T _val) : timestamp(_timestamp), val(_val) {}
         bool operator<(const Rec &o) const { return timestamp.hour() < o.timestamp.hour(); }
 
         double v() const { return val; }
-        const NRTimeStamp &time() const { return timestamp; }
+        const EMRTimeStamp &time() const { return timestamp; }
     };
 
 #pragma pack(pop)
@@ -54,10 +54,10 @@ protected:
     float    *m_percentiles;
     T        *m_sorted_unique_vals;
 
-	NRTrackDense(const char *name, DataType data_type, unsigned flags, void *&mem, size_t &pos, size_t size,
+	EMRTrackDense(const char *name, DataType data_type, unsigned flags, void *&mem, size_t &pos, size_t size,
                  unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime);
 
-    NRTrackDense(const char *name, NRTrack *base_track, const NRTrackData<T> &track_data, DataType data_type,
+    EMRTrackDense(const char *name, EMRTrack *base_track, const EMRTrackData<T> &track_data, DataType data_type,
                  unsigned flags, unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime);
 
     unsigned data_size() const { return m_max_id - m_min_id + 1; }
@@ -68,11 +68,11 @@ protected:
 
 	void serialize(const char *filename);
 
-    virtual void set_vals(DataFetcher &df, const NRInterval &interv);
+    virtual void set_vals(DataFetcher &df, const EMRInterval &interv);
 
 	virtual bool begin(Iterator &itr);
 	virtual bool next(Iterator &itr);
-    virtual bool next(Iterator &itr, const NRPoint &jumpto);
+    virtual bool next(Iterator &itr, const EMRPoint &jumpto);
 };
 
 
@@ -83,9 +83,9 @@ protected:
 #endif
 
 template <class T>
-NRTrackDense<T>::NRTrackDense(const char *name, DataType data_type, unsigned flags, void *&mem, size_t &pos, size_t size,
+EMRTrackDense<T>::EMRTrackDense(const char *name, DataType data_type, unsigned flags, void *&mem, size_t &pos, size_t size,
                               unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime) :
-	NRTrack(name, DENSE, data_type, flags, mem, size, minid, maxid, mintime, maxtime)
+	EMRTrack(name, DENSE, data_type, flags, mem, size, minid, maxid, mintime, maxtime)
 {
     read_datum(m_shmem, pos, m_shmem_size, m_num_recs, name);
     read_datum(m_shmem, pos, m_shmem_size, m_num_percentiles, name);
@@ -114,21 +114,21 @@ NRTrackDense<T>::NRTrackDense(const char *name, DataType data_type, unsigned fla
 }
 
 template <class T>
-NRTrackDense<T>::NRTrackDense(const char *name, NRTrack *base_track, const NRTrackData<T> &track_data, DataType data_type,
+EMRTrackDense<T>::EMRTrackDense(const char *name, EMRTrack *base_track, const EMRTrackData<T> &track_data, DataType data_type,
                               unsigned flags, unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime) :
-	NRTrack(name, DENSE, data_type, flags, base_track, minid, maxid, mintime, maxtime)
+	EMRTrack(name, DENSE, data_type, flags, base_track, minid, maxid, mintime, maxtime)
 {
     m_num_recs = track_data.m_key2val.size();
 
-    typename NRTrackData<T>::DataRecs data_recs;
+    typename EMRTrackData<T>::DataRecs data_recs;
     data_recs.reserve(track_data.m_key2val.size());
 
     unsigned data_size = maxid - minid + 1;
     vector<unsigned> data(data_size, (unsigned)-1);
     vector<Rec> recs(m_num_recs);
 
-    for (typename NRTrackData<T>::Key2Val::const_iterator idata = track_data.m_key2val.begin(); idata != track_data.m_key2val.end(); ++idata) {
-        typename NRTrackData<T>::DataRec rec;
+    for (typename EMRTrackData<T>::Key2Val::const_iterator idata = track_data.m_key2val.begin(); idata != track_data.m_key2val.end(); ++idata) {
+        typename EMRTrackData<T>::DataRec rec;
         rec.id = idata->first.id;
         rec.timestamp = idata->first.timestamp;
         rec.val = idata->second;
@@ -138,7 +138,7 @@ NRTrackDense<T>::NRTrackDense(const char *name, NRTrack *base_track, const NRTra
 
     unsigned rec_idx = 0;
 
-    for (typename NRTrackData<T>::DataRecs::const_iterator irec = data_recs.begin(); irec != data_recs.end(); ++irec) {
+    for (typename EMRTrackData<T>::DataRecs::const_iterator irec = data_recs.begin(); irec != data_recs.end(); ++irec) {
         unsigned &_rec_idx = data[irec->id - minid];
 
         if (_rec_idx == (unsigned)-1)
@@ -170,9 +170,9 @@ NRTrackDense<T>::NRTrackDense(const char *name, NRTrack *base_track, const NRTra
 }
 
 template <class T>
-void NRTrackDense<T>::serialize(BufferedFile &bfile, const NRTrackData<T> &track_data, unsigned minid, unsigned maxid, unsigned flags)
+void EMRTrackDense<T>::serialize(BufferedFile &bfile, const EMRTrackData<T> &track_data, unsigned minid, unsigned maxid, unsigned flags)
 {
-	typename NRTrackData<T>::DataRecs data_recs;
+	typename EMRTrackData<T>::DataRecs data_recs;
 	data_recs.reserve(track_data.m_key2val.size());
 
     unsigned data_size = maxid - minid + 1;
@@ -183,8 +183,8 @@ void NRTrackDense<T>::serialize(BufferedFile &bfile, const NRTrackData<T> &track
     vector<T> vals;
     vector<T> sorted_unique_vals;
 
-	for (typename NRTrackData<T>::Key2Val::const_iterator idata = track_data.m_key2val.begin(); idata != track_data.m_key2val.end(); ++idata) {
-		typename NRTrackData<T>::DataRec rec;
+	for (typename EMRTrackData<T>::Key2Val::const_iterator idata = track_data.m_key2val.begin(); idata != track_data.m_key2val.end(); ++idata) {
+		typename EMRTrackData<T>::DataRec rec;
 		rec.id = idata->first.id;
 		rec.timestamp = idata->first.timestamp;
 		rec.val = idata->second;
@@ -209,7 +209,7 @@ void NRTrackDense<T>::serialize(BufferedFile &bfile, const NRTrackData<T> &track
 
 	unsigned rec_idx = 0;
 
-	for (typename NRTrackData<T>::DataRecs::const_iterator irec = data_recs.begin(); irec != data_recs.end(); ++irec) {
+	for (typename EMRTrackData<T>::DataRecs::const_iterator irec = data_recs.begin(); irec != data_recs.end(); ++irec) {
 		unsigned &_rec_idx = data[irec->id - minid];
 
 		if (_rec_idx == (unsigned)-1)
@@ -228,13 +228,13 @@ void NRTrackDense<T>::serialize(BufferedFile &bfile, const NRTrackData<T> &track
         !(flags & IS_CATEGORICAL) && bfile.write(&percentiles[0], sizeof(percentiles[0]) * num_percentiles) != sizeof(percentiles[0]) * num_percentiles))
     {
 		if (bfile.error())
-			TGLError<NRTrack>(FILE_ERROR, "Failed to write a track file %s: %s", bfile.file_name().c_str(), strerror(errno));
-		TGLError<NRTrack>(FILE_ERROR, "Failed to write a track file %s", bfile.file_name().c_str());
+			TGLError<EMRTrack>(FILE_ERROR, "Failed to write a track file %s: %s", bfile.file_name().c_str(), strerror(errno));
+		TGLError<EMRTrack>(FILE_ERROR, "Failed to write a track file %s", bfile.file_name().c_str());
 	}
 }
 
 template <class T>
-unsigned NRTrackDense<T>::next_dataidx(unsigned dataidx) const
+unsigned EMRTrackDense<T>::next_dataidx(unsigned dataidx) const
 {
     unsigned idrange = data_size();
 	for (++dataidx; dataidx < idrange; ++dataidx) {
@@ -245,7 +245,7 @@ unsigned NRTrackDense<T>::next_dataidx(unsigned dataidx) const
 }
 
 template <class T>
-void NRTrackDense<T>::unique_vals(vector<double> &vals) const
+void EMRTrackDense<T>::unique_vals(vector<double> &vals) const
 {
     if (m_base_track)
         m_base_track->unique_vals(vals);
@@ -258,14 +258,14 @@ void NRTrackDense<T>::unique_vals(vector<double> &vals) const
 }
 
 template <class T>
-unsigned NRTrackDense<T>::num_recs(unsigned dataidx) const
+unsigned EMRTrackDense<T>::num_recs(unsigned dataidx) const
 {
 	unsigned next_idx = next_dataidx(dataidx);
 	return next_idx == (unsigned)-1 ? m_num_recs - m_data[dataidx] : m_data[next_idx] - m_data[dataidx];
 }
 
 template <class T>
-float NRTrackDense<T>::percentile_upper(void *rec) const
+float EMRTrackDense<T>::percentile_upper(void *rec) const
 {
     if (m_base_track)
         return m_base_track->percentile_upper((double)((Rec *)rec)->v());
@@ -275,7 +275,7 @@ float NRTrackDense<T>::percentile_upper(void *rec) const
 }
 
 template <class T>
-float NRTrackDense<T>::percentile_upper(double value) const
+float EMRTrackDense<T>::percentile_upper(double value) const
 {
     if (m_base_track)
         return m_base_track->percentile_upper(value);
@@ -285,7 +285,7 @@ float NRTrackDense<T>::percentile_upper(double value) const
 }
 
 template <class T>
-float NRTrackDense<T>::percentile_lower(void *rec) const
+float EMRTrackDense<T>::percentile_lower(void *rec) const
 {
     if (m_base_track)
         return m_base_track->percentile_lower((double)((Rec *)rec)->v());
@@ -295,7 +295,7 @@ float NRTrackDense<T>::percentile_lower(void *rec) const
 }
 
 template <class T>
-float NRTrackDense<T>::percentile_lower(double value) const
+float EMRTrackDense<T>::percentile_lower(double value) const
 {
     if (m_base_track)
         return m_base_track->percentile_lower(value);
@@ -305,7 +305,7 @@ float NRTrackDense<T>::percentile_lower(double value) const
 }
 
 template <class T>
-void NRTrackDense<T>::ids(vector<unsigned> &ids)
+void EMRTrackDense<T>::ids(vector<unsigned> &ids)
 {
     unsigned idrange = data_size();
 
@@ -317,7 +317,7 @@ void NRTrackDense<T>::ids(vector<unsigned> &ids)
 }
 
 template <class T>
-void NRTrackDense<T>::data_recs(NRTrackData<double>::DataRecs &data_recs)
+void EMRTrackDense<T>::data_recs(EMRTrackData<double>::DataRecs &data_recs)
 {
     unsigned idrange = data_size();
 
@@ -326,7 +326,7 @@ void NRTrackDense<T>::data_recs(NRTrackData<double>::DataRecs &data_recs)
 	for (unsigned dataidx = 0; dataidx < idrange; ++dataidx) {
 		unsigned n = num_recs(dataidx);
 		for (unsigned irec = m_data[dataidx]; irec < m_data[dataidx] + n; ++irec) {
-			NRTrackData<double>::DataRec rec;
+			EMRTrackData<double>::DataRec rec;
 			rec.id = dataidx + m_min_id;
 			rec.timestamp = m_recs[irec].timestamp;
 			rec.val = (double)m_recs[irec].val;
@@ -336,7 +336,7 @@ void NRTrackDense<T>::data_recs(NRTrackData<double>::DataRecs &data_recs)
 }
 
 template <class T>
-size_t NRTrackDense<T>::count_ids(const vector<unsigned> &ids) const
+size_t EMRTrackDense<T>::count_ids(const vector<unsigned> &ids) const
 {
     size_t count = 0;
 
@@ -351,7 +351,7 @@ size_t NRTrackDense<T>::count_ids(const vector<unsigned> &ids) const
 }
 
 template <class T>
-void NRTrackDense<T>::set_vals(DataFetcher &df, const NRInterval &interv)
+void EMRTrackDense<T>::set_vals(DataFetcher &df, const EMRInterval &interv)
 {
     unsigned data_idx = interv.id - minid();
 
@@ -379,7 +379,7 @@ void NRTrackDense<T>::set_vals(DataFetcher &df, const NRInterval &interv)
 
             // timestamp is still preceeding the interval => no choice but to run a binary search
             if (df.m_rec_idx < end_rec_idx && m_recs[df.m_rec_idx].timestamp.hour() < interv.stime) {
-                Rec *rec = lower_bound(m_recs + df.m_rec_idx + 1, m_recs + end_rec_idx, Rec(NRTimeStamp(interv.stime, 0), 0));
+                Rec *rec = lower_bound(m_recs + df.m_rec_idx + 1, m_recs + end_rec_idx, Rec(EMRTimeStamp(interv.stime, 0), 0));
                 df.m_rec_idx = rec - m_recs;
             }
         }
@@ -387,7 +387,7 @@ void NRTrackDense<T>::set_vals(DataFetcher &df, const NRInterval &interv)
 }
 
 template <class T>
-bool NRTrackDense<T>::begin(Iterator &itr)
+bool EMRTrackDense<T>::begin(Iterator &itr)
 {
 	itr.m_data_idx = 0;
 	itr.m_rec_idx = -1;
@@ -396,7 +396,7 @@ bool NRTrackDense<T>::begin(Iterator &itr)
 }
 
 template <class T>
-bool NRTrackDense<T>::next(Iterator &itr)
+bool EMRTrackDense<T>::next(Iterator &itr)
 {
 	++itr.m_rec_idx;
 
@@ -425,7 +425,7 @@ bool NRTrackDense<T>::next(Iterator &itr)
 			continue;
 		}
 
-        NRTimeStamp::Hour hour = m_recs[itr.m_rec_idx].timestamp.hour();
+        EMRTimeStamp::Hour hour = m_recs[itr.m_rec_idx].timestamp.hour();
 
 		// most of the chances are that this point is fine
 		if (hour >= itr.m_stime && hour <= itr.m_etime) {
@@ -438,7 +438,7 @@ bool NRTrackDense<T>::next(Iterator &itr)
                 bool has_competitors = false;
 
                 for (int irec = (int)itr.m_rec_idx - 1; irec >= (int)m_data[itr.m_data_idx]; --irec) {
-                    NRTimeStamp::Hour prev_hour = m_recs[irec].timestamp.hour();
+                    EMRTimeStamp::Hour prev_hour = m_recs[irec].timestamp.hour();
                     if (prev_hour != hour && (itr.m_vals.empty() || itr.m_vals.find(m_recs[irec].v()) != itr.m_vals.end())) {
                         if (prev_hour + itr.m_expiration >= hour)
                             has_competitors = true;
@@ -464,7 +464,7 @@ bool NRTrackDense<T>::next(Iterator &itr)
 		}
 
 		// scope does not fit => run binary search
-		Rec *rec = lower_bound(m_recs + itr.m_rec_idx + 1, m_recs + end_rec_idx, Rec(NRTimeStamp(itr.m_stime, 0), 0));
+		Rec *rec = lower_bound(m_recs + itr.m_rec_idx + 1, m_recs + end_rec_idx, Rec(EMRTimeStamp(itr.m_stime, 0), 0));
 		itr.m_rec_idx = rec - m_recs;
 	}
 
@@ -474,7 +474,7 @@ bool NRTrackDense<T>::next(Iterator &itr)
 }
 
 template <class T>
-bool NRTrackDense<T>::next(Iterator &itr, const NRPoint &jumpto)
+bool EMRTrackDense<T>::next(Iterator &itr, const EMRPoint &jumpto)
 {
     if (jumpto.id < minid() || jumpto.id > maxid()) {
         itr.m_isend = true;
@@ -497,7 +497,7 @@ bool NRTrackDense<T>::next(Iterator &itr, const NRPoint &jumpto)
     } else
         ++itr.m_rec_idx;
 
-    NRTimeStamp::Hour jumpto_hour = jumpto.timestamp.hour();
+    EMRTimeStamp::Hour jumpto_hour = jumpto.timestamp.hour();
 
 	while (1) {
 		if (itr.m_rec_idx >= m_num_recs)
@@ -524,7 +524,7 @@ bool NRTrackDense<T>::next(Iterator &itr, const NRPoint &jumpto)
 			continue;
 		}
 
-        NRTimeStamp::Hour hour = m_recs[itr.m_rec_idx].timestamp.hour();
+        EMRTimeStamp::Hour hour = m_recs[itr.m_rec_idx].timestamp.hour();
 
         // did we find the matching point?
 		if (hour >= itr.m_stime && hour <= itr.m_etime && (itr.m_data_idx != data_idx || hour >= jumpto_hour)) {
@@ -537,7 +537,7 @@ bool NRTrackDense<T>::next(Iterator &itr, const NRPoint &jumpto)
                 bool has_competitors = false;
 
                 for (int irec = (int)itr.m_rec_idx - 1; irec >= (int)m_data[itr.m_data_idx]; --irec) {
-                    NRTimeStamp::Hour prev_hour = m_recs[irec].timestamp.hour();
+                    EMRTimeStamp::Hour prev_hour = m_recs[irec].timestamp.hour();
                     if (prev_hour != hour && (itr.m_vals.empty() || itr.m_vals.find(m_recs[irec].v()) != itr.m_vals.end())) {
                         if (prev_hour + itr.m_expiration >= hour)
                             has_competitors = true;
@@ -564,7 +564,7 @@ bool NRTrackDense<T>::next(Iterator &itr, const NRPoint &jumpto)
 
 		// scope does not fit => run binary search
         unsigned stime = itr.m_data_idx == data_idx ? max(itr.m_stime, jumpto_hour) : itr.m_stime;
-        Rec *rec = lower_bound(m_recs + itr.m_rec_idx + 1, m_recs + end_rec_idx, Rec(NRTimeStamp(stime, 0), 0));
+        Rec *rec = lower_bound(m_recs + itr.m_rec_idx + 1, m_recs + end_rec_idx, Rec(EMRTimeStamp(stime, 0), 0));
         itr.m_rec_idx = rec - m_recs;
 	}
 

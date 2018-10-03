@@ -13,7 +13,7 @@
 #undef error
 #endif
 
-#include "NRTimeStamp.h"
+#include "EMRTimeStamp.h"
 
 using namespace std;
 
@@ -21,11 +21,11 @@ using namespace std;
 
 class NRTimeInterval {
 public:
-    NRTimeStamp::Hour stime;
-    NRTimeStamp::Hour etime;
+    EMRTimeStamp::Hour stime;
+    EMRTimeStamp::Hour etime;
 
-    NRTimeInterval() : stime(NRTimeStamp::NA_HOUR), etime(NRTimeStamp::NA_HOUR) {}
-    NRTimeInterval(NRTimeStamp::Hour _stime, NRTimeStamp::Hour _etime);
+    NRTimeInterval() : stime(EMRTimeStamp::NA_HOUR), etime(EMRTimeStamp::NA_HOUR) {}
+    NRTimeInterval(EMRTimeStamp::Hour _stime, EMRTimeStamp::Hour _etime);
 
     bool operator==(const NRTimeInterval &o) const { return stime == o.stime && etime == o.etime; }
     bool operator<(const NRTimeInterval &o) const { return stime < o.stime || stime == o.stime && etime < o.etime; }
@@ -56,7 +56,7 @@ public:
 
 //------------------------------ IMPLEMENTATION -----------------------------------------
 
-inline NRTimeInterval::NRTimeInterval(NRTimeStamp::Hour _stime, NRTimeStamp::Hour _etime)
+inline NRTimeInterval::NRTimeInterval(EMRTimeStamp::Hour _stime, EMRTimeStamp::Hour _etime)
 {
     if (_stime > _etime)
         TGLError("Start time (%d) exceeds end time (%d)", _stime, _etime);

@@ -28,12 +28,12 @@ public:
 	const BinFinder &get_bin_finder(int idx) const { return m_bin_finders[idx]; }
 
 private:
-	vector<BinFinder> m_bin_finders;
-	vector<unsigned>  m_track_mult;
-    vector<NRTrack *> m_tracks;
-	unsigned          m_totalbins;
-	bool              m_include_lowest;
-    bool              m_right;
+	vector<BinFinder>  m_bin_finders;
+	vector<unsigned>   m_track_mult;
+    vector<EMRTrack *> m_tracks;
+	unsigned           m_totalbins;
+	bool               m_include_lowest;
+    bool               m_right;
 };
 
 

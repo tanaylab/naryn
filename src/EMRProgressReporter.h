@@ -1,14 +1,14 @@
-#ifndef NRPROGRESSREPORTER_H_INCLUDED
-#define NRPROGRESSREPORTER_H_INCLUDED
+#ifndef EMRPROGRESSREPORTER_H_INCLUDED
+#define EMRPROGRESSREPORTER_H_INCLUDED
 
 #include <stdint.h>
 #include <string>
 
 using namespace std;
 
-class NRProgressReporter {
+class EMRProgressReporter {
 public:
-	NRProgressReporter() {}
+	EMRProgressReporter() {}
 
 	void init(uint64_t maxsteps, uint64_t init_report_step, uint64_t report_interval = 3000, uint64_t min_report_interval = 1000);
 	void set_report_prefix(const char *report_prefix) { m_report_prefix = report_prefix; }

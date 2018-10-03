@@ -2,7 +2,6 @@
 #define NRBEATEXTITERATOR_H_INCLUDED
 
 #include "naryn.h"
-#include "NRDb.h"
 #include "NRTrackExpressionIterator.h"
 
 class NRBeatExtIterator : public NRTrackExpressionIterator {
@@ -15,7 +14,7 @@ public:
 
 	virtual bool begin();
 	virtual bool next();
-    virtual bool next(const NRPoint &jumpto);
+    virtual bool next(const EMRPoint &jumpto);
 
 	virtual uint64_t size() const { return m_num_steps; }
     virtual uint64_t idx() const;
@@ -48,7 +47,7 @@ inline void NRBeatExtIterator::init(unsigned period, NRTrackExpressionIterator *
     m_etime = etime;
     m_num_steps4id = (uint64_t)ceil((etime - stime + 1) / (double)period);
     if (m_keepref)
-        m_num_steps4id *= NRTimeStamp::MAX_REFCOUNT + 1;
+        m_num_steps4id *= EMRTimeStamp::MAX_REFCOUNT + 1;
     m_num_steps = m_num_steps4id * (uint64_t)(g_db->maxid() - g_db->minid() + 1);
 }
 
@@ -58,18 +57,18 @@ inline bool NRBeatExtIterator::begin()
         m_isend = false;
 
         unsigned itr_id = m_itr->point().id;
-        NRTimeStamp::Hour itr_hour = m_itr->point().timestamp.hour();
+        EMRTimeStamp::Hour itr_hour = m_itr->point().timestamp.hour();
 
         if (itr_hour >= m_stime) {
-            m_point.init(itr_id, itr_hour, m_keepref ? 0 : NRTimeStamp::NA_REFCOUNT);
+            m_point.init(itr_id, itr_hour, m_keepref ? 0 : EMRTimeStamp::NA_REFCOUNT);
             return true;
         }
 
         while (1) {
-            NRTimeStamp::Hour hour = m_period * (unsigned)ceil((m_stime - itr_hour) / (double)m_period) + itr_hour;
+            EMRTimeStamp::Hour hour = m_period * (unsigned)ceil((m_stime - itr_hour) / (double)m_period) + itr_hour;
 
             if (hour <= m_etime) {
-                m_point.init(itr_id, hour, m_keepref ? 0 : NRTimeStamp::NA_REFCOUNT);
+                m_point.init(itr_id, hour, m_keepref ? 0 : EMRTimeStamp::NA_REFCOUNT);
                 return true;
             }
 
@@ -90,21 +89,21 @@ inline bool NRBeatExtIterator::begin()
 
 inline bool NRBeatExtIterator::next()
 {
-    if (m_keepref && m_point.timestamp.refcount() < NRTimeStamp::MAX_REFCOUNT) {
+    if (m_keepref && m_point.timestamp.refcount() < EMRTimeStamp::MAX_REFCOUNT) {
         m_point.init(m_point.id, m_point.timestamp.hour(), m_point.timestamp.refcount() + 1);
         return true;
     }
 
-    NRTimeStamp::Hour hour = m_point.timestamp.hour() + m_period;
+    EMRTimeStamp::Hour hour = m_point.timestamp.hour() + m_period;
     if (hour <= m_etime) {
-        m_point.timestamp.init(hour, m_keepref ? 0 : NRTimeStamp::NA_REFCOUNT);
+        m_point.timestamp.init(hour, m_keepref ? 0 : EMRTimeStamp::NA_REFCOUNT);
         return true;
     }
 
     unsigned id = m_point.id;
     while (m_itr->next()) {
         unsigned itr_id = m_itr->point().id;
-        NRTimeStamp::Hour itr_hour = m_itr->point().timestamp.hour();
+        EMRTimeStamp::Hour itr_hour = m_itr->point().timestamp.hour();
 
         if (id == itr_id)
             verror("Id %d appears multiple times in the initiation table of the beat iterator", itr_id);
@@ -112,12 +111,12 @@ inline bool NRBeatExtIterator::next()
         id = itr_id;
 
         if (itr_hour >= m_stime) {
-            m_point.init(itr_id, itr_hour, m_keepref ? 0 : NRTimeStamp::NA_REFCOUNT);
+            m_point.init(itr_id, itr_hour, m_keepref ? 0 : EMRTimeStamp::NA_REFCOUNT);
             return true;
         } else {
             hour = m_period * (unsigned)ceil((m_stime - itr_hour) / (double)m_period) + itr_hour;
             if (hour <= m_etime) {
-                m_point.init(id, hour, m_keepref ? 0 : NRTimeStamp::NA_REFCOUNT);
+                m_point.init(id, hour, m_keepref ? 0 : EMRTimeStamp::NA_REFCOUNT);
                 return true;
             }
         }
@@ -127,23 +126,23 @@ inline bool NRBeatExtIterator::next()
     return false;
 }
 
-inline bool NRBeatExtIterator::next(const NRPoint &jumpto)
+inline bool NRBeatExtIterator::next(const EMRPoint &jumpto)
 {
     if (m_point.id == jumpto.id) {
-        NRTimeStamp::Hour prev_hour = m_point.timestamp.hour();
-        NRTimeStamp::Hour hour = m_period * (unsigned)ceil((jumpto.timestamp.hour() - prev_hour) / (double)m_period) + prev_hour;
+        EMRTimeStamp::Hour prev_hour = m_point.timestamp.hour();
+        EMRTimeStamp::Hour hour = m_period * (unsigned)ceil((jumpto.timestamp.hour() - prev_hour) / (double)m_period) + prev_hour;
 
         if (hour <= m_etime) {
-            m_point.init(jumpto.id, hour, m_keepref ? 0 : NRTimeStamp::NA_REFCOUNT);
+            m_point.init(jumpto.id, hour, m_keepref ? 0 : EMRTimeStamp::NA_REFCOUNT);
             return true;
         }
     }
 
     unsigned id = m_point.id;
-    if (m_itr->next(NRPoint(jumpto.id, g_db->mintime(), (NRTimeStamp::Refcount)-1))) {
+    if (m_itr->next(EMRPoint(jumpto.id, g_db->mintime(), (EMRTimeStamp::Refcount)-1))) {
         do {
             unsigned itr_id = m_itr->point().id;
-            NRTimeStamp::Hour itr_hour = m_itr->point().timestamp.hour();
+            EMRTimeStamp::Hour itr_hour = m_itr->point().timestamp.hour();
 
             if (id == itr_id)
                 verror("Id %d appears multiple times in the initiation table of the beat iterator", itr_id);
@@ -151,12 +150,12 @@ inline bool NRBeatExtIterator::next(const NRPoint &jumpto)
             id = itr_id;
 
             if (itr_hour >= m_stime) {
-                m_point.init(itr_id, itr_hour, m_keepref ? 0 : NRTimeStamp::NA_REFCOUNT);
+                m_point.init(itr_id, itr_hour, m_keepref ? 0 : EMRTimeStamp::NA_REFCOUNT);
                 return true;
             } else {
-                NRTimeStamp::Hour hour = m_period * (unsigned)ceil((m_stime - itr_hour) / (double)m_period) + itr_hour;
+                EMRTimeStamp::Hour hour = m_period * (unsigned)ceil((m_stime - itr_hour) / (double)m_period) + itr_hour;
                 if (hour <= m_etime) {
-                    m_point.init(id, hour, m_keepref ? 0 : NRTimeStamp::NA_REFCOUNT);
+                    m_point.init(id, hour, m_keepref ? 0 : EMRTimeStamp::NA_REFCOUNT);
                     return true;
                 }
             }
@@ -170,7 +169,7 @@ inline bool NRBeatExtIterator::next(const NRPoint &jumpto)
 inline uint64_t NRBeatExtIterator::idx() const
 {
     return m_keepref ?
-        m_num_steps4id * (uint64_t)(m_point.id - g_db->minid()) + (NRTimeStamp::MAX_REFCOUNT + 1) * (uint64_t)(m_point.timestamp.hour() - m_stime) / m_period + m_point.timestamp.refcount() :
+        m_num_steps4id * (uint64_t)(m_point.id - g_db->minid()) + (EMRTimeStamp::MAX_REFCOUNT + 1) * (uint64_t)(m_point.timestamp.hour() - m_stime) / m_period + m_point.timestamp.refcount() :
         m_num_steps4id * (uint64_t)(m_point.id - g_db->minid()) + (uint64_t)(m_point.timestamp.hour() - m_stime) / m_period;
 }
 

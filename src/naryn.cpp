@@ -19,22 +19,12 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#include <R.h>
-#include <Rinternals.h>
+#include "EMRDb.h"
+#include "naryn.h"
+
 #include <Rinterface.h>
 #include <Rembedded.h>
 #include <R_ext/Parse.h>
-
-#ifdef length
-#undef length
-#endif
-
-#ifdef error
-#undef error
-#endif
-
-#include "naryn.h"
-#include "NRDb.h"
 
 using namespace std;
 
@@ -59,22 +49,6 @@ Naryn *g_naryn = NULL;
 Naryn::Naryn(SEXP _env, bool check_db) :
 	m_env(_env)
 {
-// disable R check stack limit: required if eval is called not from the main thread
-//R_CStackLimit=-1;
-	if (check_db && !g_db) {
-        SEXP groot = findVar(install("EMR_GROOT"), g_naryn->env());
-        SEXP uroot = findVar(install("EMR_UROOT"), g_naryn->env());
-        SEXP load_on_demand = findVar(install("EMR_LOAD_ON_DEMAND"), g_naryn->env());
-
-        if (isString(groot) && Rf_length(groot) == 1 && (!isNull(uroot) || isString(uroot) && Rf_length(uroot) == 1) && !isLogical(load_on_demand) && Rf_length(load_on_demand) == 1) {
-            const char *gdirname = CHAR(asChar(groot));
-            const char *udirname = isNull(uroot) ? NULL : CHAR(asChar(uroot));
-            g_db = new NRDb;
-            g_db->load(gdirname, udirname, asLogical(load_on_demand));
-        } else
-            verror("Database was not loaded. Please call emr_db.init.");
-    }
-
 	if (!s_ref_count) {
 		m_old_umask = umask(07);
 
@@ -125,6 +99,20 @@ Naryn::Naryn(SEXP _env, bool check_db) :
 
 	if (s_ref_count == 1)
 		g_naryn = this;
+
+    if (check_db && !g_db) {
+        SEXP groot = findVar(install("EMR_GROOT"), g_naryn->env());
+        SEXP uroot = findVar(install("EMR_UROOT"), g_naryn->env());
+        SEXP load_on_demand = findVar(install("EMR_LOAD_ON_DEMAND"), g_naryn->env());
+
+        if (isString(groot) && Rf_length(groot) == 1 && (!isNull(uroot) || isString(uroot) && Rf_length(uroot) == 1) && !isLogical(load_on_demand) && Rf_length(load_on_demand) == 1) {
+            const char *gdirname = CHAR(asChar(groot));
+            const char *udirname = isNull(uroot) ? NULL : CHAR(asChar(uroot));
+            g_db = new EMRDb;
+            g_db->load(gdirname, udirname, asLogical(load_on_demand));
+        } else
+            verror("Database was not loaded. Please call emr_db.init.");
+    }
 }
 
 Naryn::~Naryn()
@@ -502,58 +490,36 @@ void Naryn::load_options()
 
     rvar = GetOption(install("emr_debug"), R_NilValue);
     if (isLogical(rvar))
-        m_debug = (int)LOGICAL(rvar)[0];
-    else
-        m_debug = false;
+        m_debug = asLogical(rvar);
 
     rvar = GetOption(install("emr_multitasking"), R_NilValue);
     if (isLogical(rvar))
-        m_multitasking_avail = (int)LOGICAL(rvar)[0];
-    else
-        m_multitasking_avail = false;
+        m_multitasking_avail = asLogical(rvar);
 
     rvar = GetOption(install("emr_min.processes"), R_NilValue);
-    if (isReal(rvar))
-        m_min_processes = (uint64_t)REAL(rvar)[0];
-    else if (isInteger(rvar))
-        m_min_processes = INTEGER(rvar)[0];
-    else
-        m_min_processes = 4;
-    if (m_min_processes < 1) 
-        m_min_processes = 4;
+    if ((isReal(rvar) || isInteger(rvar)) && asInteger(rvar) >= 1)
+        m_min_processes = asInteger(rvar);
 
     rvar = GetOption(install("emr_max.processes"), R_NilValue);
-    if (isReal(rvar))
-        m_max_processes = (uint64_t)REAL(rvar)[0];
-    else if (isInteger(rvar))
-        m_max_processes = INTEGER(rvar)[0];
-    else
-        m_max_processes = 20;
-    if (m_max_processes < 1) 
-        m_max_processes = 20;
+    if ((isReal(rvar) || isInteger(rvar)) && asInteger(rvar) >= 1)
+        m_max_processes = asInteger(rvar);
     m_max_processes = max(m_min_processes, m_max_processes);
 
 	rvar = GetOption(install("emr_max.data.size"), R_NilValue);
-	if (isReal(rvar))
-		m_max_data_size = (uint64_t)REAL(rvar)[0];
-	else if (isInteger(rvar))
-		m_max_data_size = INTEGER(rvar)[0];
-	else
-		m_max_data_size = numeric_limits<uint64_t>::max();
+	if ((isReal(rvar) || isInteger(rvar)) && asReal(rvar) >= 1)
+		m_max_data_size = (uint64_t)asReal(rvar);
+
+    rvar = GetOption(install("emr_eval.buf.size"), R_NilValue);
+    if ((isReal(rvar) || isInteger(rvar)) && asInteger(rvar) >= 1)
+        m_eval_buf_size = asInteger(rvar);
 
 	rvar = GetOption(install("emr_quantile.edge.data.size"), R_NilValue);
-	if (isReal(rvar))
-		m_quantile_edge_data_size = (uint64_t)REAL(rvar)[0];
-	else if (isInteger(rvar))
-		m_quantile_edge_data_size = INTEGER(rvar)[0];
-	else
-		m_quantile_edge_data_size = 0;
+	if ((isReal(rvar) || isInteger(rvar)) && asReal(rvar) >= 0)
+		m_quantile_edge_data_size = (uint64_t)asReal(rvar);
 
     rvar = GetOption(install("emr_warning.itr.no.filter.size"), R_NilValue);
-    if (isReal(rvar) || isInteger(rvar))
+    if ((isReal(rvar) || isInteger(rvar)) && asReal(rvar) >= 1)
         m_beat_itr_warning_size = (uint64_t)asReal(rvar);
-    else
-        m_beat_itr_warning_size = 100000;
 }
 
 void Naryn::sigint_handler(int)
@@ -635,7 +601,7 @@ void vdebug(const char *fmt, ...)
     if (g_naryn->debug()) {
         struct timeval tmnow;
         struct tm *tm;
-        char buf[30], usec_buf[6];
+        char buf[30];
         gettimeofday(&tmnow, NULL);
         tm = localtime(&tmnow.tv_sec);
         strftime(buf, sizeof(buf), "%H:%M:%S", tm);

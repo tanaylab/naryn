@@ -1,5 +1,5 @@
-#ifndef NRTIMESTAMP_H_INCLUDED
-#define NRTIMESTAMP_H_INCLUDED
+#ifndef EMRTIMESTAMP_H_INCLUDED
+#define EMRTIMESTAMP_H_INCLUDED
 
 #include <string.h>
 #include <string>
@@ -9,7 +9,7 @@
 
 using namespace std;
 
-class __attribute__((__packed__)) NRTimeStamp {
+class __attribute__((__packed__)) EMRTimeStamp {
 public:
     typedef uint32_t Hour;
     typedef uint8_t  Refcount;
@@ -20,11 +20,11 @@ public:
     static const Refcount MAX_REFCOUNT{(Refcount)(0xff - 1)};
     static const Refcount NA_REFCOUNT{(Refcount)0xff};
 
-    constexpr NRTimeStamp() : NRTimeStamp(NA_HOUR, NA_REFCOUNT) {}
-    constexpr NRTimeStamp(unsigned int hour, unsigned char refcount) : m_timestamp((hour << 8) | refcount) {}
+    constexpr EMRTimeStamp() : EMRTimeStamp(NA_HOUR, NA_REFCOUNT) {}
+    constexpr EMRTimeStamp(unsigned int hour, unsigned char refcount) : m_timestamp((hour << 8) | refcount) {}
 
-    bool operator==(const NRTimeStamp &obj) const { return m_timestamp == obj.m_timestamp; }
-    bool operator<(const NRTimeStamp &obj) const { return m_timestamp < obj.m_timestamp; }
+    bool operator==(const EMRTimeStamp &obj) const { return m_timestamp == obj.m_timestamp; }
+    bool operator<(const EMRTimeStamp &obj) const { return m_timestamp < obj.m_timestamp; }
 
     void init(unsigned int hour, unsigned char refcount) { m_timestamp = (hour << 8) | refcount; }
 
@@ -49,7 +49,7 @@ private:
 
 //------------------------------ IMPLEMENTATION ----------------------------------------
 
-inline string NRTimeStamp::tostr() const
+inline string EMRTimeStamp::tostr() const
 {
     char buf[100];
     sprintf(buf, "(hour %d, ref %d)", (int)hour(), (int)refcount());

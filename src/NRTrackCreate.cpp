@@ -8,9 +8,9 @@
 #undef error
 #endif
 
+#include "EMRDb.h"
+#include "EMRTrack.h"
 #include "naryn.h"
-#include "NRDb.h"
-#include "NRTrack.h"
 #include "NRTrackExpressionScanner.h"
 
 extern "C" {
@@ -44,12 +44,12 @@ SEXP emr_track_create(SEXP _track, SEXP _space, SEXP _categorical, SEXP _expr, S
 
         const char *trackname = CHAR(asChar(_track));
 
-        NRDb::check_track_name(trackname);
+        EMRDb::check_track_name(trackname);
 
-        string track_filename = (space == "global" ? g_db->grootdir() : g_db->urootdir()) + string("/") + trackname + NRDb::TRACK_FILE_EXT;
+        string track_filename = (space == "global" ? g_db->grootdir() : g_db->urootdir()) + string("/") + trackname + EMRDb::TRACK_FILE_EXT;
         bool categorical = asLogical(_categorical);
 		NRTrackExprScanner scanner;
-        NRTrackData<float> data;
+        EMRTrackData<float> data;
 
 		for (scanner.begin(_expr, NRTrackExprScanner::REAL_T, _stime, _etime, _iterator_policy, _keepref, _filter); !scanner.isend(); scanner.next()) {
             data.add_data(scanner.point().id, scanner.point().timestamp, scanner.real());
@@ -59,7 +59,7 @@ SEXP emr_track_create(SEXP _track, SEXP _space, SEXP _categorical, SEXP _expr, S
         if (!data.size())
             verror("Track expression did not produce any values.");
 
-        NRTrack::serialize(track_filename.c_str(), categorical, data);
+        EMRTrack::serialize(track_filename.c_str(), categorical, data);
         g_db->load_track(trackname, space == "global");
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());

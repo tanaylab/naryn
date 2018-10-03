@@ -1,5 +1,5 @@
+#include "EMRDb.h"
 #include "BinsManager.h"
-#include "NRDb.h"
 #include "naryn.h"
 
 BinsManager::BinsManager(SEXP _breaks, SEXP _include_lowest, SEXP _right, const vector<string> *exprs, const NRTrackExpressionVars *expr_vars)
@@ -44,21 +44,21 @@ BinsManager::BinsManager(SEXP _breaks, SEXP _include_lowest, SEXP _right, const 
             if (!var)
                 TGLError<BinsManager>("breaks[%d]: breaks can be NULL only when the track expression is a track or a virtual track", i + 1);
 
-            NRTrack *track = g_db->track(var->imanager->name.c_str());
+            EMRTrack *track = g_db->track(var->imanager->name.c_str());
 
             if (!track->is_categorical())
                 TGLError<BinsManager>("breaks[%d]: breaks can be NULL only when the underyling track is categorical", i + 1);
 
-            if (var->imanager->data_fetcher.func() != NRTrack::VALUE &&
-                var->imanager->data_fetcher.func() != NRTrack::FREQUENT &&
-                var->imanager->data_fetcher.func() != NRTrack::SAMPLE &&
-                var->imanager->data_fetcher.func() != NRTrack::SAMPLE_TIME &&
-                var->imanager->data_fetcher.func() != NRTrack::EARLIEST &&
-                var->imanager->data_fetcher.func() != NRTrack::LATEST &&
-                var->imanager->data_fetcher.func() != NRTrack::CLOSEST)
+            if (var->imanager->data_fetcher.func() != EMRTrack::VALUE &&
+                var->imanager->data_fetcher.func() != EMRTrack::FREQUENT &&
+                var->imanager->data_fetcher.func() != EMRTrack::SAMPLE &&
+                var->imanager->data_fetcher.func() != EMRTrack::SAMPLE_TIME &&
+                var->imanager->data_fetcher.func() != EMRTrack::EARLIEST &&
+                var->imanager->data_fetcher.func() != EMRTrack::LATEST &&
+                var->imanager->data_fetcher.func() != EMRTrack::CLOSEST)
             {
                 TGLError<BinsManager>("breaks[%d]: breaks cannot be NULL when virtual track function is %s",
-                                      i + 1, NRTrack::FUNC_INFOS[var->imanager->data_fetcher.func()].name);
+                                      i + 1, EMRTrack::FUNC_INFOS[var->imanager->data_fetcher.func()].name);
             }
 
             vector<double> vals;

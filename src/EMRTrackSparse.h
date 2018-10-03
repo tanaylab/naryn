@@ -1,13 +1,13 @@
-#ifndef NRTRACKSPARSE_H_INCLUDED
-#define NRTRACKSPARSE_H_INCLUDED
+#ifndef EMRTRACKSPARSE_H_INCLUDED
+#define EMRTRACKSPARSE_H_INCLUDED
 
 #include <cmath>
 
-#include "NRDb.h"
-#include "NRTrack.h"
+#include "EMRDb.h"
+#include "EMRTrack.h"
 
 template <class T>
-class NRTrackSparse : public NRTrack {
+class EMRTrackSparse : public EMRTrack {
 public:
     virtual unsigned size() const { return m_num_recs; }
     virtual unsigned unique_size() const { return m_base_track ? m_base_track->unique_size() : m_num_percentiles; }
@@ -20,14 +20,14 @@ public:
     virtual double   maxval() const { return m_base_track ? m_base_track->maxval() : (double)m_sorted_unique_vals[m_num_percentiles - 1]; }
 
     virtual void ids(vector<unsigned> &ids);
-	virtual void data_recs(NRTrackData<double>::DataRecs &data_recs);
+	virtual void data_recs(EMRTrackData<double>::DataRecs &data_recs);
 
     virtual size_t count_ids(const vector<unsigned> &ids) const;
 
-	static void serialize(BufferedFile &bfile, const NRTrackData<T> &data, unsigned data_size, unsigned flags);
+	static void serialize(BufferedFile &bfile, const EMRTrackData<T> &data, unsigned data_size, unsigned flags);
 
 protected:
-	friend class NRTrack;
+	friend class EMRTrack;
 
 #pragma pack(push)
 #pragma pack(1)
@@ -42,15 +42,15 @@ protected:
 	};
 
 	struct __attribute__((__packed__)) Rec {
-		NRTimeStamp timestamp;
-		T           val;
+		EMRTimeStamp timestamp;
+		T            val;
 
         Rec() {}
-        Rec(const NRTimeStamp &_timestamp, T _val) : timestamp(_timestamp), val(_val) {}
+        Rec(const EMRTimeStamp &_timestamp, T _val) : timestamp(_timestamp), val(_val) {}
         bool operator<(const Rec &o) const { return timestamp.hour() < o.timestamp.hour(); }
 
         double v() const { return (double)val; }
-        const NRTimeStamp &time() const { return timestamp; }
+        const EMRTimeStamp &time() const { return timestamp; }
 	};
 
 #pragma pack(pop)
@@ -63,31 +63,31 @@ protected:
     float    *m_percentiles;
     T        *m_sorted_unique_vals;
 
-	NRTrackSparse(const char *name, DataType data_type, unsigned flags, void *&mem, size_t &pos, size_t size,
+	EMRTrackSparse(const char *name, DataType data_type, unsigned flags, void *&mem, size_t &pos, size_t size,
                   unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime);
 
-    NRTrackSparse(const char *name, NRTrack *base_track, const NRTrackData<T> &track_data, unsigned data_size, DataType data_type,
+    EMRTrackSparse(const char *name, EMRTrack *base_track, const EMRTrackData<T> &track_data, unsigned data_size, DataType data_type,
                   unsigned flags, unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime);
 
     unsigned num_recs(Data *idata) const;
 
 	void serialize(const char *filename);
 
-	virtual void set_vals(DataFetcher &df, const NRInterval &interv);
-    void set_vals4data(DataFetcher &df, const NRInterval &interv, unsigned end_rec_idx);
+	virtual void set_vals(DataFetcher &df, const EMRInterval &interv);
+    void set_vals4data(DataFetcher &df, const EMRInterval &interv, unsigned end_rec_idx);
 
 	virtual bool begin(Iterator &itr);
 	virtual bool next(Iterator &itr);
-    virtual bool next(Iterator &itr, const NRPoint &jumpto);
+    virtual bool next(Iterator &itr, const EMRPoint &jumpto);
 };
 
 
 //------------------------------ IMPLEMENTATION ----------------------------------------
 
 template <class T>
-NRTrackSparse<T>::NRTrackSparse(const char *name, DataType data_type, unsigned flags, void *&mem, size_t &pos, size_t size,
+EMRTrackSparse<T>::EMRTrackSparse(const char *name, DataType data_type, unsigned flags, void *&mem, size_t &pos, size_t size,
                                 unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime) :
-	NRTrack(name, SPARSE, data_type, flags, mem, size, minid, maxid, mintime, maxtime)
+	EMRTrack(name, SPARSE, data_type, flags, mem, size, minid, maxid, mintime, maxtime)
 {
     read_datum(m_shmem, pos, m_shmem_size, m_data_size, name);
     read_datum(m_shmem, pos, m_shmem_size, m_num_recs, name);
@@ -117,21 +117,21 @@ NRTrackSparse<T>::NRTrackSparse(const char *name, DataType data_type, unsigned f
 }
 
 template <class T>
-NRTrackSparse<T>::NRTrackSparse(const char *name, NRTrack *base_track, const NRTrackData<T> &track_data, unsigned data_size, DataType data_type,
+EMRTrackSparse<T>::EMRTrackSparse(const char *name, EMRTrack *base_track, const EMRTrackData<T> &track_data, unsigned data_size, DataType data_type,
                                 unsigned flags, unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime) :
-	NRTrack(name, SPARSE, data_type, flags, base_track, minid, maxid, mintime, maxtime)
+	EMRTrack(name, SPARSE, data_type, flags, base_track, minid, maxid, mintime, maxtime)
 {
     m_data_size = data_size;
     m_num_recs = track_data.m_key2val.size();
 
-    typename NRTrackData<T>::DataRecs data_recs;
+    typename EMRTrackData<T>::DataRecs data_recs;
     data_recs.reserve(track_data.m_key2val.size());
 
     vector<Data> data(data_size);
     vector<Rec> recs(m_num_recs);
 
-    for (typename NRTrackData<T>::Key2Val::const_iterator idata = track_data.m_key2val.begin(); idata != track_data.m_key2val.end(); ++idata) {
-        typename NRTrackData<T>::DataRec rec;
+    for (typename EMRTrackData<T>::Key2Val::const_iterator idata = track_data.m_key2val.begin(); idata != track_data.m_key2val.end(); ++idata) {
+        typename EMRTrackData<T>::DataRec rec;
         rec.id = idata->first.id;
         rec.timestamp = idata->first.timestamp;
         rec.val = idata->second;
@@ -143,7 +143,7 @@ NRTrackSparse<T>::NRTrackSparse(const char *name, NRTrack *base_track, const NRT
     unsigned data_idx = 0;
     unsigned rec_idx = 0;
 
-    for (typename NRTrackData<T>::DataRecs::const_iterator irec = data_recs.begin(); irec != data_recs.end(); ++irec) {
+    for (typename EMRTrackData<T>::DataRecs::const_iterator irec = data_recs.begin(); irec != data_recs.end(); ++irec) {
         if (irec->id != cur_dataid) {
             cur_dataid = irec->id;
             data[data_idx].id = irec->id;
@@ -177,9 +177,9 @@ NRTrackSparse<T>::NRTrackSparse(const char *name, NRTrack *base_track, const NRT
 }
 
 template <class T>
-void NRTrackSparse<T>::serialize(BufferedFile &bfile, const NRTrackData<T> &track_data, unsigned data_size, unsigned flags)
+void EMRTrackSparse<T>::serialize(BufferedFile &bfile, const EMRTrackData<T> &track_data, unsigned data_size, unsigned flags)
 {
-	typename NRTrackData<T>::DataRecs data_recs;
+	typename EMRTrackData<T>::DataRecs data_recs;
 	data_recs.reserve(track_data.m_key2val.size());
 
     unsigned num_recs = track_data.m_key2val.size();
@@ -190,8 +190,8 @@ void NRTrackSparse<T>::serialize(BufferedFile &bfile, const NRTrackData<T> &trac
     vector<T> sorted_unique_vals;
 
     vals.reserve(track_data.m_key2val.size());
-	for (typename NRTrackData<T>::Key2Val::const_iterator idata = track_data.m_key2val.begin(); idata != track_data.m_key2val.end(); ++idata) {
-		typename NRTrackData<T>::DataRec rec;
+	for (typename EMRTrackData<T>::Key2Val::const_iterator idata = track_data.m_key2val.begin(); idata != track_data.m_key2val.end(); ++idata) {
+		typename EMRTrackData<T>::DataRec rec;
 		rec.id = idata->first.id;
 		rec.timestamp = idata->first.timestamp;
 		rec.val = idata->second;
@@ -218,7 +218,7 @@ void NRTrackSparse<T>::serialize(BufferedFile &bfile, const NRTrackData<T> &trac
 	unsigned data_idx = 0;
 	unsigned rec_idx = 0;
 
-	for (typename NRTrackData<T>::DataRecs::const_iterator irec = data_recs.begin(); irec != data_recs.end(); ++irec) {
+	for (typename EMRTrackData<T>::DataRecs::const_iterator irec = data_recs.begin(); irec != data_recs.end(); ++irec) {
 		if (irec->id != cur_dataid) {
 			cur_dataid = irec->id;
 			data[data_idx].id = irec->id;
@@ -240,13 +240,13 @@ void NRTrackSparse<T>::serialize(BufferedFile &bfile, const NRTrackData<T> &trac
         !(flags & IS_CATEGORICAL) && bfile.write(&percentiles[0], sizeof(percentiles[0]) * num_percentiles) != sizeof(percentiles[0]) * num_percentiles))
     {
 		if (bfile.error())
-			TGLError<NRTrack>(FILE_ERROR, "Failed to write a track file %s: %s", bfile.file_name().c_str(), strerror(errno));
-		TGLError<NRTrack>(FILE_ERROR, "Failed to write a track file %s", bfile.file_name().c_str());
+			TGLError<EMRTrack>(FILE_ERROR, "Failed to write a track file %s: %s", bfile.file_name().c_str(), strerror(errno));
+		TGLError<EMRTrack>(FILE_ERROR, "Failed to write a track file %s", bfile.file_name().c_str());
 	}
 }
 
 template <class T>
-void NRTrackSparse<T>::unique_vals(vector<double> &vals) const
+void EMRTrackSparse<T>::unique_vals(vector<double> &vals) const
 {
     if (m_base_track)
         m_base_track->unique_vals(vals);
@@ -258,13 +258,13 @@ void NRTrackSparse<T>::unique_vals(vector<double> &vals) const
 }
 
 template <class T>
-unsigned NRTrackSparse<T>::num_recs(Data *idata) const
+unsigned EMRTrackSparse<T>::num_recs(Data *idata) const
 {
 	return idata < m_data + m_data_size - 1 ? (idata + 1)->rec_idx - idata->rec_idx : m_num_recs - idata->rec_idx;
 }
 
 template <class T>
-void NRTrackSparse<T>::ids(vector<unsigned> &ids)
+void EMRTrackSparse<T>::ids(vector<unsigned> &ids)
 {
     ids.clear();
     ids.reserve(m_data_size);
@@ -273,14 +273,14 @@ void NRTrackSparse<T>::ids(vector<unsigned> &ids)
 }
 
 template <class T>
-void NRTrackSparse<T>::data_recs(NRTrackData<double>::DataRecs &data_recs)
+void EMRTrackSparse<T>::data_recs(EMRTrackData<double>::DataRecs &data_recs)
 {
 	data_recs.clear();
 	data_recs.reserve(m_num_recs);
 	for (unsigned idata = 0; idata < m_data_size; ++idata) {
 		unsigned n = num_recs(m_data + idata);
 		for (unsigned irec = m_data[idata].rec_idx; irec < m_data[idata].rec_idx + n; ++irec) {
-			NRTrackData<double>::DataRec rec;
+			EMRTrackData<double>::DataRec rec;
 			rec.id = m_data[idata].id;
 			rec.timestamp = m_recs[irec].timestamp;
 			rec.val = (double)m_recs[irec].val;
@@ -290,7 +290,7 @@ void NRTrackSparse<T>::data_recs(NRTrackData<double>::DataRecs &data_recs)
 }
 
 template <class T>
-size_t NRTrackSparse<T>::count_ids(const vector<unsigned> &ids) const
+size_t EMRTrackSparse<T>::count_ids(const vector<unsigned> &ids) const
 {
     size_t count = 0;
     Data *sdata = m_data;
@@ -311,7 +311,7 @@ size_t NRTrackSparse<T>::count_ids(const vector<unsigned> &ids) const
 }
 
 template <class T>
-float NRTrackSparse<T>::percentile_upper(void *rec) const
+float EMRTrackSparse<T>::percentile_upper(void *rec) const
 {
     if (m_base_track)
         return m_base_track->percentile_upper((double)((Rec *)rec)->v());
@@ -321,7 +321,7 @@ float NRTrackSparse<T>::percentile_upper(void *rec) const
 }
 
 template <class T>
-float NRTrackSparse<T>::percentile_upper(double value) const
+float EMRTrackSparse<T>::percentile_upper(double value) const
 {
     if (m_base_track)
         return m_base_track->percentile_upper(value);
@@ -331,7 +331,7 @@ float NRTrackSparse<T>::percentile_upper(double value) const
 }
 
 template <class T>
-float NRTrackSparse<T>::percentile_lower(void *rec) const
+float EMRTrackSparse<T>::percentile_lower(void *rec) const
 {
     if (m_base_track)
         return m_base_track->percentile_lower((double)((Rec *)rec)->v());
@@ -341,7 +341,7 @@ float NRTrackSparse<T>::percentile_lower(void *rec) const
 }
 
 template <class T>
-float NRTrackSparse<T>::percentile_lower(double value) const
+float EMRTrackSparse<T>::percentile_lower(double value) const
 {
     if (m_base_track)
         return m_base_track->percentile_lower(value);
@@ -351,7 +351,7 @@ float NRTrackSparse<T>::percentile_lower(double value) const
 }
 
 template <class T>
-void NRTrackSparse<T>::set_vals(DataFetcher &df, const NRInterval &interv)
+void EMRTrackSparse<T>::set_vals(DataFetcher &df, const EMRInterval &interv)
 {
 	// find the patient
     while (1) {
@@ -381,7 +381,7 @@ void NRTrackSparse<T>::set_vals(DataFetcher &df, const NRInterval &interv)
 }
 
 template <class T>
-void NRTrackSparse<T>::set_vals4data(DataFetcher &df, const NRInterval &interv, unsigned end_rec_idx)
+void EMRTrackSparse<T>::set_vals4data(DataFetcher &df, const EMRInterval &interv, unsigned end_rec_idx)
 {
     while (1) {
         if (df.m_rec_idx >= end_rec_idx || m_recs[df.m_rec_idx].timestamp.hour() > interv.etime) {
@@ -399,14 +399,14 @@ void NRTrackSparse<T>::set_vals4data(DataFetcher &df, const NRInterval &interv, 
 
         // timestamp is still preceeding the interval => no choice but to run a binary search
         if (df.m_rec_idx < end_rec_idx && m_recs[df.m_rec_idx].timestamp.hour() < interv.stime) {
-            Rec *rec = lower_bound(m_recs + df.m_rec_idx + 1, m_recs + end_rec_idx, Rec(NRTimeStamp(interv.stime, 0), 0));
+            Rec *rec = lower_bound(m_recs + df.m_rec_idx + 1, m_recs + end_rec_idx, Rec(EMRTimeStamp(interv.stime, 0), 0));
             df.m_rec_idx = rec - m_recs;
         }
     }
 }
 
 template <class T>
-bool NRTrackSparse<T>::begin(Iterator &itr)
+bool EMRTrackSparse<T>::begin(Iterator &itr)
 {
 	itr.m_data_idx = 0;
 	itr.m_rec_idx = -1;
@@ -415,7 +415,7 @@ bool NRTrackSparse<T>::begin(Iterator &itr)
 }
 
 template <class T>
-bool NRTrackSparse<T>::next(Iterator &itr)
+bool EMRTrackSparse<T>::next(Iterator &itr)
 {
 	++itr.m_rec_idx;
 
@@ -439,7 +439,7 @@ bool NRTrackSparse<T>::next(Iterator &itr)
 			continue;
 		}
 
-        NRTimeStamp::Hour hour = m_recs[itr.m_rec_idx].timestamp.hour();
+        EMRTimeStamp::Hour hour = m_recs[itr.m_rec_idx].timestamp.hour();
 
 		// most of the chances are that this point is fine
         if (hour >= itr.m_stime && hour <= itr.m_etime) {
@@ -452,7 +452,7 @@ bool NRTrackSparse<T>::next(Iterator &itr)
                 bool has_competitors = false;
 
                 for (int irec = (int)itr.m_rec_idx - 1; irec >= (int)m_data[itr.m_data_idx].rec_idx; --irec) {
-                    NRTimeStamp::Hour prev_hour = m_recs[irec].timestamp.hour();
+                    EMRTimeStamp::Hour prev_hour = m_recs[irec].timestamp.hour();
                     if (prev_hour != hour && (itr.m_vals.empty() || itr.m_vals.find(m_recs[irec].v()) != itr.m_vals.end())) {
                         if (prev_hour + itr.m_expiration >= hour)
                             has_competitors = true;
@@ -478,7 +478,7 @@ bool NRTrackSparse<T>::next(Iterator &itr)
 		}
 
 		// scope does not fit => run binary search
-		Rec *rec = lower_bound(m_recs + itr.m_rec_idx + 1, m_recs + end_rec_idx, Rec(NRTimeStamp(itr.m_stime, 0), 0));
+		Rec *rec = lower_bound(m_recs + itr.m_rec_idx + 1, m_recs + end_rec_idx, Rec(EMRTimeStamp(itr.m_stime, 0), 0));
 		itr.m_rec_idx = rec - m_recs;
 	}
 
@@ -488,7 +488,7 @@ bool NRTrackSparse<T>::next(Iterator &itr)
 }
 
 template <class T>
-bool NRTrackSparse<T>::next(Iterator &itr, const NRPoint &jumpto)
+bool EMRTrackSparse<T>::next(Iterator &itr, const EMRPoint &jumpto)
 {
     // run a binary search to find the id
     if (m_data[itr.m_data_idx].id < jumpto.id) {
@@ -502,7 +502,7 @@ bool NRTrackSparse<T>::next(Iterator &itr, const NRPoint &jumpto)
     } else
         ++itr.m_rec_idx;
 
-    NRTimeStamp::Hour jumpto_hour = jumpto.timestamp.hour();
+    EMRTimeStamp::Hour jumpto_hour = jumpto.timestamp.hour();
 
 	while (1) {
         if (itr.m_rec_idx >= m_num_recs)
@@ -524,7 +524,7 @@ bool NRTrackSparse<T>::next(Iterator &itr, const NRPoint &jumpto)
 			continue;
 		}
 
-        NRTimeStamp::Hour hour = m_recs[itr.m_rec_idx].timestamp.hour();
+        EMRTimeStamp::Hour hour = m_recs[itr.m_rec_idx].timestamp.hour();
 
 		// did we find the matching point?
 		if (hour >= itr.m_stime && hour <= itr.m_etime && (m_data[itr.m_data_idx].id != jumpto.id || hour >= jumpto_hour)) {
@@ -537,7 +537,7 @@ bool NRTrackSparse<T>::next(Iterator &itr, const NRPoint &jumpto)
                 bool has_competitors = false;
 
                 for (int irec = (int)itr.m_rec_idx - 1; irec >= (int)m_data[itr.m_data_idx].rec_idx; --irec) {
-                    NRTimeStamp::Hour prev_hour = m_recs[irec].timestamp.hour();
+                    EMRTimeStamp::Hour prev_hour = m_recs[irec].timestamp.hour();
                     if (prev_hour != hour && (itr.m_vals.empty() || itr.m_vals.find(m_recs[irec].v()) != itr.m_vals.end())) {
                         if (prev_hour + itr.m_expiration >= hour)
                             has_competitors = true;
@@ -564,7 +564,7 @@ bool NRTrackSparse<T>::next(Iterator &itr, const NRPoint &jumpto)
 
 		// scope does not fit => run binary search
         unsigned stime = m_data[itr.m_data_idx].id == jumpto.id ? max(itr.m_stime, jumpto_hour) : itr.m_stime;
-        Rec *rec = lower_bound(m_recs + itr.m_rec_idx + 1, m_recs + end_rec_idx, Rec(NRTimeStamp(stime, 0), 0));
+        Rec *rec = lower_bound(m_recs + itr.m_rec_idx + 1, m_recs + end_rec_idx, Rec(EMRTimeStamp(stime, 0), 0));
         itr.m_rec_idx = rec - m_recs;
 	}
 

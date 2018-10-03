@@ -16,7 +16,7 @@ public:
 
 	virtual bool begin();
 	virtual bool next();
-    virtual bool next(const NRPoint &jumpto);
+    virtual bool next(const EMRPoint &jumpto);
 
 	virtual uint64_t size() const { return m_num_steps; }
     virtual uint64_t idx() const;
@@ -46,8 +46,8 @@ inline void NRIdTimeIntervalsIterator::init(const NRIdTimeIntervals &intervs, bo
 
     if (m_keepref) {
         for (vector<uint64_t>::iterator inum_steps4interv = m_num_steps4interv.begin(); inum_steps4interv < m_num_steps4interv.end(); ++inum_steps4interv)
-            *inum_steps4interv *= NRTimeStamp::MAX_REFCOUNT + 1;
-        m_num_steps *= NRTimeStamp::MAX_REFCOUNT + 1;
+            *inum_steps4interv *= EMRTimeStamp::MAX_REFCOUNT + 1;
+        m_num_steps *= EMRTimeStamp::MAX_REFCOUNT + 1;
     }
 }
 
@@ -56,7 +56,7 @@ inline bool NRIdTimeIntervalsIterator::begin()
     m_isend = false;
     for (m_iinterv = m_intervs.begin(); m_iinterv < m_intervs.end(); ++m_iinterv) {
         if (g_db->is_in_subset(m_iinterv->id)) {
-            m_point.init(m_iinterv->id, m_iinterv->tinterv.stime, m_keepref ? 0 : NRTimeStamp::NA_REFCOUNT);
+            m_point.init(m_iinterv->id, m_iinterv->tinterv.stime, m_keepref ? 0 : EMRTimeStamp::NA_REFCOUNT);
             return true;
         }
     }
@@ -67,22 +67,22 @@ inline bool NRIdTimeIntervalsIterator::begin()
 
 inline bool NRIdTimeIntervalsIterator::next()
 {
-    NRTimeStamp::Hour hour = m_point.timestamp.hour();
+    EMRTimeStamp::Hour hour = m_point.timestamp.hour();
 
-    if (m_keepref && m_point.timestamp.refcount() < NRTimeStamp::MAX_REFCOUNT) {
+    if (m_keepref && m_point.timestamp.refcount() < EMRTimeStamp::MAX_REFCOUNT) {
         m_point.timestamp.init(hour, m_point.timestamp.refcount() + 1);
         return true;
     }
 
     ++hour;
     if (hour <= m_iinterv->tinterv.etime) {
-        m_point.timestamp.init(hour, m_keepref ? 0 : NRTimeStamp::NA_REFCOUNT);
+        m_point.timestamp.init(hour, m_keepref ? 0 : EMRTimeStamp::NA_REFCOUNT);
         return true;
     }
 
     for (++m_iinterv; m_iinterv < m_intervs.end(); ++m_iinterv) {
         if (g_db->is_in_subset(m_iinterv->id)) {
-            m_point.init(m_iinterv->id, {m_iinterv->tinterv.stime, m_keepref ? (NRTimeStamp::Refcount)0 : NRTimeStamp::NA_REFCOUNT});
+            m_point.init(m_iinterv->id, {m_iinterv->tinterv.stime, m_keepref ? (EMRTimeStamp::Refcount)0 : EMRTimeStamp::NA_REFCOUNT});
             return true;
         }
     }
@@ -91,15 +91,15 @@ inline bool NRIdTimeIntervalsIterator::next()
     return false;
 }
 
-inline bool NRIdTimeIntervalsIterator::next(const NRPoint &jumpto)
+inline bool NRIdTimeIntervalsIterator::next(const EMRPoint &jumpto)
 {
     unsigned id = jumpto.id;
 
     if (g_db->is_in_subset(jumpto.id)) {
-        NRTimeStamp::Hour hour = jumpto.timestamp.hour();
+        EMRTimeStamp::Hour hour = jumpto.timestamp.hour();
 
         if (m_iinterv->do_overlap(jumpto.id, hour)) {
-            m_point.init(id, hour, m_keepref ? 0 : NRTimeStamp::NA_REFCOUNT);
+            m_point.init(id, hour, m_keepref ? 0 : EMRTimeStamp::NA_REFCOUNT);
             return true;
         }
 
@@ -111,14 +111,14 @@ inline bool NRIdTimeIntervalsIterator::next(const NRPoint &jumpto)
         }
 
         if (m_iinterv->do_overlap(jumpto.id, hour)) {
-            m_point.init(jumpto.id, hour, m_keepref ? 0 : NRTimeStamp::NA_REFCOUNT);
+            m_point.init(jumpto.id, hour, m_keepref ? 0 : EMRTimeStamp::NA_REFCOUNT);
             return true;
         }
     }
 
     for (++m_iinterv; m_iinterv != m_intervs.end(); ++m_iinterv) {
         if (g_db->is_in_subset(m_iinterv->id)) {
-            m_point.init(m_iinterv->id, m_iinterv->tinterv.stime, m_keepref ? 0 : NRTimeStamp::NA_REFCOUNT);
+            m_point.init(m_iinterv->id, m_iinterv->tinterv.stime, m_keepref ? 0 : EMRTimeStamp::NA_REFCOUNT);
             return true;
         }
     }
@@ -131,7 +131,7 @@ inline uint64_t NRIdTimeIntervalsIterator::idx() const
 {
     return m_keepref ?
         m_num_steps4interv[m_iinterv - m_intervs.begin()] +
-        (NRTimeStamp::MAX_REFCOUNT + 1) * (uint64_t)(m_point.timestamp.hour() - m_iinterv->tinterv.stime) + m_point.timestamp.refcount() :
+        (EMRTimeStamp::MAX_REFCOUNT + 1) * (uint64_t)(m_point.timestamp.hour() - m_iinterv->tinterv.stime) + m_point.timestamp.refcount() :
         m_num_steps4interv[m_iinterv - m_intervs.begin()] + m_point.timestamp.hour() - m_iinterv->tinterv.stime;
 }
 

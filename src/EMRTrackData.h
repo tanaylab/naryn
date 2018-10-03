@@ -1,5 +1,5 @@
-#ifndef NRTRACKDATA_H_INCLUDED
-#define NRTRACKDATA_H_INCLUDED
+#ifndef EMRTRACKDATA_H_INCLUDED
+#define EMRTRACKDATA_H_INCLUDED
 
 #include <sys/param.h>
 #ifdef _BSD
@@ -11,25 +11,25 @@
 #include <vector>
 #include <unordered_map>
 
-#include "NRTimeStamp.h"
+#include "EMRTimeStamp.h"
 #include "TGLException.h"
 
 using namespace std;
 
 template <class T>
-class NRTrackData {
+class EMRTrackData {
 public:
-    NRTrackData() {}
+    EMRTrackData() {}
 
-    void add_data(unsigned id, NRTimeStamp timestamp, T val);
+    void add_data(unsigned id, EMRTimeStamp timestamp, T val);
     size_t size() const { return m_key2val.size(); }
 
 public:
     struct Key {
         unsigned     id;
-        NRTimeStamp  timestamp;
+        EMRTimeStamp  timestamp;
 
-        Key(unsigned _id, NRTimeStamp _timestamp) : id(_id), timestamp(_timestamp) {}
+        Key(unsigned _id, EMRTimeStamp _timestamp) : id(_id), timestamp(_timestamp) {}
         bool operator==(const Key &obj) const { return id == obj.id && timestamp == obj.timestamp; }
     };
 
@@ -43,7 +43,7 @@ public:
 
     struct DataRec {
         unsigned    id;
-        NRTimeStamp timestamp;
+        EMRTimeStamp timestamp;
         T           val;
 
         bool operator==(const DataRec &obj) const { return id == obj.id && timestamp == obj.timestamp && val == obj.val; }
@@ -61,7 +61,7 @@ public:
 //------------------------------ IMPLEMENTATION ----------------------------------------
 
 template <class T>
-void NRTrackData<T>::add_data(unsigned id, NRTimeStamp timestamp, T val)
+void EMRTrackData<T>::add_data(unsigned id, EMRTimeStamp timestamp, T val)
 {
     pair<typename Key2Val::const_iterator, bool> res = m_key2val.insert(pair<Key, T>(Key(id, timestamp), val));
     if (!res.second)

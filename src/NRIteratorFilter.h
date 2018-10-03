@@ -10,9 +10,9 @@ public:
 
     void init(SEXP filter, unsigned stime, unsigned etime); // filter is expected to be of LANGUAGE type
 
-    bool is_passed(const NRPoint &point) const { return !m_tree || m_tree->is_passed(point); }
+    bool is_passed(const EMRPoint &point) const { return !m_tree || m_tree->is_passed(point); }
 
-    const NRPoint &jumpto() const { return m_tree->m_jumpto; }
+    const EMRPoint &jumpto() const { return m_tree->m_jumpto; }
 
     static void check_named_filter(SEXP rfilter, const char *name);
 

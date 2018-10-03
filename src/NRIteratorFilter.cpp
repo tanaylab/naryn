@@ -1,18 +1,9 @@
-#include <R.h>
-#include <Rinternals.h>
-
-#ifdef length
-#undef length
-#endif
-#ifdef error
-#undef error
-#endif
-
+#include "EMRDb.h"
 #include "naryn.h"
-#include "NRDb.h"
 #include "NRIdTimeIntervalsIterator.h"
 #include "NRIdsIterator.h"
 #include "NRIteratorFilter.h"
+#include "NRPoint.h"
 #include "NRPointsIterator.h"
 #include "NRTimesIterator.h"
 #include "NRTrackIterator.h"
@@ -169,7 +160,7 @@ NRIteratorFilterItem *NRIteratorFilter::create_filter_item(vector<SEXP> &filters
         filter->m_etime = (int)etime;
         filter->m_keepref = false;
 
-        NRTrack *track = g_db->track(str);
+        EMRTrack *track = g_db->track(str);
 
         if (track) {
             filter->m_itr = new NRTrackIterator(track, filter->m_keepref, stime, etime);
@@ -179,7 +170,7 @@ NRIteratorFilterItem *NRIteratorFilter::create_filter_item(vector<SEXP> &filters
         SEXP rval = findVar(install(str), g_naryn->env());
         bool success = false;
 
-        NRPoints points;
+        EMRPoints points;
         try {
             NRPoint::convert_rpoints(rval, &points);
             success = true;
@@ -293,17 +284,17 @@ NRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const c
                     swap(filter->m_sshift, filter->m_eshift);
             }
 
-            if (filter->m_sshift < -(int)NRTimeStamp::MAX_HOUR || filter->m_sshift > (int)NRTimeStamp::MAX_HOUR ||
-                filter->m_eshift < -(int)NRTimeStamp::MAX_HOUR || filter->m_eshift > (int)NRTimeStamp::MAX_HOUR)
+            if (filter->m_sshift < -(int)EMRTimeStamp::MAX_HOUR || filter->m_sshift > (int)EMRTimeStamp::MAX_HOUR ||
+                filter->m_eshift < -(int)EMRTimeStamp::MAX_HOUR || filter->m_eshift > (int)EMRTimeStamp::MAX_HOUR)
                 verror("Filter %s: 'time.shift' is out of range", name);
         }
 
         int _stime = filter->m_stime + filter->m_sshift;
         int _etime = filter->m_etime + filter->m_eshift;
         _stime = max(_stime, 0);
-        _stime = min(_stime, (int)NRTimeStamp::MAX_HOUR);
+        _stime = min(_stime, (int)EMRTimeStamp::MAX_HOUR);
         _etime = max(_etime, 0);
-        _etime = min(_etime, (int)NRTimeStamp::MAX_HOUR);
+        _etime = min(_etime, (int)EMRTimeStamp::MAX_HOUR);
 
         SEXP rkeepref = get_rvector_col(rfilter, "keepref", name, true);
 
@@ -323,7 +314,7 @@ NRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const c
                 verror("Filter %s: invalid 'src'", name);
 
             const char *track_name = CHAR(STRING_ELT(rsrc, 0));
-            NRTrack *track = g_db->track(track_name);
+            EMRTrack *track = g_db->track(track_name);
 
             if (!track)
                 verror("Filter %s: track %s does not exist", name, track_name);
@@ -353,13 +344,13 @@ NRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const c
                 expiration = asReal(rexpiration);
                 if (expiration < 1 || expiration != (int)expiration)
                     verror("Filter %s: 'expiration' must be a positive integer", name);
-                if (expiration > NRTimeStamp::MAX_HOUR)
+                if (expiration > EMRTimeStamp::MAX_HOUR)
                     verror("Filter %s: 'expiration' is out of range", name);
             }
 
             filter->m_itr = new NRTrackIterator(track, filter->m_keepref, _stime, _etime, move(vals), expiration);
         } else {   // id-time list
-            NRPoints points;
+            EMRPoints points;
             try {
                 NRPoint::convert_rpoints(rsrc, &points);
 
@@ -506,8 +497,8 @@ SEXP emr_check_filter_attr_time_shift(SEXP _tshift, SEXP _envir)
             eshift = isReal(_tshift) ? (int)REAL(_tshift)[1] : INTEGER(_tshift)[1];
         }
 
-        if (sshift < -(int)NRTimeStamp::MAX_HOUR || sshift > (int)NRTimeStamp::MAX_HOUR ||
-            eshift < -(int)NRTimeStamp::MAX_HOUR || eshift > (int)NRTimeStamp::MAX_HOUR)
+        if (sshift < -(int)EMRTimeStamp::MAX_HOUR || sshift > (int)EMRTimeStamp::MAX_HOUR ||
+            eshift < -(int)EMRTimeStamp::MAX_HOUR || eshift > (int)EMRTimeStamp::MAX_HOUR)
             verror("'time.shift' is out of range");
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
@@ -532,7 +523,7 @@ SEXP emr_check_filter_attr_expiration(SEXP _expiration, SEXP _envir)
             expiration = asReal(_expiration);
             if (expiration < 1 || expiration != (int)expiration)
                 verror("'expiration' must be a positive integer");
-            if (expiration > NRTimeStamp::MAX_HOUR)
+            if (expiration > EMRTimeStamp::MAX_HOUR)
                 verror("'expiration' is out of range");
         }
 	} catch (TGLException &e) {

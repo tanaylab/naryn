@@ -1,20 +1,20 @@
 #ifndef NRTRACKITERATOR_H_INCLUDED
 #define NRTRACKITERATOR_H_INCLUDED
 
-#include "NRTrack.h"
+#include "EMRTrack.h"
 #include "NRTrackExpressionIterator.h"
 
 class NRTrackIterator : public NRTrackExpressionIterator {
 public:
 	NRTrackIterator() {}
-    NRTrackIterator(NRTrack *track, bool keepref, unsigned stime, unsigned etime, unordered_set<double> &&vals = unordered_set<double>(), NRTimeStamp::Hour expiration = 0);
+    NRTrackIterator(EMRTrack *track, bool keepref, unsigned stime, unsigned etime, unordered_set<double> &&vals = unordered_set<double>(), EMRTimeStamp::Hour expiration = 0);
 	virtual ~NRTrackIterator() {}
 
-    void init(NRTrack *track, bool keepref, unsigned stime, unsigned etime, unordered_set<double> &&vals = unordered_set<double>(), NRTimeStamp::Hour expiration = 0);
+    void init(EMRTrack *track, bool keepref, unsigned stime, unsigned etime, unordered_set<double> &&vals = unordered_set<double>(), EMRTimeStamp::Hour expiration = 0);
 
 	virtual bool begin();
 	virtual bool next();
-    virtual bool next(const NRPoint &jumpto);
+    virtual bool next(const EMRPoint &jumpto);
 
 	virtual uint64_t size() const { return m_itr.size(); }
     virtual uint64_t idx() const { return m_itr.idx(); }
@@ -22,18 +22,18 @@ public:
     virtual string tostr() const { return string("<Track iterator ") + string(m_itr.track()->name()) + string(">"); }
 
 protected:
-	NRTrack::Iterator m_itr;
+	EMRTrack::Iterator m_itr;
 };
 
 
 //------------------------------ IMPLEMENTATION ----------------------------------------
 
-inline NRTrackIterator::NRTrackIterator(NRTrack *track, bool keepref, unsigned stime, unsigned etime, unordered_set<double> &&vals, NRTimeStamp::Hour expiration)
+inline NRTrackIterator::NRTrackIterator(EMRTrack *track, bool keepref, unsigned stime, unsigned etime, unordered_set<double> &&vals, EMRTimeStamp::Hour expiration)
 {
     init(track, keepref, stime, etime, move(vals), expiration);
 }
 
-inline void NRTrackIterator::init(NRTrack *track, bool keepref, unsigned stime, unsigned etime, unordered_set<double> &&vals, NRTimeStamp::Hour expiration)
+inline void NRTrackIterator::init(EMRTrack *track, bool keepref, unsigned stime, unsigned etime, unordered_set<double> &&vals, EMRTimeStamp::Hour expiration)
 {
     m_keepref = keepref;
     m_itr.init(track, stime, etime, move(vals), expiration);
@@ -70,7 +70,7 @@ inline bool NRTrackIterator::next()
 	return false;
 }
 
-inline bool NRTrackIterator::next(const NRPoint &jumpto)
+inline bool NRTrackIterator::next(const EMRPoint &jumpto)
 {
     if (m_itr.next(jumpto)) {
         if (m_keepref)

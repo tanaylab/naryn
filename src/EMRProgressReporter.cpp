@@ -1,11 +1,9 @@
 #include <sys/timeb.h>
 
-#include <R.h>
-#include <Rinternals.h>
+#include "EMR.h"
+#include "EMRProgressReporter.h"
 
-#include "NRProgressReporter.h"
-
-void NRProgressReporter::init(uint64_t maxsteps, uint64_t init_report_step, uint64_t report_interval, uint64_t min_report_interval)
+void EMRProgressReporter::init(uint64_t maxsteps, uint64_t init_report_step, uint64_t report_interval, uint64_t min_report_interval)
 {
 	m_maxsteps = maxsteps;
 	m_report_step = init_report_step;
@@ -19,14 +17,14 @@ void NRProgressReporter::init(uint64_t maxsteps, uint64_t init_report_step, uint
 	m_elapsed_clock = 0;
 }
 
-uint64_t NRProgressReporter::get_cur_clock()
+uint64_t EMRProgressReporter::get_cur_clock()
 {
 	struct timeb tp;
 	ftime(&tp);
 	return tp.time * 1000 + tp.millitm;
 }
 
-void NRProgressReporter::report(uint64_t delta_steps_done)
+void EMRProgressReporter::report(uint64_t delta_steps_done)
 {
 	m_numsteps_from_last_report += delta_steps_done;
 	m_numsteps += delta_steps_done;
@@ -61,7 +59,7 @@ void NRProgressReporter::report(uint64_t delta_steps_done)
 	}
 }
 
-void NRProgressReporter::report_last()
+void EMRProgressReporter::report_last()
 {
 	if (m_last_progress_reported >= 0) {
 		if (m_last_progress_reported != 100)

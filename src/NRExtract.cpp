@@ -1,15 +1,7 @@
 #include <cmath>
-#include <R.h>
-#include <Rinternals.h>
-
-#ifdef length
-#undef length
-#endif
-#ifdef error
-#undef error
-#endif
 
 #include "naryn.h"
+#include "NRPoint.h"
 #include "NRTrackExpressionScanner.h"
 
 extern "C" {
@@ -48,7 +40,7 @@ SEXP emr_extract(SEXP _exprs, SEXP _names, SEXP _tidy, SEXP _sort, SEXP _stime, 
 		unsigned num_exprs = (unsigned)Rf_length(_exprs);
 		NRTrackExprScanner scanner;
 
-        NRPoints out_points;
+        EMRPoints out_points;
 
         if (tidy) {
             vector<unsigned> expr_idx;
@@ -72,7 +64,7 @@ SEXP emr_extract(SEXP _exprs, SEXP _names, SEXP _tidy, SEXP _sort, SEXP _stime, 
             const char *COLNAMES[NUM_COLS] = { "expr", "val" };
 
             // assemble the answer
-            vector<NRPoint *> ppoints;
+            vector<EMRPoint *> ppoints;
             SEXP answer = NRPoint::convert_points(out_points, NRPoint::NUM_COLS + NUM_COLS, false, do_sort, &ppoints);
             SEXP rexprs, rexpr_idx, rexpr_vals;
 
@@ -82,7 +74,7 @@ SEXP emr_extract(SEXP _exprs, SEXP _names, SEXP _tidy, SEXP _sort, SEXP _stime, 
             setAttrib(rexpr_idx, R_LevelsSymbol, (rexprs = RSaneAllocVector(STRSXP, num_exprs)));
             setAttrib(rexpr_idx, R_ClassSymbol, mkString("factor"));
 
-            for (vector<NRPoint *>::const_iterator ippoint = ppoints.begin(); ippoint != ppoints.end(); ++ippoint) {
+            for (vector<EMRPoint *>::const_iterator ippoint = ppoints.begin(); ippoint != ppoints.end(); ++ippoint) {
                 INTEGER(rexpr_idx)[ippoint - ppoints.begin()] = expr_idx[*ippoint - &out_points.front()] + 1;
                 REAL(rexpr_vals)[ippoint - ppoints.begin()] = values[*ippoint - &out_points.front()];
             }
@@ -111,14 +103,14 @@ SEXP emr_extract(SEXP _exprs, SEXP _names, SEXP _tidy, SEXP _sort, SEXP _stime, 
     		}
 
             // assemble the answer
-            vector<NRPoint *> ppoints;
+            vector<EMRPoint *> ppoints;
             SEXP answer = NRPoint::convert_points(out_points, NRPoint::NUM_COLS + num_exprs, false, do_sort, &ppoints);
 
              for (unsigned iexpr = 0; iexpr < num_exprs; ++iexpr) {
                  SEXP rexpr_vals;
                  rprotect(rexpr_vals = RSaneAllocVector(REALSXP, values[iexpr].size()));
                  SET_VECTOR_ELT(answer, NRPoint::NUM_COLS + iexpr, rexpr_vals);
-                 for (vector<NRPoint *>::const_iterator ippoint = ppoints.begin(); ippoint != ppoints.end(); ++ippoint)
+                 for (vector<EMRPoint *>::const_iterator ippoint = ppoints.begin(); ippoint != ppoints.end(); ++ippoint)
                      REAL(rexpr_vals)[ippoint - ppoints.begin()] = values[iexpr][*ippoint - &out_points.front()];
             }
 

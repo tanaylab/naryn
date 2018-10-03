@@ -1,7 +1,7 @@
 #include <cmath>
 
+#include "EMRDb.h"
 #include "naryn.h"
-#include "NRDb.h"
 #include "NRIdTimeInterval.h"
 
 const char *NRIdTimeIntervals::COL_NAMES[NUM_COLS] = { "id", "stime", "etime" };
@@ -99,7 +99,7 @@ void NRIdTimeIntervals::convert_rid_time_intervals(SEXP rintervs, NRIdTimeInterv
         if (stime > etime)
             TGLError<NRIdTimeIntervals>(BAD_VALUE, "%sStart time (%d) exceeds end time (%d) at ID - time intervals, row %d", error_msg_prefix, stime, etime, i + 1);
 
-        intervs->push_back(NRIdTimeInterval(id, (NRTimeStamp::Hour)stime, (NRTimeStamp::Hour)etime));
+        intervs->push_back(NRIdTimeInterval(id, (EMRTimeStamp::Hour)stime, (EMRTimeStamp::Hour)etime));
     }
 }
 

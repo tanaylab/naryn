@@ -1,22 +1,15 @@
+#include "EMRDb.h"
 #include "naryn.h"
-#include "NRDb.h"
 #include "NRIdsIterator.h"
 #include "NRTimesIterator.h"
 #include "NRIteratorFilterItem.h"
 
-#ifdef length
-#undef length
-#endif
-#ifdef error
-#undef error
-#endif
-
 const char *NRIteratorFilterItem::OP_NAMES[NUM_OPS] = { "NONE", "OR", "AND" };
 
-bool NRIteratorFilterItem::is_passed_node(const NRPoint &point)
+bool NRIteratorFilterItem::is_passed_node(const EMRPoint &point)
 {
     if (m_op == OR) {
-        NRTimeStamp::Hour hour = point.timestamp.hour();
+        EMRTimeStamp::Hour hour = point.timestamp.hour();
 
         // optimization: call is_passed only if point is greater or equal to child's jumpto
         if (((int)point.id > (int)m_child[0]->m_jumpto.id ||
@@ -36,10 +29,10 @@ bool NRIteratorFilterItem::is_passed_node(const NRPoint &point)
             return true;
 
         if (passed[0])
-            m_child[0]->m_jumpto.init(point.id, NRTimeStamp(point.timestamp.hour(), (NRTimeStamp::Refcount)-1));
+            m_child[0]->m_jumpto.init(point.id, EMRTimeStamp(point.timestamp.hour(), (EMRTimeStamp::Refcount)-1));
 
         if (passed[1])
-            m_child[1]->m_jumpto.init(point.id, NRTimeStamp(point.timestamp.hour(), (NRTimeStamp::Refcount)-1));
+            m_child[1]->m_jumpto.init(point.id, EMRTimeStamp(point.timestamp.hour(), (EMRTimeStamp::Refcount)-1));
 
         int idx = m_child[0]->m_jumpto < m_child[1]->m_jumpto ? 1 : 0;
 
@@ -55,7 +48,7 @@ bool NRIteratorFilterItem::is_passed_node(const NRPoint &point)
     return false;
 }
 
-bool NRIteratorFilterItem::is_passed_leaf(const NRPoint &point)
+bool NRIteratorFilterItem::is_passed_leaf(const EMRPoint &point)
 {
     //        ITERATOR POINT
     //              *
@@ -66,7 +59,7 @@ bool NRIteratorFilterItem::is_passed_leaf(const NRPoint &point)
     //                          ******************
     //                           FILTER INTERVAL
 
-    NRTimeStamp::Hour point_hour = point.timestamp.hour();
+    EMRTimeStamp::Hour point_hour = point.timestamp.hour();
 
     if (m_is_not) {
         if ((int)m_true_upto.id > (int)point.id || m_true_upto.id == point.id && m_true_upto.timestamp.hour() > point_hour)
@@ -81,7 +74,7 @@ bool NRIteratorFilterItem::is_passed_leaf(const NRPoint &point)
 
             if (m_keepref)
                 // if keepref is TRUE stay at the same time: other references with identical time might pass the filter
-                m_jumpto.init(point.id, NRTimeStamp(point_hour, (NRTimeStamp::Refcount)-1));
+                m_jumpto.init(point.id, EMRTimeStamp(point_hour, (EMRTimeStamp::Refcount)-1));
             else {
                 // if keepref is FALSE => find the next point that passes the filter, i.e. is_passed returns false when m_is_not is inversed.
                 // Last is_passed returned true => we found P' within the filter interval. The filter interval of the point we seek should not
@@ -102,8 +95,8 @@ bool NRIteratorFilterItem::is_passed_leaf(const NRPoint &point)
                         ++id;
                         hour = m_stime;
                     }
-                    if (!is_passed_leaf(NRPoint(id, NRTimeStamp(hour, (NRTimeStamp::Refcount)-1)))) {
-                        m_jumpto.init(id, NRTimeStamp(hour, (NRTimeStamp::Refcount)-1));
+                    if (!is_passed_leaf(EMRPoint(id, EMRTimeStamp(hour, (EMRTimeStamp::Refcount)-1)))) {
+                        m_jumpto.init(id, EMRTimeStamp(hour, (EMRTimeStamp::Refcount)-1));
                         break;
                     }
                 }
@@ -123,7 +116,7 @@ bool NRIteratorFilterItem::is_passed_leaf(const NRPoint &point)
     if (!m_itr_started) {
         m_itr_started = true;
 
-        if (m_etime + m_eshift < 0 || m_stime + m_sshift > (int)NRTimeStamp::MAX_HOUR)
+        if (m_etime + m_eshift < 0 || m_stime + m_sshift > (int)EMRTimeStamp::MAX_HOUR)
             return filtered_end();
 
         m_itr->begin();
@@ -135,7 +128,7 @@ bool NRIteratorFilterItem::is_passed_leaf(const NRPoint &point)
 
     // current point preceeds filter interval => jump to the beginning of filter interval
     if (m_itr->point().id < point.id || m_itr->point().id == point.id && (int)m_itr->point().timestamp.hour() < sinterv) {
-        if (!m_itr->next(NRPoint(point.id, NRTimeStamp(max(sinterv, 0), (NRTimeStamp::Refcount)-1))))
+        if (!m_itr->next(EMRPoint(point.id, EMRTimeStamp(max(sinterv, 0), (EMRTimeStamp::Refcount)-1))))
             return filtered_end();
     }
 
@@ -145,7 +138,7 @@ bool NRIteratorFilterItem::is_passed_leaf(const NRPoint &point)
 
     // now current point falls within the filter interval: need only to check that references match
 
-    if (m_itr->point().timestamp.refcount() == (NRTimeStamp::Refcount)-1 || point.timestamp.refcount() == (NRTimeStamp::Refcount)-1)
+    if (m_itr->point().timestamp.refcount() == (EMRTimeStamp::Refcount)-1 || point.timestamp.refcount() == (EMRTimeStamp::Refcount)-1)
         return true;
 
     while (m_itr->point().id == point.id && (int)m_itr->point().timestamp.hour() <= einterv && m_itr->point().timestamp.refcount() <= point.timestamp.refcount()) {
@@ -160,7 +153,7 @@ bool NRIteratorFilterItem::is_passed_leaf(const NRPoint &point)
 
     // current point is still within the filter interval
     if (m_itr->point().id == point.id && (int)m_itr->point().timestamp.hour() <= einterv) {
-        m_jumpto.init(point.id, NRTimeStamp(point.timestamp.hour(), (NRTimeStamp::Refcount)-1));
+        m_jumpto.init(point.id, EMRTimeStamp(point.timestamp.hour(), (EMRTimeStamp::Refcount)-1));
         return false;
     }
 

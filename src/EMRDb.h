@@ -1,35 +1,37 @@
-#ifndef NRDB_H_INCLUDED
-#define NRDB_H_INCLUDED
+#ifndef EMRDB_H_INCLUDED
+#define EMRDB_H_INCLUDED
 
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
+#include "EMR.h"
 #include "HashFunc.h"
 
 using namespace std;
 
-class NRTrack;
+class EMRTrack;
 
-class NRDb {
+class EMRDb {
 public:
     typedef unordered_set<unsigned> IdsSubset;
 
     struct TrackInfo {
-        NRTrack *track;
+        EMRTrack *track;
         string   filename;
         bool     is_global;
 
-        TrackInfo(NRTrack *_track, const char *_filename, bool _is_global) : track(_track), filename(_filename), is_global(_is_global) {}
+        TrackInfo(EMRTrack *_track, const char *_filename, bool _is_global) : track(_track), filename(_filename), is_global(_is_global) {}
     };
 
     static const string TRACK_FILE_EXT;
 
-	~NRDb() { clear(); }
+	~EMRDb() { clear(); }
 
 	const string &grootdir() const { return m_grootdir; }
     const string &urootdir() const { return m_urootdir; }
 
-	NRTrack *track(const string &track);
+	EMRTrack *track(const string &track);
     const TrackInfo *track_info(const string &track);
 	const vector<string> &track_names() { return m_track_names; }
     const vector<string> &global_track_names() { return m_global_track_names; }
@@ -83,7 +85,7 @@ protected:
     void update_track_cache(bool is_user_dir);
 };
 
-extern NRDb *g_db;
+extern EMRDb *g_db;
 
 #endif
 

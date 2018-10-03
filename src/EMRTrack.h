@@ -1,5 +1,5 @@
-#ifndef NRTRACK_H_INCLUDED
-#define NRTRACK_H_INCLUDED
+#ifndef EMRTRACK_H_INCLUDED
+#define EMRTRACK_H_INCLUDED
 
 #include <cmath>
 #include <limits>
@@ -10,15 +10,17 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unordered_set>
+#include <vector>
 
+#include "EMR.h"
 #include "BinFinder.h"
 #include "BufferedFile.h"
-#include "NRInterval.h"
-#include "NRPoint.h"
-#include "NRTrackData.h"
+#include "EMRInterval.h"
+#include "EMRPoint.h"
+#include "EMRTrackData.h"
 #include "StreamPercentiler.h"
 
-class NRTrack {
+class EMRTrack {
 public:
 	enum { FILE_ERROR, BAD_DATA_TYPE, BAD_FORMAT };
 
@@ -48,7 +50,7 @@ public:
 
     static const FuncInfo FUNC_INFOS[NUM_FUNCS];
 
-	virtual ~NRTrack();
+	virtual ~EMRTrack();
 
     const char *name() const { return m_name.c_str(); }
 	TrackType track_type() const { return m_track_type; }
@@ -76,30 +78,30 @@ public:
     virtual float    percentile_lower(double val) const = 0;
 
     virtual void ids(vector<unsigned> &ids) = 0;
-	virtual void data_recs(NRTrackData<double>::DataRecs &data_recs) = 0;
+	virtual void data_recs(EMRTrackData<double>::DataRecs &data_recs) = 0;
 
     virtual size_t count_ids(const vector<unsigned> &ids) const = 0;
 
-    // Construct an intermediate track for virtual track queries based on NRTrackData and the original track
+    // Construct an intermediate track for virtual track queries based on EMRTrackData and the original track
     template <class T>
-    static NRTrack *construct(const char *name, NRTrack *base_track, unsigned flags, const NRTrackData<T> &data);
+    static EMRTrack *construct(const char *name, EMRTrack *base_track, unsigned flags, const EMRTrackData<T> &data);
 
 	template <class T>
-	static TrackType serialize(const char *filename, unsigned flags, const NRTrackData<T> &data);
+	static TrackType serialize(const char *filename, unsigned flags, const EMRTrackData<T> &data);
 
-	static NRTrack *unserialize(const char *name, const char *filename);
+	static EMRTrack *unserialize(const char *name, const char *filename);
 
 public:
 	class DataFetcher {
 	public:
 		DataFetcher() : m_track(NULL) {}
-		DataFetcher(NRTrack *track, bool track_ownership, unordered_set<double> vals2compare) : m_track(NULL) { init(track, track_ownership, move(vals2compare)); }
+		DataFetcher(EMRTrack *track, bool track_ownership, unordered_set<double> vals2compare) : m_track(NULL) { init(track, track_ownership, move(vals2compare)); }
 
         ~DataFetcher();
 
-		void init(NRTrack *track, bool track_ownership, unordered_set<double> &&vals2compare);
+		void init(EMRTrack *track, bool track_ownership, unordered_set<double> &&vals2compare);
 		void register_function(Func func);
-		void set_vals(const NRInterval &interv);
+		void set_vals(const EMRInterval &interv);
 
         Func func() const { return m_function; }
         const unordered_set<double> &vals2compare() const { return m_vals2compare; }
@@ -109,11 +111,11 @@ public:
 		double quantile(double percentile);
 
 protected:
-		friend class NRTrack;
-        template <class T> friend class NRTrackDense;
-        template <class T> friend class NRTrackSparse;
+		friend class EMRTrack;
+        template <class T> friend class EMRTrackDense;
+        template <class T> friend class EMRTrackSparse;
 
-		NRTrack               *m_track;
+		EMRTrack               *m_track;
         bool                   m_track_ownership;
         unsigned               m_last_id;
         Func                   m_function;
@@ -129,16 +131,16 @@ public:
 	class Iterator {
 	public:
 		Iterator() : m_track(NULL), m_isend(true) {}
-        Iterator(NRTrack *track, unsigned stime = 0, unsigned etime = (unsigned)-1, unordered_set<double> &&vals = unordered_set<double>(), NRTimeStamp::Hour expiration = 0);
+        Iterator(EMRTrack *track, unsigned stime = 0, unsigned etime = (unsigned)-1, unordered_set<double> &&vals = unordered_set<double>(), EMRTimeStamp::Hour expiration = 0);
 
-        void init(NRTrack *track, unsigned stime = 0, unsigned etime = (unsigned)-1, unordered_set<double> &&vals = unordered_set<double>(), NRTimeStamp::Hour expiration = 0);
+        void init(EMRTrack *track, unsigned stime = 0, unsigned etime = (unsigned)-1, unordered_set<double> &&vals = unordered_set<double>(), EMRTimeStamp::Hour expiration = 0);
 
 		bool begin() { return m_track->begin(*this); }
 		bool next() { return m_track->next(*this); }
-        bool next(const NRPoint &jumpto) { return m_track->next(*this, jumpto); }   // reference in jumpto is ignored
+        bool next(const EMRPoint &jumpto) { return m_track->next(*this, jumpto); }   // reference in jumpto is ignored
 		bool isend() { return m_isend; }
 
-		NRPoint &point() { return m_point; }
+		EMRPoint &point() { return m_point; }
 
 		// returns the maximal number of points iterator might produce;
 		// note size() returns only the potential upper bound which can be used in conjunction with idx() for progress estimation
@@ -147,64 +149,64 @@ public:
 		// returns current running index within [0, size()] range
 		unsigned idx() const { return m_running_idx; }          // returns current index in [0, size()] range
 
-        const NRTrack *track() const { return m_track; }
+        const EMRTrack *track() const { return m_track; }
 
 	protected:
-		friend class NRTrack;
-		template <class T> friend class NRTrackDense;
-		template <class T> friend class NRTrackSparse;
+		friend class EMRTrack;
+		template <class T> friend class EMRTrackDense;
+		template <class T> friend class EMRTrackSparse;
 
-		NRTrack              *m_track;
-		NRPoint               m_point;       // current iterator point
+		EMRTrack              *m_track;
+		EMRPoint               m_point;       // current iterator point
 		unsigned              m_running_idx; // current iterator index in [0, size()] range
 		unsigned              m_data_idx;    // last patient idx
 		unsigned              m_rec_idx;     // last record idx
 		unsigned              m_stime;       // time scope
 		unsigned              m_etime;       // time scope
         unordered_set<double> m_vals;        // slice
-        NRTimeStamp::Hour     m_expiration;
+        EMRTimeStamp::Hour     m_expiration;
 		bool                  m_isend;
 	};
 
 protected:
     char           *m_mem{NULL};             // used for an intermediate track built in memory
-    void           *m_shmem;
+    void           *m_shmem{MAP_FAILED};
     size_t          m_shmem_size;
     string          m_name;
 	TrackType       m_track_type;
 	DataType        m_data_type;
     unsigned        m_flags;
-    NRTrack        *m_base_track{NULL};     // if the track is intermediate (for virtual track queries), then base track is the one that is used as a source
+    EMRTrack        *m_base_track{NULL};     // if the track is intermediate (for virtual track queries), then base track is the one that is used as a source
     unsigned        m_min_id;
     unsigned        m_max_id;
     unsigned        m_min_time;
     unsigned        m_max_time;
 
-    NRTrack(const char *name, TrackType track_type, DataType data_type, unsigned flags, void *&mem, size_t size, unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime);
-	NRTrack(const char *name, TrackType track_type, DataType data_type, unsigned flags, NRTrack *base_track, unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime);
+    EMRTrack(const char *name, TrackType track_type, DataType data_type, unsigned flags, void *&mem, size_t size, unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime);
+	EMRTrack(const char *name, TrackType track_type, DataType data_type, unsigned flags, EMRTrack *base_track, unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime);
 
     template <class T>
     static int read_datum(void *mem, size_t &pos, size_t size, T &t, const char *trackname);
 
-	virtual void set_vals(DataFetcher &df, const NRInterval &interv) = 0;
+	virtual void set_vals(DataFetcher &df, const EMRInterval &interv) = 0;
     void set_nan_vals(DataFetcher &df);
 
 	virtual bool begin(Iterator &itr) = 0;
 	virtual bool next(Iterator &itr) = 0;
-    virtual bool next(Iterator &itr, const NRPoint &jumpto) = 0; // reference in jumpto is ignored
+    virtual bool next(Iterator &itr, const EMRPoint &jumpto) = 0; // reference in jumpto is ignored
 
     template <class T>
-    void calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec, const T &erec);
+    void calc_vals(DataFetcher &df, const EMRInterval &interv, const T &srec, const T &erec);
 };
 
 
 //------------------------------ IMPLEMENTATION ----------------------------------------
 
 #include "naryn.h"
-#include "NRTrackDense.h"
-#include "NRTrackSparse.h"
+#include "EMRTrackDense.h"
+#include "EMRTrackSparse.h"
 
-inline double NRTrack::DataFetcher::quantile(double percentile)
+inline double EMRTrack::DataFetcher::quantile(double percentile)
 {
 	if (m_sp.stream_size()) {
 		bool is_estimated;
@@ -213,7 +215,7 @@ inline double NRTrack::DataFetcher::quantile(double percentile)
 	return numeric_limits<float>::quiet_NaN();
 }
 
-inline void NRTrack::DataFetcher::set_vals(const NRInterval &interv)
+inline void EMRTrack::DataFetcher::set_vals(const EMRInterval &interv)
 {
     if (m_last_id != interv.id) {
         m_data_idx = (unsigned)0;
@@ -223,21 +225,20 @@ inline void NRTrack::DataFetcher::set_vals(const NRInterval &interv)
 	m_track->set_vals(*this, interv);
 }
 
-inline NRTrack::Iterator::Iterator(NRTrack *track, unsigned stime, unsigned etime, unordered_set<double> &&vals, NRTimeStamp::Hour expiration) :
+inline EMRTrack::Iterator::Iterator(EMRTrack *track, unsigned stime, unsigned etime, unordered_set<double> &&vals, EMRTimeStamp::Hour expiration) :
     m_track(NULL),
     m_isend(true)
 {
     init(track, stime, etime, move(vals), expiration);
 }
 
-inline NRTrack::NRTrack(const char *name, TrackType track_type, DataType data_type, unsigned flags,
+inline EMRTrack::EMRTrack(const char *name, TrackType track_type, DataType data_type, unsigned flags,
                         void *&mem, size_t size, unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime) :
+    m_shmem_size(size),
     m_name(name),
 	m_track_type(track_type),
-	m_data_type(data_type),
+    m_data_type(data_type),
     m_flags(flags),
-    m_shmem(MAP_FAILED),
-    m_shmem_size(size),
     m_min_id(minid),
     m_max_id(maxid),
     m_min_time(mintime),
@@ -246,22 +247,21 @@ inline NRTrack::NRTrack(const char *name, TrackType track_type, DataType data_ty
     swap(m_shmem, mem); // move the ownership of the shared memory to the class
 }
 
-inline NRTrack::NRTrack(const char *name, TrackType track_type, DataType data_type, unsigned flags, NRTrack *base_track,
+inline EMRTrack::EMRTrack(const char *name, TrackType track_type, DataType data_type, unsigned flags, EMRTrack *base_track,
                         unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime) :
+    m_shmem_size(0),
     m_name(name),
 	m_track_type(track_type),
 	m_data_type(data_type),
     m_flags(flags),
     m_base_track(base_track),
-    m_shmem(MAP_FAILED),
-    m_shmem_size(0),
     m_min_id(minid),
     m_max_id(maxid),
     m_min_time(mintime),
     m_max_time(maxtime)
 {}
 
-inline NRTrack::~NRTrack()
+inline EMRTrack::~EMRTrack()
 {
     delete m_mem;
     if (m_shmem != MAP_FAILED)
@@ -269,7 +269,7 @@ inline NRTrack::~NRTrack()
 }
 
 template <class T>
-NRTrack *NRTrack::construct(const char *name, NRTrack *base_track, unsigned flags, const NRTrackData<T> &data)
+EMRTrack *EMRTrack::construct(const char *name, EMRTrack *base_track, unsigned flags, const EMRTrackData<T> &data)
 {
     TrackType track_type;
     DataType data_type;
@@ -277,10 +277,10 @@ NRTrack *NRTrack::construct(const char *name, NRTrack *base_track, unsigned flag
     // determine min / max patient id
     unsigned minid = numeric_limits<unsigned>::max();
     unsigned maxid = 0;
-    unsigned mintime = NRTimeStamp::MAX_HOUR;
+    unsigned mintime = EMRTimeStamp::MAX_HOUR;
     unsigned maxtime = 0;
 
-    for (typename NRTrackData<T>::Key2Val::const_iterator idata = data.m_key2val.begin(); idata != data.m_key2val.end(); ++idata) {
+    for (typename EMRTrackData<T>::Key2Val::const_iterator idata = data.m_key2val.begin(); idata != data.m_key2val.end(); ++idata) {
         minid = min(minid, idata->first.id);
         maxid = max(maxid, idata->first.id);
         mintime = min(mintime, (unsigned)idata->first.timestamp.hour());
@@ -295,7 +295,7 @@ NRTrack *NRTrack::construct(const char *name, NRTrack *base_track, unsigned flag
         unsigned idrange = maxid - minid + 1;
         vector<bool> idmap(idrange, false);
 
-        for (typename NRTrackData<T>::Key2Val::const_iterator idata = data.m_key2val.begin(); idata != data.m_key2val.end(); ++idata)
+        for (typename EMRTrackData<T>::Key2Val::const_iterator idata = data.m_key2val.begin(); idata != data.m_key2val.end(); ++idata)
             idmap[idata->first.id - minid] = true;
 
         for (vector<bool>::const_iterator iidmap = idmap.begin(); iidmap != idmap.end(); ++iidmap) {
@@ -314,7 +314,7 @@ NRTrack *NRTrack::construct(const char *name, NRTrack *base_track, unsigned flag
     else if (typeid(T) == typeid(double))
         data_type = DOUBLE;
     else
-        TGLError<NRTrack>(BAD_DATA_TYPE, "Invalid data type %s used to create a track", typeid(T).name());
+        TGLError<EMRTrack>(BAD_DATA_TYPE, "Invalid data type %s used to create a track", typeid(T).name());
 
     if (minid > maxid) {
         minid = 1;
@@ -326,18 +326,18 @@ NRTrack *NRTrack::construct(const char *name, NRTrack *base_track, unsigned flag
         maxtime = 0;
     }
 
-    NRTrack *track = NULL;
+    EMRTrack *track = NULL;
 
     if (track_type == SPARSE)
-        track = new NRTrackSparse<T>(name, base_track, data, data_size, data_type, flags, minid, maxid, mintime, maxtime);
+        track = new EMRTrackSparse<T>(name, base_track, data, data_size, data_type, flags, minid, maxid, mintime, maxtime);
     else if (track_type == DENSE)
-        track = new NRTrackDense<T>(name, base_track, data, data_type, flags, minid, maxid, mintime, maxtime);
+        track = new EMRTrackDense<T>(name, base_track, data, data_type, flags, minid, maxid, mintime, maxtime);
 
     return track;
 }
 
 template <class T>
-NRTrack::TrackType NRTrack::serialize(const char *filename, unsigned flags, const NRTrackData<T> &data)
+EMRTrack::TrackType EMRTrack::serialize(const char *filename, unsigned flags, const EMRTrackData<T> &data)
 {
     if (data.m_key2val.empty())
         verror("Cannot create an empty track at file %s", filename);
@@ -348,10 +348,10 @@ NRTrack::TrackType NRTrack::serialize(const char *filename, unsigned flags, cons
 	// determine min / max patient id
 	unsigned minid = numeric_limits<unsigned>::max();
 	unsigned maxid = 0;
-    unsigned mintime = NRTimeStamp::MAX_HOUR;
+    unsigned mintime = EMRTimeStamp::MAX_HOUR;
     unsigned maxtime = 0;
 
-	for (typename NRTrackData<T>::Key2Val::const_iterator idata = data.m_key2val.begin(); idata != data.m_key2val.end(); ++idata) {
+	for (typename EMRTrackData<T>::Key2Val::const_iterator idata = data.m_key2val.begin(); idata != data.m_key2val.end(); ++idata) {
 		minid = min(minid, idata->first.id);
 		maxid = max(maxid, idata->first.id);
         mintime = min(mintime, (unsigned)idata->first.timestamp.hour());
@@ -366,7 +366,7 @@ NRTrack::TrackType NRTrack::serialize(const char *filename, unsigned flags, cons
 		unsigned idrange = maxid - minid + 1;
 		vector<bool> idmap(idrange, false);
 
-		for (typename NRTrackData<T>::Key2Val::const_iterator idata = data.m_key2val.begin(); idata != data.m_key2val.end(); ++idata)
+		for (typename EMRTrackData<T>::Key2Val::const_iterator idata = data.m_key2val.begin(); idata != data.m_key2val.end(); ++idata)
 			idmap[idata->first.id - minid] = true;
 
 		for (vector<bool>::const_iterator iidmap = idmap.begin(); iidmap != idmap.end(); ++iidmap) {
@@ -385,7 +385,7 @@ NRTrack::TrackType NRTrack::serialize(const char *filename, unsigned flags, cons
 	else if (typeid(T) == typeid(double))
 		data_type = DOUBLE;
 	else
-		TGLError<NRTrack>(BAD_DATA_TYPE, "Invalid data type %s used to create a track file %s", typeid(T).name(), filename);
+		TGLError<EMRTrack>(BAD_DATA_TYPE, "Invalid data type %s used to create a track file %s", typeid(T).name(), filename);
 
 	BufferedFile bfile;
 
@@ -402,7 +402,7 @@ NRTrack::TrackType NRTrack::serialize(const char *filename, unsigned flags, cons
     }
 
 	if (bfile.open(filename, "w"))
-		TGLError<NRTrack>(FILE_ERROR, "Opening a track file %s: %s", filename, strerror(errno));
+		TGLError<EMRTrack>(FILE_ERROR, "Opening a track file %s: %s", filename, strerror(errno));
 
 	if (bfile.write(&SIGNATURE, sizeof(SIGNATURE)) != sizeof(SIGNATURE) ||
 		bfile.write(&track_type, sizeof(track_type)) != sizeof(track_type) ||
@@ -414,19 +414,19 @@ NRTrack::TrackType NRTrack::serialize(const char *filename, unsigned flags, cons
         bfile.write(&maxtime, sizeof(maxtime)) != sizeof(maxtime))
 	{
 		if (bfile.error())
-			TGLError<NRTrack>(FILE_ERROR, "Failed to write a track file %s: %s", filename, strerror(errno));
-		TGLError<NRTrack>(FILE_ERROR, "Failed to write a track file %s", filename);
+			TGLError<EMRTrack>(FILE_ERROR, "Failed to write a track file %s: %s", filename, strerror(errno));
+		TGLError<EMRTrack>(FILE_ERROR, "Failed to write a track file %s", filename);
 	}
 
 	if (track_type == SPARSE) 
-		NRTrackSparse<T>::serialize(bfile, data, data_size, flags);
+		EMRTrackSparse<T>::serialize(bfile, data, data_size, flags);
 	else if (track_type == DENSE) 
-		NRTrackDense<T>::serialize(bfile, data, minid, maxid, flags);
+		EMRTrackDense<T>::serialize(bfile, data, minid, maxid, flags);
 
     return track_type;
 }
 
-inline void NRTrack::set_nan_vals(NRTrack::DataFetcher &df)
+inline void EMRTrack::set_nan_vals(EMRTrack::DataFetcher &df)
 {
     df.m_val = df.m_function == SIZE ? 0 : numeric_limits<float>::quiet_NaN();
 
@@ -435,17 +435,17 @@ inline void NRTrack::set_nan_vals(NRTrack::DataFetcher &df)
 }
 
 template <class T>
-int NRTrack::read_datum(void *mem, size_t &pos, size_t size, T &t, const char *trackname)
+int EMRTrack::read_datum(void *mem, size_t &pos, size_t size, T &t, const char *trackname)
 {
     if (pos + sizeof(t) > size)
-        TGLError<NRTrack>(FILE_ERROR, "Invalid format of a track %s", trackname);
+        TGLError<EMRTrack>(FILE_ERROR, "Invalid format of a track %s", trackname);
     memcpy(&t, (char *)mem + pos, sizeof(t));
     pos += sizeof(t);
     return sizeof(t);
 }
 
 template <class T>
-void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec, const T &erec)
+void EMRTrack::calc_vals(DataFetcher &df, const EMRInterval &interv, const T &srec, const T &erec)
 {
     switch (df.m_function) {
     case VALUE:
@@ -453,7 +453,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
             df.m_val = numeric_limits<double>::quiet_NaN();
 
             for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
-                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == EMRTimeStamp::NA_REFCOUNT) &&
                     (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
                 {
                     if (std::isnan(df.m_val))
@@ -470,7 +470,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
         {
             df.m_val = 0;
             for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
-                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == EMRTimeStamp::NA_REFCOUNT) &&
                     (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
                 {
                     df.m_val = 1;
@@ -484,7 +484,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
             df.m_frequent_vals.clear();
 
             for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
-                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == EMRTimeStamp::NA_REFCOUNT) &&
                     (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
                     df.m_frequent_vals.push_back(irec->v());
             }
@@ -520,7 +520,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
             unsigned num_vs = 0;
 
             for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
-                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == EMRTimeStamp::NA_REFCOUNT) &&
                     (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
                     ++num_vs;
             }
@@ -529,7 +529,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
                 unsigned cnt = unif_rand() * num_vs;
 
                 for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
-                    if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                    if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == EMRTimeStamp::NA_REFCOUNT) &&
                         (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
                     {
                         if (!cnt) {
@@ -548,7 +548,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
             unsigned num_vs = 0;
 
             for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
-                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == EMRTimeStamp::NA_REFCOUNT) &&
                     (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
                     ++num_vs;
             }
@@ -557,7 +557,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
                 unsigned cnt = unif_rand() * num_vs;
 
                 for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
-                    if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                    if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == EMRTimeStamp::NA_REFCOUNT) &&
                         (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
                     {
                         if (!cnt) {
@@ -577,7 +577,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
             double sum = 0;
 
             for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
-                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT)) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == EMRTimeStamp::NA_REFCOUNT)) {
                     sum += irec->v();
                     ++num_vs;
                 }
@@ -590,7 +590,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
             df.m_val = 0;
 
             for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
-                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == EMRTimeStamp::NA_REFCOUNT) &&
                     (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
                     ++df.m_val;
             }
@@ -602,7 +602,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
 
             df.m_val = 0;
             for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
-                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT)) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == EMRTimeStamp::NA_REFCOUNT)) {
                     df.m_val += irec->v();
                     ++num_vs;
                 }
@@ -617,7 +617,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
 
             df.m_val = numeric_limits<double>::max();
             for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
-                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT)) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == EMRTimeStamp::NA_REFCOUNT)) {
                     df.m_val = min(df.m_val, irec->v());
                     ++num_vs;
                 }
@@ -632,7 +632,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
 
             df.m_val = -numeric_limits<double>::max();
             for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
-                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT)) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == EMRTimeStamp::NA_REFCOUNT)) {
                     df.m_val = max(df.m_val, irec->v());
                     ++num_vs;
                 }
@@ -648,7 +648,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
             double mean_square_sum = 0;
 
             for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
-                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT)) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == EMRTimeStamp::NA_REFCOUNT)) {
                     sum += irec->v();
                     mean_square_sum += irec->v() * irec->v();
                     ++num_vs;
@@ -669,7 +669,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
             double sum = 0;
 
             for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
-                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT)) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == EMRTimeStamp::NA_REFCOUNT)) {
                     sum += percentile_upper(irec);
                     ++num_vs;
                 }
@@ -683,7 +683,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
 
             df.m_val = numeric_limits<double>::max();
             for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
-                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT)) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == EMRTimeStamp::NA_REFCOUNT)) {
                     df.m_val = min(df.m_val, (double)percentile_upper(irec));
                     ++num_vs;
                 }
@@ -698,7 +698,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
 
             df.m_val = -numeric_limits<double>::max();
             for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
-                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT)) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == EMRTimeStamp::NA_REFCOUNT)) {
                     df.m_val = max(df.m_val, (double)percentile_upper(irec));
                     ++num_vs;
                 }
@@ -713,7 +713,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
             double sum = 0;
 
             for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
-                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT)) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == EMRTimeStamp::NA_REFCOUNT)) {
                     sum += percentile_lower(irec);
                     ++num_vs;
                 }
@@ -727,7 +727,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
 
             df.m_val = numeric_limits<double>::max();
             for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
-                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT)) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == EMRTimeStamp::NA_REFCOUNT)) {
                     df.m_val = min(df.m_val, (double)percentile_lower(irec));
                     ++num_vs;
                 }
@@ -742,7 +742,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
 
             df.m_val = -numeric_limits<double>::max();
             for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
-                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT)) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == EMRTimeStamp::NA_REFCOUNT)) {
                     df.m_val = max(df.m_val, (double)percentile_lower(irec));
                     ++num_vs;
                 }
@@ -755,7 +755,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
         {
             df.m_sp.reset();
             for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
-                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT))
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == EMRTimeStamp::NA_REFCOUNT))
                     df.m_sp.add(irec->v(), unif_rand);
             }
         }
@@ -770,7 +770,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
             double x2_sum = 0;
 
             for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
-                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT)) {
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == EMRTimeStamp::NA_REFCOUNT)) {
                     double hour = irec->time().hour();
                     x_sum += hour;
                     y_sum += irec->v();
@@ -797,7 +797,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
                 df.m_val = numeric_limits<double>::quiet_NaN();
 
                 for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
-                    if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                    if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == EMRTimeStamp::NA_REFCOUNT) &&
                         (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
                     {
                         if (std::isnan(df.m_val))
@@ -819,7 +819,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
                 double sum = 0;
 
                 for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
-                    if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT)) {
+                    if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == EMRTimeStamp::NA_REFCOUNT)) {
                         if (num_vs && irec->time().hour() != hour)
                             break;
                         hour = irec->time().hour();
@@ -838,7 +838,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
                 df.m_val = numeric_limits<double>::quiet_NaN();
 
                 for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
-                    if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                    if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == EMRTimeStamp::NA_REFCOUNT) &&
                         (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
                     {
                         if (irec->time().hour() != hour)
@@ -856,7 +856,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
                 double sum = 0;
 
                 for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
-                    if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT)) {
+                    if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == EMRTimeStamp::NA_REFCOUNT)) {
                         if (num_vs && irec->time().hour() != hour) {
                             sum = 0;
                             num_vs = 0;
@@ -878,7 +878,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
                 df.m_val = numeric_limits<double>::quiet_NaN();
 
                 for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
-                    if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                    if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == EMRTimeStamp::NA_REFCOUNT) &&
                         (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
                     {
                         double distance = fabs(mid_time - irec->time().hour());
@@ -904,7 +904,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
                 double sum = 0;
 
                 for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
-                    if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT)) {
+                    if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == EMRTimeStamp::NA_REFCOUNT)) {
                         double distance = fabs(mid_time - irec->time().hour());
 
                         if (min_distance < distance)
@@ -928,7 +928,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
             df.m_val = numeric_limits<double>::quiet_NaN();
 
             for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
-                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == EMRTimeStamp::NA_REFCOUNT) &&
                     (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
                 {
                     df.m_val = irec->time().hour();
@@ -942,7 +942,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
             df.m_val = numeric_limits<double>::quiet_NaN();
 
             for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
-                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == EMRTimeStamp::NA_REFCOUNT) &&
                     (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
                     df.m_val = irec->time().hour();
             }
@@ -956,10 +956,10 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
             df.m_val = numeric_limits<double>::quiet_NaN();
 
             for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
-                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == EMRTimeStamp::NA_REFCOUNT) &&
                     (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
                 {
-                    NRTimeStamp::Hour hour = irec->time().hour();
+                    EMRTimeStamp::Hour hour = irec->time().hour();
                     double distance = fabs(mid_time - hour);
 
                     if (min_distance < distance)
@@ -981,9 +981,9 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
             df.m_val = numeric_limits<double>::quiet_NaN();
 
             for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
-                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == EMRTimeStamp::NA_REFCOUNT) &&
                     (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end())) {
-                    NRTimeStamp::Hour hour = irec->time().hour();
+                    EMRTimeStamp::Hour hour = irec->time().hour();
                     double distance = fabs(mid_time - hour);
 
                     if (min_distance < distance)
@@ -1002,7 +1002,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
             df.m_val = numeric_limits<double>::quiet_NaN();
 
             for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
-                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == EMRTimeStamp::NA_REFCOUNT) &&
                     (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
                 {
                     df.m_val = irec->time().hour() - interv.stime;
@@ -1016,7 +1016,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
             df.m_val = numeric_limits<double>::quiet_NaN();
 
             for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
-                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == EMRTimeStamp::NA_REFCOUNT) &&
                     (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
                     df.m_val = irec->time().hour() - interv.stime;
             }
@@ -1027,7 +1027,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
             df.m_val = numeric_limits<double>::quiet_NaN();
 
             for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
-                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == EMRTimeStamp::NA_REFCOUNT) &&
                     (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
                 {
                     df.m_val = interv.etime - irec->time().hour();
@@ -1041,7 +1041,7 @@ void NRTrack::calc_vals(DataFetcher &df, const NRInterval &interv, const T &srec
             df.m_val = numeric_limits<double>::quiet_NaN();
 
             for (T irec = srec; irec != erec && irec->time().hour() <= interv.etime; ++irec) {
-                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == NRTimeStamp::NA_REFCOUNT) &&
+                if (!std::isnan(irec->v()) && (irec->time().refcount() == interv.refcount || interv.refcount == EMRTimeStamp::NA_REFCOUNT) &&
                     (df.m_vals2compare.empty() || df.m_vals2compare.find((float)irec->v()) != df.m_vals2compare.end()))
                     df.m_val = interv.etime - irec->time().hour();
             }

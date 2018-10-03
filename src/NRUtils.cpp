@@ -1,10 +1,3 @@
-#include <R.h>
-#include <Rinternals.h>
-
-#ifdef length
-#undef length
-#endif
-
 #include "naryn.h"
 #include "NRPoint.h"
 
@@ -17,8 +10,8 @@ SEXP emr_annotate(SEXP _x, SEXP _y, SEXP _envir)
 	try {
 		Naryn naryn(_envir);
 
-        vector<NRPoint> xpoints;
-        vector<NRPoint> ypoints;
+        vector<EMRPoint> xpoints;
+        vector<EMRPoint> ypoints;
         vector<pair<size_t, size_t>> x2y;   // maps a row from x to a row from y
 
         NRPoint::convert_rpoints(_x, &xpoints, "x: ");
@@ -57,13 +50,13 @@ SEXP emr_annotate(SEXP _x, SEXP _y, SEXP _envir)
             if (ix->match(*iy)) {
                 x2y.push_back({ix - xpoints.begin(), iy - ypoints.begin()});   // there is match: x -> y
 
-                if (ix->timestamp.refcount() == NRTimeStamp::NA_REFCOUNT && iy->timestamp.refcount() == NRTimeStamp::NA_REFCOUNT) {
+                if (ix->timestamp.refcount() == EMRTimeStamp::NA_REFCOUNT && iy->timestamp.refcount() == EMRTimeStamp::NA_REFCOUNT) {
                     ++ix;
                     ++iy;
                 } else {
-                    if (ix->timestamp.refcount() != NRTimeStamp::NA_REFCOUNT)
+                    if (ix->timestamp.refcount() != EMRTimeStamp::NA_REFCOUNT)
                         ++ix;
-                    if (iy->timestamp.refcount() != NRTimeStamp::NA_REFCOUNT)
+                    if (iy->timestamp.refcount() != EMRTimeStamp::NA_REFCOUNT)
                         ++iy;
                 }
             }

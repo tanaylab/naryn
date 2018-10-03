@@ -17,13 +17,7 @@
 	options(emr_max.data.size = 10000000)
     options(emr_eval.buf.size = 1000)
 	options(emr_quantile.edge.data.size = 100000)
-	options(emr_pv.middle.size = 0.96)
-	options(emr_pv.middle.precision = 10^(-4))
-	options(emr_pv.edge.precision = 10^(-9))
     options(emr_warning.itr.no.filter.size = 100000)
-
-	# if emr_rnd.seed==0, the seed is determined internally in a random manner
-	options(emr_rnd.seed = 1)
 
 	# set the EMR_GROOT to samples dir
 	emr_db.init_examples()
@@ -126,7 +120,7 @@ emr_db.init <- function(global.dir = NULL, user.dir = NULL, load.on.demand = T) 
     	setwd(oldwd)
 
         if (global.dir == user.dir)
-            stop("Global space root directory should be different from user space root directory", call. = F);
+            stop("Global space root directory should differ from user space root directory", call. = F);
     }
 
 	if (!exists("EMR_GROOT", envir = .GlobalEnv) || is.null(get("EMR_GROOT", envir = .GlobalEnv)) || get("EMR_GROOT", envir = .GlobalEnv) != global.dir ||

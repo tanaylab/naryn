@@ -14,10 +14,10 @@
 #undef length
 #endif
 
+#include "EMRInterval.h"
+#include "EMRPoint.h"
+#include "EMRTrack.h"
 #include "naryn.h"
-#include "NRInterval.h"
-#include "NRPoint.h"
-#include "NRTrack.h"
 
 using namespace std;
 
@@ -26,19 +26,19 @@ public:
     typedef unordered_map<unsigned, pair<unsigned, int>> IdMap;
 
     struct IteratorManager {
-        string                name;
-        NRTrack::DataFetcher  data_fetcher;
-        int                   sshift;       // time shift in hours
-        int                   eshift;
-        bool                  keepref;
-        NRInterval            interv;
-        IdMap                 id_map;
-        SEXP                  filter;
+        string                 name;
+        EMRTrack::DataFetcher  data_fetcher;
+        int                    sshift;       // time shift in hours
+        int                    eshift;
+        bool                   keepref;
+        EMRInterval            interv;
+        IdMap                  id_map;
+        SEXP                   filter;
 
         IteratorManager() : sshift(0), eshift(0), keepref(false), filter(R_NilValue) {}
         bool operator==(const IteratorManager &o) const;
 
-        void transform(const NRPoint &point, NRTimeStamp::Refcount refcount);
+        void transform(const EMRPoint &point, EMRTimeStamp::Refcount refcount);
     };
 
     struct TrackVar {
@@ -59,7 +59,7 @@ public:
 	void define_r_vars(unsigned size);
     const TrackVar *var(const char *var_name) const;
 
-	void set_vars(const NRPoint &point, unsigned idx);
+	void set_vars(const EMRPoint &point, unsigned idx);
 
 private:
 	typedef vector<IteratorManager> IteratorManagers;
@@ -70,7 +70,7 @@ private:
 	IteratorManagers       m_imanagers;
 	int                    m_abs_hour;
 
-	IteratorManager     *add_imanager(const IteratorManager &imanager, NRTrack *track, NRTrack::Func func, unordered_set<double> &&vals);
+	IteratorManager     *add_imanager(const IteratorManager &imanager, EMRTrack *track, EMRTrack::Func func, unordered_set<double> &&vals);
 	TrackVar            &add_track_var(const string &track);
 	void                 add_vtrack_var(const string &track, SEXP rvtrack, bool only_check, unsigned stime, unsigned etime);
 
@@ -85,7 +85,7 @@ inline bool NRTrackExpressionVars::IteratorManager::operator==(const IteratorMan
     return id_map.empty() && o.id_map.empty() && filter == R_NilValue && o.filter == R_NilValue && name == o.name && sshift == o.sshift && eshift == o.eshift && keepref == o.keepref;
 }
 
-inline void NRTrackExpressionVars::IteratorManager::transform(const NRPoint &point, NRTimeStamp::Refcount refcount)
+inline void NRTrackExpressionVars::IteratorManager::transform(const EMRPoint &point, EMRTimeStamp::Refcount refcount)
 {
     if (id_map.empty())
         interv.init(point.id, max((int)point.timestamp.hour() + sshift, 0), point.timestamp.hour() + eshift, refcount);
@@ -99,20 +99,20 @@ inline void NRTrackExpressionVars::IteratorManager::transform(const NRPoint &poi
 }
 
 
-inline void NRTrackExpressionVars::set_vars(const NRPoint &point, unsigned idx)
+inline void NRTrackExpressionVars::set_vars(const EMRPoint &point, unsigned idx)
 {
 	for (IteratorManagers::iterator iimanager = m_imanagers.begin(); iimanager != m_imanagers.end(); ++iimanager) {
-        iimanager->transform(point, iimanager->keepref ? point.timestamp.refcount() : NRTimeStamp::NA_REFCOUNT);
+        iimanager->transform(point, iimanager->keepref ? point.timestamp.refcount() : EMRTimeStamp::NA_REFCOUNT);
         if (iimanager->interv.stime <= iimanager->interv.etime)
             iimanager->data_fetcher.set_vals(iimanager->interv);
     }
 
     for (TrackVars::iterator ivar = m_track_vars.begin(); ivar != m_track_vars.end(); ++ivar) {
-        NRTrack::DataFetcher &data_fetcher = ivar->imanager->data_fetcher;
+        EMRTrack::DataFetcher &data_fetcher = ivar->imanager->data_fetcher;
 
         if (ivar->imanager->interv.stime > ivar->imanager->interv.etime)
             ivar->var[idx] = numeric_limits<double>::quiet_NaN();
-        else if (data_fetcher.func() == NRTrack::QUANTILE)
+        else if (data_fetcher.func() == EMRTrack::QUANTILE)
             ivar->var[idx] = data_fetcher.quantile(ivar->percentile);
         else
             ivar->var[idx] = data_fetcher.val();

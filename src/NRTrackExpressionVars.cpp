@@ -1,18 +1,11 @@
 #include <algorithm>
 #include <unistd.h>
 
+#include "EMRDb.h"
 #include "naryn.h"
-#include "NRDb.h"
 #include "NRIteratorFilter.h"
 #include "NRTrackExpressionScanner.h"
 #include "NRTrackExpressionVars.h"
-
-#include <R.h>
-#include <Rinternals.h>
-
-#ifdef length
-#undef length
-#endif
 
 NRTrackExpressionVars::NRTrackExpressionVars()
 {
@@ -83,7 +76,7 @@ void NRTrackExpressionVars::parse_exprs(const vector<string> &track_exprs, bool 
 	}
 }
 
-NRTrackExpressionVars::IteratorManager *NRTrackExpressionVars::add_imanager(const IteratorManager &imanager, NRTrack *track, NRTrack::Func func, unordered_set<double> &&vals)
+NRTrackExpressionVars::IteratorManager *NRTrackExpressionVars::add_imanager(const IteratorManager &imanager, EMRTrack *track, EMRTrack::Func func, unordered_set<double> &&vals)
 {
     IteratorManagers::iterator iimanager;
 
@@ -120,7 +113,7 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
 		verror("Invalid format of a virtual track %s", vtrack.c_str());
 
 	imanager.name = CHAR(STRING_ELT(rsrc, 0));
-    NRTrack *track = g_db->track(imanager.name.c_str());
+    EMRTrack *track = g_db->track(imanager.name.c_str());
 
     if (!track)
         verror("Invalid source %s used in a virtual track %s", imanager.name.c_str(), vtrack.c_str());
@@ -142,8 +135,8 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
 				swap(imanager.sshift, imanager.eshift);
 		}
 
-        if (imanager.sshift < -(int)NRTimeStamp::MAX_HOUR || imanager.sshift > (int)NRTimeStamp::MAX_HOUR ||
-            imanager.eshift < -(int)NRTimeStamp::MAX_HOUR || imanager.eshift > (int)NRTimeStamp::MAX_HOUR)
+        if (imanager.sshift < -(int)EMRTimeStamp::MAX_HOUR || imanager.sshift > (int)EMRTimeStamp::MAX_HOUR ||
+            imanager.eshift < -(int)EMRTimeStamp::MAX_HOUR || imanager.eshift > (int)EMRTimeStamp::MAX_HOUR)
             verror("Virtual track %s: 'time.shift' is out of range", vtrack.c_str());
 	}
 
@@ -165,9 +158,9 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
 
 	if (isNull(rfunc)) {
         if (track->is_categorical())
-            func = NRTrack::FUNC_INFOS[NRTrack::VALUE].name;
+            func = EMRTrack::FUNC_INFOS[EMRTrack::VALUE].name;
         else
-            func = NRTrack::FUNC_INFOS[NRTrack::AVG].name;
+            func = EMRTrack::FUNC_INFOS[EMRTrack::AVG].name;
     } else {
 		if (!isString(rfunc))
 			verror("Function argument must be a string");
@@ -179,18 +172,18 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
     unordered_set<double> vals;
 	int ifunc;
 
-	for (ifunc = 0; ifunc < NRTrack::NUM_FUNCS; ++ifunc) {
-		if (!strcmp(func.c_str(), NRTrack::FUNC_INFOS[ifunc].name)) {
-            if (imanager.keepref && !NRTrack::FUNC_INFOS[ifunc].keepref)
-                verror("Function %s is not supported when keepref is 'TRUE'", NRTrack::FUNC_INFOS[ifunc].name);
+	for (ifunc = 0; ifunc < EMRTrack::NUM_FUNCS; ++ifunc) {
+		if (!strcmp(func.c_str(), EMRTrack::FUNC_INFOS[ifunc].name)) {
+            if (imanager.keepref && !EMRTrack::FUNC_INFOS[ifunc].keepref)
+                verror("Function %s is not supported when keepref is 'TRUE'", EMRTrack::FUNC_INFOS[ifunc].name);
 
-            if (track->is_categorical() && !NRTrack::FUNC_INFOS[ifunc].categorical)
-                verror("Function %s is not supported with categorical tracks", NRTrack::FUNC_INFOS[ifunc].name);
+            if (track->is_categorical() && !EMRTrack::FUNC_INFOS[ifunc].categorical)
+                verror("Function %s is not supported with categorical tracks", EMRTrack::FUNC_INFOS[ifunc].name);
 
-            if (track->is_quantitative() && !NRTrack::FUNC_INFOS[ifunc].quantitative)
-                verror("Function %s is not supported with quantitative tracks", NRTrack::FUNC_INFOS[ifunc].name);
+            if (track->is_quantitative() && !EMRTrack::FUNC_INFOS[ifunc].quantitative)
+                verror("Function %s is not supported with quantitative tracks", EMRTrack::FUNC_INFOS[ifunc].name);
 
-            if (ifunc == NRTrack::QUANTILE) {
+            if (ifunc == EMRTrack::QUANTILE) {
 				if (isNull(rparams))
 					verror("Virtual track %s: function %s requires an additional parameter - percentile", vtrack.c_str(), func.c_str());
 				if (!isReal(rparams) || Rf_length(rparams) != 1)
@@ -201,7 +194,7 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
 			} else {
                 var.percentile = numeric_limits<double>::quiet_NaN();
 
-                if (ifunc == NRTrack::EXISTS && isNull(rparams))
+                if (ifunc == EMRTrack::EXISTS && isNull(rparams))
                     verror("Virtual track %s: function %s requires an additional parameter", vtrack.c_str(), func.c_str());
 
                 if (track->is_categorical()) {
@@ -214,7 +207,7 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
                             vals.insert(isReal(rparams) ? (float)REAL(rparams)[i] : (float)INTEGER(rparams)[i]);
                     }
                 } else if (!isNull(rparams)) {
-                    if (NRTrack::FUNC_INFOS[ifunc].categorical)
+                    if (EMRTrack::FUNC_INFOS[ifunc].categorical)
                         verror("Virtual track %s: function %s does not accept any parameters when applied to quantative tracks", vtrack.c_str(), func.c_str());
                     verror("Virtual track %s: function %s does not accept any parameters", vtrack.c_str(), func.c_str());
                 }
@@ -223,7 +216,7 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
 		}
 	}
 
-	if (ifunc >= NRTrack::NUM_FUNCS)
+	if (ifunc >= EMRTrack::NUM_FUNCS)
 		verror("Virtual track %s: invalid function %s used for a virtual track", vtrack.c_str(), func.c_str());
 
     SEXP rid_map = get_rvector_col(rvtrack, "id_map", vtrack.c_str(), false);
@@ -299,8 +292,8 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
             // Create an intermediate track by applying the filter to the original track
             track = g_db->track(imanager.name.c_str());
 
-            NRTrackData<float> track_data_float;
-            NRTrackData<double> track_data_double;
+            EMRTrackData<float> track_data_float;
+            EMRTrackData<double> track_data_double;
             vector<string> track_expr;
 
             track_expr.push_back(imanager.name);
@@ -314,22 +307,22 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
                                min((int)etime + imanager.eshift, (int)g_db->maxtime()),
                                R_NilValue, true, rfilter); !scanner.isend(); scanner.next())
             {
-                if (track->data_type() == NRTrack::FLOAT)
+                if (track->data_type() == EMRTrack::FLOAT)
                     track_data_float.add_data(scanner.point().id, scanner.point().timestamp, scanner.real());
                 else
                     track_data_double.add_data(scanner.point().id, scanner.point().timestamp, scanner.real());
             }
 
-            if (track->data_type() == NRTrack::FLOAT)
-                track = NRTrack::construct((vtrack + ".filtered").c_str(), track, track->flags(), track_data_float);
+            if (track->data_type() == EMRTrack::FLOAT)
+                track = EMRTrack::construct((vtrack + ".filtered").c_str(), track, track->flags(), track_data_float);
             else
-                track = NRTrack::construct((vtrack + ".filtered").c_str(), track, track->flags(), track_data_double);
+                track = EMRTrack::construct((vtrack + ".filtered").c_str(), track, track->flags(), track_data_double);
 
             imanager.filter = rfilter;
         }
     }
 
-    var.imanager = add_imanager(imanager, track, (NRTrack::Func)ifunc, move(vals));
+    var.imanager = add_imanager(imanager, track, (EMRTrack::Func)ifunc, move(vals));
 }
 
 NRTrackExpressionVars::TrackVar &NRTrackExpressionVars::add_track_var(const string &track_name)
@@ -345,11 +338,11 @@ NRTrackExpressionVars::TrackVar &NRTrackExpressionVars::add_track_var(const stri
     imanager.keepref = true;
 	m_track_vars.push_back(TrackVar());
 
-    NRTrack *track = g_db->track(track_name);
+    EMRTrack *track = g_db->track(track_name);
 	TrackVar &var = m_track_vars.back();
 	var.var_name = track_name;
 	var.percentile = numeric_limits<double>::quiet_NaN();
-	var.imanager = add_imanager(imanager, track, track->is_categorical() ? NRTrack::VALUE : NRTrack::AVG, unordered_set<double>());
+	var.imanager = add_imanager(imanager, track, track->is_categorical() ? EMRTrack::VALUE : EMRTrack::AVG, unordered_set<double>());
 	return var;
 }
 

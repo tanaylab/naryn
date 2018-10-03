@@ -13,7 +13,7 @@ public:
 
 	virtual bool begin();
 	virtual bool next();
-    virtual bool next(const NRPoint &jumpto);
+    virtual bool next(const EMRPoint &jumpto);
 
 	virtual uint64_t size() const { return m_num_steps; }
     virtual uint64_t idx() const;
@@ -43,7 +43,7 @@ inline void NRIdsIterator::init(const vector<unsigned> &ids, bool keepref, unsig
             verror("Ids list contains two or more identical ids");
     }
 
-    m_num_steps4id = m_keepref ? (m_etime - m_stime + 1) * (uint64_t)(NRTimeStamp::MAX_REFCOUNT + 1) : m_etime - m_stime + 1;
+    m_num_steps4id = m_keepref ? (m_etime - m_stime + 1) * (uint64_t)(EMRTimeStamp::MAX_REFCOUNT + 1) : m_etime - m_stime + 1;
     m_num_steps = m_ids.size() * m_num_steps4id;
 }
 
@@ -52,7 +52,7 @@ inline bool NRIdsIterator::begin()
     m_isend = false;
     for (m_iid = m_ids.begin(); m_iid < m_ids.end(); ++m_iid) {
         if (g_db->is_in_subset(*m_iid)) {
-            m_point.init(*m_iid, m_stime, m_keepref ? 0 : NRTimeStamp::NA_REFCOUNT);
+            m_point.init(*m_iid, m_stime, m_keepref ? 0 : EMRTimeStamp::NA_REFCOUNT);
             return true;
         }
     }
@@ -63,22 +63,22 @@ inline bool NRIdsIterator::begin()
 
 inline bool NRIdsIterator::next()
 {
-    NRTimeStamp::Hour hour = m_point.timestamp.hour();
+    EMRTimeStamp::Hour hour = m_point.timestamp.hour();
 
-    if (m_keepref && m_point.timestamp.refcount() < NRTimeStamp::MAX_REFCOUNT) {
+    if (m_keepref && m_point.timestamp.refcount() < EMRTimeStamp::MAX_REFCOUNT) {
         m_point.timestamp.init(m_point.timestamp.hour(), m_point.timestamp.refcount() + 1);
         return true;
     }
 
     ++hour;
     if (hour <= m_etime) {
-        m_point.timestamp.init(hour, m_keepref ? 0 : NRTimeStamp::NA_REFCOUNT);
+        m_point.timestamp.init(hour, m_keepref ? 0 : EMRTimeStamp::NA_REFCOUNT);
         return true;
     }
 
     while (++m_iid < m_ids.end()) {
         if (g_db->is_in_subset(*m_iid)) {
-            m_point.init(*m_iid, m_stime, m_keepref ? 0 : NRTimeStamp::NA_REFCOUNT);
+            m_point.init(*m_iid, m_stime, m_keepref ? 0 : EMRTimeStamp::NA_REFCOUNT);
             return true;
         }
     }
@@ -87,7 +87,7 @@ inline bool NRIdsIterator::next()
     return false;
 }
 
-inline bool NRIdsIterator::next(const NRPoint &jumpto)
+inline bool NRIdsIterator::next(const EMRPoint &jumpto)
 {
     while (m_iid < m_ids.end()) {
         if (*m_iid < jumpto.id) {
@@ -101,16 +101,16 @@ inline bool NRIdsIterator::next(const NRPoint &jumpto)
         }
 
         if (*m_iid == jumpto.id) {
-            NRTimeStamp::Hour hour = jumpto.timestamp.hour();
+            EMRTimeStamp::Hour hour = jumpto.timestamp.hour();
             if (hour <= m_etime) {
-                m_point.init(*m_iid, hour, m_keepref ? 0 : NRTimeStamp::NA_REFCOUNT);
+                m_point.init(*m_iid, hour, m_keepref ? 0 : EMRTimeStamp::NA_REFCOUNT);
                 return true;
             }
             ++m_iid;
             continue;
         }
 
-        m_point.init(*m_iid, m_stime, m_keepref ? 0 : NRTimeStamp::NA_REFCOUNT);
+        m_point.init(*m_iid, m_stime, m_keepref ? 0 : EMRTimeStamp::NA_REFCOUNT);
         return true;
     }
 
@@ -121,7 +121,7 @@ inline bool NRIdsIterator::next(const NRPoint &jumpto)
 inline uint64_t NRIdsIterator::idx() const
 {
     return m_keepref ?
-        (m_iid - m_ids.begin()) * m_num_steps4id + (NRTimeStamp::MAX_REFCOUNT + 1) * (uint64_t)(m_point.timestamp.hour() - m_stime) + m_point.timestamp.refcount() :
+        (m_iid - m_ids.begin()) * m_num_steps4id + (EMRTimeStamp::MAX_REFCOUNT + 1) * (uint64_t)(m_point.timestamp.hour() - m_stime) + m_point.timestamp.refcount() :
         (m_iid - m_ids.begin()) * m_num_steps4id + m_point.timestamp.hour() - m_stime;
 }
 

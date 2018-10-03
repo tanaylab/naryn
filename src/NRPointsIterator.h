@@ -1,35 +1,35 @@
 #ifndef NRPOINTSITERATOR_H_INCLUDED
 #define NRPOINTSITERATOR_H_INCLUDED
 
-#include "NRTrack.h"
+#include "EMRTrack.h"
 #include "NRTrackExpressionIterator.h"
 
 class NRPointsIterator : public NRTrackExpressionIterator {
 public:
 	NRPointsIterator() {}
-    NRPointsIterator(const NRPoints &points, bool keepref, unsigned stime, unsigned etime) { init(points, keepref, stime, etime); }
+    NRPointsIterator(const EMRPoints &points, bool keepref, unsigned stime, unsigned etime) { init(points, keepref, stime, etime); }
 	virtual ~NRPointsIterator() {}
 
-    void init(const NRPoints &points, bool keepref, unsigned stime, unsigned etime);
+    void init(const EMRPoints &points, bool keepref, unsigned stime, unsigned etime);
 
 	virtual bool begin();
 	virtual bool next();
-    virtual bool next(const NRPoint &jumpto);
+    virtual bool next(const EMRPoint &jumpto);
 
 	virtual uint64_t size() const { return m_points.size(); }
     virtual uint64_t idx() const { return m_ipoint - m_points.begin(); }
 
 protected:
-	NRPoints           m_points;
-    NRPoints::iterator m_ipoint;
-    unsigned           m_stime;
-    unsigned           m_etime;
+	EMRPoints           m_points;
+    EMRPoints::iterator m_ipoint;
+    unsigned            m_stime;
+    unsigned            m_etime;
 };
 
 
 //------------------------------ IMPLEMENTATION ----------------------------------------
 
-inline void NRPointsIterator::init(const NRPoints &points, bool keepref, unsigned stime, unsigned etime)
+inline void NRPointsIterator::init(const EMRPoints &points, bool keepref, unsigned stime, unsigned etime)
 {
     m_keepref = keepref;
     m_stime = stime;
@@ -37,7 +37,7 @@ inline void NRPointsIterator::init(const NRPoints &points, bool keepref, unsigne
     m_points = points;
     sort(m_points.begin(), m_points.end());
 
-    for (NRPoints::const_iterator ipoint = m_points.begin() + 1; ipoint < m_points.end(); ++ipoint) {
+    for (EMRPoints::const_iterator ipoint = m_points.begin() + 1; ipoint < m_points.end(); ++ipoint) {
         if (*ipoint == *(ipoint - 1))
             verror("Id-time list contains two or more identical points");
         if (!keepref && ipoint->id == (ipoint - 1)->id && ipoint->timestamp.hour() == (ipoint - 1)->timestamp.hour())
@@ -58,7 +58,7 @@ inline bool NRPointsIterator::next()
     ++m_ipoint;
 	while (m_ipoint < m_points.end()) {
         if (g_db->is_in_subset(m_ipoint->id)) {
-            NRTimeStamp::Hour hour = m_ipoint->timestamp.hour();
+            EMRTimeStamp::Hour hour = m_ipoint->timestamp.hour();
             if (hour >= m_stime && hour <= m_etime) {
                 if (m_keepref) {
                     m_point = *m_ipoint;
@@ -66,7 +66,7 @@ inline bool NRPointsIterator::next()
                 }
 
                 if (m_point.id != m_ipoint->id || m_point.timestamp.hour() != hour) {
-                    m_point.init(m_ipoint->id, hour, NRTimeStamp::NA_REFCOUNT);
+                    m_point.init(m_ipoint->id, hour, EMRTimeStamp::NA_REFCOUNT);
                     return true;
                 }
             }
@@ -77,22 +77,22 @@ inline bool NRPointsIterator::next()
 	return false;
 }
 
-inline bool NRPointsIterator::next(const NRPoint &jumpto)
+inline bool NRPointsIterator::next(const EMRPoint &jumpto)
 {
     ++m_ipoint;
     if (m_ipoint < m_points.end()) {
-        if (m_keepref && jumpto.timestamp.refcount() != NRTimeStamp::NA_REFCOUNT) {
+        if (m_keepref && jumpto.timestamp.refcount() != EMRTimeStamp::NA_REFCOUNT) {
             if (*m_ipoint < jumpto)
                 m_ipoint = lower_bound(m_ipoint, m_points.end(), jumpto);
         } else {
-            NRPoint _jumpto(jumpto.id, jumpto.timestamp.hour(), 0);
+            EMRPoint _jumpto(jumpto.id, jumpto.timestamp.hour(), 0);
             if (*m_ipoint < _jumpto)
                 m_ipoint = lower_bound(m_ipoint, m_points.end(), _jumpto);
         }
 
         while (m_ipoint < m_points.end()) {
             if (g_db->is_in_subset(m_ipoint->id)) {
-                NRTimeStamp::Hour hour = m_ipoint->timestamp.hour();
+                EMRTimeStamp::Hour hour = m_ipoint->timestamp.hour();
                 if (hour >= m_stime && hour <= m_etime) {
                     if (m_keepref) {
                         m_point = *m_ipoint;
@@ -100,7 +100,7 @@ inline bool NRPointsIterator::next(const NRPoint &jumpto)
                     }
 
                     if (m_point.id != m_ipoint->id || m_point.timestamp.hour() != hour) {
-                        m_point.init(m_ipoint->id, hour, NRTimeStamp::NA_REFCOUNT);
+                        m_point.init(m_ipoint->id, hour, EMRTimeStamp::NA_REFCOUNT);
                         return true;
                     }
                 }

@@ -137,6 +137,9 @@ public:
     // Returns the upper limit for data size
 	uint64_t max_data_size() const { return m_max_data_size; }
 
+    // Returns buffer size for R::eval()
+    int eval_buf_size() const { return m_eval_buf_size; }
+
 	// Returns the size of the buffer used to store highest/lowest values for high-precision computation of quantiles
 	uint64_t quantile_edge_data_size() const { return m_quantile_edge_data_size; }
 
@@ -208,13 +211,14 @@ protected:
 	unsigned                    m_old_protect_count;
 	set<int>                    m_old_open_fds;
 
-    bool                        m_debug;
-    bool                        m_multitasking_avail;
-    int                         m_min_processes;
-    int                         m_max_processes;
-	uint64_t                    m_max_data_size;
-	uint64_t                    m_quantile_edge_data_size;
-    uint64_t                    m_beat_itr_warning_size;
+    bool                        m_debug{false};
+    bool                        m_multitasking_avail{false};
+    int                         m_min_processes{4};
+    int                         m_max_processes{20};
+    uint64_t                    m_max_data_size{10000000};
+    int                         m_eval_buf_size{1000};
+    uint64_t                    m_quantile_edge_data_size{100000};
+    uint64_t                    m_beat_itr_warning_size{100000};
 
 	void load_options();
 

@@ -1,10 +1,11 @@
 #include <cmath>
 
+#include "EMRPoint.h"
 #include "naryn.h"
 #include "NRPoint.h"
 
-struct NRPPointsSort {
-    bool operator()(const NRPoint *p1, const NRPoint *p2) const { return *p1 < *p2; }
+struct EMRPPointsSort {
+    bool operator()(const EMRPoint *p1, const EMRPoint *p2) const { return *p1 < *p2; }
 };
 
 const char *NRPoint::COL_NAMES[NUM_COLS] = { "id", "time", "ref" };
@@ -37,7 +38,7 @@ SEXP NRPoint::create_rpoints_skeleton(size_t size, unsigned num_cols, bool null_
     return answer;
 }
 
-SEXP NRPoint::convert_points(const vector<NRPoint> &points, unsigned num_cols, bool null_if_empty, bool do_sort, vector<NRPoint *> *ppoints)
+SEXP NRPoint::convert_points(const vector<EMRPoint> &points, unsigned num_cols, bool null_if_empty, bool do_sort, vector<EMRPoint *> *ppoints)
 {
     if (null_if_empty && !points.size())
         return R_NilValue;
@@ -49,15 +50,15 @@ SEXP NRPoint::convert_points(const vector<NRPoint> &points, unsigned num_cols, b
         ppoints->reserve(points.size());
 
         if (!points.empty())
-            ppoints->push_back((NRPoint *)&points.front());
+            ppoints->push_back((EMRPoint *)&points.front());
 
-        for (vector<NRPoint>::const_iterator ipoint = points.begin() + 1; ipoint < points.end(); ++ipoint) {
-            ppoints->push_back((NRPoint *)&*ipoint);
+        for (vector<EMRPoint>::const_iterator ipoint = points.begin() + 1; ipoint < points.end(); ++ipoint) {
+            ppoints->push_back((EMRPoint *)&*ipoint);
             need_sort = need_sort | *ipoint < *(ipoint - 1);
         }
 
         if (do_sort && need_sort)
-            sort(ppoints->begin(), ppoints->end(), NRPPointsSort());
+            sort(ppoints->begin(), ppoints->end(), EMRPPointsSort());
         else
             ppoints = NULL;
     }
@@ -68,25 +69,25 @@ SEXP NRPoint::convert_points(const vector<NRPoint> &points, unsigned num_cols, b
     SEXP refs = VECTOR_ELT(answer, REF);
 
     if (ppoints) {
-        for (vector<NRPoint *>::const_iterator ippoint = ppoints->begin(); ippoint != ppoints->end(); ++ippoint) {
+        for (vector<EMRPoint *>::const_iterator ippoint = ppoints->begin(); ippoint != ppoints->end(); ++ippoint) {
             size_t index = ippoint - ppoints->begin();
             INTEGER(ids)[index] = (*ippoint)->id;
             INTEGER(times)[index] = (*ippoint)->timestamp.hour();
-            INTEGER(refs)[index] = (*ippoint)->timestamp.refcount() == NRTimeStamp::NA_REFCOUNT ? -1 : (*ippoint)->timestamp.refcount();
+            INTEGER(refs)[index] = (*ippoint)->timestamp.refcount() == EMRTimeStamp::NA_REFCOUNT ? -1 : (*ippoint)->timestamp.refcount();
         }
     } else {
-        for (NRPoints::const_iterator ipoint = points.begin(); ipoint != points.end(); ++ipoint) {
+        for (EMRPoints::const_iterator ipoint = points.begin(); ipoint != points.end(); ++ipoint) {
             size_t index = ipoint - points.begin();
             INTEGER(ids)[index] = ipoint->id;
     		INTEGER(times)[index] = ipoint->timestamp.hour();
-    		INTEGER(refs)[index] = ipoint->timestamp.refcount() == NRTimeStamp::NA_REFCOUNT ? -1 : ipoint->timestamp.refcount();
+    		INTEGER(refs)[index] = ipoint->timestamp.refcount() == EMRTimeStamp::NA_REFCOUNT ? -1 : ipoint->timestamp.refcount();
         }
     }
 
     return answer;
 }
 
-void NRPoint::convert_rpoints(SEXP rpoints, vector<NRPoint> *points, const char *error_msg_prefix)
+void NRPoint::convert_rpoints(SEXP rpoints, vector<EMRPoint> *points, const char *error_msg_prefix)
 {
     points->clear();
 
@@ -140,13 +141,13 @@ void NRPoint::convert_rpoints(SEXP rpoints, vector<NRPoint> *points, const char 
         if (isReal(ids) && REAL(ids)[i] != id)
             TGLError<NRPoint>(BAD_VALUE, "%sInvalid id at id-time points, row %d", error_msg_prefix, i + 1);
 
-		if (isReal(hours) && REAL(hours)[i] != hour || hour < 0 || hour > NRTimeStamp::MAX_HOUR)
+		if (isReal(hours) && REAL(hours)[i] != hour || hour < 0 || hour > EMRTimeStamp::MAX_HOUR)
             TGLError<NRPoint>(BAD_VALUE, "%sInvalid time at id-time points, row %d", error_msg_prefix, i + 1);
 
-        if (refs != R_NilValue && isReal(refs) && REAL(refs)[i] != ref || ref < -1 || ref > NRTimeStamp::MAX_REFCOUNT)
+        if (refs != R_NilValue && isReal(refs) && REAL(refs)[i] != ref || ref < -1 || ref > EMRTimeStamp::MAX_REFCOUNT)
             TGLError<NRPoint>(BAD_VALUE, "%sInvalid reference at id-time points, row %d", error_msg_prefix, i + 1);
 
-		points->push_back(NRPoint(id, NRTimeStamp((NRTimeStamp::Hour)hour, (NRTimeStamp::Refcount)ref)));
+		points->push_back(EMRPoint(id, EMRTimeStamp((EMRTimeStamp::Hour)hour, (EMRTimeStamp::Refcount)ref)));
     }
 }
 

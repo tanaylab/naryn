@@ -1,14 +1,14 @@
-#ifndef NRINTERVAL_H_INCLUDED
-#define NRINTERVAL_H_INCLUDED
+#ifndef EMRINTERVAL_H_INCLUDED
+#define EMRINTERVAL_H_INCLUDED
 
 #include <string>
 
 using namespace std;
 
-class NRInterval {
+class EMRInterval {
 public:
-	NRInterval() { init((unsigned)-1, -1, -1, (unsigned char)-1); }
-	NRInterval(unsigned _id, int _stime, int _etime, unsigned char _refcount) { init(_id, _stime, _etime, _refcount); }
+	EMRInterval() { init((unsigned)-1, -1, -1, (unsigned char)-1); }
+	EMRInterval(unsigned _id, int _stime, int _etime, unsigned char _refcount) { init(_id, _stime, _etime, _refcount); }
 
 	void init(unsigned _id, int _stime, int _etime, unsigned char _refcount);
 
@@ -23,7 +23,7 @@ public:
 
 //------------------------------ IMPLEMENTATION ----------------------------------------
 
-inline void NRInterval::init(unsigned _id, int _stime, int _etime, unsigned char _refcount)
+inline void EMRInterval::init(unsigned _id, int _stime, int _etime, unsigned char _refcount)
 {
 	id = _id;
 	stime = _stime;
@@ -31,7 +31,7 @@ inline void NRInterval::init(unsigned _id, int _stime, int _etime, unsigned char
 	refcount = _refcount;
 }
 
-inline string NRInterval::tostr() const
+inline string EMRInterval::tostr() const
 {
 	char buf[100];
 	sprintf(buf, "id %d, time [%d, %d], ref %d", id, stime, etime, refcount);

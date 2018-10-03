@@ -6,9 +6,9 @@
 #include <vector>
 #include <string>
 
+#include "EMRTrack.h"
 #include "naryn.h"
 #include "NRIteratorFilter.h"
-#include "NRTrack.h"
 #include "NRTrackExpressionIterator.h"
 #include "NRTrackExpressionVars.h"
 
@@ -41,7 +41,7 @@ public:
 	// 1 = true, 0 = false, -1 = NA
 	int    logical(int track_expr_idx = 0) const { return m_eval_ints[track_expr_idx][m_eval_buf_idx]; }
 
-	const NRPoint &point() const { return m_expr_itr_points[m_eval_buf_idx]; }
+	const EMRPoint &point() const { return m_expr_itr_points[m_eval_buf_idx]; }
 
     bool are_points_sorted() const { return !m_multitasking; }
 
@@ -102,7 +102,7 @@ private:
 	size_t           m_num_evals;
 	int              m_report_step;
 	uint64_t         m_last_report_clock;
-	NRPoints         m_expr_itr_points;
+	EMRPoints        m_expr_itr_points;
 	bool             m_isend;
 	bool             m_do_report_progress;
 
@@ -220,7 +220,7 @@ inline bool NRTrackExprScanner::eval_next()
                 break;
             }
 
-            const NRPoint &point = m_itr.itr().point();
+            const EMRPoint &point = m_itr.itr().point();
             m_expr_itr_points[m_eval_buf_size] = point;
             m_itr_times[m_eval_buf_size] = (double)point.timestamp.hour();
             m_expr_vars.set_vars(point, m_eval_buf_size);
@@ -287,7 +287,7 @@ inline bool NRTrackExprScanner::next_multitasking()
 
             for (unsigned i = 0; i < m_eval_buf_size; ++i) {
                 m_expr_itr_points[i].unpack(p);
-                p += NRPoint::packed_size();
+                p += EMRPoint::packed_size();
 
                 switch (m_valtype) {
                 case REAL_T:
