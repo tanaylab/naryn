@@ -3,8 +3,9 @@
 
 #ifdef PYTHON
 
-    #define Rprintf printf
     #define unif_rand drand48
+
+    void vmsg(const char *fmt, ...);
 
 #else
 
@@ -18,6 +19,8 @@
     #ifdef error
     #undef error
     #endif
+
+    #define vmsg Rprintf
 
 #endif
 

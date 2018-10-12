@@ -215,6 +215,7 @@ void EMRDb::load(const char *grootdir, const char *urootdir, bool load_on_demand
                 m_dir_maxid[is_user_dir] = max(m_dir_maxid[is_user_dir], track->maxid());
                 m_dir_mintime[is_user_dir] = min(m_dir_mintime[is_user_dir], track->mintime());
                 m_dir_maxtime[is_user_dir] = max(m_dir_maxtime[is_user_dir], track->maxtime());
+
                 check_interrupt();
     			progress.report(1);
     		}

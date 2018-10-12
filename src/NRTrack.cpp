@@ -238,10 +238,10 @@ SEXP emr_track_percentile(SEXP _track, SEXP _value, SEXP _lower, SEXP _envir)
         } else {
             if (isReal(_value)) {
                 for (int i = 0; i < num_vals; ++i)
-                    REAL(answer)[i] = R_FINITE(REAL(_value)[i]) ? track->percentile_lower(REAL(_value)[i]) : numeric_limits<double>::quiet_NaN();
+                    REAL(answer)[i] = R_FINITE(REAL(_value)[i]) ? track->percentile_upper(REAL(_value)[i]) : numeric_limits<double>::quiet_NaN();
             } else {
                 for (int i = 0; i < num_vals; ++i)
-                    REAL(answer)[i] = INTEGER(_value)[i] == NA_INTEGER ? track->percentile_lower(INTEGER(_value)[i]) : numeric_limits<double>::quiet_NaN();
+                    REAL(answer)[i] = INTEGER(_value)[i] == NA_INTEGER ? track->percentile_upper(INTEGER(_value)[i]) : numeric_limits<double>::quiet_NaN();
             }
         }
 
