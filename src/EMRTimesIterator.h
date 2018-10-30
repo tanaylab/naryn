@@ -1,18 +1,18 @@
-#ifndef NRTIMESITERATOR_H_INCLUDED
-#define NRTIMESITERATOR_H_INCLUDED
+#ifndef EMRTIMESITERATOR_H_INCLUDED
+#define EMRTIMESITERATOR_H_INCLUDED
 
-#include "NRTimeInterval.h"
-#include "NRTrackExpressionIterator.h"
+#include "EMRTimeInterval.h"
+#include "EMRTrackExpressionIterator.h"
 
-class NRTimesIterator : public NRTrackExpressionIterator {
+class EMRTimesIterator : public EMRTrackExpressionIterator {
 public:
-	NRTimesIterator() {}
-    NRTimesIterator(const NRTimeIntervals &intervs, bool keepref, unsigned stime, unsigned etime) { init(intervs, keepref, stime, etime); }
-	virtual ~NRTimesIterator() {}
+	EMRTimesIterator() {}
+    EMRTimesIterator(const EMRTimeIntervals &intervs, bool keepref, unsigned stime, unsigned etime) { init(intervs, keepref, stime, etime); }
+	virtual ~EMRTimesIterator() {}
 
-    void init(const NRTimeIntervals &intervs, bool keepref, unsigned stime, unsigned etime);
+    void init(const EMRTimeIntervals &intervs, bool keepref, unsigned stime, unsigned etime);
 
-    const NRTimeInterval &cur_interval() const { return *m_iinterv; }
+    const EMRTimeInterval &cur_interval() const { return *m_iinterv; }
 
 	virtual bool begin();
 	virtual bool next();
@@ -22,16 +22,16 @@ public:
     virtual uint64_t idx() const;
 
 protected:
-	NRTimeIntervals                 m_intervs;
-    NRTimeIntervals::const_iterator m_iinterv;
-    uint64_t                        m_num_steps;
-    vector<uint64_t>                m_num_steps4id;
+	EMRTimeIntervals                 m_intervs;
+    EMRTimeIntervals::const_iterator m_iinterv;
+    uint64_t                         m_num_steps;
+    vector<uint64_t>                 m_num_steps4id;
 };
 
 
 //------------------------------ IMPLEMENTATION ----------------------------------------
 
-inline void NRTimesIterator::init(const NRTimeIntervals &intervs, bool keepref, unsigned stime, unsigned etime)
+inline void EMRTimesIterator::init(const EMRTimeIntervals &intervs, bool keepref, unsigned stime, unsigned etime)
 {
     m_keepref = keepref;
     m_intervs = intervs;
@@ -39,7 +39,7 @@ inline void NRTimesIterator::init(const NRTimeIntervals &intervs, bool keepref, 
 
     m_num_steps4id.reserve(m_intervs.size() + 1);
     m_num_steps4id.push_back(0);
-    for (NRTimeIntervals::iterator iinterv = m_intervs.begin(); iinterv < m_intervs.end(); ++iinterv)
+    for (EMRTimeIntervals::iterator iinterv = m_intervs.begin(); iinterv < m_intervs.end(); ++iinterv)
         m_num_steps4id.push_back(m_num_steps4id[iinterv - m_intervs.begin()] + iinterv->etime - iinterv->stime + 1);
 
     m_num_steps = m_num_steps4id.back() * (g_db->maxid() - g_db->minid() + 1);
@@ -51,7 +51,7 @@ inline void NRTimesIterator::init(const NRTimeIntervals &intervs, bool keepref, 
     }
 }
 
-inline bool NRTimesIterator::begin()
+inline bool EMRTimesIterator::begin()
 {
     m_isend = false;
     m_iinterv = m_intervs.begin();
@@ -68,7 +68,7 @@ inline bool NRTimesIterator::begin()
     return false;
 }
 
-inline bool NRTimesIterator::next()
+inline bool EMRTimesIterator::next()
 {
     EMRTimeStamp::Hour hour = m_point.timestamp.hour();
 
@@ -101,7 +101,7 @@ inline bool NRTimesIterator::next()
     return false;
 }
 
-inline bool NRTimesIterator::next(const EMRPoint &jumpto)
+inline bool EMRTimesIterator::next(const EMRPoint &jumpto)
 {
     if (g_db->is_in_subset(jumpto.id)) {
         EMRTimeStamp::Hour hour = jumpto.timestamp.hour();
@@ -148,7 +148,7 @@ inline bool NRTimesIterator::next(const EMRPoint &jumpto)
     return false;
 }
 
-inline uint64_t NRTimesIterator::idx() const
+inline uint64_t EMRTimesIterator::idx() const
 {
     return m_keepref ?
         (m_point.id - g_db->minid()) * m_num_steps4id.back() +

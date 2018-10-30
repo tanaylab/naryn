@@ -1,14 +1,13 @@
-#ifndef NRBEATITERATOR_H_INCLUDED
-#define NRBEATITERATOR_H_INCLUDED
+#ifndef EMRBEATITERATOR_H_INCLUDED
+#define EMRBEATITERATOR_H_INCLUDED
 
-#include "naryn.h"
-#include "NRTrackExpressionIterator.h"
+#include "EMRTrackExpressionIterator.h"
 
-class NRBeatIterator : public NRTrackExpressionIterator {
+class EMRBeatIterator : public EMRTrackExpressionIterator {
 public:
-	NRBeatIterator() {}
-    NRBeatIterator(unsigned period, bool keepref, unsigned stime, unsigned etime) { init(period, keepref, stime, etime); }
-	virtual ~NRBeatIterator() {}
+	EMRBeatIterator() {}
+    EMRBeatIterator(unsigned period, bool keepref, unsigned stime, unsigned etime) { init(period, keepref, stime, etime); }
+	virtual ~EMRBeatIterator() {}
 
     void init(unsigned period, bool keepref, unsigned stime, unsigned etime);
 
@@ -31,7 +30,7 @@ protected:
 
 //------------------------------ IMPLEMENTATION ----------------------------------------
 
-inline void NRBeatIterator::init(unsigned period, bool keepref, unsigned stime, unsigned etime)
+inline void EMRBeatIterator::init(unsigned period, bool keepref, unsigned stime, unsigned etime)
 {
     m_keepref = keepref;
     m_period = period;
@@ -43,7 +42,7 @@ inline void NRBeatIterator::init(unsigned period, bool keepref, unsigned stime, 
     m_num_steps = m_num_steps4id * (uint64_t)(g_db->maxid() - g_db->minid() + 1);
 }
 
-inline bool NRBeatIterator::begin()
+inline bool EMRBeatIterator::begin()
 {
 	m_isend = false;
 	m_point.init(g_db->minid(), m_stime, m_keepref ? 0 : EMRTimeStamp::NA_REFCOUNT);
@@ -56,7 +55,7 @@ inline bool NRBeatIterator::begin()
     return false;
 }
 
-inline bool NRBeatIterator::next()
+inline bool EMRBeatIterator::next()
 {
     if (m_keepref && m_point.timestamp.refcount() < EMRTimeStamp::MAX_REFCOUNT) {
         m_point.timestamp.init(m_point.timestamp.hour(), m_point.timestamp.refcount() + 1);
@@ -80,7 +79,7 @@ inline bool NRBeatIterator::next()
     return false;
 }
 
-inline bool NRBeatIterator::next(const EMRPoint &jumpto)
+inline bool EMRBeatIterator::next(const EMRPoint &jumpto)
 {
     unsigned id = jumpto.id;
 
@@ -104,7 +103,7 @@ inline bool NRBeatIterator::next(const EMRPoint &jumpto)
     return false;
 }
 
-inline uint64_t NRBeatIterator::idx() const
+inline uint64_t EMRBeatIterator::idx() const
 {
     return m_keepref ?
         m_num_steps4id * (uint64_t)(m_point.id - g_db->minid()) + (EMRTimeStamp::MAX_REFCOUNT + 1) * (uint64_t)(m_point.timestamp.hour() - m_stime) / m_period + m_point.timestamp.refcount() :

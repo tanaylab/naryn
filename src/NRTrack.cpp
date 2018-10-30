@@ -30,7 +30,6 @@ SEXP emr_track_rm(SEXP _track, SEXP _envir)
 
 		const char *trackname = CHAR(STRING_ELT(_track, 0));
         vdebug("Removing track %s\n", trackname);
-        SEXP answer;
         const EMRDb::TrackInfo *track_info = g_db->track_info(trackname);
 
         if (!track_info)

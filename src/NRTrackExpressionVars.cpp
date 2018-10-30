@@ -12,7 +12,7 @@ NRTrackExpressionVars::NRTrackExpressionVars()
 	m_imanagers.reserve(10000);
 }
 
-void NRTrackExpressionVars::parse_exprs(const vector<string> &track_exprs, bool only_check, unsigned stime, unsigned etime)
+void NRTrackExpressionVars::parse_exprs(const vector<string> &track_exprs, unsigned stime, unsigned etime)
 {
 	SEXP emr_vtracks = R_NilValue;
     vector<SEXP> rvtracknames;
@@ -65,7 +65,7 @@ void NRTrackExpressionVars::parse_exprs(const vector<string> &track_exprs, bool 
 
     				while ((pos = iexpr->find(track, pos)) != string::npos) {
     					if (is_var(*iexpr, pos, pos + track.size())) {
-    						add_vtrack_var(track, VECTOR_ELT(vtracks[i], itrack), only_check, stime, etime);
+    						add_vtrack_var(track, VECTOR_ELT(vtracks[i], itrack), false, stime, etime);
     						break;
     					}
     					pos += track.size();
@@ -74,6 +74,12 @@ void NRTrackExpressionVars::parse_exprs(const vector<string> &track_exprs, bool 
     		}
         }
 	}
+}
+
+void NRTrackExpressionVars::check_vtrack(const string &track, SEXP rvtrack)
+{
+    NRTrackExpressionVars parser;
+    parser.add_vtrack_var(track, rvtrack, true, 0, 0);
 }
 
 NRTrackExpressionVars::IteratorManager *NRTrackExpressionVars::add_imanager(const IteratorManager &imanager, EMRTrack *track, EMRTrack::Func func, unordered_set<double> &&vals)

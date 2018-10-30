@@ -1,12 +1,13 @@
-#ifndef NRTRACKEXPRESSIONITERATOR_H_INCLUDED
-#define NRTRACKEXPRESSIONITERATOR_H_INCLUDED
+#ifndef EMRTRACKEXPRESSIONITERATOR_H_INCLUDED
+#define EMRTRACKEXPRESSIONITERATOR_H_INCLUDED
 
+#include "EMRDb.h"
 #include "EMRPoint.h"
 
-class NRTrackExpressionIterator {
+class EMRTrackExpressionIterator {
 public:
-	NRTrackExpressionIterator() : m_isend(true) {}
-	virtual ~NRTrackExpressionIterator() {}
+	EMRTrackExpressionIterator() : m_isend(true) {}
+	virtual ~EMRTrackExpressionIterator() {}
 
 	// returns last point of the interval
 	const EMRPoint &point() const { return m_point; }

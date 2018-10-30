@@ -1,12 +1,14 @@
 #include "EMRDb.h"
+#include "EMRIdTimeIntervalsIterator.h"
+#include "EMRIdsIterator.h"
+#include "EMRPointsIterator.h"
+#include "EMRTimesIterator.h"
+#include "EMRTrackIterator.h"
 #include "naryn.h"
-#include "NRIdTimeIntervalsIterator.h"
-#include "NRIdsIterator.h"
+#include "NRIdTimeInterval.h"
 #include "NRIteratorFilter.h"
+#include "NRTimeInterval.h"
 #include "NRPoint.h"
-#include "NRPointsIterator.h"
-#include "NRTimesIterator.h"
-#include "NRTrackIterator.h"
 
 void NRIteratorFilter::init(SEXP filter, unsigned stime, unsigned etime)
 {
@@ -42,9 +44,9 @@ void NRIteratorFilter::init(SEXP filter, unsigned stime, unsigned etime)
         try {
             build_subtree(filters, rfilter_names, filter, &m_tree, false, stime, etime, 0);
             if (!m_tree->is_leaf()) {
-                vector<NRIteratorFilterItem *> op_nodes;
-                vector<NRIteratorFilterItem *> end_nodes;
-                optimize_subtree(m_tree, NRIteratorFilterItem::NONE, op_nodes, end_nodes, 0);
+                vector<EMRIteratorFilterItem *> op_nodes;
+                vector<EMRIteratorFilterItem *> end_nodes;
+                optimize_subtree(m_tree, EMRIteratorFilterItem::NONE, op_nodes, end_nodes, 0);
             }
         } catch(...) {
             delete m_tree;
@@ -59,7 +61,7 @@ void NRIteratorFilter::init(SEXP filter, unsigned stime, unsigned etime)
     }
 }
 
-void NRIteratorFilter::build_subtree(vector<SEXP> &filters, vector<SEXP> &rfilter_names, SEXP filter, NRIteratorFilterItem **tree,
+void NRIteratorFilter::build_subtree(vector<SEXP> &filters, vector<SEXP> &rfilter_names, SEXP filter, EMRIteratorFilterItem **tree,
                                      bool operator_not, unsigned stime, unsigned etime, int depth)
 {
     int idx = 0;
@@ -86,14 +88,14 @@ void NRIteratorFilter::build_subtree(vector<SEXP> &filters, vector<SEXP> &rfilte
 //for (int j = 0; j < depth; ++j)
 //printf("  ");
 //printf("& (not: %d)\n", operator_not);
-                    *tree = new NRIteratorFilterItem();
-                    (*tree)->m_op = operator_not ? NRIteratorFilterItem::OR : NRIteratorFilterItem::AND;
+                    *tree = new EMRIteratorFilterItem();
+                    (*tree)->m_op = operator_not ? EMRIteratorFilterItem::OR : EMRIteratorFilterItem::AND;
                 } else if (!strcmp(str, "|") || !strcmp(str, "||")) {
 //for (int j = 0; j < depth; ++j)
 //printf("  ");
 //printf("& (not: %d)\n", operator_not);
-                    *tree = new NRIteratorFilterItem();
-                    (*tree)->m_op = operator_not ? NRIteratorFilterItem::AND : NRIteratorFilterItem::OR;
+                    *tree = new EMRIteratorFilterItem();
+                    (*tree)->m_op = operator_not ? EMRIteratorFilterItem::AND : EMRIteratorFilterItem::OR;
                 } else if (!strcmp(str, "!")) {
 //for (int j = 0; j < depth; ++j)
 //printf("  ");
@@ -139,7 +141,7 @@ void NRIteratorFilter::build_subtree(vector<SEXP> &filters, vector<SEXP> &rfilte
     }
 }
 
-NRIteratorFilterItem *NRIteratorFilter::create_filter_item(vector<SEXP> &filters, vector<SEXP> &rfilter_names, const char *str,
+EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(vector<SEXP> &filters, vector<SEXP> &rfilter_names, const char *str,
                                                            bool operator_not, unsigned stime, unsigned etime)
 {
     for (size_t i = 0; i < filters.size(); ++i) {
@@ -151,10 +153,10 @@ NRIteratorFilterItem *NRIteratorFilter::create_filter_item(vector<SEXP> &filters
         }
     }
 
-    NRIteratorFilterItem *filter = NULL;
+    EMRIteratorFilterItem *filter = NULL;
 
     try {
-        filter = new NRIteratorFilterItem();
+        filter = new EMRIteratorFilterItem();
         filter->m_is_not = operator_not;
         filter->m_stime = (int)stime;
         filter->m_etime = (int)etime;
@@ -163,7 +165,7 @@ NRIteratorFilterItem *NRIteratorFilter::create_filter_item(vector<SEXP> &filters
         EMRTrack *track = g_db->track(str);
 
         if (track) {
-            filter->m_itr = new NRTrackIterator(track, filter->m_keepref, stime, etime);
+            filter->m_itr = new EMRTrackIterator(track, filter->m_keepref, stime, etime);
             return filter;
         }
 
@@ -181,14 +183,14 @@ NRIteratorFilterItem *NRIteratorFilter::create_filter_item(vector<SEXP> &filters
 
         if (success) {
             try {
-                filter->m_itr = new NRPointsIterator(points, filter->m_keepref, stime, etime);
+                filter->m_itr = new EMRPointsIterator(points, filter->m_keepref, stime, etime);
                 return filter;
             } catch (TGLException &e) {
                 verror("Filter item %s: %s", str, e.msg());
             }
         }
 
-        NRIdTimeIntervals id_time_intervs;
+        EMRIdTimeIntervals id_time_intervs;
         try {
             NRIdTimeIntervals::convert_rid_time_intervals(rval, &id_time_intervs);
             success = true;
@@ -199,7 +201,7 @@ NRIteratorFilterItem *NRIteratorFilter::create_filter_item(vector<SEXP> &filters
 
         if (success) {
             try {
-                filter->m_itr = new NRIdTimeIntervalsIterator(id_time_intervs, filter->m_keepref, stime, etime);
+                filter->m_itr = new EMRIdTimeIntervalsIterator(id_time_intervs, filter->m_keepref, stime, etime);
                 return filter;
             } catch (TGLException &e) {
                 verror("Filter item %s: %s", str, e.msg());
@@ -217,14 +219,14 @@ NRIteratorFilterItem *NRIteratorFilter::create_filter_item(vector<SEXP> &filters
 
         if (success) {
             try {
-                filter->m_itr = new NRIdsIterator(ids, filter->m_keepref, stime, etime);
+                filter->m_itr = new EMRIdsIterator(ids, filter->m_keepref, stime, etime);
                 return filter;
             } catch (TGLException &e) {
                 verror("Filter item %s: %s", str, e.msg());
             }
         }
 
-        NRTimeIntervals time_intervs;
+        EMRTimeIntervals time_intervs;
         try {
             NRTimeIntervals::convert_rtime_intervals(rval, &time_intervs);
             success = true;
@@ -235,7 +237,7 @@ NRIteratorFilterItem *NRIteratorFilter::create_filter_item(vector<SEXP> &filters
 
         if (success) {
             try {
-                filter->m_itr = new NRTimesIterator(time_intervs, filter->m_keepref, stime, etime);
+                filter->m_itr = new EMRTimesIterator(time_intervs, filter->m_keepref, stime, etime);
                 return filter;
             } catch (TGLException &e) {
                 verror("Filter item %s: %s", str, e.msg());
@@ -257,12 +259,12 @@ NRIteratorFilterItem *NRIteratorFilter::create_filter_item(vector<SEXP> &filters
     return filter;
 }
 
-NRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const char *name, bool operator_not, unsigned stime, unsigned etime)
+EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const char *name, bool operator_not, unsigned stime, unsigned etime)
 {
-    NRIteratorFilterItem *filter = NULL;
+    EMRIteratorFilterItem *filter = NULL;
 
     try {
-        filter = new NRIteratorFilterItem();
+        filter = new EMRIteratorFilterItem();
         filter->m_is_not = operator_not;
         filter->m_stime = (int)stime;
         filter->m_etime = (int)etime;
@@ -348,7 +350,7 @@ NRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const c
                     verror("Filter %s: 'expiration' is out of range", name);
             }
 
-            filter->m_itr = new NRTrackIterator(track, filter->m_keepref, _stime, _etime, move(vals), expiration);
+            filter->m_itr = new EMRTrackIterator(track, filter->m_keepref, _stime, _etime, move(vals), expiration);
         } else {   // id-time list
             EMRPoints points;
             try {
@@ -360,7 +362,7 @@ NRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const c
                 if (!isNull(rexpiration))
                     verror("'expiration' parameter can be used only with tracks");
 
-                filter->m_itr = new NRPointsIterator(points, filter->m_keepref, _stime, _etime);
+                filter->m_itr = new EMRPointsIterator(points, filter->m_keepref, _stime, _etime);
             } catch (TGLException &e) {
                 if (e.type() == typeid(NRPoint) && e.code() != NRPoint::BAD_FORMAT) 
                     verror("Filter %s: 'src' is neigther a track nor an id-time data frame", name);
@@ -377,8 +379,8 @@ NRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const c
     return filter;
 }
 
-int NRIteratorFilter::optimize_subtree(NRIteratorFilterItem *tree, NRIteratorFilterItem::Op op,
-                                       vector<NRIteratorFilterItem *> &op_nodes, vector<NRIteratorFilterItem *> &end_nodes, int depth)
+int NRIteratorFilter::optimize_subtree(EMRIteratorFilterItem *tree, EMRIteratorFilterItem::Op op,
+                                       vector<EMRIteratorFilterItem *> &op_nodes, vector<EMRIteratorFilterItem *> &end_nodes, int depth)
 {
     if (tree->is_leaf())
         end_nodes.push_back(tree);
@@ -391,8 +393,8 @@ int NRIteratorFilter::optimize_subtree(NRIteratorFilterItem *tree, NRIteratorFil
         } else {
             end_nodes.push_back(tree);
 
-            vector<NRIteratorFilterItem *> _op_nodes;
-            vector<NRIteratorFilterItem *> _end_nodes;
+            vector<EMRIteratorFilterItem *> _op_nodes;
+            vector<EMRIteratorFilterItem *> _end_nodes;
 
             int depth1 = optimize_subtree(tree->m_child[0], tree->m_op, _op_nodes, _end_nodes, 1);
             int depth2 = optimize_subtree(tree->m_child[1], tree->m_op, _op_nodes, _end_nodes, 1);
@@ -407,7 +409,7 @@ int NRIteratorFilter::optimize_subtree(NRIteratorFilterItem *tree, NRIteratorFil
                 if (optimal_depth < _depth)
                     build_balanced_tree(tree, tree->m_op, _end_nodes.begin(), _end_nodes.end());
 
-                for (vector<NRIteratorFilterItem *>::iterator inode = _op_nodes.begin(); inode != _op_nodes.end(); ++inode) {
+                for (vector<EMRIteratorFilterItem *>::iterator inode = _op_nodes.begin(); inode != _op_nodes.end(); ++inode) {
                     (*inode)->m_child[0] = (*inode)->m_child[1] = NULL;    // prevent recursive deletion of the node
                     delete *inode;
                 }
@@ -417,8 +419,8 @@ int NRIteratorFilter::optimize_subtree(NRIteratorFilterItem *tree, NRIteratorFil
     return depth;
 }
 
-void NRIteratorFilter::build_balanced_tree(NRIteratorFilterItem *tree, NRIteratorFilterItem::Op op,
-                                           vector<NRIteratorFilterItem *>::const_iterator isnode, vector<NRIteratorFilterItem *>::const_iterator ienode)
+void NRIteratorFilter::build_balanced_tree(EMRIteratorFilterItem *tree, EMRIteratorFilterItem::Op op,
+                                           vector<EMRIteratorFilterItem *>::const_iterator isnode, vector<EMRIteratorFilterItem *>::const_iterator ienode)
 {
     tree->m_op = op;
 
@@ -427,13 +429,13 @@ void NRIteratorFilter::build_balanced_tree(NRIteratorFilterItem *tree, NRIterato
         tree->m_child[1] = *(isnode + 1);
     } else if (ienode - isnode == 3) {
         tree->m_child[0] = *isnode;
-        tree->m_child[1] = new NRIteratorFilterItem();
+        tree->m_child[1] = new EMRIteratorFilterItem();
         build_balanced_tree(tree->m_child[1], op, isnode + 1, ienode);
     } else {
-        vector<NRIteratorFilterItem *>::const_iterator imid_node = isnode + (ienode - isnode) / 2;
+        vector<EMRIteratorFilterItem *>::const_iterator imid_node = isnode + (ienode - isnode) / 2;
         
-        tree->m_child[0] = new NRIteratorFilterItem();
-        tree->m_child[1] = new NRIteratorFilterItem();
+        tree->m_child[0] = new EMRIteratorFilterItem();
+        tree->m_child[1] = new EMRIteratorFilterItem();
         build_balanced_tree(tree->m_child[0], op, isnode, imid_node);
         build_balanced_tree(tree->m_child[1], op, imid_node, ienode);
     }
@@ -441,7 +443,7 @@ void NRIteratorFilter::build_balanced_tree(NRIteratorFilterItem *tree, NRIterato
 
 void NRIteratorFilter::check_named_filter(SEXP rfilter, const char *name)
 {
-    NRIteratorFilterItem *filter = create_filter_item(rfilter, name, false, 0, g_db->maxtime());
+    EMRIteratorFilterItem *filter = create_filter_item(rfilter, name, false, 0, g_db->maxtime());
     delete filter;
 }
 
@@ -451,7 +453,7 @@ void NRIteratorFilter::debug_print()
         debug_print(m_tree, 0);
 }
 
-void NRIteratorFilter::debug_print(NRIteratorFilterItem *tree, int depth)
+void NRIteratorFilter::debug_print(EMRIteratorFilterItem *tree, int depth)
 {
     tree->debug_print(depth);
     if (tree->m_child[0])
@@ -471,6 +473,33 @@ SEXP emr_check_named_filter(SEXP _filter, SEXP _name, SEXP _envir)
             verror("Name of the filter is not a string");
 
 		NRIteratorFilter::check_named_filter(_filter, CHAR(STRING_ELT(_name, 0)));
+	} catch (TGLException &e) {
+		rerror("%s", e.msg());
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
+	return R_NilValue;
+}
+
+SEXP emr_check_filter_src(SEXP _src, SEXP _envir)
+{
+	try {
+		Naryn naryn(_envir);
+
+        if (isString(_src) && Rf_length(_src) == 1) {
+            const char *trackname = CHAR(STRING_ELT(_src, 0));
+            if (!g_db->track(trackname))
+                verror("Track %s does not exist", trackname);
+        } else {
+            EMRPoints points;
+            try {
+                NRPoint::convert_rpoints(_src, &points, "'src' argument");
+            } catch (TGLException &e) {
+                if (e.type() == typeid(NRPoint) && e.code() == NRPoint::BAD_FORMAT)
+                    verror("'src' is neither a track nor a valid ID-Time Table");
+                throw;
+            }
+        }
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
     } catch (const bad_alloc &e) {

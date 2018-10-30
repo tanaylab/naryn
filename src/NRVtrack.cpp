@@ -6,21 +6,17 @@ using namespace std;
 
 extern "C" {
 
-SEXP emr_check_vtrack(SEXP _vtrack, SEXP _envir)
+SEXP emr_check_vtrack(SEXP _vtrackstr, SEXP _vtrack, SEXP _envir)
 {
 	try {
 		Naryn naryn(_envir);
 
 		// check the arguments
-		if (!isString(_vtrack) || Rf_length(_vtrack) != 1)
-			verror("The value of 'vtrack' parameter is not a string");
+		if (!isString(_vtrackstr) || Rf_length(_vtrackstr) != 1)
+			verror("The value of 'vtrackstr' parameter is not a string");
 
-		const char *vtrack = CHAR(STRING_ELT(_vtrack, 0));
-		vector<string> exprs;
-		NRTrackExpressionVars parser;
-
-		exprs.push_back(vtrack);
-		parser.parse_exprs(exprs, true);
+		const char *vtrackstr = CHAR(STRING_ELT(_vtrackstr, 0));
+        NRTrackExpressionVars::check_vtrack(vtrackstr, _vtrack);
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
     } catch (const bad_alloc &e) {

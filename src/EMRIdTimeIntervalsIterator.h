@@ -1,18 +1,18 @@
-#ifndef NRIDTIMEINTERVALSITERATOR_H_INCLUDED
-#define NRIDTIMEINTERVALSITERATOR_H_INCLUDED
+#ifndef EMRIDTIMEINTERVALSITERATOR_H_INCLUDED
+#define EMRIDTIMEINTERVALSITERATOR_H_INCLUDED
 
-#include "NRIdTimeInterval.h"
-#include "NRTrackExpressionIterator.h"
+#include "EMRIdTimeInterval.h"
+#include "EMRTrackExpressionIterator.h"
 
-class NRIdTimeIntervalsIterator : public NRTrackExpressionIterator {
+class EMRIdTimeIntervalsIterator : public EMRTrackExpressionIterator {
 public:
-	NRIdTimeIntervalsIterator() {}
-    NRIdTimeIntervalsIterator(const NRIdTimeIntervals &intervs, bool keepref, unsigned stime, unsigned etime) { init(intervs, keepref, stime, etime); }
-	virtual ~NRIdTimeIntervalsIterator() {}
+	EMRIdTimeIntervalsIterator() {}
+    EMRIdTimeIntervalsIterator(const EMRIdTimeIntervals &intervs, bool keepref, unsigned stime, unsigned etime) { init(intervs, keepref, stime, etime); }
+	virtual ~EMRIdTimeIntervalsIterator() {}
 
-    void init(const NRIdTimeIntervals &intervs, bool keepref, unsigned stime, unsigned etime);
+    void init(const EMRIdTimeIntervals &intervs, bool keepref, unsigned stime, unsigned etime);
 
-    const NRIdTimeInterval &cur_interval() const { return *m_iinterv; }
+    const EMRIdTimeInterval &cur_interval() const { return *m_iinterv; }
 
 	virtual bool begin();
 	virtual bool next();
@@ -22,16 +22,16 @@ public:
     virtual uint64_t idx() const;
 
 protected:
-	NRIdTimeIntervals                 m_intervs;
-    NRIdTimeIntervals::const_iterator m_iinterv;
-    uint64_t                          m_num_steps;
-    vector<uint64_t>                  m_num_steps4interv;   // cumulative number of steps up to the given intervals
+	EMRIdTimeIntervals                 m_intervs;
+    EMRIdTimeIntervals::const_iterator m_iinterv;
+    uint64_t                           m_num_steps;
+    vector<uint64_t>                   m_num_steps4interv;   // cumulative number of steps up to the given intervals
 };
 
 
 //------------------------------ IMPLEMENTATION ----------------------------------------
 
-inline void NRIdTimeIntervalsIterator::init(const NRIdTimeIntervals &intervs, bool keepref, unsigned stime, unsigned etime)
+inline void EMRIdTimeIntervalsIterator::init(const EMRIdTimeIntervals &intervs, bool keepref, unsigned stime, unsigned etime)
 {
     m_keepref = keepref;
     m_intervs = intervs;
@@ -39,7 +39,7 @@ inline void NRIdTimeIntervalsIterator::init(const NRIdTimeIntervals &intervs, bo
 
     m_num_steps4interv.reserve(m_intervs.size() + 1);
     m_num_steps4interv.push_back(0);
-    for (NRIdTimeIntervals::iterator iinterv = m_intervs.begin(); iinterv < m_intervs.end(); ++iinterv)
+    for (EMRIdTimeIntervals::iterator iinterv = m_intervs.begin(); iinterv < m_intervs.end(); ++iinterv)
         m_num_steps4interv.push_back(m_num_steps4interv[iinterv - m_intervs.begin()] + iinterv->tinterv.etime - iinterv->tinterv.stime + 1);
 
     m_num_steps = m_num_steps4interv.back();
@@ -51,7 +51,7 @@ inline void NRIdTimeIntervalsIterator::init(const NRIdTimeIntervals &intervs, bo
     }
 }
 
-inline bool NRIdTimeIntervalsIterator::begin()
+inline bool EMRIdTimeIntervalsIterator::begin()
 {
     m_isend = false;
     for (m_iinterv = m_intervs.begin(); m_iinterv < m_intervs.end(); ++m_iinterv) {
@@ -65,7 +65,7 @@ inline bool NRIdTimeIntervalsIterator::begin()
     return false;
 }
 
-inline bool NRIdTimeIntervalsIterator::next()
+inline bool EMRIdTimeIntervalsIterator::next()
 {
     EMRTimeStamp::Hour hour = m_point.timestamp.hour();
 
@@ -91,7 +91,7 @@ inline bool NRIdTimeIntervalsIterator::next()
     return false;
 }
 
-inline bool NRIdTimeIntervalsIterator::next(const EMRPoint &jumpto)
+inline bool EMRIdTimeIntervalsIterator::next(const EMRPoint &jumpto)
 {
     unsigned id = jumpto.id;
 
@@ -127,7 +127,7 @@ inline bool NRIdTimeIntervalsIterator::next(const EMRPoint &jumpto)
     return false;
 }
 
-inline uint64_t NRIdTimeIntervalsIterator::idx() const
+inline uint64_t EMRIdTimeIntervalsIterator::idx() const
 {
     return m_keepref ?
         m_num_steps4interv[m_iinterv - m_intervs.begin()] +

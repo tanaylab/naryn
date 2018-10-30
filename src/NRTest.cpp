@@ -6,11 +6,12 @@
 
 #include "EMRDb.h"
 #include "EMRProgressReporter.h"
+#include "EMRTimesIterator.h"
 #include "EMRTrack.h"
+#include "EMRTrackIterator.h"
 #include "naryn.h"
 #include "NRIteratorFilter.h"
-#include "NRTimesIterator.h"
-#include "NRTrackIterator.h"
+#include "NRTimeInterval.h"
 #include "strutil.h"
 
 #include <R_ext/BLAS.h>
@@ -393,7 +394,7 @@ SEXP nrtest_iterator(SEXP envir)
 		}
 
 		EMRTrackData<double>::DataRecs data_recs;
-        NRTrackIterator itr;
+        EMRTrackIterator itr;
 
         int idx = -1;
         while (1) {
@@ -697,10 +698,10 @@ SEXP nrtest_time_iterator(SEXP _times, SEXP _stime, SEXP _etime, SEXP _keepref, 
 
         unsigned stime = asInteger(_stime);
         unsigned etime = asInteger(_etime);
-        NRTimeIntervals intervs;
+        EMRTimeIntervals intervs;
         NRTimeIntervals::convert_rtime_intervals(_times, &intervs);
 
-        NRTimesIterator itr;
+        EMRTimesIterator itr;
 
         itr.init(intervs, asLogical(_keepref), stime, etime);
         itr.begin();

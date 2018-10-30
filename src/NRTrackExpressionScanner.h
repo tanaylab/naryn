@@ -7,9 +7,9 @@
 #include <string>
 
 #include "EMRTrack.h"
+#include "EMRTrackExpressionIterator.h"
 #include "naryn.h"
 #include "NRIteratorFilter.h"
-#include "NRTrackExpressionIterator.h"
 #include "NRTrackExpressionVars.h"
 
 using namespace std;
@@ -57,10 +57,10 @@ private:
         IteratorWithFilter() { m_itr = NULL; m_isend = true; }
         ~IteratorWithFilter() { delete m_itr; }
 
-        void init(NRTrackExpressionIterator *itr, SEXP filter, unsigned stime, unsigned etime);
+        void init(EMRTrackExpressionIterator *itr, SEXP filter, unsigned stime, unsigned etime);
 
-        const NRTrackExpressionIterator &itr() const { return *m_itr; }
-        const NRIteratorFilter          &filter() const { return m_filter; }
+        const EMRTrackExpressionIterator &itr() const { return *m_itr; }
+        const NRIteratorFilter           &filter() const { return m_filter; }
 
         // returns false if end is reached
         bool begin();
@@ -71,9 +71,9 @@ private:
         bool isend() const { return m_isend; }
 
     private:
-        NRTrackExpressionIterator *m_itr;
-        NRIteratorFilter           m_filter;
-        bool                       m_isend;
+        EMRTrackExpressionIterator *m_itr;
+        NRIteratorFilter            m_filter;
+        bool                        m_isend;
 
         bool apply_filter();
     };
@@ -133,7 +133,7 @@ private:
 
 //------------------------------ IMPLEMENTATION ----------------------------------------
 
-inline void NRTrackExprScanner::IteratorWithFilter::init(NRTrackExpressionIterator *itr, SEXP filter, unsigned stime, unsigned etime)
+inline void NRTrackExprScanner::IteratorWithFilter::init(EMRTrackExpressionIterator *itr, SEXP filter, unsigned stime, unsigned etime)
 {
     m_isend = true;
     delete m_itr;

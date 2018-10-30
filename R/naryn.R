@@ -72,20 +72,20 @@
     filter
 }
 
-.emr_track.dir <- function(track) {
-    if (is.na(match(track, .emr_call("emr_global_track_names", new.env(parent = parent.frame()), silent = TRUE))))
-        dirname <- get("EMR_UROOT", envir = .GlobalEnv)
-    else
-        dirname <- get("EMR_GROOT", envir = .GlobalEnv)
-    paste(dirname, track, sep = "/")
-}
-
 .emr_track.var.dir <- function(track) {
     if (is.na(match(track, .emr_call("emr_global_track_names", new.env(parent = parent.frame()), silent = TRUE))))
         dirname <- get("EMR_UROOT", envir = .GlobalEnv)
     else
         dirname <- get("EMR_GROOT", envir = .GlobalEnv)
     paste0(dirname, "/.", track, ".var")
+}
+
+.emr_track.pyvar.dir <- function(track) {
+    if (is.na(match(track, .emr_call("emr_global_track_names", new.env(parent = parent.frame()), silent = TRUE))))
+        dirname <- get("EMR_UROOT", envir = .GlobalEnv)
+    else
+        dirname <- get("EMR_GROOT", envir = .GlobalEnv)
+    paste0(dirname, "/.", track, ".pyvar")
 }
 
 .emr_vtrack.get <- function(vtrackstr) {
@@ -158,7 +158,7 @@ emr_db.reload <- function() {
 }
 
 emr_db.subset <- function(src = "", fraction = NULL, complementary = NULL) {
-    if (src == "")
+    if (!is.null(src) && src == "")
         stop("Usage: emr_db.subset(src, fraction, complementary)", call. = F)
     .emr_checkroot()
 
@@ -300,6 +300,10 @@ emr_track.rm <- function(track, force = F) {
         if (file.exists(dirname))
             unlink(dirname, recursive = TRUE)
 
+        dirname <- .emr_track.pyvar.dir(track)
+        if (file.exists(dirname))
+            unlink(dirname, recursive = TRUE)
+
         .emr_db_constants_load()
     }
 
@@ -427,19 +431,10 @@ emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val =
     else
         root <- get("EMR_GROOT", envir = .GlobalEnv)
 
-    old.filter <- EMR_FILTERS[[root]][[filter]]
     var <- list(src = src, time_shift = time.shift, keepref = keepref, val = val, expiration = expiration)
-	EMR_FILTERS[[root]][[filter]] <<- var
-
-    success <- F
-    tryCatch({
-        .emr_call("emr_check_named_filter", var, filter, new.env(parent = parent.frame()))
-        success <- T
-    },
-    finally = {
-        if (!success)
-            EMR_FILTERS[[root]][[filter]] <<- old.filter
-    })
+    .emr_call("emr_check_named_filter", var, filter, new.env(parent = parent.frame()))
+    emr_filter.rm(filter)
+    EMR_FILTERS[[root]][[filter]] <<- var
 
 	retv <- NULL
 }
@@ -462,11 +457,8 @@ emr_filter.attr.src <- function(filter, src) {
     if (missing(src))
         filter.var$src
     else {
-        if (!emr_track.exists(src))
-            stop(sprintf("Track \"%s\" does not exist", src), call. = F)
-
-        EMR_FILTERS[[root]][[filter]] <<- NULL
-
+        .emr_call("emr_check_filter_src", src, new.env(parent = parent.frame()))
+        emr_filter.rm(filter)
         filter.var$src <- src
         if (!is.na(match(src, .emr_call("emr_user_track_names", new.env(parent = parent.frame()), silent = TRUE))))
             root <- get("EMR_UROOT", envir = .GlobalEnv)
@@ -609,7 +601,7 @@ emr_filter.ls <- function(pattern = "", ignore.case = FALSE, perl = FALSE, fixed
 	if (!is.list(emr_filters) || (length(emr_filters) && !is.character(emr_roots)) || length(emr_filters) != length(emr_roots))
 		stop("Invalid format of EMR_FILTERS variable.\nTo continue working with filters please remove this variable from the environment.", call. = F)
 
-    filternames <- NULL
+    all.filternames <- NULL
     roots <- c("EMR_GROOT", "EMR_UROOT")
 
     for (root in roots) {
@@ -621,17 +613,18 @@ emr_filter.ls <- function(pattern = "", ignore.case = FALSE, perl = FALSE, fixed
                 filternames <- names(filters)
         	    if (!is.list(filters) || (length(filters) && !is.character(filternames)) || length(filters) != length(filternames))
         		    stop("Invalid format of EMR_FILTERS variable.\nTo continue working with filters please remove this variable from the environment.", call. = F)
+                all.filternames <- c(all.filternames, filternames)
             }
         }
     }
 
-	if (is.null(filternames))
+	if (is.null(all.filternames))
 		return(NULL)
 
 	if (pattern != "")
-		sort(grep(pattern, filternames, value = TRUE, ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes))
+		sort(grep(pattern, all.filternames, value = TRUE, ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes))
 	else
-		sort(filternames)
+		sort(all.filternames)
 }
 
 emr_filter.rm <- function(filter) {
@@ -674,18 +667,10 @@ emr_vtrack.create <- function(vtrack, src, func = NULL, params = NULL, keepref =
     else
         root <- get("EMR_GROOT", envir = .GlobalEnv)
 
-    old.vtrack <- EMR_VTRACKS[[root]][[vtrack]]
-	EMR_VTRACKS[[root]][[vtrack]] <<- list(src = src, time_shift = time.shift, func = func, params = params, keepref = keepref, id_map = id.map, filter = .emr_filter(filter))
-	
-    success <- F
-    tryCatch({
-        .emr_call("emr_check_vtrack", vtrack, new.env(parent = parent.frame()))
-        success <- T
-    },
-    finally = {
-        if (!success)
-            EMR_VTRACKS[[root]][[vtrack]] <<- old.vtrack
-    })
+    var <- list(src = src, time_shift = time.shift, func = func, params = params, keepref = keepref, id_map = id.map, filter = .emr_filter(filter))	
+    .emr_call("emr_check_vtrack", vtrack, var, new.env(parent = parent.frame()))
+    emr_vtrack.rm(vtrack)
+    EMR_VTRACKS[[root]][[vtrack]] <<- var
 
 	retv <- NULL
 }
@@ -710,9 +695,7 @@ emr_vtrack.attr.src <- function(vtrack, src) {
     else {
         if (!emr_track.exists(src))
             stop(sprintf("Track \"%s\" does not exist", src), call. = F)
-
-        EMR_VTRACKS[[root]][[vtrack]] <<- NULL
-
+        emr_vtrack.rm(vtrack)
         vtrack.var$src <- src
         if (!is.na(match(src, .emr_call("emr_user_track_names", new.env(parent = parent.frame()), silent = TRUE))))
             root <- get("EMR_UROOT", envir = .GlobalEnv)
@@ -901,7 +884,7 @@ emr_vtrack.ls <- function(pattern = "", ignore.case = FALSE, perl = FALSE, fixed
 	if (!is.list(emr_vtracks) || (length(emr_vtracks) && !is.character(emr_roots)) || length(emr_vtracks) != length(emr_roots))
 		stop("Invalid format of EMR_VTRACKS variable.\nTo continue working with virtual tracks please remove this variable from the environment.", call. = F)
 
-    vtracknames <- NULL
+    all.vtracknames <- NULL
     roots <- c("EMR_GROOT", "EMR_UROOT")
 
     for (root in roots) {
@@ -913,17 +896,18 @@ emr_vtrack.ls <- function(pattern = "", ignore.case = FALSE, perl = FALSE, fixed
                 vtracknames <- names(vtracks)
             	if (!is.list(vtracks) || (length(vtracks) && !is.character(vtracknames)) || length(vtracks) != length(vtracknames))
             		stop("Invalid format of EMR_VTRACKS variable.\nTo continue working with virtual tracks please remove this variable from the environment.", call. = F)
+                all.vtracknames <- c(all.vtracknames, vtracknames)
             }
         }
     }
 
-	if (is.null(vtracknames))
+	if (is.null(all.vtracknames))
 		return(NULL)
 
 	if (pattern != "")
-		sort(grep(pattern, vtracknames, value = TRUE, ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes))
+		sort(grep(pattern, all.vtracknames, value = TRUE, ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes))
 	else
-		sort(vtracknames)
+		sort(all.vtracknames)
 }
 
 emr_vtrack.rm <- function(vtrack) {
@@ -1128,9 +1112,5 @@ emr_traceback <- function(x = NULL, max.lines = getOption("deparse.max.lines")) 
 	}
 
 	traceback(x, max.lines)
-}
-
-emr_test_pipe <- function(num_processes = 1, duration = 5) {
-    .emr_call("emr_test_pipe", num_processes, duration, new.env(parent = parent.frame()))
 }
 

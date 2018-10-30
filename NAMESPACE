@@ -1,3 +1,4 @@
 useDynLib(naryn)
 exportPattern("^[[:alpha:]]+")
+exportPattern("^[\\.[:alpha:]]+")
 

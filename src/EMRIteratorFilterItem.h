@@ -1,15 +1,15 @@
-#ifndef NRITERATORFILTERITEM_H_INCLUDED
-#define NRITERATORFILTERITEM_H_INCLUDED
+#ifndef EMRITERATORFILTERITEM_H_INCLUDED
+#define EMRITERATORFILTERITEM_H_INCLUDED
 
 #include <stdio.h>
 
 #include "EMRPoint.h"
-#include "NRTrackExpressionIterator.h"
+#include "EMRTrackExpressionIterator.h"
 
-class NRIteratorFilterItem {
+class EMRIteratorFilterItem {
 public:
-    NRIteratorFilterItem();
-    virtual ~NRIteratorFilterItem();
+    EMRIteratorFilterItem();
+    virtual ~EMRIteratorFilterItem();
 
     bool is_leaf() const { return !m_child[0]; }
 
@@ -27,7 +27,7 @@ protected:
 
     // used when node
     Op       m_op;
-    NRIteratorFilterItem *m_child[2];
+    EMRIteratorFilterItem *m_child[2];
 
     // used when leaf
     bool     m_is_not;
@@ -37,7 +37,7 @@ protected:
     int      m_etime;
     bool     m_keepref;
     bool     m_itr_started;
-    NRTrackExpressionIterator *m_itr;
+    EMRTrackExpressionIterator *m_itr;
 
     EMRPoint  m_jumpto;
     EMRPoint  m_true_upto;
@@ -53,7 +53,7 @@ protected:
 
 //------------------------------ IMPLEMENTATION ----------------------------------------
 
-inline NRIteratorFilterItem::NRIteratorFilterItem()
+inline EMRIteratorFilterItem::EMRIteratorFilterItem()
 {
     m_op = NONE;
     m_child[0] = m_child[1] = NULL;
@@ -64,21 +64,21 @@ inline NRIteratorFilterItem::NRIteratorFilterItem()
     m_itr = NULL;
 }
 
-inline NRIteratorFilterItem::~NRIteratorFilterItem()
+inline EMRIteratorFilterItem::~EMRIteratorFilterItem()
 {
     delete m_child[0];
     delete m_child[1];
     delete m_itr;
 }
 
-inline bool NRIteratorFilterItem::filtered_next()
+inline bool EMRIteratorFilterItem::filtered_next()
 {
     int hour = max((int)m_itr->point().timestamp.hour() - m_eshift, m_stime);
     m_jumpto.init(m_itr->point().id, hour, (EMRTimeStamp::Refcount)-1);
     return false;
 }
 
-inline bool NRIteratorFilterItem::filtered_end()
+inline bool EMRIteratorFilterItem::filtered_end()
 {
     m_jumpto = EMRPoint();
     return false;

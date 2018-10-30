@@ -55,11 +55,13 @@ public:
 
 	const string &get_track_name(unsigned ivar) const { return m_track_vars[ivar].imanager->name; }
 
-	void parse_exprs(const vector<string> &track_exprs, bool only_check, unsigned stime = 0, unsigned etime = 0);
+	void parse_exprs(const vector<string> &track_exprs, unsigned stime, unsigned etime);
 	void define_r_vars(unsigned size);
     const TrackVar *var(const char *var_name) const;
 
 	void set_vars(const EMRPoint &point, unsigned idx);
+
+    static void check_vtrack(const string &track, SEXP rvtrack);
 
 private:
 	typedef vector<IteratorManager> IteratorManagers;

@@ -1,14 +1,14 @@
-#ifndef NRPOINTSITERATOR_H_INCLUDED
-#define NRPOINTSITERATOR_H_INCLUDED
+#ifndef EMRPOINTSITERATOR_H_INCLUDED
+#define EMRPOINTSITERATOR_H_INCLUDED
 
 #include "EMRTrack.h"
-#include "NRTrackExpressionIterator.h"
+#include "EMRTrackExpressionIterator.h"
 
-class NRPointsIterator : public NRTrackExpressionIterator {
+class EMRPointsIterator : public EMRTrackExpressionIterator {
 public:
-	NRPointsIterator() {}
-    NRPointsIterator(const EMRPoints &points, bool keepref, unsigned stime, unsigned etime) { init(points, keepref, stime, etime); }
-	virtual ~NRPointsIterator() {}
+	EMRPointsIterator() {}
+    EMRPointsIterator(const EMRPoints &points, bool keepref, unsigned stime, unsigned etime) { init(points, keepref, stime, etime); }
+	virtual ~EMRPointsIterator() {}
 
     void init(const EMRPoints &points, bool keepref, unsigned stime, unsigned etime);
 
@@ -29,7 +29,7 @@ protected:
 
 //------------------------------ IMPLEMENTATION ----------------------------------------
 
-inline void NRPointsIterator::init(const EMRPoints &points, bool keepref, unsigned stime, unsigned etime)
+inline void EMRPointsIterator::init(const EMRPoints &points, bool keepref, unsigned stime, unsigned etime)
 {
     m_keepref = keepref;
     m_stime = stime;
@@ -45,7 +45,7 @@ inline void NRPointsIterator::init(const EMRPoints &points, bool keepref, unsign
     }
 }
 
-inline bool NRPointsIterator::begin()
+inline bool EMRPointsIterator::begin()
 {
     m_ipoint = m_points.begin() - 1;
     m_point.init(-1, -1, -1);
@@ -53,7 +53,7 @@ inline bool NRPointsIterator::begin()
     return next();
 }
 
-inline bool NRPointsIterator::next()
+inline bool EMRPointsIterator::next()
 {
     ++m_ipoint;
 	while (m_ipoint < m_points.end()) {
@@ -77,7 +77,7 @@ inline bool NRPointsIterator::next()
 	return false;
 }
 
-inline bool NRPointsIterator::next(const EMRPoint &jumpto)
+inline bool EMRPointsIterator::next(const EMRPoint &jumpto)
 {
     ++m_ipoint;
     if (m_ipoint < m_points.end()) {

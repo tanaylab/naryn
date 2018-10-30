@@ -1,20 +1,41 @@
-#include "EMRTimeStamp.h"
+#include <cmath>
 
-void EMRTimeStamp::serialize(BufferedFile &bfile)
-{
-    if (bfile.write(&m_timestamp, sizeof(m_timestamp)) != sizeof(m_timestamp)) {
-        if (bfile.error())
-            TGLError("Failed to write a file %s: %s", bfile.file_name().c_str(), strerror(errno));
-        TGLError("Failed to write a file %s", bfile.file_name().c_str());
-    }
-}
+#include "EMRTimeInterval.h"
+#include "naryn.h"
 
-void EMRTimeStamp::unserialize(BufferedFile &bfile)
+void EMRTimeIntervals::sort_and_unify_overlaps(unsigned stime, unsigned etime)
 {
-    if (bfile.read(&m_timestamp, sizeof(m_timestamp)) != sizeof(m_timestamp)) {
-        if (bfile.error())
-            TGLError("Reading a file %s: %s", bfile.file_name().c_str(), strerror(errno));
-        TGLError("Invalid format of a file %s", bfile.file_name().c_str());
+    if (empty())
+        return;
+
+    for (vector<EMRTimeInterval>::iterator iinterv = begin(); iinterv < end(); ) {
+        if (iinterv->stime > iinterv->etime)
+            verror("Start time (%d) exceeds end time (%d) at time intervals, row %d", stime, etime, iinterv - begin() + 1);
+
+        // whole interval lays outside of scope => remove it
+        if (iinterv->etime < stime || iinterv->stime > etime) {
+            if (iinterv != end() - 1)
+                *iinterv = back();
+            pop_back();
+            continue;
+        }
+
+        iinterv->stime = max(iinterv->stime, stime);
+        iinterv->etime = min(iinterv->etime, etime);
+        ++iinterv;
     }
+
+    sort(begin(), end());
+
+    size_t cur_idx = 0;
+
+    for (size_t i = 1; i < size(); i++) {
+        if (at(cur_idx).etime < at(i).stime)
+            at(++cur_idx) = at(i);
+        // unite overlapping intervals
+        else if (at(cur_idx).etime < at(i).etime)
+            at(cur_idx).etime = at(i).etime;
+    }
+    erase(begin() + cur_idx + 1, end());
 }
 

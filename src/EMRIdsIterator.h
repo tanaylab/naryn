@@ -1,13 +1,14 @@
-#ifndef NRIDSITERATOR_H_INCLUDED
-#define NRIDSITERATOR_H_INCLUDED
+#ifndef EMRIDSITERATOR_H_INCLUDED
+#define EMRIDSITERATOR_H_INCLUDED
 
-#include "NRTrackExpressionIterator.h"
+#include "EMRTrackExpressionIterator.h"
+#include "naryn.h"
 
-class NRIdsIterator : public NRTrackExpressionIterator {
+class EMRIdsIterator : public EMRTrackExpressionIterator {
 public:
-	NRIdsIterator() {}
-    NRIdsIterator(const vector<unsigned> &ids, bool keepref, unsigned stime, unsigned etime) { init(ids, keepref, stime, etime); }
-	virtual ~NRIdsIterator() {}
+	EMRIdsIterator() {}
+    EMRIdsIterator(const vector<unsigned> &ids, bool keepref, unsigned stime, unsigned etime) { init(ids, keepref, stime, etime); }
+	virtual ~EMRIdsIterator() {}
 
     void init(const vector<unsigned> &ids, bool keepref, unsigned stime, unsigned etime);
 
@@ -30,7 +31,7 @@ protected:
 
 //------------------------------ IMPLEMENTATION ----------------------------------------
 
-inline void NRIdsIterator::init(const vector<unsigned> &ids, bool keepref, unsigned stime, unsigned etime)
+inline void EMRIdsIterator::init(const vector<unsigned> &ids, bool keepref, unsigned stime, unsigned etime)
 {
     m_keepref = keepref;
     m_stime = stime;
@@ -47,7 +48,7 @@ inline void NRIdsIterator::init(const vector<unsigned> &ids, bool keepref, unsig
     m_num_steps = m_ids.size() * m_num_steps4id;
 }
 
-inline bool NRIdsIterator::begin()
+inline bool EMRIdsIterator::begin()
 {
     m_isend = false;
     for (m_iid = m_ids.begin(); m_iid < m_ids.end(); ++m_iid) {
@@ -61,7 +62,7 @@ inline bool NRIdsIterator::begin()
     return false;
 }
 
-inline bool NRIdsIterator::next()
+inline bool EMRIdsIterator::next()
 {
     EMRTimeStamp::Hour hour = m_point.timestamp.hour();
 
@@ -87,7 +88,7 @@ inline bool NRIdsIterator::next()
     return false;
 }
 
-inline bool NRIdsIterator::next(const EMRPoint &jumpto)
+inline bool EMRIdsIterator::next(const EMRPoint &jumpto)
 {
     while (m_iid < m_ids.end()) {
         if (*m_iid < jumpto.id) {
@@ -118,7 +119,7 @@ inline bool NRIdsIterator::next(const EMRPoint &jumpto)
     return false;
 }
 
-inline uint64_t NRIdsIterator::idx() const
+inline uint64_t EMRIdsIterator::idx() const
 {
     return m_keepref ?
         (m_iid - m_ids.begin()) * m_num_steps4id + (EMRTimeStamp::MAX_REFCOUNT + 1) * (uint64_t)(m_point.timestamp.hour() - m_stime) + m_point.timestamp.refcount() :

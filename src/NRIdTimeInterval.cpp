@@ -1,48 +1,10 @@
-#include <cmath>
-
 #include "EMRDb.h"
 #include "naryn.h"
 #include "NRIdTimeInterval.h"
 
 const char *NRIdTimeIntervals::COL_NAMES[NUM_COLS] = { "id", "stime", "etime" };
 
-void NRIdTimeIntervals::sort_and_unify_overlaps(unsigned stime, unsigned etime)
-{
-    if (empty())
-        return;
-
-    for (vector<NRIdTimeInterval>::iterator iinterv = begin(); iinterv < end(); ) {
-        if (iinterv->tinterv.stime > iinterv->tinterv.etime)
-            verror("Start time (%d) exceeds end time (%d) at time intervals, row %d", stime, etime, iinterv - begin() + 1);
-
-        // whole interval lays outside of scope => remove it
-        if (iinterv->id < g_db->minid() || iinterv->id > g_db->maxid() || iinterv->tinterv.etime < stime || iinterv->tinterv.stime > etime) {
-            if (iinterv != end() - 1)
-                *iinterv = back();
-            pop_back();
-            continue;
-        }
-
-        iinterv->tinterv.stime = max(iinterv->tinterv.stime, stime);
-        iinterv->tinterv.etime = min(iinterv->tinterv.etime, etime);
-        ++iinterv;
-    }
-
-    sort(begin(), end());
-
-    size_t cur_idx = 0;
-
-    for (size_t i = 1; i < size(); i++) {
-        if (at(cur_idx).id != at(i).id || at(cur_idx).tinterv.etime < at(i).tinterv.stime)
-            at(++cur_idx) = at(i);
-        // unite overlapping intervals
-        else if (at(cur_idx).tinterv.etime < at(i).tinterv.etime)
-            at(cur_idx).tinterv.etime = at(i).tinterv.etime;
-    }
-    erase(begin() + cur_idx + 1, end());
-}
-
-void NRIdTimeIntervals::convert_rid_time_intervals(SEXP rintervs, NRIdTimeIntervals *intervs, const char *error_msg_prefix)
+void NRIdTimeIntervals::convert_rid_time_intervals(SEXP rintervs, EMRIdTimeIntervals *intervs, const char *error_msg_prefix)
 {
     intervs->clear();
 
@@ -99,7 +61,7 @@ void NRIdTimeIntervals::convert_rid_time_intervals(SEXP rintervs, NRIdTimeInterv
         if (stime > etime)
             TGLError<NRIdTimeIntervals>(BAD_VALUE, "%sStart time (%d) exceeds end time (%d) at ID - time intervals, row %d", error_msg_prefix, stime, etime, i + 1);
 
-        intervs->push_back(NRIdTimeInterval(id, (EMRTimeStamp::Hour)stime, (EMRTimeStamp::Hour)etime));
+        intervs->push_back(EMRIdTimeInterval(id, (EMRTimeStamp::Hour)stime, (EMRTimeStamp::Hour)etime));
     }
 }
 

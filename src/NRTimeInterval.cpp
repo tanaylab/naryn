@@ -1,47 +1,9 @@
-#include <cmath>
-
 #include "naryn.h"
 #include "NRTimeInterval.h"
 
 const char *NRTimeIntervals::COL_NAMES[NUM_COLS] = { "stime", "etime" };
 
-void NRTimeIntervals::sort_and_unify_overlaps(unsigned stime, unsigned etime)
-{
-    if (empty())
-        return;
-
-    for (vector<NRTimeInterval>::iterator iinterv = begin(); iinterv < end(); ) {
-        if (iinterv->stime > iinterv->etime)
-            verror("Start time (%d) exceeds end time (%d) at time intervals, row %d", stime, etime, iinterv - begin() + 1);
-
-        // whole interval lays outside of scope => remove it
-        if (iinterv->etime < stime || iinterv->stime > etime) {
-            if (iinterv != end() - 1)
-                *iinterv = back();
-            pop_back();
-            continue;
-        }
-
-        iinterv->stime = max(iinterv->stime, stime);
-        iinterv->etime = min(iinterv->etime, etime);
-        ++iinterv;
-    }
-
-    sort(begin(), end());
-
-    size_t cur_idx = 0;
-
-    for (size_t i = 1; i < size(); i++) {
-        if (at(cur_idx).etime < at(i).stime)
-            at(++cur_idx) = at(i);
-        // unite overlapping intervals
-        else if (at(cur_idx).etime < at(i).etime)
-            at(cur_idx).etime = at(i).etime;
-    }
-    erase(begin() + cur_idx + 1, end());
-}
-
-void NRTimeIntervals::convert_rtime_intervals(SEXP rintervs, NRTimeIntervals *intervs, const char *error_msg_prefix)
+void NRTimeIntervals::convert_rtime_intervals(SEXP rintervs, EMRTimeIntervals *intervs, const char *error_msg_prefix)
 {
     intervs->clear();
 
@@ -93,7 +55,7 @@ void NRTimeIntervals::convert_rtime_intervals(SEXP rintervs, NRTimeIntervals *in
         if (stime > etime)
             TGLError<NRTimeIntervals>(BAD_VALUE, "%sStart time (%d) exceeds end time (%d) at time intervals, row %d", error_msg_prefix, stime, etime, i + 1);
 
-        intervs->push_back(NRTimeInterval((EMRTimeStamp::Hour)stime, (EMRTimeStamp::Hour)etime));
+        intervs->push_back(EMRTimeInterval((EMRTimeStamp::Hour)stime, (EMRTimeStamp::Hour)etime));
     }
 }
 

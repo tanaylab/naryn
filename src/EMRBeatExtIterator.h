@@ -1,16 +1,16 @@
-#ifndef NRBEATEXTITERATOR_H_INCLUDED
-#define NRBEATEXTITERATOR_H_INCLUDED
+#ifndef EMRBEATEXTITERATOR_H_INCLUDED
+#define EMRBEATEXTITERATOR_H_INCLUDED
 
+#include "EMRTrackExpressionIterator.h"
 #include "naryn.h"
-#include "NRTrackExpressionIterator.h"
 
-class NRBeatExtIterator : public NRTrackExpressionIterator {
+class EMRBeatExtIterator : public EMRTrackExpressionIterator {
 public:
-	NRBeatExtIterator() : m_itr(NULL) {}
-    NRBeatExtIterator(unsigned period, NRTrackExpressionIterator *itr, bool keepref, unsigned stime, unsigned etime);
-	virtual ~NRBeatExtIterator() { delete m_itr; }
+	EMRBeatExtIterator() : m_itr(NULL) {}
+    EMRBeatExtIterator(unsigned period, EMRTrackExpressionIterator *itr, bool keepref, unsigned stime, unsigned etime);
+	virtual ~EMRBeatExtIterator() { delete m_itr; }
 
-    void init(unsigned period, NRTrackExpressionIterator *itr, bool keepref, unsigned stime, unsigned etime);
+    void init(unsigned period, EMRTrackExpressionIterator *itr, bool keepref, unsigned stime, unsigned etime);
 
 	virtual bool begin();
 	virtual bool next();
@@ -20,24 +20,24 @@ public:
     virtual uint64_t idx() const;
 
 protected:
-    unsigned                   m_period;
-    NRTrackExpressionIterator *m_itr;
-    unsigned                   m_stime;
-    unsigned                   m_etime;
-    uint64_t                   m_num_steps;
-    uint64_t                   m_num_steps4id;
+    unsigned                    m_period;
+    EMRTrackExpressionIterator *m_itr;
+    unsigned                    m_stime;
+    unsigned                    m_etime;
+    uint64_t                    m_num_steps;
+    uint64_t                    m_num_steps4id;
 };
 
 
 //------------------------------ IMPLEMENTATION ----------------------------------------
 
-inline NRBeatExtIterator::NRBeatExtIterator(unsigned period, NRTrackExpressionIterator *itr, bool keepref, unsigned stime, unsigned etime) :
+inline EMRBeatExtIterator::EMRBeatExtIterator(unsigned period, EMRTrackExpressionIterator *itr, bool keepref, unsigned stime, unsigned etime) :
     m_itr(NULL)
 {
     init(period, itr, keepref, stime, etime);
 }
 
-inline void NRBeatExtIterator::init(unsigned period, NRTrackExpressionIterator *itr, bool keepref, unsigned stime, unsigned etime)
+inline void EMRBeatExtIterator::init(unsigned period, EMRTrackExpressionIterator *itr, bool keepref, unsigned stime, unsigned etime)
 {
     delete m_itr;
     m_itr = itr;
@@ -51,7 +51,7 @@ inline void NRBeatExtIterator::init(unsigned period, NRTrackExpressionIterator *
     m_num_steps = m_num_steps4id * (uint64_t)(g_db->maxid() - g_db->minid() + 1);
 }
 
-inline bool NRBeatExtIterator::begin()
+inline bool EMRBeatExtIterator::begin()
 {
     if (m_itr->begin()) {
         m_isend = false;
@@ -87,7 +87,7 @@ inline bool NRBeatExtIterator::begin()
     return false;
 }
 
-inline bool NRBeatExtIterator::next()
+inline bool EMRBeatExtIterator::next()
 {
     if (m_keepref && m_point.timestamp.refcount() < EMRTimeStamp::MAX_REFCOUNT) {
         m_point.init(m_point.id, m_point.timestamp.hour(), m_point.timestamp.refcount() + 1);
@@ -126,7 +126,7 @@ inline bool NRBeatExtIterator::next()
     return false;
 }
 
-inline bool NRBeatExtIterator::next(const EMRPoint &jumpto)
+inline bool EMRBeatExtIterator::next(const EMRPoint &jumpto)
 {
     if (m_point.id == jumpto.id) {
         EMRTimeStamp::Hour prev_hour = m_point.timestamp.hour();
@@ -166,7 +166,7 @@ inline bool NRBeatExtIterator::next(const EMRPoint &jumpto)
     return false;
 }
 
-inline uint64_t NRBeatExtIterator::idx() const
+inline uint64_t EMRBeatExtIterator::idx() const
 {
     return m_keepref ?
         m_num_steps4id * (uint64_t)(m_point.id - g_db->minid()) + (EMRTimeStamp::MAX_REFCOUNT + 1) * (uint64_t)(m_point.timestamp.hour() - m_stime) / m_period + m_point.timestamp.refcount() :

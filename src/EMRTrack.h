@@ -655,7 +655,7 @@ void EMRTrack::calc_vals(DataFetcher &df, const EMRInterval &interv, const T &sr
                 }
             }
 
-            if (num_vs > 0) {
+            if (num_vs > 1) {
                 double avg = sum / num_vs;
                 df.m_val = sqrt(mean_square_sum / (num_vs - 1) - (avg * avg) * (num_vs / (num_vs - 1)));
             }
