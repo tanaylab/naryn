@@ -457,7 +457,7 @@ emr_filter.attr.src <- function(filter, src) {
     if (missing(src))
         filter.var$src
     else {
-        .emr_call("emr_check_filter_src", src, new.env(parent = parent.frame()))
+        .emr_call("emr_check_filter_attr_src", src, new.env(parent = parent.frame()))
         emr_filter.rm(filter)
         filter.var$src <- src
         if (!is.na(match(src, .emr_call("emr_user_track_names", new.env(parent = parent.frame()), silent = TRUE))))
@@ -540,7 +540,7 @@ emr_filter.attr.val <- function(filter, val) {
         if (!is.numeric(val))
             stop("'val' parameter must be a numeric vector", call. = F)
 
-        EMR_FILTERS[[root]][[filter]]['val'] <<- list(val)
+        EMR_FILTERS[[root]][[filter]]['val'] <<- unique(list(val))
         retv <- NULL
     }
 }

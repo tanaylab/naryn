@@ -246,7 +246,7 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(vector<SEXP> &filter
 
         if (strlen(str)) {
             if (isalpha(str[0]) || str[0] == '.')
-                verror("Filter: %s neither a track nor a named filter (9)", str);
+                verror("Filter: %s is neither a track nor a named filter nor an ID-Time / ID-Time Intervals / Time Intervals table (9)", str);
             verror("Unsupported operator '%s' used in the filter (10)", str);
         }
         verror("Syntax error in filter (11)");
@@ -406,12 +406,13 @@ int NRIteratorFilter::optimize_subtree(EMRIteratorFilterItem *tree, EMRIteratorF
                 for (size_t num = _end_nodes.size() - 1; num; num = num >> 1)
                     ++optimal_depth;
 
-                if (optimal_depth < _depth)
+                if (optimal_depth < _depth) {
                     build_balanced_tree(tree, tree->m_op, _end_nodes.begin(), _end_nodes.end());
 
-                for (vector<EMRIteratorFilterItem *>::iterator inode = _op_nodes.begin(); inode != _op_nodes.end(); ++inode) {
-                    (*inode)->m_child[0] = (*inode)->m_child[1] = NULL;    // prevent recursive deletion of the node
-                    delete *inode;
+                    for (vector<EMRIteratorFilterItem *>::iterator inode = _op_nodes.begin(); inode != _op_nodes.end(); ++inode) {
+                        (*inode)->m_child[0] = (*inode)->m_child[1] = NULL;    // prevent recursive deletion of the node
+                        delete *inode;
+                    }
                 }
             }
         }
@@ -481,7 +482,7 @@ SEXP emr_check_named_filter(SEXP _filter, SEXP _name, SEXP _envir)
 	return R_NilValue;
 }
 
-SEXP emr_check_filter_src(SEXP _src, SEXP _envir)
+SEXP emr_check_filter_attr_src(SEXP _src, SEXP _envir)
 {
 	try {
 		Naryn naryn(_envir);
