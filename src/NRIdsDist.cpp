@@ -239,17 +239,12 @@ SEXP emr_ids_vals_dist(SEXP _ids, SEXP _tracks, SEXP _stime, SEXP _etime, SEXP _
         SEXP col_names;
 
         rprotect(answer = RSaneAllocVector(VECSXP, NUM_COLS));
-
-        SET_VECTOR_ELT(answer, TRACK, (rtracks_idx = RSaneAllocVector(INTSXP, tot_num_vals)));
-        SET_VECTOR_ELT(answer, VAL, (rvals = RSaneAllocVector(REALSXP, tot_num_vals)));
-        SET_VECTOR_ELT(answer, COUNT, (rcounts = RSaneAllocVector(INTSXP, tot_num_vals)));
-
-        setAttrib(rtracks_idx, R_LevelsSymbol, (rtracks = RSaneAllocVector(STRSXP, tracks.size())));
-        setAttrib(rtracks_idx, R_ClassSymbol, mkString("factor"));
-
-        setAttrib(answer, R_NamesSymbol, (col_names = RSaneAllocVector(STRSXP, NUM_COLS)));
-        setAttrib(answer, R_ClassSymbol, mkString("data.frame"));
-        setAttrib(answer, R_RowNamesSymbol, (row_names = RSaneAllocVector(INTSXP, tot_num_vals)));
+        rprotect(rtracks_idx = RSaneAllocVector(INTSXP, tot_num_vals));
+        rprotect(rvals = RSaneAllocVector(REALSXP, tot_num_vals));
+        rprotect(rcounts = RSaneAllocVector(INTSXP, tot_num_vals));
+        rprotect(rtracks = RSaneAllocVector(STRSXP, tracks.size()));
+        rprotect(col_names = RSaneAllocVector(STRSXP, NUM_COLS));
+        rprotect(row_names = RSaneAllocVector(INTSXP, tot_num_vals));
 
         for (vector<EMRTrack *>::const_iterator itrack = tracks.begin(); itrack != tracks.end(); ++itrack)
             SET_STRING_ELT(rtracks, itrack - tracks.begin(), mkChar((*itrack)->name()));
@@ -277,6 +272,16 @@ SEXP emr_ids_vals_dist(SEXP _ids, SEXP _tracks, SEXP _stime, SEXP _etime, SEXP _
                 ++idx;
             }
         }
+
+        SET_VECTOR_ELT(answer, TRACK, rtracks_idx);
+        SET_VECTOR_ELT(answer, VAL, rvals);
+        SET_VECTOR_ELT(answer, COUNT, rcounts);
+
+        setAttrib(rtracks_idx, R_LevelsSymbol, rtracks);
+        setAttrib(rtracks_idx, R_ClassSymbol, mkString("factor"));
+        setAttrib(answer, R_NamesSymbol, col_names);
+        setAttrib(answer, R_ClassSymbol, mkString("data.frame"));
+        setAttrib(answer, R_RowNamesSymbol, row_names);
 
         rreturn(answer);
 	} catch (TGLException &e) {

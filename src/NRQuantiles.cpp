@@ -88,7 +88,7 @@ SEXP emr_quantiles(SEXP _expr, SEXP _percentiles, SEXP _stime, SEXP _etime, SEXP
 		vector<double> medians(percentiles.size(), numeric_limits<float>::quiet_NaN());
 
 		if (calc_medians(sp, percentiles, medians))
-			warning("Data size (%ld) exceeds the limit (%ld).\n"
+			vwarning("Data size (%ld) exceeds the limit (%ld).\n"
 					"The data was sampled to fit the limit and the resulted quantiles are hence approximate.\n"
 					"(The limit can be controlled by gmax.data.size limit)", sp.stream_size(), g_naryn->max_data_size());
 

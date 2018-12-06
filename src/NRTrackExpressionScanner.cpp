@@ -485,9 +485,13 @@ void NRTrackExprScanner::create_expr_iterator(IteratorWithFilter *itr, SEXP rite
 {
     EMRTrackExpressionIterator *expr_itr = NULL;
 
-    if ((isReal(riterator) || isInteger(riterator)) && Rf_length(riterator) == 1)            // iterator == period
+    if ((isReal(riterator) || isInteger(riterator)) && Rf_length(riterator) == 1) {           // iterator == period
+        int period = asInteger(riterator);
+
+        if (period <= 0)
+            verror("Invalid value is used for iterator policy (code: %d)", __LINE__);
         expr_itr = new EMRBeatIterator(asInteger(riterator), keepref, stime, etime);
-    else if (isString(riterator) && Rf_length(riterator) == 1 && g_db->track(CHAR(asChar(riterator))))
+    } else if (isString(riterator) && Rf_length(riterator) == 1 && g_db->track(CHAR(asChar(riterator))))
         expr_itr = new EMRTrackIterator(g_db->track(CHAR(asChar(riterator))), keepref, stime, etime);
     else if (isNull(riterator)) {
         string track_name;
@@ -592,14 +596,19 @@ void NRTrackExprScanner::create_expr_iterator(IteratorWithFilter *itr, SEXP rite
         }
 
         if (!success && isVector(riterator) && Rf_length(riterator) == 2) {
-            SEXP rbeat = VECTOR_ELT(riterator, 0);
+            SEXP rperiod = VECTOR_ELT(riterator, 0);
             SEXP rinit = VECTOR_ELT(riterator, 1);
 
-            if ((isReal(rbeat) || isInteger(rbeat)) && Rf_length(rbeat) == 1) {
+            if ((isReal(rperiod) || isInteger(rperiod)) && Rf_length(rperiod) == 1) {
+                int period = asInteger(rperiod);
+
+                if (period <= 0)
+                    verror("Invalid value is used for iterator policy (code: %d)", __LINE__);
+
                 if (isString(rinit) && Rf_length(rinit) == 1 && g_db->track(CHAR(asChar(rinit)))) {
                     EMRTrackIterator *itr = new EMRTrackIterator(g_db->track(CHAR(asChar(rinit))), keepref, g_db->mintime(), etime);
                     try {
-                        expr_itr = new EMRBeatExtIterator(asInteger(rbeat), itr, keepref, stime, etime);
+                        expr_itr = new EMRBeatExtIterator(period, itr, keepref, stime, etime);
                     } catch (...) {
                         delete itr;
                         throw;
@@ -617,7 +626,7 @@ void NRTrackExprScanner::create_expr_iterator(IteratorWithFilter *itr, SEXP rite
                     if (success) {
                         EMRPointsIterator *itr = new EMRPointsIterator(points, keepref, g_db->mintime(), etime);
                         try {
-                            expr_itr = new EMRBeatExtIterator(asInteger(rbeat), itr, keepref, stime, etime);
+                            expr_itr = new EMRBeatExtIterator(period, itr, keepref, stime, etime);
                         } catch (...) {
                             delete itr;
                             throw;

@@ -47,7 +47,7 @@ public:
         T           val;
 
         bool operator==(const DataRec &obj) const { return id == obj.id && timestamp == obj.timestamp && val == obj.val; }
-        bool operator<(const DataRec &obj) const { return id < obj.id || id == obj.id && timestamp < obj.timestamp; }
+        bool operator<(const DataRec &obj) const { return id < obj.id || (id == obj.id && timestamp < obj.timestamp); }
     };
 
 

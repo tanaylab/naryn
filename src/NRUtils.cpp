@@ -86,12 +86,12 @@ SEXP emr_annotate(SEXP _x, SEXP _y, SEXP _envir)
         copyMostAttrib(_y, ranswer);
         copyMostAttrib(_x, ranswer);
 
-        setAttrib(ranswer, R_NamesSymbol, (rcolnames = RSaneAllocVector(STRSXP, num_cols)));
-        setAttrib(ranswer, R_RowNamesSymbol, (rrownames = RSaneAllocVector(INTSXP, x2y.size())));
+        rprotect(rcolnames = RSaneAllocVector(STRSXP, num_cols));
+        rprotect(rrownames = RSaneAllocVector(INTSXP, x2y.size()));
 
         for (size_t i = 0; i < xlength(_x); ++i) {
             rsrc_cols[i] = VECTOR_ELT(_x, i);
-            SET_VECTOR_ELT(ranswer, i, rtgt_cols[i] = RSaneAllocVector(TYPEOF(rsrc_cols[i]), x2y.size()));
+            rprotect(rtgt_cols[i] = RSaneAllocVector(TYPEOF(rsrc_cols[i]), x2y.size()));
             copyMostAttrib(VECTOR_ELT(_x, i), rtgt_cols[i]);
             SET_STRING_ELT(rcolnames, i, STRING_ELT(getAttrib(_x, R_NamesSymbol), i));
         }
@@ -99,7 +99,7 @@ SEXP emr_annotate(SEXP _x, SEXP _y, SEXP _envir)
         for (size_t i = ymeta_col_offset; i < xlength(_y); ++i) {
             size_t idx = xlength(_x) + i - ymeta_col_offset;
             rsrc_cols[idx] = VECTOR_ELT(_y, i);
-            SET_VECTOR_ELT(ranswer, idx, rtgt_cols[idx] = RSaneAllocVector(TYPEOF(rsrc_cols[idx]), x2y.size()));
+            rprotect(rtgt_cols[idx] = RSaneAllocVector(TYPEOF(rsrc_cols[idx]), x2y.size()));
             copyMostAttrib(VECTOR_ELT(_y, i), rtgt_cols[idx]);
             SET_STRING_ELT(rcolnames, idx, STRING_ELT(getAttrib(_y, R_NamesSymbol), i));
         }
@@ -139,6 +139,17 @@ SEXP emr_annotate(SEXP _x, SEXP _y, SEXP _envir)
 
         for (size_t i = 0; i < x2y.size(); ++i)
             INTEGER(rrownames)[i] = i + 1;
+
+        for (size_t i = 0; i < xlength(_x); ++i)
+            SET_VECTOR_ELT(ranswer, i, rtgt_cols[i]);
+
+        for (size_t i = ymeta_col_offset; i < xlength(_y); ++i) {
+            size_t idx = xlength(_x) + i - ymeta_col_offset;
+            SET_VECTOR_ELT(ranswer, idx, rtgt_cols[idx]);
+        }
+
+        setAttrib(ranswer, R_NamesSymbol, rcolnames);
+        setAttrib(ranswer, R_RowNamesSymbol, rrownames);
 
         rreturn(ranswer);
 	} catch (TGLException &e) {

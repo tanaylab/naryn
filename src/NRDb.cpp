@@ -147,20 +147,23 @@ SEXP emr_db_subset_info(SEXP _envir)
         enum { SRC, FRACTION, COMPLEMENTARY, NUM_COLS };
 
         const char *COL_NAMES[NUM_COLS] = { "src", "fraction", "complementary" };
-        SEXP answer, names;
+        SEXP answer, names, src, fraction, complementary;
 
         rprotect(answer = RSaneAllocVector(VECSXP, NUM_COLS));
         rprotect(names = RSaneAllocVector(STRSXP, NUM_COLS));
+        rprotect(src = mkString(g_db->ids_subset_src().c_str()));
+        rprotect(fraction = RSaneAllocVector(REALSXP, 1));
+        rprotect(complementary = RSaneAllocVector(LGLSXP, 1));
 
-        SET_VECTOR_ELT(answer, SRC, mkString(g_db->ids_subset_src().c_str()));
-        SET_VECTOR_ELT(answer, FRACTION, RSaneAllocVector(REALSXP, 1));
-        REAL(VECTOR_ELT(answer, FRACTION))[0] = g_db->ids_subset_fraction();
-
-        SET_VECTOR_ELT(answer, COMPLEMENTARY, RSaneAllocVector(LGLSXP, 1));
-        LOGICAL(VECTOR_ELT(answer, COMPLEMENTARY))[0] = g_db->ids_subset_complementary();
+        REAL(fraction)[0] = g_db->ids_subset_fraction();
+        LOGICAL(complementary)[0] = g_db->ids_subset_complementary();
 
         for (int i = 0; i < NUM_COLS; ++i)
             SET_STRING_ELT(names, i, mkChar(COL_NAMES[i]));
+
+        SET_VECTOR_ELT(answer, SRC, src);
+        SET_VECTOR_ELT(answer, FRACTION, fraction);
+        SET_VECTOR_ELT(answer, COMPLEMENTARY, complementary);
 
         setAttrib(answer, R_NamesSymbol, names);
         rreturn(answer);

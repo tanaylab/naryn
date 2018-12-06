@@ -195,7 +195,7 @@ emr_track.create <- function(track, space, categorical, expr, stime = get("MINTI
 
     space = tolower(space)
     if (space == "user" && (!exists("EMR_UROOT", envir = .GlobalEnv) || is.null(get("EMR_UROOT", envir = .GlobalEnv))))
-        stop(sprintf("User space root directory is not set. Please call emr_db.init(user.dir=...)", track), call. = F)
+        stop("User space root directory is not set. Please call emr_db.init(user.dir=...)", call. = F)
 
     if (emr_track.exists(track))
         stop(sprintf("Track %s already exists", track), call. = F)

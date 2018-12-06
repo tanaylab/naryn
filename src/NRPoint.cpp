@@ -10,34 +10,6 @@ struct EMRPPointsSort {
 
 const char *NRPoint::COL_NAMES[NUM_COLS] = { "id", "time", "ref" };
 
-SEXP NRPoint::create_rpoints_skeleton(size_t size, unsigned num_cols, bool null_if_empty)
-{
-    if (null_if_empty && !size)
-        return R_NilValue;
-
-    SEXP answer;
-    SEXP row_names;
-    SEXP col_names;
-
-    rprotect(answer = RSaneAllocVector(VECSXP, num_cols));
-
-    SET_VECTOR_ELT(answer, ID, RSaneAllocVector(INTSXP, size));
-    SET_VECTOR_ELT(answer, TIME, RSaneAllocVector(INTSXP, size));
-    SET_VECTOR_ELT(answer, REF, RSaneAllocVector(INTSXP, size));
-
-    setAttrib(answer, R_NamesSymbol, (col_names = RSaneAllocVector(STRSXP, num_cols)));
-    setAttrib(answer, R_ClassSymbol, mkString("data.frame"));
-    setAttrib(answer, R_RowNamesSymbol, (row_names = RSaneAllocVector(INTSXP, size)));
-
-    for (size_t i = 0; i < size; ++i)
-        INTEGER(row_names)[i] = i + 1;
-
-    for (int i = 0; i < NUM_COLS; i++)
-        SET_STRING_ELT(col_names, i, mkChar(COL_NAMES[i]));
-
-    return answer;
-}
-
 SEXP NRPoint::convert_points(const vector<EMRPoint> &points, unsigned num_cols, bool null_if_empty, bool do_sort, vector<EMRPoint *> *ppoints)
 {
     if (null_if_empty && !points.size())
@@ -63,10 +35,29 @@ SEXP NRPoint::convert_points(const vector<EMRPoint> &points, unsigned num_cols, 
             ppoints = NULL;
     }
 
-    SEXP answer = create_rpoints_skeleton(points.size(), num_cols, null_if_empty);
-    SEXP ids = VECTOR_ELT(answer, ID);
-    SEXP times = VECTOR_ELT(answer, TIME);
-    SEXP refs = VECTOR_ELT(answer, REF);
+
+    if (null_if_empty && points.size())
+        return R_NilValue;
+
+    SEXP answer;
+    SEXP row_names;
+    SEXP col_names;
+    SEXP ids;
+    SEXP times;
+    SEXP refs;
+
+    rprotect(answer = RSaneAllocVector(VECSXP, num_cols));
+    rprotect(col_names = RSaneAllocVector(STRSXP, num_cols));
+    rprotect(row_names = RSaneAllocVector(INTSXP, points.size()));
+    rprotect(ids = RSaneAllocVector(INTSXP, points.size()));
+    rprotect(times = RSaneAllocVector(INTSXP, points.size()));
+    rprotect(refs = RSaneAllocVector(INTSXP, points.size()));
+
+    for (size_t i = 0; i < points.size(); ++i)
+        INTEGER(row_names)[i] = i + 1;
+
+    for (int i = 0; i < NUM_COLS; i++)
+        SET_STRING_ELT(col_names, i, mkChar(COL_NAMES[i]));
 
     if (ppoints) {
         for (vector<EMRPoint *>::const_iterator ippoint = ppoints->begin(); ippoint != ppoints->end(); ++ippoint) {
@@ -79,10 +70,18 @@ SEXP NRPoint::convert_points(const vector<EMRPoint> &points, unsigned num_cols, 
         for (EMRPoints::const_iterator ipoint = points.begin(); ipoint != points.end(); ++ipoint) {
             size_t index = ipoint - points.begin();
             INTEGER(ids)[index] = ipoint->id;
-    		INTEGER(times)[index] = ipoint->timestamp.hour();
-    		INTEGER(refs)[index] = ipoint->timestamp.refcount() == EMRTimeStamp::NA_REFCOUNT ? -1 : ipoint->timestamp.refcount();
+            INTEGER(times)[index] = ipoint->timestamp.hour();
+            INTEGER(refs)[index] = ipoint->timestamp.refcount() == EMRTimeStamp::NA_REFCOUNT ? -1 : ipoint->timestamp.refcount();
         }
     }
+
+    SET_VECTOR_ELT(answer, ID, ids);
+    SET_VECTOR_ELT(answer, TIME, times);
+    SET_VECTOR_ELT(answer, REF, refs);
+
+    setAttrib(answer, R_NamesSymbol, col_names);
+    setAttrib(answer, R_ClassSymbol, mkString("data.frame"));
+    setAttrib(answer, R_RowNamesSymbol, row_names);
 
     return answer;
 }
@@ -162,12 +161,9 @@ SEXP NRPoint::convert_ids(const vector<unsigned> &ids, unsigned num_cols, bool n
     SEXP col_names;
 
     rprotect(answer = RSaneAllocVector(VECSXP, num_cols));
-
-    SET_VECTOR_ELT(answer, 0, (rids = RSaneAllocVector(INTSXP, ids.size())));
-
-    setAttrib(answer, R_NamesSymbol, (col_names = RSaneAllocVector(STRSXP, num_cols)));
-    setAttrib(answer, R_ClassSymbol, mkString("data.frame"));
-    setAttrib(answer, R_RowNamesSymbol, (row_names = RSaneAllocVector(INTSXP, ids.size())));
+    rprotect(rids = RSaneAllocVector(INTSXP, ids.size()));
+    rprotect(col_names = RSaneAllocVector(STRSXP, num_cols));
+    rprotect(row_names = RSaneAllocVector(INTSXP, ids.size()));
 
     for (vector<unsigned>::const_iterator iid = ids.begin(); iid != ids.end(); ++iid) {
         size_t index = iid - ids.begin();
@@ -176,6 +172,11 @@ SEXP NRPoint::convert_ids(const vector<unsigned> &ids, unsigned num_cols, bool n
     }
 
     SET_STRING_ELT(col_names, 0, mkChar("id"));
+    SET_VECTOR_ELT(answer, 0, rids);
+
+    setAttrib(answer, R_NamesSymbol, col_names);
+    setAttrib(answer, R_ClassSymbol, mkString("data.frame"));
+    setAttrib(answer, R_RowNamesSymbol, row_names);
 
     return answer;
 }

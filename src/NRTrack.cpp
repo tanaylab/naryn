@@ -63,7 +63,7 @@ SEXP emr_track_info(SEXP _track, SEXP _envir)
 
 		const char *trackname = CHAR(STRING_ELT(_track, 0));
         SEXP answer;
-        SEXP names;
+        SEXP names, rpath, rtype, rdata_type, rcategorical, rnum_vals, rnum_unique_vals, rmin_val, rmax_val, rmin_id, rmax_id, rmin_time, rmax_time;
         EMRTrack *track = g_db->track(trackname);
         const EMRDb::TrackInfo *track_info = g_db->track_info(trackname);
 
@@ -72,57 +72,46 @@ SEXP emr_track_info(SEXP _track, SEXP _envir)
 
         rprotect(answer = RSaneAllocVector(VECSXP, NUM_COLS));
         rprotect(names = RSaneAllocVector(STRSXP, NUM_COLS));
+        rprotect(rpath = RSaneAllocVector(STRSXP, 1));
+        rprotect(rtype = RSaneAllocVector(STRSXP, 1));
+        rprotect(rdata_type = RSaneAllocVector(STRSXP, 1));
+        rprotect(rcategorical = RSaneAllocVector(LGLSXP, 1));
+        rprotect(rnum_vals = RSaneAllocVector(INTSXP, 1));
+        rprotect(rnum_unique_vals = RSaneAllocVector(INTSXP, 1));
+        rprotect(rmin_val = RSaneAllocVector(REALSXP, 1));
+        rprotect(rmax_val = RSaneAllocVector(REALSXP, 1));
+        rprotect(rmin_id = RSaneAllocVector(INTSXP, 1));
+        rprotect(rmax_id = RSaneAllocVector(INTSXP, 1));
+        rprotect(rmin_time = RSaneAllocVector(INTSXP, 1));
+        rprotect(rmax_time = RSaneAllocVector(INTSXP, 1));
 
-        // path
-        SET_VECTOR_ELT(answer, PATH, RSaneAllocVector(STRSXP, 1));
-        SET_STRING_ELT(VECTOR_ELT(answer, PATH), 0, mkChar(track_info->filename.c_str()));
-
-        // type
-        SET_VECTOR_ELT(answer, TYPE, RSaneAllocVector(STRSXP, 1));
-        SET_STRING_ELT(VECTOR_ELT(answer, TYPE), 0, mkChar(EMRTrack::TRACK_TYPE_NAMES[track->track_type()]));
-
-        // data.type
-        SET_VECTOR_ELT(answer, DATA_TYPE, RSaneAllocVector(STRSXP, 1));
-        SET_STRING_ELT(VECTOR_ELT(answer, DATA_TYPE), 0, mkChar(EMRTrack::DATA_TYPE_NAMES[track->data_type()]));
-
-        // categorical
-        SET_VECTOR_ELT(answer, CATEGORICAL, RSaneAllocVector(LGLSXP, 1));
-        LOGICAL(VECTOR_ELT(answer, CATEGORICAL))[0] = track->is_categorical();
-
-        // num.vals
-        SET_VECTOR_ELT(answer, NUM_VALS, RSaneAllocVector(INTSXP, 1));
-        INTEGER(VECTOR_ELT(answer, NUM_VALS))[0] = track->size();
-        
-        // num.unique.vals
-        SET_VECTOR_ELT(answer, NUM_UNIQUE_VALS, RSaneAllocVector(INTSXP, 1));
-        INTEGER(VECTOR_ELT(answer, NUM_UNIQUE_VALS))[0] = track->unique_size();
-
-        // min.val
-        SET_VECTOR_ELT(answer, MIN_VAL, RSaneAllocVector(REALSXP, 1));
-        REAL(VECTOR_ELT(answer, MIN_VAL))[0] = track->minval();
-
-        // max.val
-        SET_VECTOR_ELT(answer, MAX_VAL, RSaneAllocVector(REALSXP, 1));
-        REAL(VECTOR_ELT(answer, MAX_VAL))[0] = track->maxval();
-
-        // min.id
-        SET_VECTOR_ELT(answer, MIN_ID, RSaneAllocVector(INTSXP, 1));
-        INTEGER(VECTOR_ELT(answer, MIN_ID))[0] = track->minid();
-
-        // max.id
-        SET_VECTOR_ELT(answer, MAX_ID, RSaneAllocVector(INTSXP, 1));
-        INTEGER(VECTOR_ELT(answer, MAX_ID))[0] = track->maxid();
-
-        // min.time
-        SET_VECTOR_ELT(answer, MIN_TIME, RSaneAllocVector(INTSXP, 1));
-        INTEGER(VECTOR_ELT(answer, MIN_TIME))[0] = track->mintime();
-
-        // max.time
-        SET_VECTOR_ELT(answer, MAX_TIME, RSaneAllocVector(INTSXP, 1));
-        INTEGER(VECTOR_ELT(answer, MAX_TIME))[0] = track->maxtime();
+        SET_STRING_ELT(rpath, 0, mkChar(track_info->filename.c_str()));
+        SET_STRING_ELT(rtype, 0, mkChar(EMRTrack::TRACK_TYPE_NAMES[track->track_type()]));
+        SET_STRING_ELT(rdata_type, 0, mkChar(EMRTrack::DATA_TYPE_NAMES[track->data_type()]));
+        LOGICAL(rcategorical)[0] = track->is_categorical();
+        INTEGER(rnum_vals)[0] = track->size();
+        INTEGER(rnum_unique_vals)[0] = track->unique_size();
+        REAL(rmin_val)[0] = track->minval();
+        REAL(rmax_val)[0] = track->maxval();
+        INTEGER(rmin_id)[0] = track->minid();
+        INTEGER(rmax_id)[0] = track->maxid();
+        INTEGER(rmin_time)[0] = track->mintime();
+        INTEGER(rmax_time)[0] = track->maxtime();
 
         for (int i = 0; i < NUM_COLS; ++i)
             SET_STRING_ELT(names, i, mkChar(COL_NAMES[i]));
+
+        SET_VECTOR_ELT(answer, CATEGORICAL, rcategorical);
+        SET_VECTOR_ELT(answer, TYPE, rtype);
+        SET_VECTOR_ELT(answer, DATA_TYPE, rdata_type);
+        SET_VECTOR_ELT(answer, NUM_VALS, rnum_vals);
+        SET_VECTOR_ELT(answer, NUM_UNIQUE_VALS, rnum_unique_vals);
+        SET_VECTOR_ELT(answer, MIN_VAL, rmin_val);
+        SET_VECTOR_ELT(answer, MAX_VAL, rmax_val);
+        SET_VECTOR_ELT(answer, MIN_ID, rmin_id);
+        SET_VECTOR_ELT(answer, MAX_ID, rmax_id);
+        SET_VECTOR_ELT(answer, MIN_TIME, rmin_time);
+        SET_VECTOR_ELT(answer, MAX_TIME, rmax_time);
 
         setAttrib(answer, R_NamesSymbol, names);
 

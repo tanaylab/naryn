@@ -30,6 +30,10 @@ SEXP emr_covariance(SEXP _exprs, SEXP _breaks, SEXP _include_lowest, SEXP _right
 	try {
         Naryn naryn(_envir);
 
+        enum { N, AVG, VAR, COV, COR, NUM_STATS };
+
+        const char *STAT_NAMES[NUM_STATS] = { "n", "e", "var", "cov", "cor" };
+
 		if (!isString(_exprs) || Rf_length(_exprs) < 1)
 			verror("Track expressions argument must be a vector of strings");
 
@@ -49,7 +53,8 @@ SEXP emr_covariance(SEXP _exprs, SEXP _breaks, SEXP _include_lowest, SEXP _right
             verror("Number of breaks sets must be equal to the number of tracks used");
 
         unsigned totalbins = bins_manager.get_total_bins();
-        g_naryn->verify_max_data_size(totalbins, "Result");
+        size_t num_vals = totalbins * num_cov_exprs * num_cov_exprs;
+        g_naryn->verify_max_data_size(num_vals, "Result");
 
         vector<AvgMatrix> avg_x(totalbins, AvgMatrix(num_cov_exprs, vector<Avg>(num_cov_exprs)));   // avg(x)   given y != Nan
         vector<AvgMatrix> avg_xx(totalbins, AvgMatrix(num_cov_exprs, vector<Avg>(num_cov_exprs)));  // avg(x*x) given y != Nan
@@ -84,19 +89,15 @@ SEXP emr_covariance(SEXP _exprs, SEXP _breaks, SEXP _include_lowest, SEXP _right
         }
 
         // pack the answer
-        enum { N, AVG, VAR, COV, COR, NUM_STATS };
-
-        const char *STAT_NAMES[NUM_STATS] = { "n", "e", "var", "cov", "cor" };
-
         SEXP answer, dim, dimnames, breaks, stat_names;
-        size_t num_vals = totalbins * num_cov_exprs * num_cov_exprs;
         rprotect(answer = RSaneAllocVector(VECSXP, NUM_STATS));
 
+        SEXP rstat[NUM_STATS];
         double *stat[NUM_STATS];
 
         for (int i = 0; i < NUM_STATS; ++i) {
-            SET_VECTOR_ELT(answer, i, RSaneAllocVector(REALSXP, num_vals));
-            stat[i] = REAL(VECTOR_ELT(answer, i));
+            rprotect(rstat[i] = RSaneAllocVector(REALSXP, num_vals));
+            stat[i] = REAL(rstat[i]);
         }
 
         for (size_t ibin = 0; ibin < totalbins; ++ibin) {
@@ -149,15 +150,17 @@ SEXP emr_covariance(SEXP _exprs, SEXP _breaks, SEXP _include_lowest, SEXP _right
         SET_VECTOR_ELT(dimnames, num_breaks_exprs + 1, dimname[1]);
 
         for (int i = 0; i < NUM_STATS; ++i) {
-            setAttrib(VECTOR_ELT(answer, i), R_DimSymbol, dim);
-            setAttrib(VECTOR_ELT(answer, i), R_DimNamesSymbol, dimnames);
+            setAttrib(rstat[i], R_DimSymbol, dim);
+            setAttrib(rstat[i], R_DimNamesSymbol, dimnames);
+            SET_VECTOR_ELT(answer, i, rstat[i]);
         }
 
         setAttrib(answer, install("breaks"), breaks);
 
-        setAttrib(answer, R_NamesSymbol, (stat_names = RSaneAllocVector(STRSXP, NUM_STATS)));
+        rprotect(stat_names = RSaneAllocVector(STRSXP, NUM_STATS));
         for (int i = 0; i < NUM_STATS; i++)
             SET_STRING_ELT(stat_names, i, mkChar(STAT_NAMES[i]));
+        setAttrib(answer, R_NamesSymbol, stat_names);
 
         rreturn(answer);
 	} catch (TGLException &e) {

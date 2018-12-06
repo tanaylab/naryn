@@ -9,8 +9,6 @@ struct NRPoint {
 
     static const char *COL_NAMES[NUM_COLS];
 
-    static SEXP create_rpoints_skeleton(size_t size, unsigned num_cols = NUM_COLS, bool null_if_empty = true);
-
     // use non NULL sorted_ppoints argument if you wish to sort the points; sorted_ppoints will be then constructed and filled with sorted pointers to points
     static SEXP convert_points(const vector<EMRPoint> &points, unsigned num_cols = NUM_COLS, bool null_if_empty = true, bool do_sort = false,
                                vector<EMRPoint *> *sorted_ppoints = NULL);

@@ -235,9 +235,9 @@ void EMRTrackSparse<T>::serialize(BufferedFile &bfile, const EMRTrackData<T> &tr
         bfile.write(&num_percentiles, sizeof(num_percentiles)) != sizeof(num_percentiles) ||
         bfile.write(&data.front(), sizeof(Data) * data.size()) != sizeof(Data) * data.size() ||
         bfile.write(&recs.front(), sizeof(Rec) * recs.size()) != sizeof(Rec) * recs.size() ||
-        num_percentiles &&
+        (num_percentiles &&
         (bfile.write(&sorted_unique_vals[0], sizeof(sorted_unique_vals[0]) * num_percentiles) != sizeof(sorted_unique_vals[0]) * num_percentiles ||
-        !(flags & IS_CATEGORICAL) && bfile.write(&percentiles[0], sizeof(percentiles[0]) * num_percentiles) != sizeof(percentiles[0]) * num_percentiles))
+        (!(flags & IS_CATEGORICAL) && bfile.write(&percentiles[0], sizeof(percentiles[0]) * num_percentiles) != sizeof(percentiles[0]) * num_percentiles))))
     {
 		if (bfile.error())
 			TGLError<EMRTrack>(FILE_ERROR, "Failed to write a track file %s: %s", bfile.file_name().c_str(), strerror(errno));
