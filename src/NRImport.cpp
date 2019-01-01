@@ -4,6 +4,7 @@
 #include "EMRDb.h"
 #include "EMRTrack.h"
 #include "naryn.h"
+#include "NRPoint.h"
 #include "strutil.h"
 
 extern "C" {
@@ -11,10 +12,6 @@ extern "C" {
 SEXP emr_import(SEXP _track, SEXP _space, SEXP _categorical, SEXP _src, SEXP _add, SEXP _envir)
 {
     try {
-        enum { ID, TIME, REF, VALUE, NUM_COLS };
-
-        static const char *COL_NAMES[NUM_COLS] = { "id", "time", "ref", "value" };
-
         Naryn naryn(_envir);
 
         if (!isString(_track) || Rf_length(_track) != 1)
@@ -94,9 +91,9 @@ SEXP emr_import(SEXP _track, SEXP _space, SEXP _categorical, SEXP _src, SEXP _ad
                 verror("Failed to open file %s for reading: %s", filename, strerror(errno));
 
             while (1) {
-                lineno += split_line_by_space_chars(bfile, fields, NUM_COLS);
+                lineno += split_line_by_space_chars(bfile, fields, NRPoint::NUM_PVAL_COLS);
 
-                if (fields.size() != NUM_COLS) {
+                if (fields.size() != NRPoint::NUM_PVAL_COLS) {
                     if (bfile.eof())
                         break;
 
@@ -109,66 +106,26 @@ SEXP emr_import(SEXP _track, SEXP _space, SEXP _categorical, SEXP _src, SEXP _ad
                     verror("%s, line %d: file has invalid format", filename, lineno);
                 }
 
-                id = strtol(fields[ID].c_str(), &endptr, 10);
+                id = strtol(fields[NRPoint::ID].c_str(), &endptr, 10);
                 if (*endptr || id < 0)
                     verror("%s, line %d: invalid id", filename, lineno);
 
-                hour = strtol(fields[TIME].c_str(), &endptr, 10);
+                hour = strtol(fields[NRPoint::TIME].c_str(), &endptr, 10);
                 if (*endptr || hour < 0 || hour > EMRTimeStamp::MAX_HOUR)
                     verror("%s, line %d: invalid time", filename, lineno);
 
-                ref = strtol(fields[REF].c_str(), &endptr, 10);
+                ref = strtol(fields[NRPoint::REF].c_str(), &endptr, 10);
                 if (*endptr || ref < 0 && ref != -1 || ref > EMRTimeStamp::MAX_REFCOUNT)
                     verror("%s, line %d: invalid reference", filename, lineno);
 
-                val = strtod(fields[VALUE].c_str(), &endptr);
+                val = strtod(fields[NRPoint::VALUE].c_str(), &endptr);
                 if (*endptr)
                     verror("%s, line %d: invalid data format", filename, lineno);
 
                 data.add_data(id, EMRTimeStamp((EMRTimeStamp::Hour)hour, (EMRTimeStamp::Refcount)ref), val);
             }
-        } else {
-            if (TYPEOF(_src) == PROMSXP) {
-                if (PRENV(_src) == R_NilValue)
-                    _src = PRVALUE(_src);
-                else
-                    _src = eval_in_R(PRCODE(_src), PRENV(_src));
-            }
-
-            SEXP colnames = getAttrib(_src, R_NamesSymbol);
-
-            if (!isVector(_src) || !isString(colnames) || Rf_length(colnames) < NUM_COLS - 1)
-                verror("Invalid format of 'src' argument");
-
-            bool ref_used = Rf_length(colnames) > REF && !strcmp(CHAR(STRING_ELT(colnames, REF)), COL_NAMES[REF]);
-            SEXP rcol[NUM_COLS];
-
-            for (unsigned i = 0, rcolidx = 0; i < NUM_COLS; i++) {
-                if (i == REF && !ref_used) {
-                    rcol[REF] = R_NilValue;
-                    continue;
-                }
-
-                rcol[i] = VECTOR_ELT(_src, rcolidx);
-
-                if (strcmp(CHAR(STRING_ELT(colnames, rcolidx)), COL_NAMES[i]) || !isReal(rcol[i]) && !isInteger(rcol[i]) ||
-                    rcolidx && Rf_length(VECTOR_ELT(_src, rcolidx - 1)) != Rf_length(rcol[i]))
-                    verror("Invalid format of 'src' argument");
-
-                ++rcolidx;
-            }
-
-            unsigned num_points = (unsigned)Rf_length(rcol[ID]);
-
-            for (unsigned i = 0; i < num_points; ++i) {
-                unsigned id = (unsigned)(isReal(rcol[ID]) ? REAL(rcol[ID])[i] : INTEGER(rcol[ID])[i]);
-                EMRTimeStamp::Hour hour = (EMRTimeStamp::Hour)(isReal(rcol[TIME]) ? REAL(rcol[TIME])[i] : INTEGER(rcol[TIME])[i]);
-                EMRTimeStamp::Refcount ref = ref_used ? (EMRTimeStamp::Refcount)(isReal(rcol[REF]) ? REAL(rcol[REF])[i] : INTEGER(rcol[REF])[i]) : EMRTimeStamp::NA_REFCOUNT;
-                float val = (float)(isReal(rcol[VALUE]) ? REAL(rcol[VALUE])[i] : INTEGER(rcol[VALUE])[i]);
-
-                data.add_data(id, EMRTimeStamp(hour, ref), val);
-            }
-        }
+        } else
+            NRPoint::convert_rpoints_vals(_src, data, "'src': ");
 
         if (access(track_filename.c_str(), F_OK) != -1) {
             string tmp_filename = track_filename + ".tmp";

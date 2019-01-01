@@ -1,10 +1,10 @@
 \name{emr_track.info}
 \alias{emr_track.info}
 \title{
-Returns information about a track
+Returns information about the track
 }
 \description{
-Returns information about a track.
+Returns information about the track.
 }
 \usage{
 emr_track.info(track)

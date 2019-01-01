@@ -460,7 +460,7 @@ emr_filter.attr.src <- function(filter, src) {
         .emr_call("emr_check_filter_attr_src", src, new.env(parent = parent.frame()))
         emr_filter.rm(filter)
         filter.var$src <- src
-        if (!is.na(match(src, .emr_call("emr_user_track_names", new.env(parent = parent.frame()), silent = TRUE))))
+        if (is.character(src) && length(src) == 1 && !is.na(match(src, .emr_call("emr_user_track_names", new.env(parent = parent.frame()), silent = TRUE))))
             root <- get("EMR_UROOT", envir = .GlobalEnv)
         else
             root <- get("EMR_GROOT", envir = .GlobalEnv)
@@ -662,7 +662,7 @@ emr_vtrack.create <- function(vtrack, src, func = NULL, params = NULL, keepref =
 	if (emr_filter.exists(vtrack))
 		stop(sprintf("Filter %s already exists", vtrack), call. = F)
 
-    if (!is.na(match(src, .emr_call("emr_user_track_names", new.env(parent = parent.frame()), silent = TRUE))))
+    if (is.character(src) && length(src) == 1 && !is.na(match(src, .emr_call("emr_user_track_names", new.env(parent = parent.frame()), silent = TRUE))))
         root <- get("EMR_UROOT", envir = .GlobalEnv)
     else
         root <- get("EMR_GROOT", envir = .GlobalEnv)
@@ -693,11 +693,10 @@ emr_vtrack.attr.src <- function(vtrack, src) {
     if (missing(src))
         vtrack.var$src
     else {
-        if (!emr_track.exists(src))
-            stop(sprintf("Track \"%s\" does not exist", src), call. = F)
+        .emr_call("emr_check_vtrack_attr_src", src, new.env(parent = parent.frame()))
         emr_vtrack.rm(vtrack)
         vtrack.var$src <- src
-        if (!is.na(match(src, .emr_call("emr_user_track_names", new.env(parent = parent.frame()), silent = TRUE))))
+        if (is.character(src) && length(src) == 1 && !is.na(match(src, .emr_call("emr_user_track_names", new.env(parent = parent.frame()), silent = TRUE))))
             root <- get("EMR_UROOT", envir = .GlobalEnv)
         else
             root <- get("EMR_GROOT", envir = .GlobalEnv)

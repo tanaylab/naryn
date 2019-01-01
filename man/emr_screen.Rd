@@ -1,7 +1,7 @@
 \name{emr_screen}
 \alias{emr_screen}
 \title{
-Finds patient-time pairs that match track expression
+Finds Id-Time points that match track expression
 }
 \description{
 Finds all patient-time pairs where track expression is 'TRUE'.
@@ -21,12 +21,12 @@ emr_screen(expr, sort = F, stime = MINTIME, etime = MAXTIME,
   \item{filter}{Iterator filter.}
 }
 \details{
-This function finds all patient-time pairs where track expression's value is 'TRUE'.
+This function finds all Id-Time points where track expression's value is 'TRUE'.
 
 If 'sort' is 'TRUE' the returned value is sorted by id, time and reference, otherwise the order is not guaranteed especially for longer runs, when multitasking might be launched. Sorting requires additional time, so it is switched off by default.
 }
 \value{
-A set of patient-time pairs that match track expression.
+A set of Id-Time points that match track expression.
 }
 
 \seealso{

@@ -37,7 +37,7 @@ SEXP emr_screen(SEXP _expr, SEXP _sort, SEXP _stime, SEXP _etime, SEXP _iterator
 		}
 
         vector<EMRPoint *> ppoints;
-		rreturn(NRPoint::convert_points(out_points, NRPoint::NUM_COLS, false, do_sort, &ppoints));
+		rreturn(NRPoint::convert_points(out_points, NRPoint::NUM_POINT_COLS, false, do_sort, &ppoints));
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
     } catch (const bad_alloc &e) {

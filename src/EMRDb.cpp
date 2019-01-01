@@ -44,7 +44,7 @@ EMRTrack *EMRDb::track(const string &track)
 	Name2Track::iterator itrack = m_tracks.find(track);
     if (itrack == m_tracks.end())
         return NULL;
-	if (!itrack->second.track)
+    if (!itrack->second.track)
         itrack->second.track = EMRTrack::unserialize(track.c_str(), itrack->second.filename.c_str());
     return itrack->second.track;
 }
@@ -164,7 +164,7 @@ void EMRDb::load(const char *grootdir, const char *urootdir, bool load_on_demand
             if (!load_tracks[is_user_dir])
                 continue;
 
-    		dir = opendir(dirnames[is_user_dir]);
+            dir = opendir(dirnames[is_user_dir]);
     		struct dirent *dirp;
 
     		if (!dir)

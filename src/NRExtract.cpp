@@ -65,7 +65,7 @@ SEXP emr_extract(SEXP _exprs, SEXP _names, SEXP _tidy, SEXP _sort, SEXP _stime, 
 
             // assemble the answer
             vector<EMRPoint *> ppoints;
-            SEXP answer = NRPoint::convert_points(out_points, NRPoint::NUM_COLS + NUM_COLS, false, do_sort, &ppoints);
+            SEXP answer = NRPoint::convert_points(out_points, NRPoint::NUM_POINT_COLS + NUM_COLS, false, do_sort, &ppoints);
             SEXP rexprs, rexpr_idx, rexpr_vals;
 
             rprotect(rexpr_idx = RSaneAllocVector(INTSXP, out_points.size()));
@@ -86,10 +86,10 @@ SEXP emr_extract(SEXP _exprs, SEXP _names, SEXP _tidy, SEXP _sort, SEXP _stime, 
 
             SEXP col_names = getAttrib(answer, R_NamesSymbol);
             for (unsigned i = 0; i < NUM_COLS; ++i)
-                SET_STRING_ELT(col_names, NRPoint::NUM_COLS + i, mkChar(COLNAMES[i]));
+                SET_STRING_ELT(col_names, NRPoint::NUM_POINT_COLS + i, mkChar(COLNAMES[i]));
 
-            SET_VECTOR_ELT(answer, NRPoint::NUM_COLS + EXPR, rexpr_idx);
-            SET_VECTOR_ELT(answer, NRPoint::NUM_COLS + VAL, rexpr_vals);
+            SET_VECTOR_ELT(answer, NRPoint::NUM_POINT_COLS + EXPR, rexpr_idx);
+            SET_VECTOR_ELT(answer, NRPoint::NUM_POINT_COLS + VAL, rexpr_vals);
 
             setAttrib(rexpr_idx, R_LevelsSymbol, rexprs);
             setAttrib(rexpr_idx, R_ClassSymbol, mkString("factor"));
@@ -108,22 +108,22 @@ SEXP emr_extract(SEXP _exprs, SEXP _names, SEXP _tidy, SEXP _sort, SEXP _stime, 
 
             // assemble the answer
             vector<EMRPoint *> ppoints;
-            SEXP answer = NRPoint::convert_points(out_points, NRPoint::NUM_COLS + num_exprs, false, do_sort, &ppoints);
+            SEXP answer = NRPoint::convert_points(out_points, NRPoint::NUM_POINT_COLS + num_exprs, false, do_sort, &ppoints);
 
              for (unsigned iexpr = 0; iexpr < num_exprs; ++iexpr) {
                  SEXP rexpr_vals;
                  rprotect(rexpr_vals = RSaneAllocVector(REALSXP, values[iexpr].size()));
                  for (vector<EMRPoint *>::const_iterator ippoint = ppoints.begin(); ippoint != ppoints.end(); ++ippoint)
                      REAL(rexpr_vals)[ippoint - ppoints.begin()] = values[iexpr][*ippoint - &out_points.front()];
-                 SET_VECTOR_ELT(answer, NRPoint::NUM_COLS + iexpr, rexpr_vals);
+                 SET_VECTOR_ELT(answer, NRPoint::NUM_POINT_COLS + iexpr, rexpr_vals);
             }
 
             SEXP col_names = getAttrib(answer, R_NamesSymbol);
             for (unsigned iexpr = 0; iexpr < num_exprs; ++iexpr) {
                 if (isNull(_names))
-                    SET_STRING_ELT(col_names, NRPoint::NUM_COLS + iexpr, mkChar(get_bound_colname(CHAR(STRING_ELT(_exprs, iexpr))).c_str()));
+                    SET_STRING_ELT(col_names, NRPoint::NUM_POINT_COLS + iexpr, mkChar(get_bound_colname(CHAR(STRING_ELT(_exprs, iexpr))).c_str()));
                 else
-                    SET_STRING_ELT(col_names, NRPoint::NUM_COLS + iexpr, STRING_ELT(_names, iexpr));
+                    SET_STRING_ELT(col_names, NRPoint::NUM_POINT_COLS + iexpr, STRING_ELT(_names, iexpr));
             }
 
             rreturn(answer);

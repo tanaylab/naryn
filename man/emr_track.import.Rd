@@ -21,7 +21,7 @@ This function creates a new track from a text file or a data-frame. The location
 
 If 'src' is a file name, the latter must be constituted of four columns separated by spaces or 'TAB' characters: ID, time, reference and value. The file might contain lines of comments which should start with a '#' character.
 
-Alternatively 'src' can be a data frame consisting of the columns named "id", "time", "ref" and "value". Note: "ref" column in the data frame is optional.
+Alternatively 'src' can be an ID-Time Values table (see "User Manual" for more info).
 }
 \value{
 None.

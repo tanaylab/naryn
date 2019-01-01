@@ -19,7 +19,7 @@ emr_date2time(day, month, year, hour = 0)
 \details{
 This function converts date and hour to internal time format. Note: the earliest valid time is 1 March 1867.
 
-Note: if one of the arguments ('day', ...) is a vector, then other arguments must be vectors two of identical size or a scalar. Internally a data frame is built out of all the vectors or scalars before the conversion is applied. Hence rules for data frame creation apply to this function.
+Note: if one of the arguments ('day', ...) is a vector, then the other arguments must be vectors two of identical size or scalars. Internally a data frame is built out of all the vectors or scalars before the conversion is applied. Hence rules for data frame creation apply to this function.
 }
 \value{
 Vector of converted times.

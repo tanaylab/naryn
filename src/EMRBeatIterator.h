@@ -1,6 +1,8 @@
 #ifndef EMRBEATITERATOR_H_INCLUDED
 #define EMRBEATITERATOR_H_INCLUDED
 
+#include <cmath>
+
 #include "EMRTrackExpressionIterator.h"
 
 class EMRBeatIterator : public EMRTrackExpressionIterator {
@@ -36,7 +38,7 @@ inline void EMRBeatIterator::init(unsigned period, bool keepref, unsigned stime,
     m_period = period;
     m_stime = stime;
     m_etime = etime;
-    m_num_steps4id = (uint64_t)ceil((etime - stime + 1) / (double)period);
+    m_num_steps4id = (uint64_t)std::ceil((etime - stime + 1) / (double)period);
     if (m_keepref)
         m_num_steps4id *= EMRTimeStamp::MAX_REFCOUNT + 1;
     m_num_steps = m_num_steps4id * (uint64_t)(g_db->maxid() - g_db->minid() + 1);
@@ -84,7 +86,7 @@ inline bool EMRBeatIterator::next(const EMRPoint &jumpto)
     unsigned id = jumpto.id;
 
     if (g_db->is_in_subset(id)) {
-        EMRTimeStamp::Hour hour = m_period * (unsigned)ceil((jumpto.timestamp.hour() - m_stime) / (double)m_period) + m_stime;
+        EMRTimeStamp::Hour hour = m_period * (unsigned)std::ceil((jumpto.timestamp.hour() - m_stime) / (double)m_period) + m_stime;
 
         if (hour <= m_etime) {
             m_point.init(jumpto.id, hour, m_keepref ? 0 : EMRTimeStamp::NA_REFCOUNT);

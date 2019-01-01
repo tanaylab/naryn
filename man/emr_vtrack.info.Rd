@@ -25,7 +25,7 @@ Internal representation of a virtual track.
 }
 \examples{
 emr_db.init_examples()
-emr_vtrack.create("vtrack1", "dense_track", c(5, 10), "max")
+emr_vtrack.create("vtrack1", "dense_track", "max", time.shift = c(5, 10))
 emr_vtrack.info("vtrack1")
 }
 \keyword{ ~virtual }

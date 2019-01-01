@@ -15,7 +15,7 @@ emr_track.rm(track, force = F)
   \item{force}{if 'TRUE', supresses user confirmation of a named track removal}
 }
 \details{
-This function deletes a user track from the database. By default 'gtrack.rm' requires the user to interactively confirm the deletion. Set 'force' to 'TRUE' to suppress the user prompt.
+This function deletes a user track from the database. By default 'emr_track.rm' requires the user to interactively confirm the deletion. Set 'force' to 'TRUE' to suppress the user prompt.
 }
 \value{
 None.

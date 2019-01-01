@@ -11,7 +11,7 @@ emr_track.addto(track, src)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{track}{the name of the newly created track}
+  \item{track}{track name}
   \item{src}{file name or data-frame containing the track records}
 }
 \details{

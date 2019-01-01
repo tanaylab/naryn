@@ -19,7 +19,7 @@ emr_track.percentile(track, val, lower = T)
 This function returns the percentiles of the values given in 'val' based on track data.
 
 If 'lower' is 'TRUE' percentile indicates the relative number of track values lower than 'val'.
-If 'lower' is 'FALSE' percentile indicates the relative number of track values lower or equal than 'val'.
+If 'lower' is 'FALSE' percentile reflects the relative number of track values lower or equal than 'val'.
 }
 \value{
 A vector of percentile values

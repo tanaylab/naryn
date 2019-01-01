@@ -1,5 +1,6 @@
 #include "naryn.h"
 #include "NRIteratorFilter.h"
+#include "NRPoint.h"
 #include "NRTrackExpressionVars.h"
 
 using namespace std;
@@ -23,6 +24,35 @@ SEXP emr_check_vtrack(SEXP _vtrackstr, SEXP _vtrack, SEXP _envir)
         rerror("Out of memory");
     }
 	rreturn(R_NilValue);
+}
+
+SEXP emr_check_vtrack_attr_src(SEXP _src, SEXP _envir)
+{
+    try {
+        Naryn naryn(_envir);
+
+        if (isString(_src)) {
+            if (Rf_length(_src) != 1)
+                verror("'src' must be a string or a data frame");
+
+            const char *trackname = CHAR(STRING_ELT(_src, 0));
+
+            if (!g_db->track(trackname))
+                verror("Track %s does not exist", trackname);
+        } else {
+            EMRTrackData<float> data;
+
+            if (!isVector(_src) || Rf_length(_src) != 2 || !isLogical(VECTOR_ELT(_src, 1)))
+                verror("Invalid format of 'src'");
+
+            NRPoint::convert_rpoints_vals(VECTOR_ELT(_src, 0), data, "'src': ");
+        }
+    } catch (TGLException &e) {
+        rerror("%s", e.msg());
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
+    rreturn(R_NilValue);
 }
 
 SEXP emr_check_vtrack_attr_func(SEXP _func, SEXP _envir)

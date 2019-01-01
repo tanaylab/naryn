@@ -1,7 +1,6 @@
 %\VignetteIndexEntry{User manual}
 
 \documentclass{article}
-
 \usepackage{amsmath}
 \usepackage{amscd}
 \usepackage[tableposition=top]{caption}
@@ -14,14 +13,124 @@
 \begin{document}
 \SweaveOpts{concordance=TRUE}
 
-\title{Package 'naryn' - User Manual}
+\title{Naryn - User Manual}
 \maketitle
 
-'naryn' package that helps to efficiently analyze medical records data.
+Naryn helps to efficiently analyze medical records data.
 
 \tableofcontents
 
 \newpage
+
+\section{Introduction}
+Naryn allows efficient access and analysis of medical records that are maintained in a custom database.
+
+Naryn can work under R (as a package) or Python (as a module). The vast majority of the functions and the concepts are shared between the two implementations, yet certain differences still exist and are summarized in a table below. Code examples and function names in this document are presented for R but they can equally run in Python with the interface changes as to the table.
+
+\subsection{R vs. Python Interface Differences}
+
+{\parindent0pt
+\begin{tabular}{|p{2in}|p{2in}|p{2in}|}
+  \hline
+  & R & Python \\
+  \hline
+    Naming Conventions \newline (except for virtual track 'func', which stays unchanged) &
+    \texttt{emr\_xxx.yyy.zzz} &
+    \texttt{xxx\_yyy\_zzz} \\
+    & & \\
+    Variables &
+    Defined in global environment: \newline
+    \texttt{EMR\_GROOT} \newline \texttt{EMR\_UROOT} \newline \texttt{MINID} \newline \texttt{MAXID} \newline
+    \texttt{MINTIME} \newline \texttt{MAXTIME} &
+    Defined in module's environment: \newline
+    \texttt{\_GROOT} \newline \texttt{\_UROOT} \newline \texttt{\_MINID} \newline \texttt{\_MAXID} \newline
+    \texttt{\_MINTIME} \newline \texttt{\_MAXTIME} \\
+    & & \\
+    Run-time Variables (available only during track expression evaluation) &
+    \texttt{EMR\_TIME} &
+    \texttt{TIME} \\
+    & & \\
+    Package / Module Options &
+    Controlled via standard options mechanism: \newline
+    \texttt{options(emr\_xxx.yyy=zzz)} \newline \texttt{getOption("emr\_xxx.yyy")} &
+    Controlled by module's \texttt{CONFIG} variable: \newline
+    \texttt{CONFIG['xxx\_yyy']=zzz} \newline \texttt{CONFIG['xxx\_yyy']} \\
+    & & \\
+    Data Types (used as function parameters) &
+    \texttt{data.frame} \newline \texttt{list} \newline \texttt{vector} of strings \newline
+      \texttt{vector} of numerics \newline \texttt{NULL} &
+    \texttt{pandas.DataFrame} \newline \texttt{list} \newline \texttt{list} of strings \newline
+      \texttt{numpy.ndarray} of numerics \newline \texttt{None} \\
+    & & \\
+    Data Types (return value) &
+    \texttt{data.frame} \newline \texttt{list} \newline \texttt{vector} of strings \newline \newline
+      \texttt{vector} of numerics, no labels \newline \texttt{vector} of numerics, with labels \newline \newline \texttt{NULL} &
+    \texttt{pandas.DataFrame} \newline \texttt{dict} \newline \texttt{numpy.ndarray} of objects (strings) \newline
+      \texttt{numpy.ndarray} of numerics \newline \newline \texttt{pandas.DataFrame} with two columns (label, numeric) \newline \texttt{None} \\
+    & & \\
+    Database Management &
+    Database is unloaded when the package is detached. &
+    \texttt{db\_unload()} must be called explicitly to unload the database. \\
+    & & \\
+    Setting seed for random number generator. \newline
+      \textbf{Note:} R and Python use different random generators, results are therefore not reproducible between them. &
+    \texttt{set.seed} &
+    \texttt{seed} \\
+\hline
+\end{tabular}
+}
+\newline
+{\parindent0pt
+\begin{tabular}{|p{2in}|p{2in}|p{2in}|}
+\hline
+  & R & Python \\
+  \hline
+    Track Variables &
+    Variables saved in Python are not visible in R. &
+    Variables saved in R are not visible in Python. \\
+    & & \\
+    Setting Track Variables &
+    \texttt{emr\_track.set} creates a directory named \texttt{.trackname.var} &
+    \texttt{track\_set} creates a directory named \texttt{.trackname.pyvar} \\
+    & & \\
+    Named Filters and Virtual Tracks &
+    Named filters and virtuals tracks may be saved along with the rest of R's environment. &
+    \texttt{filter\_export}, \texttt{filter\_import}, \texttt{vtrack\_export}, \texttt{vtrack\_import}
+    must be explicitly called to save / restore named filters or virtual tracks. \\
+    & & \\
+    Pattern Matching &
+    \texttt{emr\_track.ls}, \newline \texttt{emr\_track.global.ls}, \newline \texttt{emr\_track.user.ls}, \newline
+      \texttt{emr\_track.var.ls}, \newline \texttt{emr\_filter.ls} \newline
+      accept pattern matching parameters. \newline
+      Return: \texttt{vector} of strings that match the pattern. &
+    \texttt{track\_ls}, \newline \texttt{track\_global\_ls}, \newline \texttt{track\_user\_ls}, \newline
+      \texttt{track\_var\_ls}, \newline \texttt{filter\_ls} \newline do not support pattern matching. \newline
+      Return: \texttt{numpy.ndarray} of objects (strings) that contains all the objects (tracks, ...) \\
+    & & \\
+    Time shift parameter (used in various functions) &
+    \texttt{time.shift} is a numeric or a vector of two numerics. &
+    \texttt{time\_shift} is a numeric or a list of two numerics. \\
+    & & \\
+    Calculating Distribution &
+    \texttt{emr\_dist} returns N-dimensional \texttt{vector} with labels (dimension names) &
+    \texttt{dist} return N-dimensional \texttt{numpy.ndarray} without labels. \\
+    & & \\
+    Calculating Correlation Statistics &
+    \texttt{emr\_cor}: \newline For N-dimensional binning the returned value \texttt{r} may be addressed as: \newline
+      \texttt{r\$cor[bin1,...,binN,i,j]}, where \texttt{i} and \texttt{j} are indices of \texttt{cor.exprs}. &
+    \texttt{cor}: \newline For N-dimensional binning the returned value \texttt{r} may be addressed as: \newline
+      \texttt{r['cor'][bin1,...,binN,i,j]}, where \texttt{i} and \texttt{j} are indices of \texttt{cor\_exprs}. \\
+    & & \\
+    Others &
+    \texttt{emr\_annotate} &
+    Not implemented, use \newline \texttt{pandas.DataFrame.merge} \newline or
+      \newline \texttt{pandas.merge\_sorted} \newline instead. \\
+    & 
+    \texttt{emr\_traceback} &
+    Not implemented, not applicable. \\
+\hline
+\end{tabular}
+}
 
 \section{Database}
 
@@ -29,7 +138,8 @@ Naryn allows to access data that resides in \emph{tracks} where each track holds
 
 Even though both global and user root directories may contain track files their designation is different. The global root directory is intended to stay mainly read-only with a notable exception of periodic updates to the existing data which can be performed via \texttt{emr\_track.addto} function. No tracks are allowed to be deleted from the global root directory. Unlike that user root directory is intended to store volatile data like the results of intermediate calculations. New tracks can be created in both user or global space using \texttt{emr\_track.import} or \texttt{emr\_track.create} yet the creation of tracks in the global space is strongly discouraged.
 
-Once \texttt{emr\_db.init} is successfully called a few auxiliary variables are added to R global environment. Please refer the documentation of this function.
+Once \texttt{emr\_db.init} is successfully called a few auxiliary variables are added to R global environment (Python: to module's dictionary). Please refer the documentation of this function.
+
 
 \subsection{Tracks}
 
@@ -55,6 +165,8 @@ During the track creation one must specify the type of the track: categorical or
 
 Track statistics, results of time-consuming per-track calculations, historical data and any other data in arbitrary format can be stored in a track's supplementary data in the form of track variables. Track variable can be retrieved, added, modified or deleted using \texttt{emr\_track.var.get}, \texttt{emr\_track.var.set}, \texttt{emr\_track.var.rm} functions. List of track variables can be retrieved using \texttt{emr\_track.var.ls} function.
 
+Note: track variables created in R are not visible in Python and vice versa.
+
 \subsubsection{Subsets}
 
 The analysis of data often involves dividing the data to train and test sets. 
@@ -70,11 +182,32 @@ One may think of a subset as an additonal layer, a "viewport", that filters out 
 
 \emph{Track expression} allows to retrieve numerical data that is recorded in the tracks. Track expressions are widely used in various functions (\texttt{emr\_screen}, \texttt{emr\_extract}, \texttt{emr\_dist}, ...).
 
-Track expression is a character string that closely resembles a valid R expression. Just like any other R expression it may include conditions, function calls and variables defined beforehand. \texttt{"1 > 2"}, \texttt{"mean(1:10)"} and \texttt{"myvar < 17"} are all valid track expressions. Unlike regular R expressions track expression might also contain track names and / or \emph{virtual track} names.
+Track expression is a character string that closely resembles a valid R/Python expression. Just like any other R/Python expression it may include conditions, function calls and variables defined beforehand. \texttt{"1 > 2"}, \texttt{"mean(1:10)"} and \texttt{"myvar < 17"} are all valid track expressions. Unlike regular R/Python expressions track expression might also contain track names and / or \emph{virtual track} names.
 
 To understand how the track expression allows the access to the tracks we must explain how the track expression gets evaluated.
 
-Every track expression is accompanied by an \emph{iterator} that produces a set of \emph{id-time points} of \texttt{(id, time, ref)} type. For each each iterator point the track expression is evaluated. The value of the track expression \texttt{"mean(1:10)"} is constant regardless the iterator point. However the track expression might contain a track name \texttt{mytrack}, like: \texttt{"mytrack * 3"}. Naryn recognizes then that \texttt{mytrack} is not a regular R variable but rather a track name. A new R variable named \texttt{mytrack} is added then to R environment. For each iterator point this variable is assigned the value of the track that matches \texttt{(id, time, ref)} (or NaN if no matching value exists in the track). Once \texttt{mytrack} is assigned the corresponding value, the track expression is evaluated in R.
+Every track expression is accompanied by an \emph{iterator} that produces a set of \emph{id-time points} of \texttt{(id, time, ref)} type. For each each iterator point the track expression is evaluated. The value of the track expression \texttt{"mean(1:10)"} is constant regardless the iterator point. However the track expression might contain a track name \texttt{mytrack}, like: \texttt{"mytrack * 3"}. Naryn recognizes then that \texttt{mytrack} is not a regular R/Python variable but rather a track name. A new \emph{run-time track variable} named \texttt{mytrack} is added then to R environment (or Python module local dictionary). For each iterator point this variable is assigned the value of the track that matches \texttt{(id, time, ref)} (or NaN if no matching value exists in the track). Once \texttt{mytrack} is assigned the corresponding value, the track expression is evaluated in R/Python.
+
+\subsubsection{Run-time Track Variable is a Vector}
+To boost the performance of the track expression evaluation, run-time track variables are actually defined as vectors in R rather than scalars. The result of the evaluation is expected to be also a vector of a similar size. One should always keep in his mind the vectorial notation and write the track expressions accordingly.
+
+For example, at first glance a track expression \texttt{"min(mytrack, 10)"} seems to be perfectly fine. However the evaluation of this expression produces always a scalar, i.e. a signle number even if \texttt{mytrack} is actually a vector. The way to correct the specific track expression so that it works on vectors, is to use \texttt{pmin} function instead of \texttt{min}. \newline
+
+\noindent\fbox{
+\parbox{\textwidth}{
+\textbf{Python}
+
+Similarly to R, a track variable in Python is not a scalar but rather an instance of \texttt{numpy.ndarray}. The evaluation of a track expression must therefore produce a \texttt{numpy.ndarray} as well. Various operations on numpy arrays indeed work the same way as with scalars, however logical operations require different syntax. For instance,
+
+\texttt{screen("mytrack1 > 1 and mytrack2 < 2", iterator="mytrack1")}
+
+will produce an error given that \texttt{mytrack1} and \texttt{mytrack2} are numpy arrays. The correct way to write the expression is:
+
+\texttt{screen("(mytrack1 > 1) \& (mytrack2 < 2)", iterator="mytrack1")}
+}
+} \newline
+
+One may coerce the track variable to behave like a scalar: by setting \texttt{emr\_eval.buf.size} option to \texttt{1} (see Appendix for more details). Beware though that this might take its heavy toll on run-time.
 
 \subsubsection{Matching Reference in the Track Expression}
 
@@ -112,7 +245,7 @@ Let's expand our example further and ignore in our calculations the glucose read
 emr_filter.create("steroids_filter", "steroids_track", time.shift=c(-24*7, 0))
 emr_vtrack.create("annual_glucose", src="glucose_track", func="quantile",
                   param=0.5, time.shift=c(-365*24,0), filter="!steroids_filter")
-emr_extract("annual_glucose", iterator=list(365*24, ‘date_of_birth_track’))
+emr_extract("annual_glucose", iterator=list(365*24, "date_of_birth_track"))
 \end{verbatim}
 
 \emph{Filter} is applied to the ID-Time points of the source track (e.g. \texttt{glucose\_track} in our example). The virtual track function (\texttt{quantile}, ...) is applied then only to the points that pass the filter. The concept of filters is explained extensively in a separate chapter.
@@ -230,7 +363,7 @@ The iterator is set implicitly if its value remains \texttt{NULL} (which is the 
 
 \subsubsection{Revealing Current Iterator Time}
 
-During the evaluation of a track expression one can access a specially defined variable named \texttt{EMR\_TIME}. This variable contains a vector of current iterator times. The length of the vector matches the length of the track variable (which is a vector too).
+During the evaluation of a track expression one can access a specially defined variable named \texttt{EMR\_TIME} (Python: \texttt{TIME}). This variable contains a vector (\texttt{numpy.ndarray} in Python) of current iterator times. The length of the vector matches the length of the track variable (which is a vector too).
 
 Note that some values in \texttt{EMR\_TIME} might be set 0. Skip those intervals and the values of the track variables at the corresponding indices.
 
@@ -243,7 +376,7 @@ emr_extract("emr_time2dayofmonth(EMR_TIME)", iterator = "sparse_track")
 
 \emph{Filter} is used to approve / reject an ID-Time point. It can be applied to an iterator, in which case the iterator points are required to be approved by the filter before they are passed further to the track expression. Filter may also be used by a virtual track. In this case the virtual track function (see \texttt{func} parameter of \texttt{emr\_vitrack.create}) is applied only to the points from the source track (\texttt{src} parameter) that pass the filter.
 
-Filter has a form of a logical expression consisting of \emph{named} or \emph{unnamed} \emph{elementary filters} (the "building bricks" of the filter) connected with the logical operators: \texttt{\&}, \texttt{|}, \texttt{!} and brackets \texttt{()}.
+Filter has a form of a logical expression consisting of \emph{named} or \emph{unnamed} \emph{elementary filters} (the "building bricks" of the filter) connected with the logical operators: \texttt{\&}, \texttt{|}, \texttt{!} (\texttt{and}, \texttt{or} and \texttt{not} in Python) and brackets \texttt{()}.
 
 \subsubsection{Named Filters}
 
@@ -255,6 +388,16 @@ emr_filter.create("filterY", "drugY", time.shift = c(24 * 7, 0))
 emr_filter.create("filterZ", "drugZ", time.shift = c(24 * 7, 0))
 emr_extract("hemoglobin", filter = "(filterX | filterY) & !filterZ")
 \end{verbatim}
+
+\noindent\fbox{
+\parbox{\textwidth}{
+\textbf{Python}
+
+Filter with logical conditions will use Python's notation like:
+
+\texttt{extract("hemoglobin", filter = "(filterX or filterY) and not filterZ")}
+}
+} \newline
 
 Each call to \texttt{emr\_filter.create} creates a \emph{named elementary filter} (or simply: named filter) with a unique name. The named filter can then be used in \texttt{filter} parameter of an iterator and be combined with other named filters using the logical operators.
 
@@ -278,7 +421,9 @@ emr_extract(my.track.expression, filter="drug_filter", keepref=TRUE)
 \section{Advanced Naryn}
 
 \subsection{Random Algorithms}
-Various functions in the library such as \texttt{emr\_quantiles} make use of pseudo-random number generator. Each time the function is invoked a unique series of random numbers is issued. Hence two identical calls might produce different results. To guarantee reproducible results call \texttt{set.seed} before invoking the function.
+Various functions in the library such as \texttt{emr\_quantiles} make use of pseudo-random number generator. Each time the function is invoked a unique series of random numbers is issued. Hence two identical calls might produce different results. To guarantee reproducible results call \texttt{set.seed} (Python: texttt{seed}) before invoking the function.
+
+Note: R and Python implementations of Naryn use different pseudo-random number generator algorithms. Sadly it means that the result achieved in R cannot be reproducible in Python if random is used, even if identical seed is shared between the two platforms.
 
 \subsection{Multitasking}
 
@@ -294,9 +439,11 @@ In addition to increased CPU usage multitasking might also alter the behavior of
 
 \subsection{Options}
 
-Naryn supports the following options (see: \texttt{options} and \texttt{getOption}).
-\subparagraph*{}
+Naryn supports the following options. The options can be set/examined via R's \texttt{options} and \texttt{getOption}.
 
+(Use \texttt{CONFIG['option\_name']} to control the module options in Python. Please mind as well Python's name convention: R's \texttt{emr\_xxx.yyy} option will change its name to \texttt{xxx\_yyy}.)
+
+{\parindent0pt
 \begin{tabular}{|l|l|p{3.5in}|}
   \hline
   Option & Default Value & Description \\
@@ -313,24 +460,29 @@ Naryn supports the following options (see: \texttt{options} and \texttt{getOptio
   \texttt{emr\_warning.itr.no.filter.size} & \texttt{100000} & Threshold above which "beat iterator used without filter" warning is issued.  \\
 \hline
 \end{tabular}
+}
 
 
 \subsection{Common Table Formats}
 
 \subsection{Id-Time Points Table}
 
-Id-Time Points table is a data frame having two first columns named ``id'' and ``time''. References might be specified by a third column named ``ref''. If ``ref'' column is missing or named differently references are set to \texttt{-1}. Additional columns if presented are ignored.
+Id-Time Points table is a data frame having two first columns named 'id' and 'time'. References might be specified by a third column named 'ref'. If 'ref' column is missing or named differently references are set to \texttt{-1}. Additional columns, if presented, are ignored.
+
+\subsection{Id-Time Values Table}
+
+Id-Time Values table is an extension of \emph{Id-Time Points table} with an additional column named 'value'. Additional columns, if presented, are ignored.
 
 \subsection{Ids Table}
 
-Ids table is a data frame having the first column named 'id'. Each id must appear only once. Additional columns of the data frame if presented are ignored.
+Ids table is a data frame having the first column named 'id'. Each id must appear only once. Additional columns of the data frame, if presented, are ignored.
 
 \subsection{Time Intervals Table}
 
-Time Intervals table is a data frame having two first columns named 'stime' and 'etime' (i.e. start time and end time). Additional columns if presented are ignored.
+Time Intervals table is a data frame having two first columns named 'stime' and 'etime' (i.e. start time and end time). Additional columns, if presented, are ignored.
 
 \subsection{Id-Time Intervals Table}
 
-Id-Time Intervals table is a data frame having three first columns named 'id', 'stime' and 'etime' (i.e. start time and end time). Additional columns if presented are ignored.
+Id-Time Intervals table is a data frame having three first columns named 'id', 'stime' and 'etime' (i.e. start time and end time). Additional columns, if presented, are ignored.
 
 \end{document}

@@ -14,7 +14,7 @@ emr_vtrack.create(vtrack, src, func = NULL, params = NULL,
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{vtrack}{virtual track name.}
-  \item{src}{source (track name).}
+  \item{src}{data source.}
   \item{func, params}{see below.}
   \item{keepref}{see below.}
   \item{time.shift}{time shift and expansion for iterator time.}
@@ -32,21 +32,23 @@ If 'id.map' is 'NULL' then ID1 == ID2, otherwise ID2 is derived from the transla
 
 Both 'time.shift' parameter and 'time.shift' column within 'id.map' may be used simultaneously. In this case the time shifts are applied sequentially.
 
-At the next step the values from 'src' that fall into the new id-time interval and pass the 'filter' are collected. If 'keepref' is 'TRUE' the reference of these values must match 'Ref' unless either the reference or 'Ref' are '-1'.
+At the next step values from the data source 'src' that fall into the new id-time interval and pass the 'filter' are collected. 'src' may be either a track name or a list of two members: ID-Time Values table (see "User Manual") and a logical. If the logical is 'TRUE', the data in the table is treated as categorical, otherwise as quantitative.
 
-Function 'func' (with 'params') is applied then on the collected values and produces a single value which is considered to be the value of 'vtrack' for the given iterator point.
+If 'keepref' is 'TRUE' the reference of these values must match 'ref' unless either the reference or 'ref' are '-1'.
+
+Function 'func' (with 'params') is applied then on the collected values and produces a single value which is considered to be the value of 'vtrack' for the given iterator point. If 'NULL' is used as a value for 'func', 'func' is set then implicitly to 'value', if the data source is categorical, or 'avg', if the data source is quantitative.
 
 Use the following table for a reference of all valid functions and parameters combinations.
 
-CATEGORICAL TRACKS
+CATEGORICAL DATA SOURCE
 
 \tabular{lll}{
     FUNC \tab PARAM \tab DESCRIPTION \cr
-    value \tab vals/NULL \tab A track value or -1 if there is more than one. \cr
+    value \tab vals/NULL \tab A source value or -1 if there is more than one. \cr
     exists \tab vals \tab 1 if any of the 'vals' exist otherwise 0. \cr
-    sample \tab NULL \tab Uniformly sampled track value. \cr
-    sample.time \tab NULL \tab Time of the uniformly sampled track value. \cr
-    frequent \tab vals/NULL \tab The most frequent track value or -1 if there is more than one value. \cr
+    sample \tab NULL \tab Uniformly sampled source value. \cr
+    sample.time \tab NULL \tab Time of the uniformly sampled source value. \cr
+    frequent \tab vals/NULL \tab The most frequent source value or -1 if there is more than one value. \cr
     size \tab vals/NULL \tab Number of values. \cr
     earliest \tab vals/NULL \tab Earliest value or -1 if there is more than one. \cr
     latest \tab vals/NULL \tab Latest value or -1 if there is more than one. \cr
@@ -61,17 +63,17 @@ CATEGORICAL TRACKS
     dt2.latest \tab vals/NULL \tab Time difference between T2 and the latest value \cr
 }
 
-* 'vals' is a vector of values. If not 'NULL' it serves as a filter: the function is applied only to the track values that appear among 'vals'.
+* 'vals' is a vector of values. If not 'NULL' it serves as a filter: the function is applied only to the data source values that appear among 'vals'.
 
-QUANTITATIVE TRACKS
+QUANTITATIVE DATA SOURCE
 
 \tabular{lll}{
     FUNC \tab PARAM \tab DESCRIPTION \cr
     avg \tab NULL \tab Average of all values. \cr
     min \tab NULL \tab Minimal value. \cr
     max \tab NULL \tab Maximal value. \cr
-    sample \tab NULL \tab Uniformly sampled track value. \cr
-    sample.time \tab NULL \tab Time of the uniformly sampled track value. \cr
+    sample \tab NULL \tab Uniformly sampled source value. \cr
+    sample.time \tab NULL \tab Time of the uniformly sampled source value. \cr
     size \tab NULL \tab Number of values. \cr
     earliest \tab NULL \tab Average of the earliest values. \cr
     latest \tab NULL \tab Average of the latest values. \cr
@@ -97,7 +99,7 @@ QUANTITATIVE TRACKS
     dt2.latest \tab NULL \tab Time difference between T2 and the latest value \cr
 }
 
-* Percentile is calculated based on the values of the whole track even if a subset or a filter are defined.
+* Percentile is calculated based on the values of the whole data source even if a subset or a filter are defined.
 
 Note: 'time.shift' can be used only when 'keepref' is 'FALSE'. Also when 'keepref' is 'TRUE' only 'avg', 'percentile.upper' and 'percentile.lower' can be used in 'func'.
 
@@ -116,6 +118,10 @@ emr_vtrack.create("vtrack1", "dense_track", time.shift = 1,
                   func = "max")
 emr_vtrack.create("vtrack2", "dense_track",
                   time.shift = c(-5, 10), func = "min")
-emr_extract("dense_track", "vtrack1", "vtrack2", keepref = T)
+res = emr_extract("dense_track", keepref=T, names="value")
+emr_vtrack.create("vtrack3", list(res, F), time.shift = c(-5, 10),
+                  func = "min")
+emr_extract(c("dense_track", "vtrack1", "vtrack2", "vtrack3"),
+            keepref = T, iterator="dense_track")
 }
 \keyword{ ~virtual }

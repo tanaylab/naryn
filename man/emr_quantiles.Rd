@@ -24,7 +24,7 @@ emr_quantiles(expr, percentiles = 0.5, stime = MINTIME,
 \details{
 This function calculates quantiles for the given percentiles.
 
-If data size exceeds the limit (see: 'getOption(emr_max.data.size)'), the data is randomly sampled to fit the limit. A warning message is generated. The seed of the pseudo-random generator can be controled through 'grnd.seed' option.
+If data size exceeds the limit (see: 'getOption(emr_max.data.size)'), the data is randomly sampled to fit the limit. A warning message is generated then.
 }
 \value{
 An array that represent quantiles.

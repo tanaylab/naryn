@@ -495,15 +495,23 @@ void NRTrackExprScanner::create_expr_iterator(IteratorWithFilter *itr, SEXP rite
         expr_itr = new EMRTrackIterator(g_db->track(CHAR(asChar(riterator))), keepref, stime, etime);
     else if (isNull(riterator)) {
         string track_name;
+        EMRTrack *track = NULL;
 
         for (unsigned ivar = 0; ivar < vars.get_num_track_vars(); ++ivar) {
-			if (track_name.empty())
+			if (track_name.empty()) {
                 track_name = vars.get_track_name(ivar);
-            else if (track_name != vars.get_track_name(ivar)) {
+
+                // Normally the iterator goes by the vtrack src, even if vtrack has a filter (in this case vars.get_track(ivar) will contain an intermediate, filtered track).
+                // If however vtrack src is a data frame, iterator must be taken from vars.get_track(ivar) which will contain an intermadiate track based on the data frame data.
+                // The intermediate tracks are not added to the database, so g_db->track(tmp_track) will return NULL.
+                track = g_db->track(track_name.c_str());
+                if (!track)   // src == data.frame
+                    track = vars.get_track(ivar);
+            } else if (track_name != vars.get_track_name(ivar)) {
                 if (m_track_exprs.size() == 1)
-                    verror("Unable to implicitly set iterator policy: track expression contains several different tracks");
+                    verror("Unable to implicitly set iterator policy: track expression contains several different data sources");
                 else
-                    verror("Unable to implicitly set iterator policy: track expressions contain several different tracks");
+                    verror("Unable to implicitly set iterator policy: track expressions contain several different data sources");
             }
         }
 
@@ -514,7 +522,7 @@ void NRTrackExprScanner::create_expr_iterator(IteratorWithFilter *itr, SEXP rite
                 verror("Unable to implicitly set iterator policy: track expressions do not contain any tracks");
         }
 
-        expr_itr = new EMRTrackIterator(g_db->track(track_name.c_str()), keepref, stime, etime);
+        expr_itr = new EMRTrackIterator(track, keepref, stime, etime);
     } else {
         bool success = false;
         EMRPoints points;

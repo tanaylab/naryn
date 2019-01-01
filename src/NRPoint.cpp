@@ -8,7 +8,7 @@ struct EMRPPointsSort {
     bool operator()(const EMRPoint *p1, const EMRPoint *p2) const { return *p1 < *p2; }
 };
 
-const char *NRPoint::COL_NAMES[NUM_COLS] = { "id", "time", "ref" };
+const char *NRPoint::COL_NAMES[NUM_PVAL_COLS] = { "id", "time", "ref", "value" };
 
 SEXP NRPoint::convert_points(const vector<EMRPoint> &points, unsigned num_cols, bool null_if_empty, bool do_sort, vector<EMRPoint *> *ppoints)
 {
@@ -56,7 +56,7 @@ SEXP NRPoint::convert_points(const vector<EMRPoint> &points, unsigned num_cols, 
     for (size_t i = 0; i < points.size(); ++i)
         INTEGER(row_names)[i] = i + 1;
 
-    for (int i = 0; i < NUM_COLS; i++)
+    for (int i = 0; i < NUM_POINT_COLS; i++)
         SET_STRING_ELT(col_names, i, mkChar(COL_NAMES[i]));
 
     if (ppoints) {
@@ -102,10 +102,10 @@ void NRPoint::convert_rpoints(SEXP rpoints, vector<EMRPoint> *points, const char
 
     SEXP colnames = getAttrib(rpoints, R_NamesSymbol);
 
-    if (!isString(colnames) || Rf_length(colnames) < NUM_COLS - 1)
+    if (!isString(colnames) || Rf_length(colnames) < NUM_POINT_COLS - 1)
         TGLError<NRPoint>(BAD_FORMAT, "%sInvalid format of id-time points", error_msg_prefix);
 
-    for (unsigned i = 0; i < NUM_COLS; i++) {
+    for (unsigned i = 0; i < NUM_POINT_COLS; i++) {
         if (i == REF) // reference column is optional
             continue;
 
@@ -115,10 +115,10 @@ void NRPoint::convert_rpoints(SEXP rpoints, vector<EMRPoint> *points, const char
 
     SEXP ids = VECTOR_ELT(rpoints, ID);
     SEXP hours = VECTOR_ELT(rpoints, TIME);
-    SEXP refs = Rf_length(colnames) >= REF + 1 && !strcmp(CHAR(STRING_ELT(colnames, REF)), COL_NAMES[REF]) ? VECTOR_ELT(rpoints, REF) : R_NilValue;
+    SEXP refs = Rf_length(colnames) >= NUM_POINT_COLS && !strcmp(CHAR(STRING_ELT(colnames, REF)), COL_NAMES[REF]) ? VECTOR_ELT(rpoints, REF) : R_NilValue;
     unsigned num_points = (unsigned)Rf_length(ids);
 
-    for (unsigned i = 1; i < NUM_COLS; i++) {
+    for (unsigned i = 1; i < NUM_POINT_COLS; i++) {
         if ((i != REF || i == REF && refs != R_NilValue) && Rf_length(VECTOR_ELT(rpoints, i)) != Rf_length(VECTOR_ELT(rpoints, i - 1)))
             TGLError<NRPoint>(BAD_FORMAT, "%sInvalid format of id-time points", error_msg_prefix);
     }

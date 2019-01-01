@@ -47,18 +47,18 @@ protected:
 
 #pragma pack(pop)
 
-    unsigned  m_num_recs;
-    size_t    m_num_percentiles;
-    unsigned *m_data;
-    Rec      *m_recs;
-    float    *m_percentiles;
-    T        *m_sorted_unique_vals;
+    unsigned  m_num_recs{0};
+    size_t    m_num_percentiles{0};
+    unsigned *m_data{NULL};
+    Rec      *m_recs{NULL};
+    float    *m_percentiles{NULL};
+    T        *m_sorted_unique_vals{NULL};
 
 	EMRTrackDense(const char *name, DataType data_type, unsigned flags, void *&mem, size_t &pos, size_t size,
-                 unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime);
+                  unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime);
 
     EMRTrackDense(const char *name, EMRTrack *base_track, const EMRTrackData<T> &track_data, DataType data_type,
-                 unsigned flags, unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime);
+                  bool build_percentiles, unsigned flags, unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime);
 
     unsigned data_size() const { return m_max_id - m_min_id + 1; }
     unsigned num_recs(unsigned dataidx) const;
@@ -84,7 +84,7 @@ protected:
 
 template <class T>
 EMRTrackDense<T>::EMRTrackDense(const char *name, DataType data_type, unsigned flags, void *&mem, size_t &pos, size_t size,
-                              unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime) :
+                                unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime) :
 	EMRTrack(name, DENSE, data_type, flags, mem, size, minid, maxid, mintime, maxtime)
 {
     read_datum(m_shmem, pos, m_shmem_size, m_num_recs, name);
@@ -115,7 +115,7 @@ EMRTrackDense<T>::EMRTrackDense(const char *name, DataType data_type, unsigned f
 
 template <class T>
 EMRTrackDense<T>::EMRTrackDense(const char *name, EMRTrack *base_track, const EMRTrackData<T> &track_data, DataType data_type,
-                              unsigned flags, unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime) :
+                                bool build_percentiles, unsigned flags, unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime) :
 	EMRTrack(name, DENSE, data_type, flags, base_track, minid, maxid, mintime, maxtime)
 {
     m_num_recs = track_data.m_key2val.size();
@@ -126,6 +126,8 @@ EMRTrackDense<T>::EMRTrackDense(const char *name, EMRTrack *base_track, const EM
     unsigned data_size = maxid - minid + 1;
     vector<unsigned> data(data_size, (unsigned)-1);
     vector<Rec> recs(m_num_recs);
+    vector<float> percentiles;
+    vector<T> sorted_unique_vals;
 
     for (typename EMRTrackData<T>::Key2Val::const_iterator idata = track_data.m_key2val.begin(); idata != track_data.m_key2val.end(); ++idata) {
         typename EMRTrackData<T>::DataRec rec;
@@ -148,7 +150,29 @@ EMRTrackDense<T>::EMRTrackDense(const char *name, EMRTrack *base_track, const EM
         ++rec_idx;
     }
 
-    size_t mem_size = sizeof(unsigned) * data.size() + sizeof(Rec) * recs.size();
+    if (build_percentiles) {
+        vector<T> vals;
+
+        for (auto &rec : data_recs) {
+            if ((typeid(rec.val) == typeid(float) || typeid(rec.val) == typeid(double) || typeid(rec.val) == typeid(long double)) && !std::isnan(rec.val))
+                vals.push_back(rec.val);
+        }
+
+        sort(vals.begin(), vals.end());
+        if (vals.size()) {
+            sorted_unique_vals.push_back(vals.front());
+            for (typename vector<T>::const_iterator ival = vals.begin() + 1; ival < vals.end(); ++ival) {
+                if (*ival != *(ival - 1)) {
+                    percentiles.push_back((ival - vals.begin()) / (double)vals.size());
+                    sorted_unique_vals.push_back(*ival);
+                }
+            }
+            percentiles.push_back(1.);
+        }
+        m_num_percentiles = percentiles.size();
+    }
+
+    size_t mem_size = sizeof(unsigned) * data.size() + sizeof(Rec) * recs.size() + (sizeof(sorted_unique_vals[0]) + sizeof(percentiles[0])) * m_num_percentiles;
 
     if (posix_memalign((void **)&m_mem, 64, mem_size))
         verror("%s", strerror(errno));
@@ -163,10 +187,15 @@ EMRTrackDense<T>::EMRTrackDense(const char *name, EMRTrack *base_track, const EM
     m_recs = (Rec *)(m_mem + pos);
     pos += sizeof(Rec) * recs.size();
 
-    // percentiles are taken from the base track
-    m_num_percentiles = 0;
-    m_sorted_unique_vals = NULL;
-    m_percentiles = NULL;
+    if (m_num_percentiles) {
+        memcpy(m_mem + pos, &sorted_unique_vals.front(), sizeof(sorted_unique_vals[0]) * m_num_percentiles);
+        m_sorted_unique_vals = (T *)(m_mem + pos);
+        pos += sizeof(sorted_unique_vals[0]) * m_num_percentiles;
+
+        memcpy(m_mem + pos, &percentiles.front(), sizeof(percentiles[0]) * m_num_percentiles);
+        m_percentiles = (float *)(m_mem + pos);
+        pos += sizeof(percentiles[0]) * m_num_percentiles;
+    }
 }
 
 template <class T>
@@ -364,12 +393,12 @@ void EMRTrackDense<T>::set_vals(DataFetcher &df, const EMRInterval &interv)
         df.m_rec_idx = max(df.m_rec_idx, m_data[data_idx]);
 
         while (1) {
-            if (df.m_rec_idx >= end_rec_idx || m_recs[df.m_rec_idx].timestamp.hour() > interv.etime) {
+            if (df.m_rec_idx >= end_rec_idx || (int)m_recs[df.m_rec_idx].timestamp.hour() > interv.etime) {
                 set_nan_vals(df);
                 break;
             }
 
-            if (m_recs[df.m_rec_idx].timestamp.hour() >= interv.stime && m_recs[df.m_rec_idx].timestamp.hour() <= interv.etime) {
+            if ((int)m_recs[df.m_rec_idx].timestamp.hour() >= interv.stime && (int)m_recs[df.m_rec_idx].timestamp.hour() <= interv.etime) {
                 calc_vals(df, interv, m_recs + df.m_rec_idx, m_recs + end_rec_idx);
                 break;
             }
@@ -378,7 +407,7 @@ void EMRTrackDense<T>::set_vals(DataFetcher &df, const EMRInterval &interv)
             ++df.m_rec_idx;
 
             // timestamp is still preceeding the interval => no choice but to run a binary search
-            if (df.m_rec_idx < end_rec_idx && m_recs[df.m_rec_idx].timestamp.hour() < interv.stime) {
+            if (df.m_rec_idx < end_rec_idx && (int)m_recs[df.m_rec_idx].timestamp.hour() < interv.stime) {
                 Rec *rec = lower_bound(m_recs + df.m_rec_idx + 1, m_recs + end_rec_idx, Rec(EMRTimeStamp(interv.stime, 0), 0));
                 df.m_rec_idx = rec - m_recs;
             }

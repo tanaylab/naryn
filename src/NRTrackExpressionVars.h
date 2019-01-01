@@ -54,6 +54,7 @@ public:
 	unsigned get_num_track_vars() const { return m_track_vars.size(); }
 
 	const string &get_track_name(unsigned ivar) const { return m_track_vars[ivar].imanager->name; }
+    EMRTrack *get_track(unsigned ivar) const { return m_track_vars[ivar].imanager->data_fetcher.track(); }
 
 	void parse_exprs(const vector<string> &track_exprs, unsigned stime, unsigned etime);
 	void define_r_vars(unsigned size);
@@ -72,7 +73,7 @@ private:
 	IteratorManagers       m_imanagers;
 	int                    m_abs_hour;
 
-	IteratorManager     *add_imanager(const IteratorManager &imanager, EMRTrack *track, EMRTrack::Func func, unordered_set<double> &&vals);
+	IteratorManager     *add_imanager(const IteratorManager &imanager, EMRTrack *track, EMRTrack::Func func, unordered_set<double> &&vals, bool track_ownership);
 	TrackVar            &add_track_var(const string &track);
 	void                 add_vtrack_var(const string &track, SEXP rvtrack, bool only_check, unsigned stime, unsigned etime);
 

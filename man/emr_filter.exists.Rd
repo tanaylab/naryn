@@ -17,7 +17,7 @@ emr_filter.exists(filter)
 This function checks whether the named filter exists.
 }
 \value{
-'TRUE' of the named filter exists, otherwise 'FALSE'.
+'TRUE', if the named filter exists, otherwise 'FALSE'.
 }
 
 \seealso{

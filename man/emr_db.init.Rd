@@ -22,11 +22,11 @@ emr_db.init_examples()
 
 When the package is attached it internally calls 'emr_db.init_examples' which sets 'global.dir' to 'PKGDIR/naryndb/test' and 'user.dir' to NULL ('PKGDIR' is the directory where the package is installed).
 
-If 'load.on.demand' parameter is 'TRUE' the list of tracks is taken from a cached file named '.naryn-cache' and the tracks are loaded into memory on demand. When 'load.on.demand' is 'FALSE' or '.naryn-cache' file is missing or needs to be rebuilt, the directories are rescanned to achieve the current list of tracks and all the tracks are loaded into physical memory.
+If 'load.on.demand' parameter is 'TRUE' the list of tracks is taken from a cached file named '.naryn-cache' and the tracks are loaded into memory on demand. When 'load.on.demand' is 'FALSE' or '.naryn-cache' file is missing or needs to be rebuilt, the directories are rescanned to obtain the current list of tracks and all the tracks are loaded into physical memory.
 
 Note: tracks that are loaded into memory are shared among various processes that run on the same machine.
 
-Upon completion the connection is established with the database and a few global variables are added to the environmen. These variables should not be modified by the user!
+Upon completion the connection is established with the database and a few global variables are added to the environment. These variables should not be modified by the user!
 
 \tabular{ll}{
     EMR_GROOT \tab Root directory of global tracks\cr
