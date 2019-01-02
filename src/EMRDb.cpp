@@ -226,7 +226,7 @@ void EMRDb::load(const char *grootdir, const char *urootdir, bool load_on_demand
             m_maxtime = max(m_maxtime, m_dir_maxtime[is_user_dir]);
 
             update_track_cache(is_user_dir);
-         }
+        }
 
         if (m_minid > m_maxid)
             m_minid = m_maxid = 0;
@@ -370,21 +370,36 @@ void EMRDb::ids_subset(vector<unsigned> &ids, const char *src, double fraction, 
 void EMRDb::update_track_cache(bool is_user_dir)
 {
     string filename = (is_user_dir ? m_urootdir : m_grootdir) + "/" + CACHE_FILENAME;
-    BufferedFile bf;
+    char tmp_filename[PATH_MAX];
 
-    if (bf.open(filename.c_str(), "w"))
-        vwarning("Failed to create file %s: %s", filename.c_str(), strerror(errno));
+    snprintf(tmp_filename, sizeof(tmp_filename), "%sXXXXXX", filename.c_str());
+    int fd = mkstemp(tmp_filename);
 
-    bf.write(&m_dir_minid[is_user_dir], sizeof(m_dir_minid[is_user_dir]));
-    bf.write(&m_dir_maxid[is_user_dir], sizeof(m_dir_maxid[is_user_dir]));
-    bf.write(&m_dir_mintime[is_user_dir], sizeof(m_dir_mintime[is_user_dir]));
-    bf.write(&m_dir_maxtime[is_user_dir], sizeof(m_dir_maxtime[is_user_dir]));
+    if (fd == -1) {
+        vwarning("Failed to create file %s: %s", tmp_filename, strerror(errno));
+        return;
+    }
+
+    bool error = (write(fd, &m_dir_minid[is_user_dir], sizeof(m_dir_minid[is_user_dir])) == -1) |
+        (write(fd, &m_dir_maxid[is_user_dir], sizeof(m_dir_maxid[is_user_dir])) == -1) |
+        (write(fd, &m_dir_mintime[is_user_dir], sizeof(m_dir_mintime[is_user_dir])) == -1) |
+        (write(fd, &m_dir_maxtime[is_user_dir], sizeof(m_dir_maxtime[is_user_dir])) == -1);
 
     vector<string> &track_names = is_user_dir ? m_user_track_names : m_global_track_names;
-    for (vector<string>::const_iterator itrack_name = track_names.begin(); itrack_name != track_names.end(); ++itrack_name)
-        bf.write(itrack_name->c_str(), itrack_name->size() + 1);
+    for (vector<string>::const_iterator itrack_name = track_names.begin(); !error && itrack_name != track_names.end(); ++itrack_name)
+        error = write(fd, itrack_name->c_str(), itrack_name->size() + 1) == -1;
 
-    if (bf.error())
-        vwarning("Failed to write to %s: %s", filename.c_str(), strerror(errno));
+    if (error) {
+        vwarning("Failed to write file %s: %s", tmp_filename, strerror(errno));
+        close(fd);
+        unlink(tmp_filename);
+    } else {
+        fchmod(fd, 0666);
+        close(fd);
+        if (rename(tmp_filename, filename.c_str()) == -1) {
+            vwarning("Failed to rename file %s to %s:\n%s", tmp_filename, filename.c_str(), strerror(errno));
+            unlink(tmp_filename);
+        }
+    }
 }
 
