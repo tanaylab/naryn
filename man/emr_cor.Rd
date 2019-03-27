@@ -8,8 +8,8 @@ Calculates correlation statistics for pairs of track expressions.
 }
 \usage{
 emr_cor([expr, breaks]+, cor.exprs, include.lowest = F, right = T,
-        stime = MINTIME, etime = MAXTIME, iterator = NULL,
-        keepref = F, filter = NULL)
+        stime = NULL, etime = NULL, iterator = NULL, keepref = F,
+        filter = NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

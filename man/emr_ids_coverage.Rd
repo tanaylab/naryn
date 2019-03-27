@@ -7,8 +7,8 @@ Returns ids coverage per track
 Returns ids coverage per track. 
 }
 \usage{
-emr_ids_coverage(ids, tracks, stime = MINTIME, etime = MAXTIME,
-                 filter = NULL))
+emr_ids_coverage(ids, tracks, stime = NULL, etime = NULL,
+                 filter = NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

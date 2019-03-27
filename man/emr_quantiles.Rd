@@ -7,9 +7,8 @@ Calculates quantiles of a track expression
 Calculates quantiles of a track expression for the given percentiles.
 }
 \usage{
-emr_quantiles(expr, percentiles = 0.5, stime = MINTIME,
-              etime = MAXTIME, iterator = NULL, keepref = F,
-              filter = NULL)
+emr_quantiles(expr, percentiles = 0.5, stime = NULL, etime = NULL,
+              iterator = NULL, keepref = F, filter = NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

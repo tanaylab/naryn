@@ -65,13 +65,16 @@ void NRTrackExprScanner::convert_rtrack_exprs(SEXP rtrack_exprs, vector<string> 
 		track_exprs[iexpr] = CHAR(STRING_ELT(rtrack_exprs, iexpr));
 }
 
-void NRTrackExprScanner::convert_rscope(SEXP rstime, SEXP retime, unsigned *pstime, unsigned *petime)
+void NRTrackExprScanner::convert_rscope(SEXP rstime, SEXP retime, unsigned *pstime, unsigned *petime, bool *is_implicit_scope)
 {
-	if (!isReal(rstime) && !isInteger(rstime) || !isReal(retime) && !isInteger(retime) || Rf_length(rstime) != 1 || Rf_length(retime) != 1)
+    if ((!isNull(rstime) && ((!isReal(rstime) && !isInteger(rstime)) || Rf_length(rstime) != 1)) ||
+        (!isNull(retime) && ((!isReal(retime) && !isInteger(retime)) || Rf_length(retime) != 1)))
 		verror("Invalid time scope");
 
-	double stime = asReal(rstime);
-	double etime = asReal(retime);
+	double stime = isNull(rstime) ? 0 : asReal(rstime);
+    double etime = isNull(retime) ? EMRTimeStamp::MAX_HOUR : asReal(retime);
+
+    *is_implicit_scope = isNull(rstime) || isNull(retime);
 
 	if (stime != (int)stime || stime < 0)
 		verror("Time scope start time must be a positive integer");
@@ -123,12 +126,14 @@ void NRTrackExprScanner::check(SEXP track_exprs, SEXP rstime, SEXP retime, SEXP 
 {
 	vector<string> track_expr_strs;
 	unsigned stime, etime;
+    bool is_implicit_scope;
+
 	convert_rtrack_exprs(track_exprs, track_expr_strs);
-	convert_rscope(rstime, retime, &stime, &etime);
-	check(track_expr_strs, stime, etime, iterator_policy, convert_rkeepref(rkeepref), filter);
+	convert_rscope(rstime, retime, &stime, &etime, &is_implicit_scope);
+	check(track_expr_strs, stime, etime, is_implicit_scope, iterator_policy, convert_rkeepref(rkeepref), filter);
 }
 
-void NRTrackExprScanner::check(const vector<string> &track_exprs, unsigned stime, unsigned etime, SEXP iterator_policy, bool keepref, SEXP filter)
+void NRTrackExprScanner::check(const vector<string> &track_exprs, unsigned stime, unsigned etime, bool is_implicit_scope, SEXP iterator_policy, bool keepref, SEXP filter)
 {
     runprotect(m_eval_bufs);
     runprotect(m_eval_exprs);
@@ -159,7 +164,7 @@ void NRTrackExprScanner::check(const vector<string> &track_exprs, unsigned stime
 	m_expr_vars.parse_exprs(m_track_exprs, stime, etime);
 
 	// initiate the expression iterator
-	create_expr_iterator(&m_itr, iterator_policy, keepref, m_expr_vars, m_track_exprs, stime, etime, filter);
+	create_expr_iterator(&m_itr, iterator_policy, keepref, m_expr_vars, m_track_exprs, stime, etime, is_implicit_scope, filter);
 
 	for (unsigned iexpr = 0; iexpr < m_track_exprs.size(); ++iexpr) {
         if (!m_expr_vars.var(m_track_exprs[iexpr].c_str())) {   // track expression is not a virtual track
@@ -183,16 +188,18 @@ bool NRTrackExprScanner::begin(SEXP track_exprs, ValType valtype, SEXP rstime, S
 {
 	vector<string> track_expr_strs;
 	unsigned stime, etime;
+    bool is_implicit_scope;
 
 	convert_rtrack_exprs(track_exprs, track_expr_strs);
-	convert_rscope(rstime, retime, &stime, &etime);
-	return begin(track_expr_strs, valtype, stime, etime, iterator_policy, convert_rkeepref(rkeepref), filter);
+	convert_rscope(rstime, retime, &stime, &etime, &is_implicit_scope);
+	return begin(track_expr_strs, valtype, stime, etime, is_implicit_scope, iterator_policy, convert_rkeepref(rkeepref), filter);
 }
 
-bool NRTrackExprScanner::begin(const vector<string> &track_exprs, ValType valtype, unsigned stime, unsigned etime, SEXP iterator_policy, bool keepref, SEXP filter)
+bool NRTrackExprScanner::begin(const vector<string> &track_exprs, ValType valtype, unsigned stime, unsigned etime, bool is_implicit_scope,
+                               SEXP iterator_policy, bool keepref, SEXP filter)
 {
     vdebug("Parsing track expressions\n");
-	check(track_exprs, stime, etime, iterator_policy, keepref, filter);
+	check(track_exprs, stime, etime, is_implicit_scope, iterator_policy, keepref, filter);
 
     m_valtype = valtype;
     m_multitasking = false;
@@ -472,16 +479,17 @@ void NRTrackExprScanner::create_expr_iterator(SEXP rtrack_exprs, SEXP rstime, SE
         m_track_exprs[i] = CHAR(STRING_ELT(rtrack_exprs, i));
 
     unsigned stime, etime;
-    convert_rscope(rstime, retime, &stime, &etime);
+    bool is_implicit_scope;
+    convert_rscope(rstime, retime, &stime, &etime, &is_implicit_scope);
 
     m_expr_vars.parse_exprs(m_track_exprs, stime, etime);
 
     // initiate the expression iterator
-    create_expr_iterator(&m_itr, iterator_policy, convert_rkeepref(rkeepref), m_expr_vars, m_track_exprs, stime, etime, filter, call_begin);
+    create_expr_iterator(&m_itr, iterator_policy, convert_rkeepref(rkeepref), m_expr_vars, m_track_exprs, stime, etime, is_implicit_scope, filter, call_begin);
 }
 
 void NRTrackExprScanner::create_expr_iterator(IteratorWithFilter *itr, SEXP riterator, bool keepref, const NRTrackExpressionVars &vars,
-                                              const vector<string> &track_exprs, unsigned stime, unsigned etime, SEXP filter, bool call_begin)
+                                              const vector<string> &track_exprs, unsigned stime, unsigned etime, bool is_implicit_scope, SEXP filter, bool call_begin)
 {
     EMRTrackExpressionIterator *expr_itr = NULL;
 
@@ -490,6 +498,8 @@ void NRTrackExprScanner::create_expr_iterator(IteratorWithFilter *itr, SEXP rite
 
         if (period <= 0)
             verror("Invalid value is used for iterator policy (code: %d)", __LINE__);
+        if (is_implicit_scope)
+            verror("Cannot use an implicit time scope with Beat Iteator: please specify 'stime' and 'etime'");
         expr_itr = new EMRBeatIterator(asInteger(riterator), keepref, stime, etime);
     } else if (isString(riterator) && Rf_length(riterator) == 1 && g_db->track(CHAR(asChar(riterator))))
         expr_itr = new EMRTrackIterator(g_db->track(CHAR(asChar(riterator))), keepref, stime, etime);
@@ -575,6 +585,8 @@ void NRTrackExprScanner::create_expr_iterator(IteratorWithFilter *itr, SEXP rite
             }
 
             if (success) {
+                if (is_implicit_scope)
+                    verror("Cannot use an implicit time scope with Ids Iteator: please specify 'stime' and 'etime'");
                 try {
                     expr_itr = new EMRIdsIterator(ids, keepref, stime, etime);
                 } catch (TGLException &e) {
@@ -614,7 +626,10 @@ void NRTrackExprScanner::create_expr_iterator(IteratorWithFilter *itr, SEXP rite
                     verror("Invalid value is used for iterator policy (code: %d)", __LINE__);
 
                 if (isString(rinit) && Rf_length(rinit) == 1 && g_db->track(CHAR(asChar(rinit)))) {
-                    EMRTrackIterator *itr = new EMRTrackIterator(g_db->track(CHAR(asChar(rinit))), keepref, g_db->mintime(), etime);
+                    if (is_implicit_scope)
+                        verror("Cannot use an implicit time scope with Extended Beat Iteator: please specify 'stime' and 'etime'");
+
+                    EMRTrackIterator *itr = new EMRTrackIterator(g_db->track(CHAR(asChar(rinit))), keepref, 0, etime);
                     try {
                         expr_itr = new EMRBeatExtIterator(period, itr, keepref, stime, etime);
                     } catch (...) {
@@ -632,7 +647,10 @@ void NRTrackExprScanner::create_expr_iterator(IteratorWithFilter *itr, SEXP rite
                     }
 
                     if (success) {
-                        EMRPointsIterator *itr = new EMRPointsIterator(points, keepref, g_db->mintime(), etime);
+                        if (is_implicit_scope)
+                            verror("Cannot use an implicit time scope with Extended Beat Iteator: please specify 'stime' and 'etime'");
+
+                        EMRPointsIterator *itr = new EMRPointsIterator(points, keepref, 0, etime);
                         try {
                             expr_itr = new EMRBeatExtIterator(period, itr, keepref, stime, etime);
                         } catch (...) {

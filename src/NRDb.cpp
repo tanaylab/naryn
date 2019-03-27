@@ -275,41 +275,5 @@ SEXP emr_maxid(SEXP envir)
     return R_NilValue;
 }
 
-SEXP emr_mintime(SEXP envir)
-{
-    try {
-        Naryn naryn(envir);
-
-        SEXP answer;
-
-        rprotect(answer = ScalarInteger(g_db->mintime()));
-        return answer;
-    } catch (TGLException &e) {
-        rerror("%s", e.msg());
-    } catch (const bad_alloc &e) {
-        rerror("Out of memory");
-    }
-
-    return R_NilValue;
-}
-
-SEXP emr_maxtime(SEXP envir)
-{
-    try {
-        Naryn naryn(envir);
-
-        SEXP answer;
-
-        rprotect(answer = ScalarInteger(g_db->maxtime()));
-        return answer;
-    } catch (TGLException &e) {
-        rerror("%s", e.msg());
-    } catch (const bad_alloc &e) {
-        rerror("Out of memory");
-    }
-
-    return R_NilValue;
-}
-
 }
 

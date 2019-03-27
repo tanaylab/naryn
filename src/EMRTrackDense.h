@@ -339,6 +339,7 @@ void EMRTrackDense<T>::ids(vector<unsigned> &ids)
     unsigned idrange = data_size();
 
     ids.clear();
+    ids.reserve(idrange);
     for (unsigned dataidx = 0; dataidx < idrange; ++dataidx) {
         if (!data_empty(dataidx))
             ids.push_back(dataidx + m_min_id);

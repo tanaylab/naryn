@@ -41,8 +41,6 @@ public:
 
     unsigned minid() const { return m_minid; }
     unsigned maxid() const { return m_maxid; }
-    unsigned mintime() const { return m_mintime; }
-    unsigned maxtime() const { return m_maxtime; }
 
 	void load(const char *grootdir, const char *urootdir, bool load_on_demand);
     void load_track(const char *track_name, bool is_global);
@@ -74,12 +72,8 @@ protected:
     string           m_urootdir;
     unsigned         m_minid;
     unsigned         m_maxid;
-    unsigned         m_mintime;
-    unsigned         m_maxtime;
     unsigned         m_dir_minid[2];
     unsigned         m_dir_maxid[2];
-    unsigned         m_dir_mintime[2];
-    unsigned         m_dir_maxtime[2];
 
     void clear();
     void update_track_cache(bool is_user_dir);

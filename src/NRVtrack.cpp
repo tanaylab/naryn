@@ -186,7 +186,7 @@ SEXP emr_check_vtrack_attr_filter(SEXP _filter, SEXP _envir)
 
         if (!isNull(_filter)) {
             NRIteratorFilter filter;
-            filter.init(_filter, g_db->mintime(), g_db->maxtime());
+            filter.init(_filter, 0, EMRTimeStamp::MAX_HOUR);
         }
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());

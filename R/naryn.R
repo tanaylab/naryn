@@ -51,8 +51,6 @@
 .emr_db_constants_load <- function() {
     assign("MINID", .emr_call("emr_minid", new.env(parent = parent.frame()), silent = TRUE), envir = .GlobalEnv)
     assign("MAXID", .emr_call("emr_maxid", new.env(parent = parent.frame()), silent = TRUE), envir = .GlobalEnv)
-    assign("MINTIME", .emr_call("emr_mintime", new.env(parent = parent.frame()), silent = TRUE), envir = .GlobalEnv)
-    assign("MAXTIME", .emr_call("emr_maxtime", new.env(parent = parent.frame()), silent = TRUE), envir = .GlobalEnv)
 }
 
 .emr_filter <- function(filter) {
@@ -186,11 +184,10 @@ emr_track.addto <- function(track, src) {
     retv <- NULL
 }
 
-emr_track.create <- function(track, space, categorical, expr, stime = get("MINTIME", envir = .GlobalEnv), etime = get("MAXTIME", envir = .GlobalEnv),
-                             iterator = NULL, keepref = F, filter = NULL)
+emr_track.create <- function(track, space, categorical, expr, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)
 {
 	if (missing(track) || missing(space) || missing(categorical) || missing(expr))
-		stop("Usage: emr_track.create(track, space = \"user\", categorical, expr, stime = MINTIME, etime = MAXTIME, iterator = NULL, keepref = F, filter = NULL)", call. = F)
+		stop("Usage: emr_track.create(track, space = \"user\", categorical, expr, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
     .emr_checkroot()
 
     space = tolower(space)
@@ -926,10 +923,10 @@ emr_vtrack.rm <- function(vtrack) {
 	retv <- NULL
 }
 
-emr_cor <- function(..., cor.exprs = NULL, include.lowest = FALSE, right = TRUE, stime = get("MINTIME", envir = .GlobalEnv), etime = get("MAXTIME", envir = .GlobalEnv), iterator = NULL, keepref = F, filter = NULL) {
+emr_cor <- function(..., cor.exprs = NULL, include.lowest = FALSE, right = TRUE, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL) {
 	args <- list(...)
 	if (length(args) < 2 || (length(args) %% 2 != 0 && (length(args) - 1) %% 2 != 0) || is.null(cor.exprs))
-		stop("Usage: emr_cor([factor.expr, breaks]+, cor.exprs, include.lowest = F, right = T, stime = MINTIME, etime = MAXTIME, iterator = NULL, keepref = F, filter = NULL)", call. = F)
+		stop("Usage: emr_cor([factor.expr, breaks]+, cor.exprs, include.lowest = F, right = T, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
     .emr_checkroot()
 
 	exprs <- c()
@@ -946,10 +943,10 @@ emr_cor <- function(..., cor.exprs = NULL, include.lowest = FALSE, right = TRUE,
 	res
 }
 
-emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = get("MINTIME", envir = .GlobalEnv), etime = get("MAXTIME", envir = .GlobalEnv), iterator = NULL, keepref = FALSE, filter = NULL) {
+emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, etime = NULL, iterator = NULL, keepref = FALSE, filter = NULL) {
 	args <- list(...)
 	if (length(args) < 2 || (length(args) %% 2 != 0 && (length(args) - 1) %% 2 != 0))
-		stop("Usage: emr_dist([expr, breaks]+, include.lowest = F, right = T, stime = MINTIME, etime = MAXTIME, iterator = NULL, keepref = F, filter = NULL)", call. = F)
+		stop("Usage: emr_dist([expr, breaks]+, include.lowest = F, right = T, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
     .emr_checkroot()
 
 	exprs <- c()
@@ -964,20 +961,20 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = get("MIN
 	res
 }
 
-emr_extract <- function(expr, tidy = F, sort = F, names = NULL, stime = get("MINTIME", envir = .GlobalEnv), etime = get("MAXTIME", envir = .GlobalEnv), iterator = NULL, keepref = F, filter = NULL) {
+emr_extract <- function(expr, tidy = F, sort = F, names = NULL, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL) {
     if (missing(expr))
-        stop("Usage: emr_extract(expr, tidy = F, sort = F, names = NULL, tidy = F, stime = MINTIME, etime = MAXTIME, iterator = NULL, keepref = F, filter = NULL)", call. = F)
+        stop("Usage: emr_extract(expr, tidy = F, sort = F, names = NULL, tidy = F, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
     .emr_checkroot()
 
     .emr_call("emr_extract", expr, names, tidy, sort, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
 }
 
-emr_ids_coverage <- function(ids, tracks, stime = get("MINTIME", envir = .GlobalEnv), etime = get("MAXTIME", envir = .GlobalEnv), filter = NULL) {
+emr_ids_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filter = NULL) {
 	if (missing(ids) || missing(tracks))
-		stop("Usage: emr_ids_coverage(ids, tracks, stime = MINTIME, etime = MAXTIME, filter = NULL)", call. = F)
+		stop("Usage: emr_ids_coverage(ids, tracks, stime = NULL, etime = NULL, filter = NULL)", call. = F)
     .emr_checkroot()
 
-    if (stime == get("MINTIME", envir = .GlobalEnv) && etime == get("MAXTIME", envir = .GlobalEnv) && is.null(filter))
+    if (is.null(stime) && is.null(etime) && is.null(filter))
 	    .emr_call("emr_ids_dist", ids, tracks, new.env(parent = parent.frame()))
     else {
     	if (is.null(filter))
@@ -999,9 +996,9 @@ emr_ids_coverage <- function(ids, tracks, stime = get("MINTIME", envir = .Global
     }
 }
 
-emr_ids_vals_coverage <- function(ids, tracks, stime = get("MINTIME", envir = .GlobalEnv), etime = get("MAXTIME", envir = .GlobalEnv), filter = NULL) {
+emr_ids_vals_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filter = NULL) {
 	if (missing(ids) || missing(tracks))
-		stop("Usage: emr_ids_vals_coverage(ids, tracks, stime = MINTIME, etime = MAXTIME, filter = NULL)", call. = F)
+		stop("Usage: emr_ids_vals_coverage(ids, tracks, stime = NULL, etime = NULL, filter = NULL)", call. = F)
     .emr_checkroot()
 
 	if (is.null(filter))
@@ -1022,25 +1019,25 @@ emr_ids_vals_coverage <- function(ids, tracks, stime = get("MINTIME", envir = .G
     })
 }
 
-emr_quantiles <- function(expr, percentiles = 0.5, stime = get("MINTIME", envir = .GlobalEnv), etime = get("MAXTIME", envir = .GlobalEnv), iterator = NULL, keepref = F, filter = NULL) {
+emr_quantiles <- function(expr, percentiles = 0.5, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL) {
 	if (missing(expr))
-		stop("Usage: emr_quantiles(expr, percentiles = 0.5, stime = MINTIME, etime = MAXTIME, iterator = NULL, keepref = F, filter = NULL)", call. = F)
+		stop("Usage: emr_quantiles(expr, percentiles = 0.5, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
     .emr_checkroot()
 
 	.emr_call("emr_quantiles", expr, percentiles, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
 }
 
-emr_screen <- function(expr, sort = F, stime = get("MINTIME", envir = .GlobalEnv), etime = get("MAXTIME", envir = .GlobalEnv), iterator = NULL, keepref = F, filter = NULL) {
+emr_screen <- function(expr, sort = F, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL) {
     if (missing(expr))
-        stop("Usage: emr_screen(expr, sort = F, stime = MINTIME, etime = MAXTIME, iterator = NULL, keepref = F, filter = NULL)", call. = F)
+        stop("Usage: emr_screen(expr, sort = F, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
     .emr_checkroot()
 
     .emr_call("emr_screen", expr, sort, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
 }
 
-emr_summary <- function(expr, stime = get("MINTIME", envir = .GlobalEnv), etime = get("MAXTIME", envir = .GlobalEnv), iterator = NULL, keepref = F, filter = NULL) {
+emr_summary <- function(expr, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL) {
     if (missing(expr))
-        stop("Usage: emr_summary(expr, stime = MINTIME, etime = MAXTIME, iterator = NULL, keepref = F, filter = NULL)", call. = F)
+        stop("Usage: emr_summary(expr, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
     .emr_checkroot()
 
     .emr_call("emr_summary", expr, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))

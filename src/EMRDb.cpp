@@ -10,7 +10,7 @@
 #include "EMRTrack.h"
 
 const string  EMRDb::TRACK_FILE_EXT(".nrtrack");
-const char   *EMRDb::CACHE_FILENAME = ".naryn-cache";
+const char   *EMRDb::CACHE_FILENAME = ".naryn-cache-v2";
 
 EMRDb *g_db = NULL;
 
@@ -28,14 +28,10 @@ void EMRDb::clear()
     m_urootdir = "";
     m_minid = numeric_limits<unsigned>::max();
     m_maxid = 0;
-    m_mintime = EMRTimeStamp::MAX_HOUR;
-    m_maxtime = 0;
 
     for (int i = 0; i < 2; ++i) {
         m_dir_minid[i] = numeric_limits<unsigned>::max();
         m_dir_maxid[i] = 0;
-        m_dir_mintime[i] = EMRTimeStamp::MAX_HOUR;
-        m_dir_maxtime[i] = 0;
     }
 }
 
@@ -77,8 +73,6 @@ void EMRDb::load(const char *grootdir, const char *urootdir, bool load_on_demand
         if (load_on_demand) {     // read the list of tracks from a cached file
             unsigned dir_minid;
             unsigned dir_maxid;
-            unsigned dir_mintime;
-            unsigned dir_maxtime;
 
             for (int is_user_dir = 0; is_user_dir < 2; ++is_user_dir) {
                 if (!dirnames[is_user_dir])
@@ -95,8 +89,6 @@ void EMRDb::load(const char *grootdir, const char *urootdir, bool load_on_demand
 
                 bf.read(&dir_minid, sizeof(dir_minid));
                 bf.read(&dir_maxid, sizeof(dir_maxid));
-                bf.read(&dir_mintime, sizeof(dir_mintime));
-                bf.read(&dir_maxtime, sizeof(dir_maxtime));
 
                 if (bf.eof()) {
                     vwarning("Invalid format of file %s, rewriting it", filename);
@@ -137,13 +129,9 @@ void EMRDb::load(const char *grootdir, const char *urootdir, bool load_on_demand
 
                         m_dir_minid[is_user_dir] = dir_minid;
                         m_dir_maxid[is_user_dir] = dir_maxid;
-                        m_dir_mintime[is_user_dir] = dir_mintime;
-                        m_dir_maxtime[is_user_dir] = dir_maxtime;
 
                         m_minid = min(m_minid, dir_minid);
                         m_maxid = max(m_maxid, dir_maxid);
-                        m_mintime = min(m_mintime, dir_mintime);
-                        m_maxtime = max(m_maxtime, dir_maxtime);
 
                         load_tracks[is_user_dir] = false;
                     }
@@ -213,8 +201,6 @@ void EMRDb::load(const char *grootdir, const char *urootdir, bool load_on_demand
                 track_names.push_back(track_name);
                 m_dir_minid[is_user_dir] = min(m_dir_minid[is_user_dir], track->minid());
                 m_dir_maxid[is_user_dir] = max(m_dir_maxid[is_user_dir], track->maxid());
-                m_dir_mintime[is_user_dir] = min(m_dir_mintime[is_user_dir], track->mintime());
-                m_dir_maxtime[is_user_dir] = max(m_dir_maxtime[is_user_dir], track->maxtime());
 
                 check_interrupt();
     			progress.report(1);
@@ -222,16 +208,12 @@ void EMRDb::load(const char *grootdir, const char *urootdir, bool load_on_demand
 
             m_minid = min(m_minid, m_dir_minid[is_user_dir]);
             m_maxid = max(m_maxid, m_dir_maxid[is_user_dir]);
-            m_mintime = min(m_mintime, m_dir_mintime[is_user_dir]);
-            m_maxtime = max(m_maxtime, m_dir_maxtime[is_user_dir]);
 
             update_track_cache(is_user_dir);
         }
 
         if (m_minid > m_maxid)
             m_minid = m_maxid = 0;
-        if (m_mintime > m_maxtime)
-            m_mintime = m_maxtime = 0;
 
         if (load_tracks[0] || load_tracks[1])
             progress.report_last();
@@ -263,12 +245,8 @@ void EMRDb::load_track(const char *track_name, bool is_global)
     m_tracks.insert(pair<string, TrackInfo>(track_name, TrackInfo(track, filename.c_str(), is_global)));
     m_dir_minid[!is_global] = min(m_dir_minid[!is_global], track->minid());
     m_dir_maxid[!is_global] = max(m_dir_maxid[!is_global], track->maxid());
-    m_dir_mintime[!is_global] = min(m_dir_mintime[!is_global], track->mintime());
-    m_dir_maxtime[!is_global] = max(m_dir_maxtime[!is_global], track->maxtime());
     m_minid = min(m_minid, track->minid());
     m_maxid = max(m_maxid, track->maxid());
-    m_mintime = min(m_mintime, track->mintime());
-    m_maxtime = max(m_maxtime, track->maxtime());
 
     update_track_cache(!is_global);
 }
@@ -301,28 +279,20 @@ void EMRDb::unload_track(const char *track_name)
 
     m_dir_minid[!is_global] = numeric_limits<unsigned>::max();
     m_dir_maxid[!is_global] = 0;
-    m_dir_mintime[!is_global] = EMRTimeStamp::MAX_HOUR;
-    m_dir_maxtime[!is_global] = 0;
 
     for (itrack = m_tracks.begin(); itrack != m_tracks.end(); ++itrack) {
         if (itrack->second.is_global == is_global) {
             track(itrack->first);    // causes the track to be loaded if it is not loaded yet
             m_dir_minid[!is_global] = min(m_dir_minid[!is_global], itrack->second.track->minid());
             m_dir_maxid[!is_global] = max(m_dir_maxid[!is_global], itrack->second.track->maxid());
-            m_dir_mintime[!is_global] = min(m_dir_mintime[!is_global], itrack->second.track->mintime());
-            m_dir_maxtime[!is_global] = max(m_dir_maxtime[!is_global], itrack->second.track->maxtime());
         }
     }
 
     m_minid = min(m_dir_minid[0], m_dir_minid[1]);
     m_maxid = max(m_dir_maxid[0], m_dir_maxid[1]);
-    m_mintime = min(m_dir_mintime[0], m_dir_mintime[1]);
-    m_maxtime = max(m_dir_maxtime[0], m_dir_maxtime[1]);
 
     if (m_minid > m_maxid)
         m_minid = m_maxid = 0;
-    if (m_mintime > m_maxtime)
-        m_mintime = m_maxtime = 0;
 
     update_track_cache(!is_global);
 }
@@ -381,9 +351,7 @@ void EMRDb::update_track_cache(bool is_user_dir)
     }
 
     bool error = (write(fd, &m_dir_minid[is_user_dir], sizeof(m_dir_minid[is_user_dir])) == -1) |
-        (write(fd, &m_dir_maxid[is_user_dir], sizeof(m_dir_maxid[is_user_dir])) == -1) |
-        (write(fd, &m_dir_mintime[is_user_dir], sizeof(m_dir_mintime[is_user_dir])) == -1) |
-        (write(fd, &m_dir_maxtime[is_user_dir], sizeof(m_dir_maxtime[is_user_dir])) == -1);
+        (write(fd, &m_dir_maxid[is_user_dir], sizeof(m_dir_maxid[is_user_dir])) == -1);
 
     vector<string> &track_names = is_user_dir ? m_user_track_names : m_global_track_names;
     for (vector<string>::const_iterator itrack_name = track_names.begin(); !error && itrack_name != track_names.end(); ++itrack_name)

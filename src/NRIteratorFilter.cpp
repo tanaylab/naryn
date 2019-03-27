@@ -444,7 +444,7 @@ void NRIteratorFilter::build_balanced_tree(EMRIteratorFilterItem *tree, EMRItera
 
 void NRIteratorFilter::check_named_filter(SEXP rfilter, const char *name)
 {
-    EMRIteratorFilterItem *filter = create_filter_item(rfilter, name, false, 0, g_db->maxtime());
+    EMRIteratorFilterItem *filter = create_filter_item(rfilter, name, false, 0, EMRTimeStamp::MAX_HOUR);
     delete filter;
 }
 

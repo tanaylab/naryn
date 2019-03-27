@@ -7,7 +7,7 @@ Finds Id-Time points that match track expression
 Finds all patient-time pairs where track expression is 'TRUE'.
 }
 \usage{
-emr_screen(expr, sort = F, stime = MINTIME, etime = MAXTIME,
+emr_screen(expr, sort = F, stime = NULL, etime = NULL,
            iterator = NULL, keepref = F, filter = NULL)
 }
 %- maybe also 'usage' for other objects documented here.

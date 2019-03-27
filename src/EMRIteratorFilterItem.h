@@ -13,7 +13,7 @@ public:
 
     bool is_leaf() const { return !m_child[0]; }
 
-    // returns true if the point passes the filter; nearest_point is set if the point is filtered out
+    // returns true if the point passes the filter; m_jumpto is set if the point is filtered out
     bool is_passed(const EMRPoint &point) { return is_leaf() ? is_passed_leaf(point) : is_passed_node(point); }
 
     const EMRPoint &jumpto() const { return m_jumpto; }

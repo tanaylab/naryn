@@ -324,7 +324,7 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
 
             if (only_check) {
                 NRIteratorFilter filter;
-                filter.init(rfilter, g_db->mintime(), g_db->maxtime());
+                filter.init(rfilter, 0, EMRTimeStamp::MAX_HOUR);
             } else {
                 // Create an intermediate track by applying the filter to the original track
                 // (not to be confused with an intermediate track that needs to be built when src==data.frame)
@@ -341,9 +341,9 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
                 scanner.report_progress(false);
 
                 for (scanner.begin(track_expr, NRTrackExprScanner::REAL_T,
-                                   max((int)stime + imanager.sshift, (int)g_db->mintime()),
-                                   min((int)etime + imanager.eshift, (int)g_db->maxtime()),
-                                   R_NilValue, true, rfilter); !scanner.isend(); scanner.next())
+                                   max((int)stime + imanager.sshift, 0),
+                                   min((int)etime + imanager.eshift, (int)EMRTimeStamp::MAX_HOUR),
+                                   false, R_NilValue, true, rfilter); !scanner.isend(); scanner.next())
                 {
                     if (track->data_type() == EMRTrack::FLOAT)
                         track_data_float.add_data(scanner.point().id, scanner.point().timestamp, scanner.real());

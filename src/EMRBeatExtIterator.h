@@ -139,7 +139,7 @@ inline bool EMRBeatExtIterator::next(const EMRPoint &jumpto)
     }
 
     unsigned id = m_point.id;
-    if (m_itr->next(EMRPoint(jumpto.id, g_db->mintime(), (EMRTimeStamp::Refcount)-1))) {
+    if (m_itr->next(EMRPoint(jumpto.id, 0, (EMRTimeStamp::Refcount)-1))) {
         do {
             unsigned itr_id = m_itr->point().id;
             EMRTimeStamp::Hour itr_hour = m_itr->point().timestamp.hour();

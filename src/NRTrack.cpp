@@ -102,6 +102,7 @@ SEXP emr_track_info(SEXP _track, SEXP _envir)
             SET_STRING_ELT(names, i, mkChar(COL_NAMES[i]));
 
         SET_VECTOR_ELT(answer, CATEGORICAL, rcategorical);
+        SET_VECTOR_ELT(answer, PATH, rpath);
         SET_VECTOR_ELT(answer, TYPE, rtype);
         SET_VECTOR_ELT(answer, DATA_TYPE, rdata_type);
         SET_VECTOR_ELT(answer, NUM_VALS, rnum_vals);

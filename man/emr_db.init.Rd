@@ -33,8 +33,6 @@ Upon completion the connection is established with the database and a few global
     EMR_UROOT \tab Root directory of user tracks\cr
     MINID \tab Minimal id stored in the database \cr
     MAXID \tab Maximal id stored in the database \cr
-    MINTIME \tab Minimal time value stored in the database \cr
-    MAXTIME \tab Maximal id stored in the database \cr
 }
 }
 \value{

@@ -7,8 +7,8 @@ Creates a track from a track expression
 Creates a track from a track expression.
 }
 \usage{
-emr_track.create(track, space, categorical, expr, stime = MINTIME,
-                 etime = MAXTIME, iterator = NULL, keepref = F,
+emr_track.create(track, space, categorical, expr, stime = NULL,
+                 etime = NULL, iterator = NULL, keepref = F,
                  filter = NULL)
 }
 %- maybe also 'usage' for other objects documented here.

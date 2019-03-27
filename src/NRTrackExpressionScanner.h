@@ -25,9 +25,9 @@ public:
 
     const NRTrackExpressionVars &get_expr_vars() const { return m_expr_vars; }
 
-	void check(const vector<string> &track_exprs, unsigned stime, unsigned etime, SEXP iterator_policy, bool keepref, SEXP filter);
+	void check(const vector<string> &track_exprs, unsigned stime, unsigned etime, bool is_implicit_scope, SEXP iterator_policy, bool keepref, SEXP filter);
 	void check(SEXP track_exprs, SEXP stime, SEXP etime, SEXP iterator_policy, SEXP keepref, SEXP filter);
-	bool begin(const vector<string> &track_exprs, ValType valtype, unsigned stime, unsigned etime, SEXP iterator_policy, bool keepref, SEXP filter);
+	bool begin(const vector<string> &track_exprs, ValType valtype, unsigned stime, unsigned etime, bool is_implicit_scope, SEXP iterator_policy, bool keepref, SEXP filter);
 	bool begin(SEXP track_exprs, ValType valtype, SEXP stime, SEXP etime, SEXP iterator_policy, SEXP keepref, SEXP filter);
 	bool next();
 	bool isend() { return m_isend; }
@@ -48,7 +48,7 @@ public:
 	// Gets the tracks names that appear in the track expression, creates a TrackExpressionIterator after begin is being called.
 	void create_expr_iterator(SEXP rtrack_exprs, SEXP stime, SEXP etime, SEXP iterator_policy, SEXP keepref, SEXP filter, bool call_begin = true);
 
-    static void convert_rscope(SEXP rstime, SEXP retime, unsigned *pstime, unsigned *petime);
+    static void convert_rscope(SEXP rstime, SEXP retime, unsigned *pstime, unsigned *petime, bool *is_implicit_scope);
     static bool convert_rkeepref(SEXP rkeepref);
 
 private:
@@ -127,7 +127,7 @@ private:
     void kid_main_loop(vector<unsigned> &ids_subset);
 
 	void create_expr_iterator(IteratorWithFilter *itr, SEXP riterator, bool keepref, const NRTrackExpressionVars &vars, const vector<string> &track_exprs,
-                              unsigned stime, unsigned etime, SEXP filter, bool call_begin = true);
+                              unsigned stime, unsigned etime, bool is_implicit_scope, SEXP filter, bool call_begin = true);
 };
 
 

@@ -7,8 +7,8 @@ Calculates summary statistics of track expression
 Calculates summary statistics of track expression.
 }
 \usage{
-emr_summary(expr, stime = MINTIME, etime = MAXTIME,
-            iterator = NULL, keepref = F, filter = NULL)
+emr_summary(expr, stime = NULL, etime = NULL, iterator = NULL,
+            keepref = F, filter = NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

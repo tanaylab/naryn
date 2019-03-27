@@ -7,9 +7,9 @@ Returns evaluated track expression
 Returns the result of track expressions evaluation for each of the iterator points. 
 }
 \usage{
-emr_extract(expr, tidy = F, sort = F, names = NULL,
-            stime = MINTIME, etime = MAXTIME, iterator = NULL,
-            keepref = F, filter = NULL)
+emr_extract(expr, tidy = F, sort = F, names = NULL, stime = NULL,
+            etime = NULL, iterator = NULL, keepref = F,
+            filter = NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

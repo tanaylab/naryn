@@ -8,8 +8,8 @@ Calculates distribution of track expressions' values over the given set of bins.
 }
 \usage{
 emr_dist([expr, breaks]+, include.lowest = F, right = T,
-         stime = MINTIME, etime = MAXTIME, iterator = NULL,
-         keepref = F, filter = NULL)
+         stime = NULL, etime = NULL, iterator = NULL, keepref = F,
+         filter = NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
