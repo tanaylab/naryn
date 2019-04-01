@@ -53,6 +53,7 @@ public:
 	virtual ~EMRTrack();
 
     const char *name() const { return m_name.c_str(); }
+    time_t timestamp() const { return m_timestamp; }
 	TrackType track_type() const { return m_track_type; }
 	DataType data_type() const { return m_data_type; }
 
@@ -178,6 +179,7 @@ protected:
     char           *m_mem{NULL};             // used for an intermediate track built in memory
     void           *m_shmem{MAP_FAILED};
     size_t          m_shmem_size;
+    time_t          m_timestamp;
     string          m_name;
 	TrackType       m_track_type;
 	DataType        m_data_type;

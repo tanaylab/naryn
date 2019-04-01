@@ -1,16 +1,18 @@
 #include <dirent.h>
+#include <fcntl.h>
 #include <limits.h>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include "naryn.h"
 #include "EMRDb.h"
 #include "EMRProgressReporter.h"
 #include "EMRTrack.h"
 
 const string  EMRDb::TRACK_FILE_EXT(".nrtrack");
-const char   *EMRDb::CACHE_FILENAME = ".naryn-cache-v2";
+const char   *EMRDb::CACHE_FILENAME = ".tracks";
+const char   *EMRDb::IDS_FILENAME = ".ids";
+const int     EMRDb::IDS_SIGNATURE = 0xCACA0;
 
 EMRDb *g_db = NULL;
 
@@ -23,16 +25,10 @@ void EMRDb::clear()
     m_global_track_names.clear();
     m_user_track_names.clear();
     clear_ids_subset();
+    clear_ids();
 
     m_grootdir = "";
     m_urootdir = "";
-    m_minid = numeric_limits<unsigned>::max();
-    m_maxid = 0;
-
-    for (int i = 0; i < 2; ++i) {
-        m_dir_minid[i] = numeric_limits<unsigned>::max();
-        m_dir_maxid[i] = 0;
-    }
 }
 
 EMRTrack *EMRDb::track(const string &track)
@@ -71,9 +67,6 @@ void EMRDb::load(const char *grootdir, const char *urootdir, bool load_on_demand
         vector<string> filenames[2];
 
         if (load_on_demand) {     // read the list of tracks from a cached file
-            unsigned dir_minid;
-            unsigned dir_maxid;
-
             for (int is_user_dir = 0; is_user_dir < 2; ++is_user_dir) {
                 if (!dirnames[is_user_dir])
                     continue;
@@ -87,51 +80,49 @@ void EMRDb::load(const char *grootdir, const char *urootdir, bool load_on_demand
                     continue;
                 }
 
-                bf.read(&dir_minid, sizeof(dir_minid));
-                bf.read(&dir_maxid, sizeof(dir_maxid));
-
-                if (bf.eof()) {
-                    vwarning("Invalid format of file %s, rewriting it", filename);
-                    continue;
-                }
-
                 int c;
                 int pos = 0;
                 char track_name[PATH_MAX];
                 vector<string> &track_names = is_user_dir ? m_user_track_names : m_global_track_names;
-                unordered_set<string> _track_names;
+                unordered_map<string, time_t> read_tracks;
 
                 while ((c = bf.getc()) != EOF) {
                     track_name[pos++] = c;
 
-                    if ((c && pos >= (int)sizeof(track_name)) || (!c && !_track_names.insert(string(track_name)).second)) {
+                    if ((c && pos >= (int)sizeof(track_name))) {
                         vwarning("Invalid format of file %s, rewriting it", filename);
                         break;
-                    } else if (!c)
+                    } else if (!c) { // end of track name
+                        time_t timestamp;
+
+                        if (bf.read(&timestamp, sizeof(timestamp)) != sizeof(timestamp) ||
+                            !read_tracks.emplace(track_name, timestamp).second)
+                        {
+                            vwarning("Invalid format of file %s, rewriting it", filename);
+                            break;
+                        }
                         pos = 0;
+                    }
                 }
 
                 if (c == EOF) {
                     if (bf.error())
                         vwarning("Failed to read file %s: %s", filename, strerror(errno));
                     else {
-                        track_names.reserve(_track_names.size());
-                        m_track_names.reserve(m_track_names.size() + _track_names.size());
-                        for (unordered_set<string>::const_iterator itrack_name = _track_names.begin(); itrack_name != _track_names.end(); ++itrack_name) {
-                            if (m_tracks.find(*itrack_name) != m_tracks.end())
-                                verror("Track %s appears both in global and user directories", itrack_name->c_str());
+                        track_names.reserve(read_tracks.size());
+                        m_track_names.reserve(m_track_names.size() + read_tracks.size());
+                        for (const auto &itrack : read_tracks) {
+                            const string &name = itrack.first;
+                            time_t timestamp = itrack.second;
 
-                            snprintf(filename, sizeof(filename), "%s/%s%s", dirnames[is_user_dir], itrack_name->c_str(), TRACK_FILE_EXT.c_str());
-                            m_tracks.insert(pair<string, TrackInfo>(*itrack_name, TrackInfo(NULL, filename, !is_user_dir)));
-                            m_track_names.push_back(*itrack_name);
-                            track_names.push_back(*itrack_name);
+                            if (m_tracks.find(name) != m_tracks.end())
+                                verror("Track %s appears both in global and user directories", name.c_str());
+
+                            snprintf(filename, sizeof(filename), "%s/%s%s", dirnames[is_user_dir], name.c_str(), TRACK_FILE_EXT.c_str());
+                            m_tracks.insert(pair<string, TrackInfo>(name, TrackInfo(NULL, filename, timestamp, !is_user_dir)));
+                            m_track_names.push_back(name);
+                            track_names.push_back(name);
                         }
-
-                        m_dir_minid[is_user_dir] = dir_minid;
-                        m_dir_maxid[is_user_dir] = dir_maxid;
-
-                        m_minid = min(m_minid, dir_minid);
-                        m_maxid = max(m_maxid, dir_maxid);
 
                         load_tracks[is_user_dir] = false;
                     }
@@ -196,24 +187,22 @@ void EMRDb::load(const char *grootdir, const char *urootdir, bool load_on_demand
                     verror("Track %s appears both in global and user directories", track_name.c_str());
 
                 EMRTrack *track = EMRTrack::unserialize(track_name.c_str(), filename);
-                m_tracks.insert(pair<string, TrackInfo>(track_name, TrackInfo(track, filename, !is_user_dir)));
+                m_tracks.emplace(track_name, TrackInfo(track, filename, track->timestamp(), !is_user_dir));
     			m_track_names.push_back(track_name);
                 track_names.push_back(track_name);
-                m_dir_minid[is_user_dir] = min(m_dir_minid[is_user_dir], track->minid());
-                m_dir_maxid[is_user_dir] = max(m_dir_maxid[is_user_dir], track->maxid());
 
                 check_interrupt();
     			progress.report(1);
     		}
 
-            m_minid = min(m_minid, m_dir_minid[is_user_dir]);
-            m_maxid = max(m_maxid, m_dir_maxid[is_user_dir]);
-
             update_track_cache(is_user_dir);
         }
 
-        if (m_minid > m_maxid)
-            m_minid = m_maxid = 0;
+        // ignore errors while loading ids: dob track might be missing
+        try {
+            if (!load_on_demand)
+                load_ids();
+        } catch (...) {}
 
         if (load_tracks[0] || load_tracks[1])
             progress.report_last();
@@ -242,12 +231,7 @@ void EMRDb::load_track(const char *track_name, bool is_global)
     }
 
     EMRTrack *track = EMRTrack::unserialize(track_name, filename.c_str());
-    m_tracks.insert(pair<string, TrackInfo>(track_name, TrackInfo(track, filename.c_str(), is_global)));
-    m_dir_minid[!is_global] = min(m_dir_minid[!is_global], track->minid());
-    m_dir_maxid[!is_global] = max(m_dir_maxid[!is_global], track->maxid());
-    m_minid = min(m_minid, track->minid());
-    m_maxid = max(m_maxid, track->maxid());
-
+    m_tracks.insert(pair<string, TrackInfo>(track_name, TrackInfo(track, filename.c_str(), track->timestamp(), is_global)));
     update_track_cache(!is_global);
 }
 
@@ -276,24 +260,6 @@ void EMRDb::unload_track(const char *track_name)
 
     delete itrack->second.track;
     m_tracks.erase(itrack);
-
-    m_dir_minid[!is_global] = numeric_limits<unsigned>::max();
-    m_dir_maxid[!is_global] = 0;
-
-    for (itrack = m_tracks.begin(); itrack != m_tracks.end(); ++itrack) {
-        if (itrack->second.is_global == is_global) {
-            track(itrack->first);    // causes the track to be loaded if it is not loaded yet
-            m_dir_minid[!is_global] = min(m_dir_minid[!is_global], itrack->second.track->minid());
-            m_dir_maxid[!is_global] = max(m_dir_maxid[!is_global], itrack->second.track->maxid());
-        }
-    }
-
-    m_minid = min(m_dir_minid[0], m_dir_minid[1]);
-    m_maxid = max(m_dir_maxid[0], m_dir_maxid[1]);
-
-    if (m_minid > m_maxid)
-        m_minid = m_maxid = 0;
-
     update_track_cache(!is_global);
 }
 
@@ -350,24 +316,167 @@ void EMRDb::update_track_cache(bool is_user_dir)
         return;
     }
 
-    bool error = (write(fd, &m_dir_minid[is_user_dir], sizeof(m_dir_minid[is_user_dir])) == -1) |
-        (write(fd, &m_dir_maxid[is_user_dir], sizeof(m_dir_maxid[is_user_dir])) == -1);
-
-    vector<string> &track_names = is_user_dir ? m_user_track_names : m_global_track_names;
-    for (vector<string>::const_iterator itrack_name = track_names.begin(); !error && itrack_name != track_names.end(); ++itrack_name)
-        error = write(fd, itrack_name->c_str(), itrack_name->size() + 1) == -1;
-
-    if (error) {
-        vwarning("Failed to write file %s: %s", tmp_filename, strerror(errno));
-        close(fd);
-        unlink(tmp_filename);
-    } else {
-        fchmod(fd, 0666);
-        close(fd);
-        if (rename(tmp_filename, filename.c_str()) == -1) {
-            vwarning("Failed to rename file %s to %s:\n%s", tmp_filename, filename.c_str(), strerror(errno));
+    for (const auto &name2track : m_tracks) {
+        if (name2track.second.is_global == !is_user_dir &&
+            (write(fd, name2track.first.c_str(), name2track.first.size() + 1) == -1 ||
+             write(fd, &name2track.second.timestamp, sizeof(name2track.second.timestamp)) == -1))
+        {
+            close(fd);
             unlink(tmp_filename);
+            verror("Failed to write file %s: %s", tmp_filename, strerror(errno));
         }
+    }
+
+    fchmod(fd, 0666);
+    close(fd);
+    if (rename(tmp_filename, filename.c_str()) == -1) {
+        unlink(tmp_filename);
+        verror("Failed to rename file %s to %s:\n%s", tmp_filename, filename.c_str(), strerror(errno));
     }
 }
 
+void EMRDb::clear_ids()
+{
+    if (m_shmem_ids != MAP_FAILED)
+        munmap(m_shmem_ids, m_shmem_ids_size);
+    m_shmem_ids = MAP_FAILED;
+
+    m_ids_session_ts = 0;
+    m_ids = NULL;
+    m_num_ids = 0;
+    m_id2idx.clear();
+}
+
+void EMRDb::load_ids()
+{
+    int fd = -1;
+
+    try {
+        string filename = m_grootdir + "/" + IDS_FILENAME;
+        struct stat sb;
+
+        while (1) {
+            clear_ids();
+
+            if ((fd = open(filename.c_str(), O_RDONLY, 0)) == -1) {
+                if (errno != ENOENT)
+                    verror("Opening file %s: %s", filename.c_str(), strerror(errno));
+                create_ids_file();
+                continue;
+            }
+
+            struct flock fl;
+            memset(&fl, 0, sizeof(fl));
+            fl.l_type = F_RDLCK;
+
+            while (fcntl(fd, F_SETLKW, &fl) == -1) {
+                if (errno != EINTR)
+                    verror("Locking file %s: %s", filename.c_str(), strerror(errno));
+            }
+
+            if (fstat(fd, &sb) == -1)
+                verror("stat failed on file %s: %s", filename.c_str(), strerror(errno));
+
+            m_shmem_ids_size = sb.st_size;
+
+            if (!m_shmem_ids_size) {
+                vwarning("File %s is empty, rebuilding it", filename.c_str());
+                create_ids_file();
+                continue;
+            }
+
+            if ((m_shmem_ids = mmap(NULL, m_shmem_ids_size, PROT_READ, MAP_PRIVATE | MAP_POPULATE, fd, 0)) == MAP_FAILED)
+                verror("mmap failed on file %s: %s", filename, strerror(errno));
+
+            close(fd);
+            fd = -1;
+
+            time_t timestamp;
+
+            if (m_shmem_ids_size < sizeof(int) + sizeof(timestamp) ||
+                (m_shmem_ids_size - sizeof(int) - sizeof(timestamp)) % sizeof(unsigned) ||
+                *(int *)m_shmem_ids != IDS_SIGNATURE)
+            {
+                vwarning("Invalid format of %s file, rebuilding it (%d)", filename.c_str());
+                create_ids_file();
+                continue;
+            }
+            memcpy(&timestamp, (char *)m_shmem_ids + sizeof(int), sizeof(timestamp));
+
+            struct stat fs;
+            if (stat((m_grootdir + "/dob" + TRACK_FILE_EXT).c_str(), &fs) == -1) {
+                if (errno == ENOENT)
+                    verror("Failed to retrieve ids: 'dob' track is missing");
+                verror("Failed to stat 'dob' track: %s", strerror(errno));
+            }
+
+            if (timestamp != fs.st_mtim.tv_sec) {
+                // remove an outdated version of dob track from the memory
+                // (it is there if the session has already accessed dob track in the past)
+                Name2Track::iterator itrack = m_tracks.find("dob");
+                if (itrack != m_tracks.end() && itrack->second.track && fs.st_mtim.tv_sec != itrack->second.track->timestamp()) {
+                    delete itrack->second.track;
+                    itrack->second.track = NULL;
+                }
+
+                vdebug("'dob' track had been updated, rebuilding %s file", filename.c_str());
+                create_ids_file();
+                continue;
+            }
+
+            m_ids = (unsigned *)((char *)m_shmem_ids + sizeof(int) + sizeof(timestamp));
+            m_num_ids = (m_shmem_ids_size - sizeof(int) - sizeof(timestamp)) / sizeof(unsigned);
+            m_ids_session_ts = g_session_id;
+
+            for (size_t i = 0; i < m_num_ids; ++i)
+                m_id2idx[m_ids[i]] = i;
+
+            break;
+        }
+    }
+    catch (...) {
+        if (fd != -1)
+            close(fd);
+        clear_ids();
+        throw;
+    }
+}
+
+void EMRDb::create_ids_file()
+{
+    int fd = -1;
+
+    try {
+        string filename = m_grootdir + "/" + IDS_FILENAME;
+        fd = creat(filename.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH); // rwrwrw
+
+        struct flock fl;
+        memset(&fl, 0, sizeof(fl));
+        fl.l_type = F_WRLCK;
+    	while (fcntl(fd, F_SETLKW, &fl) == -1) {
+    		if (errno != EINTR)
+    			verror("Locking file %s: %s", filename.c_str(), strerror(errno));
+    	}
+
+        Name2Track::iterator itrack = m_tracks.find("dob");
+        if (itrack == m_tracks.end())
+             verror("Cannot retrieve ids: 'dob' track is missing");
+
+        if (!itrack->second.is_global)
+            verror("Cannot retrieve ids: 'dob' track is not in the global space");
+
+        EMRTrack *dob = track("dob");
+        time_t timestamp = dob->timestamp();
+        vector<unsigned> ids;
+        dob->ids(ids);
+
+        if (write(fd, &IDS_SIGNATURE, sizeof(IDS_SIGNATURE)) != sizeof(IDS_SIGNATURE) ||
+            write(fd, &timestamp, sizeof(timestamp)) != sizeof(timestamp) ||
+            write(fd, &ids.front(), sizeof(unsigned) * ids.size()) != (int64_t)(sizeof(unsigned) * ids.size()))
+            verror("Failed to write file %s: %s", filename.c_str(), strerror(errno));
+    } catch (...) {
+        close(fd);  // closing fd will also release the lock (see: fcntl, F_SETLKW)
+        throw;
+    }
+    close(fd);
+}

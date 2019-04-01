@@ -48,7 +48,7 @@ inline void EMRBeatExtIterator::init(unsigned period, EMRTrackExpressionIterator
     m_num_steps4id = (uint64_t)ceil((etime - stime + 1) / (double)period);
     if (m_keepref)
         m_num_steps4id *= EMRTimeStamp::MAX_REFCOUNT + 1;
-    m_num_steps = m_num_steps4id * (uint64_t)(g_db->maxid() - g_db->minid() + 1);
+    m_num_steps = m_num_steps4id * g_db->num_ids();
 }
 
 inline bool EMRBeatExtIterator::begin()
@@ -90,7 +90,7 @@ inline bool EMRBeatExtIterator::begin()
 inline bool EMRBeatExtIterator::next()
 {
     if (m_keepref && m_point.timestamp.refcount() < EMRTimeStamp::MAX_REFCOUNT) {
-        m_point.init(m_point.id, m_point.timestamp.hour(), m_point.timestamp.refcount() + 1);
+        m_point.timestamp.init(m_point.timestamp.hour(), m_point.timestamp.refcount() + 1);
         return true;
     }
 
@@ -169,8 +169,8 @@ inline bool EMRBeatExtIterator::next(const EMRPoint &jumpto)
 inline uint64_t EMRBeatExtIterator::idx() const
 {
     return m_keepref ?
-        m_num_steps4id * (uint64_t)(m_point.id - g_db->minid()) + (EMRTimeStamp::MAX_REFCOUNT + 1) * (uint64_t)(m_point.timestamp.hour() - m_stime) / m_period + m_point.timestamp.refcount() :
-        m_num_steps4id * (uint64_t)(m_point.id - g_db->minid()) + (uint64_t)(m_point.timestamp.hour() - m_stime) / m_period;
+        m_num_steps4id * g_db->id2idx(m_point.id) + (EMRTimeStamp::MAX_REFCOUNT + 1) * (uint64_t)(m_point.timestamp.hour() - m_stime) / m_period + m_point.timestamp.refcount() :
+        m_num_steps4id * g_db->id2idx(m_point.id) + (uint64_t)(m_point.timestamp.hour() - m_stime) / m_period;
 }
 
 #endif

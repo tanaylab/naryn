@@ -296,10 +296,10 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
             if (time_shift_used)
                 time_shift = isReal(rtime_shift) ? REAL(rtime_shift)[i] : INTEGER(rtime_shift)[i];
 
-            if (id1 < g_db->minid() || id1 > g_db->maxid() || id1 != (int)id1)
-                verror("Virtual track %s: invalid id (%g) within 'id.map'", vtrack.c_str(), id1);
-            if (id2 < g_db->minid() || id2 > g_db->maxid() || id2 != (int)id2)
-                verror("Virtual track %s: invalid id (%g) within 'id.map'", vtrack.c_str(), id2);
+            if (!g_db->id_exists((unsigned)id1) || id1 != (int)id1)
+                verror("Virtual track %s: invalid source id (%g) within 'id.map'", vtrack.c_str(), id1);
+            if (!g_db->id_exists((unsigned)id2) || id2 != (int)id2)
+                verror("Virtual track %s: invalid target id (%g) within 'id.map'", vtrack.c_str(), id2);
 
             IdMap::const_iterator iid_map = imanager.id_map.find((unsigned)id1);
             if (iid_map != imanager.id_map.end())

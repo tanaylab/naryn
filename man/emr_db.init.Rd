@@ -31,8 +31,6 @@ Upon completion the connection is established with the database and a few global
 \tabular{ll}{
     EMR_GROOT \tab Root directory of global tracks\cr
     EMR_UROOT \tab Root directory of user tracks\cr
-    MINID \tab Minimal id stored in the database \cr
-    MAXID \tab Maximal id stored in the database \cr
 }
 }
 \value{

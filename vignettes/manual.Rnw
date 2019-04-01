@@ -40,9 +40,9 @@ Naryn can work under R (as a package) or Python (as a module). The vast majority
     & & \\
     Variables &
     Defined in global environment: \newline
-    \texttt{EMR\_GROOT} \newline \texttt{EMR\_UROOT} \newline \texttt{MINID} \newline \texttt{MAXID} &
+    \texttt{EMR\_GROOT} \newline \texttt{EMR\_UROOT} &
     Defined in module's environment: \newline
-    \texttt{\_GROOT} \newline \texttt{\_UROOT} \newline \texttt{\_MINID} \newline \texttt{\_MAXID} \\
+    \texttt{\_GROOT} \newline \texttt{\_UROOT} \\
     & & \\
     Run-time Variables (available only during track expression evaluation) &
     \texttt{EMR\_TIME} &
@@ -170,7 +170,7 @@ Note: track variables created in R are not visible in Python and vice versa.
 The analysis of data often involves dividing the data to train and test sets. 
 Naryn allows to subset the data via \texttt{emr\_db.subset} function. \texttt{emr\_db.subset} accepts a list of ids or samples the ids randomally. These ids constitute the subset. The ids that are not in the subset are skipped by all the \emph{iterators}, \emph{filters} and various functions.
 
-One may think of a subset as an additonal layer, a "viewport", that filters out some of the ids. Some lower-level functions such as \texttt{emr\_track.info} or \texttt{emr\_track.unique} ignore the subsets. Same applies to \texttt{percentile.*} functions of the virtual tracks. The constants \texttt{MINID} and \texttt{MAXID} are also defined based on the whole set of ids regardless of the current subset.
+One may think of a subset as an additonal layer, a "viewport", that filters out some of the ids. Some lower-level functions such as \texttt{emr\_track.info} or \texttt{emr\_track.unique} ignore the subsets. Same applies to \texttt{percentile.*} functions of the virtual tracks.
 
 \section{Accessing the Data}
 
@@ -302,9 +302,7 @@ emr_extract("glucose", iterator=data.frame(id=c(2,5)), stime=stime, etime=etime)
 
 \subsubsection{Time Intervals Iterator}
 
-\emph{Time intervals iterator} generates points for all the ids in the range of \texttt{[MINID, MAXID]} with times taken from a \emph{time intervals table} (see: Appendix). Each time starts at the beginning of the time interval and runs to the end of it with a step of 1. That being said the points that lie outside of \texttt{[stime, etime]} range are skipped.
-
-\texttt{MINID} and \texttt{MAXID} are the minimal and the maximal ids existing in the database.
+\emph{Time intervals iterator} generates points for all the ids that appear in 'dob' track with times taken from a \emph{time intervals table} (see: Appendix). Each time starts at the beginning of the time interval and runs to the end of it with a step of 1. That being said the points that lie outside of \texttt{[stime, etime]} range are skipped.
 
 If \texttt{keepref=T} for each id-time pair the iterator generates 255 points with references running from \texttt{0} to \texttt{254}. If \texttt{keepref=F} only one point is generated for the given id and time, and its reference is set to \texttt{-1}.
 
@@ -329,7 +327,7 @@ If \texttt{keepref=T} for each id-time pair the iterator generates 255 points wi
 
 \subsubsection{Beat Iterator}
 
-\emph{Beat Iterator} generates a "time beat" at the given period for each existing patient id. The period is given always in hours.
+\emph{Beat Iterator} generates a "time beat" at the given period for each id that appear in 'dob' track. The period is given always in hours.
 
 Example:
 

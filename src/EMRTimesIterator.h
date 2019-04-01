@@ -24,6 +24,7 @@ public:
 protected:
 	EMRTimeIntervals                 m_intervs;
     EMRTimeIntervals::const_iterator m_iinterv;
+    size_t                           m_id_idx{0};
     uint64_t                         m_num_steps;
     vector<uint64_t>                 m_num_steps4id;
 };
@@ -36,13 +37,14 @@ inline void EMRTimesIterator::init(const EMRTimeIntervals &intervs, bool keepref
     m_keepref = keepref;
     m_intervs = intervs;
     m_intervs.sort_and_unify_overlaps(stime, etime);
+    m_id_idx = 0;
 
     m_num_steps4id.reserve(m_intervs.size() + 1);
     m_num_steps4id.push_back(0);
     for (EMRTimeIntervals::iterator iinterv = m_intervs.begin(); iinterv < m_intervs.end(); ++iinterv)
         m_num_steps4id.push_back(m_num_steps4id[iinterv - m_intervs.begin()] + iinterv->etime - iinterv->stime + 1);
 
-    m_num_steps = m_num_steps4id.back() * (g_db->maxid() - g_db->minid() + 1);
+    m_num_steps = m_num_steps4id.back() * g_db->num_ids();
 
     if (m_keepref) {
         for (vector<uint64_t>::iterator inum_steps4id = m_num_steps4id.begin(); inum_steps4id < m_num_steps4id.end(); ++inum_steps4id)
@@ -53,12 +55,14 @@ inline void EMRTimesIterator::init(const EMRTimeIntervals &intervs, bool keepref
 
 inline bool EMRTimesIterator::begin()
 {
-    m_isend = false;
     m_iinterv = m_intervs.begin();
     if (m_iinterv < m_intervs.end()) {
-        for (unsigned id = g_db->minid(); id <= g_db->maxid(); ++id) {
-            if (g_db->is_in_subset(id)) {
-                m_point.init(id, m_iinterv->stime, m_keepref ? 0 : EMRTimeStamp::NA_REFCOUNT);
+        size_t num_ids = g_db->num_ids();
+        for (m_id_idx = 0; m_id_idx < num_ids; ++m_id_idx) {
+            m_point.id = g_db->id(m_id_idx);
+            if (g_db->is_in_subset(m_point.id)) {
+                m_isend = false;
+                m_point.timestamp.init(m_iinterv->stime, m_keepref ? 0 : EMRTimeStamp::NA_REFCOUNT);
                 return true;
             }
         }
@@ -89,7 +93,8 @@ inline bool EMRTimesIterator::next()
         return true;
     }
 
-    while (++m_point.id <= g_db->maxid()) {
+    while (++m_id_idx < g_db->num_ids()) {
+        m_point.id = g_db->id(m_id_idx);
         if (g_db->is_in_subset(m_point.id)) {
             m_iinterv = m_intervs.begin();
             m_point.timestamp.init(m_iinterv->stime, m_keepref ? 0 : EMRTimeStamp::NA_REFCOUNT);
@@ -103,6 +108,8 @@ inline bool EMRTimesIterator::next()
 
 inline bool EMRTimesIterator::next(const EMRPoint &jumpto)
 {
+    m_id_idx = g_db->id2idx(jumpto.id);
+
     if (g_db->is_in_subset(jumpto.id)) {
         EMRTimeStamp::Hour hour = jumpto.timestamp.hour();
 
@@ -129,18 +136,13 @@ inline bool EMRTimesIterator::next(const EMRPoint &jumpto)
             m_point.init(jumpto.id, m_iinterv->stime, m_keepref ? 0 : EMRTimeStamp::NA_REFCOUNT);
             return true;
         }
+    }
 
-        if (jumpto.id + 1 < g_db->maxid()) {
+    while (++m_id_idx < g_db->num_ids()) {
+        m_point.id = g_db->id(m_id_idx);
+        if (g_db->is_in_subset(m_point.id)) {
             m_iinterv = m_intervs.begin();
-            m_point.init(jumpto.id + 1, m_iinterv->stime, m_keepref ? 0 : EMRTimeStamp::NA_REFCOUNT);
-            return true;
-        }
-    } else {
-        for (unsigned id = jumpto.id + 1; id <= g_db->maxid(); ++id) {
-            if (g_db->is_in_subset(id)) {
-                m_iinterv = m_intervs.begin();
-                m_point.init(id, m_iinterv->stime, m_keepref ? 0 : EMRTimeStamp::NA_REFCOUNT);
-            }
+            m_point.timestamp.init(m_iinterv->stime, m_keepref ? 0 : EMRTimeStamp::NA_REFCOUNT);
         }
     }
 
@@ -151,9 +153,9 @@ inline bool EMRTimesIterator::next(const EMRPoint &jumpto)
 inline uint64_t EMRTimesIterator::idx() const
 {
     return m_keepref ?
-        (m_point.id - g_db->minid()) * m_num_steps4id.back() +
+        m_id_idx * m_num_steps4id.back() +
         (EMRTimeStamp::MAX_REFCOUNT + 1) * (uint64_t)(m_num_steps4id[m_iinterv - m_intervs.begin()] + m_point.timestamp.hour() - m_iinterv->stime) + m_point.timestamp.refcount() :
-        (m_point.id - g_db->minid()) * m_num_steps4id.back() + (uint64_t)(m_num_steps4id[m_iinterv - m_intervs.begin()] + m_point.timestamp.hour() - m_iinterv->stime);
+        m_id_idx * m_num_steps4id.back() + (uint64_t)(m_num_steps4id[m_iinterv - m_intervs.begin()] + m_point.timestamp.hour() - m_iinterv->stime);
 }
 
 #endif

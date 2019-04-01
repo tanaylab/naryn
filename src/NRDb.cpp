@@ -239,41 +239,5 @@ SEXP emr_user_track_names(SEXP _from, SEXP envir)
 	return R_NilValue;
 }
 
-SEXP emr_minid(SEXP envir)
-{
-    try {
-        Naryn naryn(envir);
-
-        SEXP answer;
-
-        rprotect(answer = ScalarInteger(g_db->minid()));
-        return answer;
-    } catch (TGLException &e) {
-        rerror("%s", e.msg());
-    } catch (const bad_alloc &e) {
-        rerror("Out of memory");
-    }
-
-    return R_NilValue;
-}
-
-SEXP emr_maxid(SEXP envir)
-{
-    try {
-        Naryn naryn(envir);
-
-        SEXP answer;
-
-        rprotect(answer = ScalarInteger(g_db->maxid()));
-        return answer;
-    } catch (TGLException &e) {
-        rerror("%s", e.msg());
-    } catch (const bad_alloc &e) {
-        rerror("Out of memory");
-    }
-
-    return R_NilValue;
-}
-
 }
 

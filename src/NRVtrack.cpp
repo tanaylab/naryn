@@ -159,10 +159,10 @@ SEXP emr_check_vtrack_attr_id_map(SEXP _id_map, SEXP _envir)
                 if (time_shift_used)
                     time_shift = isReal(rtime_shift) ? REAL(rtime_shift)[i] : INTEGER(rtime_shift)[i];
 
-                if (id1 < g_db->minid() || id1 > g_db->maxid() || id1 != (int)id1)
-                    verror("Invalid id (%g) within 'id.map'", id1);
-                if (id2 < g_db->minid() || id2 > g_db->maxid() || id2 != (int)id2)
-                    verror("Invalid id (%g) within 'id.map'", id2);
+                if (!g_db->id_exists((unsigned)id1) || id1 != (int)id1)
+                    verror("Invalid source id (%g) within 'id.map'", id1);
+                if (!g_db->id_exists((unsigned)id2) || id2 != (int)id2)
+                    verror("Invalid target id (%g) within 'id.map'", id2);
 
                 NRTrackExpressionVars::IdMap::const_iterator iid_map = id_map.find((unsigned)id1);
                 if (iid_map != id_map.end())

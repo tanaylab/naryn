@@ -48,11 +48,6 @@
     else default
 }
 
-.emr_db_constants_load <- function() {
-    assign("MINID", .emr_call("emr_minid", new.env(parent = parent.frame()), silent = TRUE), envir = .GlobalEnv)
-    assign("MAXID", .emr_call("emr_maxid", new.env(parent = parent.frame()), silent = TRUE), envir = .GlobalEnv)
-}
-
 .emr_filter <- function(filter) {
     eval(parse(text = sprintf("substitute(%s)", filter)))
 }
@@ -132,7 +127,6 @@ emr_db.init <- function(global.dir = NULL, user.dir = NULL, load.on.demand = T) 
 		success <- F
 		tryCatch({
         	.emr_call("emr_dbload", global.dir, user.dir, load.on.demand, new.env(parent = parent.frame()), silent = TRUE)
-            .emr_db_constants_load()
 			success <- T
 		},
 		finally = {
@@ -151,7 +145,6 @@ emr_db.init_examples <- function() {
 
 emr_db.reload <- function() {
 	.emr_call("emr_dbload", get("EMR_GROOT", envir = .GlobalEnv), get("EMR_UROOT", envir = .GlobalEnv), F, new.env(parent = parent.frame()), silent = TRUE)
-    .emr_db_constants_load()
 	retv <- 0 # suppress return value
 }
 
@@ -180,7 +173,6 @@ emr_track.addto <- function(track, src) {
     .emr_checkroot()
 
 	.emr_call("emr_import", track, NULL, NULL, src, T, new.env(parent = parent.frame()))
-    .emr_db_constants_load()
     retv <- NULL
 }
 
@@ -204,7 +196,6 @@ emr_track.create <- function(track, space, categorical, expr, stime = NULL, etim
         stop(sprintf("Filter %s already exists", track), call. = F)
 
 	.emr_call("emr_track_create", track, space, categorical, expr, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
-    .emr_db_constants_load()
     retv <- NULL
 }
 
@@ -239,7 +230,6 @@ emr_track.import <- function(track, space, categorical, src) {
         stop(sprintf("Filter %s already exists", track), call. = F)
 
 	.emr_call("emr_import", track, space, categorical, src, F, new.env(parent = parent.frame()))
-    .emr_db_constants_load()
     retv <- NULL
 }
 
@@ -300,8 +290,6 @@ emr_track.rm <- function(track, force = F) {
         dirname <- .emr_track.pyvar.dir(track)
         if (file.exists(dirname))
             unlink(dirname, recursive = TRUE)
-
-        .emr_db_constants_load()
     }
 
     retv <- NULL

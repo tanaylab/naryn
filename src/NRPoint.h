@@ -46,6 +46,9 @@ void NRPoint::convert_rpoints_vals(SEXP rsrc, EMRTrackData<T> &data, const char 
     bool ref_used = Rf_length(colnames) > REF && !strcmp(CHAR(STRING_ELT(colnames, REF)), COL_NAMES[REF]);
     SEXP rcol[NUM_PVAL_COLS];
 
+    if ((ref_used && Rf_length(colnames) < NUM_PVAL_COLS) || (!ref_used && Rf_length(colnames) < NUM_PVAL_COLS - 1))
+        TGLError<NRPoint>(BAD_FORMAT, "%sInvalid format", error_msg_prefix);
+
     for (unsigned i = 0, rcolidx = 0; i < NUM_PVAL_COLS; i++) {
         if (i == REF && !ref_used) {
             rcol[REF] = R_NilValue;

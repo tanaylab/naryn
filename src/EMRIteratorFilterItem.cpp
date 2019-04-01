@@ -80,7 +80,7 @@ bool EMRIteratorFilterItem::is_passed_leaf(const EMRPoint &point)
                 // Last is_passed returned true => we found P' within the filter interval. The filter interval of the point we seek should not
                 // include P' (otherwise is_passed will again return true).
                 // The first point which filter interval does not contain P' is at P+1-sshift
-                // (it would be translated to a filter interval of [P+1, P+1-sshift+eshift]
+                // (it would be translated to a filter interval of [P+1, P+1-sshift+eshift])
                 unsigned id = m_itr->point().id;
 
                 while (1) {
@@ -92,7 +92,12 @@ bool EMRIteratorFilterItem::is_passed_leaf(const EMRPoint &point)
                         hour = (int)m_itr->point().timestamp.hour() + 1 - m_sshift;
 
                     if (hour > m_etime || dynamic_cast<EMRIdsIterator *>(m_itr)) {
-                        ++id;
+                        unsigned id_idx = g_db->id2idx(id) + 1;
+                        if (id_idx >= g_db->num_ids()) {
+                            m_jumpto = EMRPoint();
+                            break;
+                        }
+                        id = g_db->id(id_idx);
                         hour = m_stime;
                     }
                     if (!is_passed_leaf(EMRPoint(id, EMRTimeStamp(hour, (EMRTimeStamp::Refcount)-1)))) {

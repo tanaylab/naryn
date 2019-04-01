@@ -308,11 +308,12 @@ void NRTrackExprScanner::start_multitasking()
     unsigned cur_id = m_itr.itr().point().id;
     vector<unsigned> ids_left;
 
-    for (unsigned id = cur_id; id <= g_db->maxid(); ++id) {
-        if (g_db->is_in_subset(id)) 
+    for (size_t i = g_db->id2idx(cur_id); i < g_db->num_ids(); ++i) {
+        unsigned id = g_db->id(i);
+        if (g_db->is_in_subset(id))
             ids_left.push_back(id);
     }
-    vdebug("%ld ids left (cur id: %d, max id: %d)\n", ids_left.size(), cur_id, g_db->maxid());
+    vdebug("%ld ids left (total ids: %ld)\n", ids_left.size(), g_db->num_ids());
 
     // depending on the estimated run-time set the number of kids on a value between min_processes and max_processes
     int min_processes = min(g_naryn->min_processes() - 1, num_cores - 1);

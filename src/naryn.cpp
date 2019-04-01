@@ -45,12 +45,15 @@ Naryn::Shm              *Naryn::s_shm = (Naryn::Shm *)MAP_FAILED;
 int                      Naryn::s_fifo_fd = -1;
 
 Naryn *g_naryn = NULL;
+unsigned g_session_id = 0;
 
 Naryn::Naryn(SEXP _env, bool check_db) :
 	m_env(_env)
 {
 	if (!s_ref_count) {
 		m_old_umask = umask(07);
+
+        ++g_session_id;
 
         s_sigint_fired = 0;
         s_sigalrm_fired = 0;
