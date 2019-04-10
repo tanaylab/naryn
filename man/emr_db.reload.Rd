@@ -13,7 +13,7 @@ emr_db.reload()
 \arguments{
 }
 \details{
-Reloads Naryn Database from disk. Use this function if you manually add tracks or if for any reason the database becomes corrupted.
+Rebuilds Naryn database index files. Use this function if you manually add/delete/move/modify track files or if you suspect that the database is corrupted: existing tracks cannot be found, deleted ones continue to appear or a warning message is issued by Naryn itself recommending to run 'emr_db.reload'.
 }
 
 \seealso{

@@ -12,27 +12,43 @@
 
 extern "C" {
 
-SEXP emr_dbload(SEXP _gdir, SEXP _udir, SEXP _load_on_demand, SEXP envir)
+SEXP emr_dbinit(SEXP _gdir, SEXP _udir, SEXP _gload_on_demand, SEXP _uload_on_demand, SEXP _do_load, SEXP envir)
 {
 	try {
 		Naryn naryn(envir, false);
 
-        if (g_db && !g_db->ids_subset().empty())
-            Rf_warning("Current subset of ids will be reset");
+        if (!isString(_gdir) || Rf_length(_gdir) != 1 || !isNull(_udir) && (!isString(_udir) || Rf_length(_udir) != 1))
+            verror("'dir' argument is not a string");
 
+        if (!isLogical(_gload_on_demand) || Rf_length(_gload_on_demand) != 1 || !isLogical(_uload_on_demand) || Rf_length(_uload_on_demand) != 1)
+            verror("'load.on.demand' argument must be a logical value");
+
+        if (!isLogical(_do_load) || Rf_length(_do_load) != 1)
+            verror("'do.load' argument must be a logical value");
+
+        const char *gdirname = CHAR(STRING_ELT(_gdir, 0));
+        const char *udirname = isNull(_udir) ? NULL : CHAR(STRING_ELT(_udir, 0));
+
+        if (!g_db)
+            g_db = new EMRDb;
+		g_db->init(gdirname, udirname, asLogical(_gload_on_demand), asLogical(_uload_on_demand), asLogical(_do_load));
+	} catch (TGLException &e) {
 		delete g_db;
 		g_db = NULL;
+		rerror("%s", e.msg());
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 
-		if (!isString(_gdir) || Rf_length(_gdir) != 1 || !isNull(_udir) && (!isString(_udir) || Rf_length(_udir) != 1))
-			verror("Dir argument is not a string");
+	return R_NilValue;
+}
 
-        if (!isLogical(_load_on_demand) || Rf_length(_load_on_demand) != 1)
-            verror("load.on.demand argument must be a logical value");
+SEXP emr_dbreload(SEXP envir)
+{
+	try {
+		Naryn naryn(envir);
 
-		const char *gdirname = CHAR(STRING_ELT(_gdir, 0));
-        const char *udirname = isNull(_udir) ? NULL : CHAR(STRING_ELT(_udir, 0));
-		g_db = new EMRDb;
-		g_db->load(gdirname, udirname, asLogical(_load_on_demand));
+		g_db->reload();
 	} catch (TGLException &e) {
 		delete g_db;
 		g_db = NULL;
@@ -66,7 +82,7 @@ SEXP emr_db_subset(SEXP _src, SEXP _fraction, SEXP _complementary, SEXP _envir)
 		Naryn naryn(_envir);
 
         if (isNull(_src))
-            g_db->clear_ids_subset();
+            g_db->clear_ids_subset(false);
         else {
             if (!isReal(_fraction) || Rf_length(_fraction) != 1)
                 verror("\"fraction\" argument must be a numeric value");
@@ -183,9 +199,12 @@ SEXP emr_track_names(SEXP envir)
 
 		SEXP answer;
 
-        rprotect(answer = RSaneAllocVector(STRSXP, g_db->track_names().size()));
-        for (vector<string>::const_iterator itrack_name = g_db->track_names().begin(); itrack_name < g_db->track_names().end(); ++itrack_name)
-            SET_STRING_ELT(answer, itrack_name - g_db->track_names().begin(), mkChar(itrack_name->c_str()));
+        rprotect(answer = RSaneAllocVector(STRSXP, g_db->track_names(true).size() + g_db->track_names(false).size()));
+        size_t idx = 0;
+        for (int is_global = 0; is_global < 2; ++is_global) {
+            for (auto track_name : g_db->track_names(is_global))
+                SET_STRING_ELT(answer, idx++, mkChar(track_name.c_str()));
+        }
 
 		return answer;
 	} catch (TGLException &e) {
@@ -204,9 +223,9 @@ SEXP emr_global_track_names(SEXP envir)
 
 		SEXP answer;
 
-        rprotect(answer = RSaneAllocVector(STRSXP, g_db->global_track_names().size()));
-        for (vector<string>::const_iterator itrack_name = g_db->global_track_names().begin(); itrack_name < g_db->global_track_names().end(); ++itrack_name)
-            SET_STRING_ELT(answer, itrack_name - g_db->global_track_names().begin(), mkChar(itrack_name->c_str()));
+        rprotect(answer = RSaneAllocVector(STRSXP, g_db->track_names(true).size()));
+        for (auto itrack_name = g_db->track_names(true).begin(); itrack_name < g_db->track_names(true).end(); ++itrack_name)
+            SET_STRING_ELT(answer, itrack_name - g_db->track_names(true).begin(), mkChar(itrack_name->c_str()));
 
 		return answer;
 	} catch (TGLException &e) {
@@ -225,9 +244,9 @@ SEXP emr_user_track_names(SEXP _from, SEXP envir)
 
 		SEXP answer;
 
-        rprotect(answer = RSaneAllocVector(STRSXP, g_db->user_track_names().size()));
-        for (vector<string>::const_iterator itrack_name = g_db->user_track_names().begin(); itrack_name < g_db->user_track_names().end(); ++itrack_name)
-            SET_STRING_ELT(answer, itrack_name - g_db->user_track_names().begin(), mkChar(itrack_name->c_str()));
+        rprotect(answer = RSaneAllocVector(STRSXP, g_db->track_names(false).size()));
+        for (auto itrack_name = g_db->track_names(false).begin(); itrack_name < g_db->track_names(false).end(); ++itrack_name)
+            SET_STRING_ELT(answer, itrack_name - g_db->track_names(false).begin(), mkChar(itrack_name->c_str()));
 
 		return answer;
 	} catch (TGLException &e) {

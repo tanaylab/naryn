@@ -132,12 +132,31 @@ Naryn can work under R (as a package) or Python (as a module). The vast majority
 
 \section{Database}
 
-Naryn allows to access data that resides in \emph{tracks} where each track holds certain type of medical data such as patients' diagnoses or their hemoglobin level at certain points of time. The track files are aggregated in a directory. Before the tracks can be accessed, Naryn needs to establish connection to this directory, also referred as a \emph{global root} or \emph{global space root}. Call \texttt{emr\_db.init} function to establish the access to the tracks in the global root directory. Optionally \texttt{emr\_db.init} accepts an additional \emph{user root} (or \emph{user space root}) directory which can also constains additional tracks.
+\subsection{Global and User Space}
+
+Naryn allows accessing the data that resides in \emph{tracks} where each track holds certain type of medical data such as patients' diagnoses or their hemoglobin level at certain points of time. The track files are aggregated in a directory. Before the tracks can be accessed, Naryn needs to establish connection to this directory, also referred as a \emph{global root} or \emph{global space root}. Call \texttt{emr\_db.init} function to establish the access to the tracks in the global root directory. Optionally \texttt{emr\_db.init} accepts an additional \emph{user root} (or \emph{user space root}) directory which can also constains additional tracks.
 
 Even though both global and user root directories may contain track files their designation is different. The global root directory is intended to stay mainly read-only with a notable exception of periodic updates to the existing data which can be performed via \texttt{emr\_track.addto} function. No tracks are allowed to be deleted from the global root directory. Unlike that user root directory is intended to store volatile data like the results of intermediate calculations. New tracks can be created in both user or global space using \texttt{emr\_track.import} or \texttt{emr\_track.create} yet the creation of tracks in the global space is strongly discouraged.
 
-Once \texttt{emr\_db.init} is successfully called a few auxiliary variables are added to R global environment (Python: to module's dictionary). Please refer the documentation of this function.
+\subsection{Load-on-demand vs. Pre-load Modes}
 
+\texttt{emr\_db.init} supports two modes of work - 'load on demand' and 'pre-load'. In 'load on demand' mode tracks are loaded into memory only when they are accessed. Tracks stay in the memory up until R sessions ends or the package is unloaded (Python: since modules cannot be forced to unload, \texttt{db\_unload} is introduced).
+
+In 'pre-load' mode, all the tracks are pre-loaded into memory making subsequent track access significantly faster. As loaded tracks reside in shared memory, other R sessions running on the same machine may also enjoy significant run-time boost. On the flip side, pre-loading all the tracks prolongs the execution of \texttt{emr\_db.init} and requires enough memory to accommodate all the data.
+
+Choosing between the two modes depends on the specific needs. While 'load.on.demand=TRUE' seems to be a solid default choice, in an environment where there are frequent short-living R sessions, each accessing a track, one might opt for running a "daemon" - an additional permanent R session. The daemon would pre-load all the tracks in advance and stay alive thus boosting the run-time of the later emerging sessions.
+
+\subsection{Maintaining Database}
+
+Naryn caches certain data on the disk to maintain fast run-times. In particular two files (\texttt{.tracks} and \texttt{.ids}) are created in a global root directory and one file (\texttt{.ids}) in a user root directory.
+
+\texttt{.tracks} file contains a list of all tracks in the current root directory and their last modification dates. This file spares a full root directory rescan when \texttt{emr\_db.init} is called. The recorded modification dates allow to efficiently synchronize the track changes induced by synchronically running R sessions.
+
+\texttt{.ids} file contains available ids that are used to run certain types of \emph{track expression iterators} (see below). The source of these ids comes from a \texttt{dob} (i.e. Date Of Birth) track, which must be present in the global root directory before these iterators may be utilized.
+
+Various functions such as \texttt{emr\_track.import} modify these files according to the changes that DB undergoes (addition / removal / modification of tracks). Thus manual (outside of Naryn) modification, replacement, addition or deletion of track files cause the cache files to go out of sync. Various problems might arise as a consequence, such as run-time errors, out-dated data from modified tracks and sub-optimal run-time performance.
+
+Manual modifications of the database files can still be performed, yet they must be ratified by running \texttt{emr\_db.reload}.
 
 \subsection{Tracks}
 
@@ -149,7 +168,7 @@ Each track is stored in a binary file with \emph{.nrtrack} file extention. One o
 
 Time resolution is always in hours. It might happen that two different blood tests are  carried out by two different labs for the same patient at the same hour. Assuming that each lab has certain bias due to different equipment used, the reads of the hemoglobin might come out different. Since both of the tests are carried out at exactly the same hour it will be impossible later to link each result to the lab that performed it.
 
-In the situations when two or more values share identical \texttt{id} and \texttt{time} Naryn requires them to use then different \texttt{ref} (\emph{references}). Reference is an integer number in the range of [-1, 254], which when no time collision occurs is normally set to -1. However in cases of ambiguity it can give additional resolution to the time. In our blood example the results of the first lab could have been recorded with \texttt{ref = 0} wherever the second lab would do it with \texttt{ref = 1}. This way the two hemoglobin readings could later be separated and correctly linked to their originating labs.
+In those cases when two or more values share identical \texttt{id} and \texttt{time} Naryn requires them to use then different \texttt{ref} (\emph{references}). Reference is an integer number in the range of [-1, 254], which when no time collision occurs is normally set to -1. However in cases of ambiguity it can give additional resolution to the time. In our blood example the results of the first lab could have been recorded with \texttt{ref = 0} wherever the second lab would do it with \texttt{ref = 1}. This way the two hemoglobin readings could later be separated and correctly linked to their originating labs.
 
 \subsubsection{Categorical and Quantitative Tracks}
 

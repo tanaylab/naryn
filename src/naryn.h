@@ -23,6 +23,10 @@
 
 #include "TGLException.h"
 
+#ifndef RNARYN
+    #define RNARYN
+#endif
+
 using namespace std;
 
 // should be used instead of R_CheckUserInterrupt. Throws exception if the command is interrupted.

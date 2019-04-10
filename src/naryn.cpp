@@ -45,7 +45,7 @@ Naryn::Shm              *Naryn::s_shm = (Naryn::Shm *)MAP_FAILED;
 int                      Naryn::s_fifo_fd = -1;
 
 Naryn *g_naryn = NULL;
-unsigned g_session_id = 0;
+unsigned g_transact_id = 0;
 
 Naryn::Naryn(SEXP _env, bool check_db) :
 	m_env(_env)
@@ -53,7 +53,7 @@ Naryn::Naryn(SEXP _env, bool check_db) :
 	if (!s_ref_count) {
 		m_old_umask = umask(07);
 
-        ++g_session_id;
+        ++g_transact_id;
 
         s_sigint_fired = 0;
         s_sigalrm_fired = 0;
@@ -103,18 +103,11 @@ Naryn::Naryn(SEXP _env, bool check_db) :
 	if (s_ref_count == 1)
 		g_naryn = this;
 
-    if (check_db && !g_db) {
-        SEXP groot = findVar(install("EMR_GROOT"), g_naryn->env());
-        SEXP uroot = findVar(install("EMR_UROOT"), g_naryn->env());
-        SEXP load_on_demand = findVar(install("EMR_LOAD_ON_DEMAND"), g_naryn->env());
-
-        if (isString(groot) && Rf_length(groot) == 1 && (!isNull(uroot) || isString(uroot) && Rf_length(uroot) == 1) && !isLogical(load_on_demand) && Rf_length(load_on_demand) == 1) {
-            const char *gdirname = CHAR(asChar(groot));
-            const char *udirname = isNull(uroot) ? NULL : CHAR(asChar(uroot));
-            g_db = new EMRDb;
-            g_db->load(gdirname, udirname, asLogical(load_on_demand));
-        } else
+    if (check_db) {
+        if (!g_db)
             verror("Database was not loaded. Please call emr_db.init.");
+
+        g_db->refresh();  // refresh the DB at the beginning of new transaction
     }
 }
 
@@ -174,7 +167,7 @@ Naryn::~Naryn()
         sigaction(SIGALRM, &s_old_sigalrm_act, NULL);
         sigaction(SIGCHLD, &s_old_sigchld_act, NULL);
 
-		// close all file descriptors opened during the session
+		// close all file descriptors opened during the transact
 		set<int> open_fds;
 		get_open_fds(open_fds);
 		for (set<int>::const_iterator ifd = open_fds.begin(); ifd != open_fds.end(); ++ifd) {
@@ -614,6 +607,11 @@ void vdebug(const char *fmt, ...)
     	va_start(ap, fmt);
     	vprintf(fmt, ap);
         va_end(ap);
+
+        if (*fmt && fmt[strlen(fmt) - 1] != '\n')
+            printf("\n");
+
+        fflush(stdout);
     }
 }
 

@@ -19,7 +19,7 @@ extern "C" {
 SEXP emr_time2hour(SEXP _t, SEXP _envir)
 {
 	try {
-		Naryn naryn(_envir);
+		Naryn naryn(_envir, false);
         
         if (!isInteger(_t) && !isReal(_t))
             verror("Invalid format of 'time' argument");
@@ -53,7 +53,7 @@ SEXP emr_time2hour(SEXP _t, SEXP _envir)
 SEXP emr_time2dayofmonth(SEXP _t, SEXP _envir)
 {
 	try {
-		Naryn naryn(_envir);
+		Naryn naryn(_envir, false);
         
         if (!isInteger(_t) && !isReal(_t))
             verror("Invalid format of 'time' argument");
@@ -87,7 +87,7 @@ SEXP emr_time2dayofmonth(SEXP _t, SEXP _envir)
 SEXP emr_time2month(SEXP _t, SEXP _envir)
 {
 	try {
-		Naryn naryn(_envir);
+		Naryn naryn(_envir, false);
         
         if (!isInteger(_t) && !isReal(_t))
             verror("Invalid format of 'time' argument");
@@ -121,7 +121,7 @@ SEXP emr_time2month(SEXP _t, SEXP _envir)
 SEXP emr_time2year(SEXP _t, SEXP _envir)
 {
 	try {
-		Naryn naryn(_envir);
+		Naryn naryn(_envir, false);
         
         if (!isInteger(_t) && !isReal(_t))
             verror("Invalid format of 'time' argument");
@@ -156,7 +156,7 @@ SEXP emr_time2year(SEXP _t, SEXP _envir)
 SEXP emr_date2time(SEXP _date, SEXP _envir)
 {
 	try {
-		Naryn naryn(_envir);
+		Naryn naryn(_envir, false);
 
         enum { HOUR, DAY, MONTH, YEAR, NUM_COLS };
 

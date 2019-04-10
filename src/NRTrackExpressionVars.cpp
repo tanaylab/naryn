@@ -45,15 +45,17 @@ void NRTrackExpressionVars::parse_exprs(const vector<string> &track_exprs, unsig
 
     for (vector<string>::const_iterator iexpr = track_exprs.begin(); iexpr != track_exprs.end(); ++iexpr) {
         // look for track names
-        for (vector<string>::const_iterator itrack = g_db->track_names().begin(); itrack < g_db->track_names().end(); ++itrack) {
-            size_t pos = 0;
+        for (int is_global = 0; is_global < 2; ++is_global) {
+            for (vector<string>::const_iterator itrack = g_db->track_names(is_global).begin(); itrack < g_db->track_names(is_global).end(); ++itrack) {
+                size_t pos = 0;
 
-            while ((pos = iexpr->find(*itrack, pos)) != string::npos) {
-                if (is_var(*iexpr, pos, pos + itrack->size())) {
-                    add_track_var(*itrack);
-                    break;
+                while ((pos = iexpr->find(*itrack, pos)) != string::npos) {
+                    if (is_var(*iexpr, pos, pos + itrack->size())) {
+                        add_track_var(*itrack);
+                        break;
+                    }
+                    pos += itrack->size();
                 }
-                pos += itrack->size();
             }
         }
 

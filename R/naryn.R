@@ -94,9 +94,9 @@
 	vtrack
 }
 
-emr_db.init <- function(global.dir = NULL, user.dir = NULL, load.on.demand = T) {
+emr_db.init <- function(global.dir = NULL, user.dir = NULL, global.load.on.demand = T, user.load.on.demand = T, do.reload = F) {
 	if (is.null(global.dir))
-		stop("Usage: emr_db.init(global.dir, user.dir = NULL, load.on.demand = T)", call. = F);
+		stop("Usage: emr_db.init(global.dir, user.dir = NULL, global.load.on.demand = T, user.load.on.demand = T, do.reload = F)", call. = F);
 
 	# replace ~ mark by full path
 	oldwd <- getwd()
@@ -116,36 +116,39 @@ emr_db.init <- function(global.dir = NULL, user.dir = NULL, load.on.demand = T) 
             stop("Global space root directory should differ from user space root directory", call. = F);
     }
 
-	if (!exists("EMR_GROOT", envir = .GlobalEnv) || is.null(get("EMR_GROOT", envir = .GlobalEnv)) || get("EMR_GROOT", envir = .GlobalEnv) != global.dir ||
-        (!exists("EMR_UROOT", envir = .GlobalEnv) || is.null(get("EMR_UROOT", envir = .GlobalEnv))) && !is.null(user.dir) ||
-        (exists("EMR_UROOT", envir = .GlobalEnv) && !is.null(get("EMR_UROOT", envir = .GlobalEnv)) && (is.null(user.dir) || get("EMR_UROOT", envir = .GlobalEnv) != user.dir)) ||
-        !load.on.demand && (!exists("EMR_LOAD_ON_DEMAND", envir = .GlobalEnv) || !identical(get("EMR_LOAD_ON_DEMAND", envir = .GlobalEnv), load.on.demand)))
-    {
-		EMR_GROOT <<- global.dir
-		EMR_UROOT <<- user.dir
-        EMR_LOAD_ON_DEMAND <<- load.on.demand
-		success <- F
-		tryCatch({
-        	.emr_call("emr_dbload", global.dir, user.dir, load.on.demand, new.env(parent = parent.frame()), silent = TRUE)
-			success <- T
-		},
-		finally = {
-			if (!success) {
-				remove("EMR_GROOT", envir = .GlobalEnv)
-				remove("EMR_UROOT", envir = .GlobalEnv)
-				remove("EMR_LOAD_ON_DEMAND", envir = .GlobalEnv)
-			}
-		})
-	}
+    EMR_GROOT <<- global.dir
+    EMR_UROOT <<- user.dir
+    success <- F
+    tryCatch({
+        .emr_call("emr_dbinit", global.dir, user.dir, global.load.on.demand, user.load.on.demand, do.reload, new.env(parent = parent.frame()), silent = TRUE)
+        success <- T
+    },
+    finally = {
+        if (!success) {
+            remove("EMR_GROOT", envir = .GlobalEnv)
+            remove("EMR_UROOT", envir = .GlobalEnv)
+        }
+    })
+    retv <- NULL
 }
 
 emr_db.init_examples <- function() {
-	emr_db.init(paste(.EMR_LIBDIR, "naryndb/test", sep = "/"))
+  	emr_db.init(paste(.EMR_LIBDIR, "naryndb/test", sep = "/"))
 }
 
 emr_db.reload <- function() {
-	.emr_call("emr_dbload", get("EMR_GROOT", envir = .GlobalEnv), get("EMR_UROOT", envir = .GlobalEnv), F, new.env(parent = parent.frame()), silent = TRUE)
-	retv <- 0 # suppress return value
+    success <- F
+    tryCatch({
+    	.emr_call("emr_dbreload", silent = TRUE)
+        success <- T
+    },
+    finally = {
+        if (!success) {
+            remove("EMR_GROOT", envir = .GlobalEnv)
+            remove("EMR_UROOT", envir = .GlobalEnv)
+        }
+    })
+	retv <- NULL
 }
 
 emr_db.subset <- function(src = "", fraction = NULL, complementary = NULL) {
