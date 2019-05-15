@@ -1,14 +1,14 @@
 Package: naryn
 Type: Package
 Title: Toolkit for analysis of medical records
-Version: 2.5.0
+Version: 2.5.1
 Depends: utils
 SystemRequirements: GNU make
-Date: 2019-04-10
+Date: 2019-05-14
 Author: Misha Hoichman
 Maintainer: Misha Hoichman <misha.hoichman@weizmann.ac.il>
 Description: Toolkit for medical records data analysis
 License: GPL-2
 LazyLoad: yes
 NeedsCompilation: yes
-Packaged: 2019-04-10 13:53:03 UTC; hoichman
+Packaged: 2019-05-14 08:53:47 UTC; hoichman

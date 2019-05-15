@@ -56,9 +56,6 @@ SEXP emr_track_create(SEXP _track, SEXP _space, SEXP _categorical, SEXP _expr, S
 			g_naryn->verify_max_data_size(data.size(), "Result");
 		}
 
-        if (!data.size())
-            verror("Track expression did not produce any values.");
-
         EMRTrack::serialize(track_filename.c_str(), categorical, data);
         g_db->load_track(trackname, space == "global");
 	} catch (TGLException &e) {

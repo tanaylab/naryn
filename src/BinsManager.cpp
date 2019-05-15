@@ -105,7 +105,7 @@ void BinsManager::set_dims(SEXP dim, SEXP dimnames, SEXP breaks_set) const
                 if (m_right)
                     sprintf(buf, "%c%g,%g]", j || !m_include_lowest ? '(' : '[', bin_finder.get_breaks()[j], bin_finder.get_breaks()[j + 1]);
                 else
-                    sprintf(buf, "[%g,%g%c", j != numbins - 1 || !m_include_lowest ? ')' : ']', bin_finder.get_breaks()[j], bin_finder.get_breaks()[j + 1]);
+                    sprintf(buf, "[%g,%g%c", bin_finder.get_breaks()[j], bin_finder.get_breaks()[j + 1], j != numbins - 1 || !m_include_lowest ? ')' : ']');
     			SET_STRING_ELT(dimname, j, mkChar(buf));
                 REAL(breaks)[j] = bin_finder.get_breaks()[j];
     		}

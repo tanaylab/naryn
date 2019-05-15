@@ -378,9 +378,6 @@ EMRTrack *EMRTrack::construct(const char *name, EMRTrack *base_track, Func func,
 template <class T>
 EMRTrack::TrackType EMRTrack::serialize(const char *filename, unsigned flags, const EMRTrackData<T> &data)
 {
-    if (data.m_key2val.empty())
-        verror("Cannot create an empty track at file %s", filename);
-
     TrackType track_type;
 	DataType data_type;
 

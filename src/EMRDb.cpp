@@ -12,6 +12,7 @@
 
 const string  EMRDb::TRACK_FILE_EXT(".nrtrack");
 const char   *EMRDb::TRACK_LIST_FILENAME = ".tracks";
+const char   *EMRDb::DOB_TRACKNAME = "patients.dob";
 const char   *EMRDb::IDS_FILENAME = ".ids";
 const int     EMRDb::IDS_SIGNATURE = 0xCACA0;
 
@@ -454,6 +455,9 @@ void EMRDb::ids_subset(vector<unsigned> &ids, const char *src, double fraction, 
     if ((fraction == 1 && complementary) || (fraction == 0 && !complementary))
         verror("The subset is empty. Please choose a different fraction value.");
 
+    if (!ids.size() && !complementary)
+        verror("Source ids are empty.");
+
     size_t subset_size = (size_t)(ids.size() * fraction + .5);
 
     if ((!subset_size && !complementary) || (subset_size == ids.size() && complementary))
@@ -547,7 +551,7 @@ void EMRDb::load_ids()
             }
 
             if ((m_shmem_ids = mmap(NULL, m_shmem_ids_size, PROT_READ, MAP_PRIVATE | MAP_POPULATE, fd, 0)) == MAP_FAILED)
-                verror("mmap failed on file %s: %s", filename, strerror(errno));
+                verror("mmap failed on file %s: %s", filename.c_str(), strerror(errno));
 
             close(fd);
             fd = -1;
@@ -601,14 +605,14 @@ void EMRDb::create_ids_file()
     			verror("Locking file %s: %s", filename.c_str(), strerror(errno));
     	}
 
-        Name2Track::iterator itrack = m_tracks.find("dob");
+        Name2Track::iterator itrack = m_tracks.find(DOB_TRACKNAME);
         if (itrack == m_tracks.end())
-             verror("Cannot retrieve ids: 'dob' track is missing");
+             verror("Cannot retrieve ids: '%s' track is missing", DOB_TRACKNAME);
 
         if (!itrack->second.is_global)
-            verror("Cannot retrieve ids: 'dob' track is not in the global space");
+            verror("Cannot retrieve ids: '%s' track is not in the global space", DOB_TRACKNAME);
 
-        EMRTrack *dob = track("dob");
+        EMRTrack *dob = track(DOB_TRACKNAME);
         time_t timestamp = dob->timestamp();
         vector<unsigned> ids;
         dob->ids(ids);
@@ -629,22 +633,22 @@ void EMRDb::create_ids_file()
 bool EMRDb::rebuild_ids_file_on_dob_change()
 {
     struct stat fs;
-    if (stat((m_rootdirs[1] + "/dob" + TRACK_FILE_EXT).c_str(), &fs) == -1) {
+    if (stat((m_rootdirs[1] + "/" + DOB_TRACKNAME + TRACK_FILE_EXT).c_str(), &fs) == -1) {
         if (errno == ENOENT)
-            verror("Failed to retrieve ids: 'dob' track is missing");
-        verror("Failed to stat 'dob' track: %s", strerror(errno));
+            verror("Failed to retrieve ids: '%s' track is missing", DOB_TRACKNAME);
+        verror("Failed to stat '%s' track: %s", DOB_TRACKNAME, strerror(errno));
     }
 
     if (m_dob_ts != fs.st_mtim.tv_sec) {
         // remove an outdated version of dob track from the memory
         // (it is there if the session has already accessed dob track in the past)
-        Name2Track::iterator itrack = m_tracks.find("dob");
+        Name2Track::iterator itrack = m_tracks.find(DOB_TRACKNAME);
         if (itrack != m_tracks.end() && itrack->second.track && fs.st_mtim.tv_sec != itrack->second.track->timestamp()) {
             delete itrack->second.track;
             itrack->second.track = NULL;
         }
 
-        vdebug("'dob' track had been updated, rebuilding %s file\n", ids_filename().c_str());
+        vdebug("'%s' track had been updated, rebuilding %s file\n", DOB_TRACKNAME, ids_filename().c_str());
         create_ids_file();
         return true;
     }

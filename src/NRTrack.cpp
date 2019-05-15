@@ -91,12 +91,12 @@ SEXP emr_track_info(SEXP _track, SEXP _envir)
         LOGICAL(rcategorical)[0] = track->is_categorical();
         INTEGER(rnum_vals)[0] = track->size();
         INTEGER(rnum_unique_vals)[0] = track->unique_size();
-        REAL(rmin_val)[0] = track->minval();
-        REAL(rmax_val)[0] = track->maxval();
-        INTEGER(rmin_id)[0] = track->minid();
-        INTEGER(rmax_id)[0] = track->maxid();
-        INTEGER(rmin_time)[0] = track->mintime();
-        INTEGER(rmax_time)[0] = track->maxtime();
+        REAL(rmin_val)[0] = track->size() ? track->minval() : numeric_limits<double>::quiet_NaN();
+        REAL(rmax_val)[0] = track->size() ? track->maxval() : numeric_limits<double>::quiet_NaN();
+        INTEGER(rmin_id)[0] = track->size() ? track->minid() : NA_INTEGER;
+        INTEGER(rmax_id)[0] = track->size() ? track->maxid() : NA_INTEGER;
+        INTEGER(rmin_time)[0] = track->size() ? track->mintime() : NA_INTEGER;
+        INTEGER(rmax_time)[0] = track->size() ? track->maxtime() : NA_INTEGER;
 
         for (int i = 0; i < NUM_COLS; ++i)
             SET_STRING_ELT(names, i, mkChar(COL_NAMES[i]));

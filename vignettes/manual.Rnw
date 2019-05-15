@@ -152,7 +152,7 @@ Naryn caches certain data on the disk to maintain fast run-times. In particular 
 
 \texttt{.tracks} file contains a list of all tracks in the current root directory and their last modification dates. This file spares a full root directory rescan when \texttt{emr\_db.init} is called. The recorded modification dates allow to efficiently synchronize the track changes induced by synchronically running R sessions.
 
-\texttt{.ids} file contains available ids that are used to run certain types of \emph{track expression iterators} (see below). The source of these ids comes from a \texttt{dob} (i.e. Date Of Birth) track, which must be present in the global root directory before these iterators may be utilized.
+\texttt{.ids} file contains available ids that are used to run certain types of \emph{track expression iterators} (see below). The source of these ids comes from a \texttt{patients.dob} (i.e. Date Of Birth) track, which must be present in the global root directory before these iterators may be utilized.
 
 Various functions such as \texttt{emr\_track.import} modify these files according to the changes that DB undergoes (addition / removal / modification of tracks). Thus manual (outside of Naryn) modification, replacement, addition or deletion of track files cause the cache files to go out of sync. Various problems might arise as a consequence, such as run-time errors, out-dated data from modified tracks and sub-optimal run-time performance.
 
@@ -321,7 +321,7 @@ emr_extract("glucose", iterator=data.frame(id=c(2,5)), stime=stime, etime=etime)
 
 \subsubsection{Time Intervals Iterator}
 
-\emph{Time intervals iterator} generates points for all the ids that appear in 'dob' track with times taken from a \emph{time intervals table} (see: Appendix). Each time starts at the beginning of the time interval and runs to the end of it with a step of 1. That being said the points that lie outside of \texttt{[stime, etime]} range are skipped.
+\emph{Time intervals iterator} generates points for all the ids that appear in 'patients.dob' track with times taken from a \emph{time intervals table} (see: Appendix). Each time starts at the beginning of the time interval and runs to the end of it with a step of 1. That being said the points that lie outside of \texttt{[stime, etime]} range are skipped.
 
 If \texttt{keepref=T} for each id-time pair the iterator generates 255 points with references running from \texttt{0} to \texttt{254}. If \texttt{keepref=F} only one point is generated for the given id and time, and its reference is set to \texttt{-1}.
 
@@ -346,7 +346,7 @@ If \texttt{keepref=T} for each id-time pair the iterator generates 255 points wi
 
 \subsubsection{Beat Iterator}
 
-\emph{Beat Iterator} generates a "time beat" at the given period for each id that appear in 'dob' track. The period is given always in hours.
+\emph{Beat Iterator} generates a "time beat" at the given period for each id that appear in 'patients.dob' track. The period is given always in hours.
 
 Example:
 

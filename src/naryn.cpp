@@ -608,7 +608,7 @@ void vdebug(const char *fmt, ...)
     	vprintf(fmt, ap);
         va_end(ap);
 
-        if (*fmt && fmt[strlen(fmt) - 1] != '\n')
+        if (!*fmt || (*fmt && fmt[strlen(fmt) - 1] != '\n'))
             printf("\n");
 
         fflush(stdout);

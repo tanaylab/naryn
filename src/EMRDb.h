@@ -80,6 +80,7 @@ protected:
     typedef unordered_map<unsigned, size_t> Id2Idx;
 
     static const char *TRACK_LIST_FILENAME;
+    static const char *DOB_TRACKNAME;
     static const char *IDS_FILENAME;
     static const int IDS_SIGNATURE;
 
@@ -149,8 +150,8 @@ inline size_t EMRDb::id2idx(unsigned id)
         load_ids();
     auto itr = m_id2idx.find(id);
     if (itr == m_id2idx.end())
-        verror("Id %u that was generated during the iteration does not exist in 'dob' track.\n"
-               "Make sure the iterator / filter are based on a source containing only the valid ids.", id);
+        verror("Id %u that was generated during the iteration does not exist in '%s' track.\n"
+               "Make sure the iterator / filter are based on a source containing only the valid ids.", id, DOB_TRACKNAME);
     return itr->second;
 }
 
