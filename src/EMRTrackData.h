@@ -17,55 +17,64 @@
 using namespace std;
 
 template <class T>
-class EMRTrackData {
-public:
-    EMRTrackData() {}
-
-    void add_data(unsigned id, EMRTimeStamp timestamp, T val);
-    size_t size() const { return m_key2val.size(); }
-
-public:
-    struct Key {
-        unsigned     id;
-        EMRTimeStamp  timestamp;
-
-        Key(unsigned _id, EMRTimeStamp _timestamp) : id(_id), timestamp(_timestamp) {}
-        bool operator==(const Key &obj) const { return id == obj.id && timestamp == obj.timestamp; }
-    };
-
-    struct KeyHash {
-        size_t operator()(const Key &key) const {
-            return sizeof(size_t) == 8 ?
-                key.id ^ (((size_t)key.timestamp.timestamp()) << 32) :
-                key.id ^ bswap_32(key.timestamp.timestamp());
-        }
-    };
-
+struct EMRTrackData {
     struct DataRec {
-        unsigned    id;
+        unsigned     id;
         EMRTimeStamp timestamp;
-        T           val;
+        T            val;
 
+        DataRec(unsigned _id, const EMRTimeStamp &_timestamp, T _val);
         bool operator==(const DataRec &obj) const { return id == obj.id && timestamp == obj.timestamp && val == obj.val; }
         bool operator<(const DataRec &obj) const { return id < obj.id || (id == obj.id && timestamp < obj.timestamp); }
     };
 
-
-    typedef unordered_map<Key, T, KeyHash> Key2Val;
     typedef vector<DataRec> DataRecs;
 
-    Key2Val m_key2val;
+    EMRTrackData() {}
+
+    void add(unsigned id, EMRTimeStamp timestamp, T val);
+    void finalize();
+
+    DataRecs data;
 };
 
 
 //------------------------------ IMPLEMENTATION ----------------------------------------
 
 template <class T>
-void EMRTrackData<T>::add_data(unsigned id, EMRTimeStamp timestamp, T val)
+EMRTrackData<T>::DataRec::DataRec(unsigned _id, const EMRTimeStamp &_timestamp, T _val)
 {
-    pair<typename Key2Val::const_iterator, bool> res = m_key2val.insert(pair<Key, T>(Key(id, timestamp), val));
-    if (!res.second)
-        TGLError("Patient id %d at time %s already exists", id, timestamp.tostr().c_str());
+    id = _id;
+    timestamp = _timestamp;
+    val = _val;
+}
+
+template <class T>
+void EMRTrackData<T>::add(unsigned id, EMRTimeStamp timestamp, T val)
+{
+    data.emplace_back(id, timestamp, val);
+}
+
+template <class T>
+void EMRTrackData<T>::finalize()
+{
+    bool finalized = true;
+
+    for (auto idata = data.begin() + 1; idata < data.end(); ++idata) {
+        if (*idata < *(idata - 1)) {
+            finalized = false;
+            break;
+        }
+    }
+
+    if (!finalized) {
+        sort(data.begin(), data.end());
+
+        for (auto idata = data.begin() + 1; idata < data.end(); ++idata) {
+            if (idata->id == (idata - 1)->id && idata->timestamp == (idata - 1)->timestamp)
+                TGLError("Id %d at time %s already exists", idata->id, idata->timestamp.tostr().c_str());
+        }
+    }
 }
 
 #endif

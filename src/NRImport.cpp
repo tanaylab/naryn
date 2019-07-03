@@ -25,7 +25,6 @@ SEXP emr_import(SEXP _track, SEXP _space, SEXP _categorical, SEXP _src, SEXP _ad
         EMRTrackData<float> data;
 
         if (do_add) {
-            EMRTrackData<double>::DataRecs data_recs;
             EMRTrack *track = g_db->track(trackname);
             const EMRDb::TrackInfo *track_info = g_db->track_info(trackname);
 
@@ -35,10 +34,7 @@ SEXP emr_import(SEXP _track, SEXP _space, SEXP _categorical, SEXP _src, SEXP _ad
             track_filename = track_info->filename;
             categorical = track->is_categorical();
             is_global = track_info->is_global;
-            track->data_recs(data_recs);
-
-            for (EMRTrackData<double>::DataRecs::const_iterator irec = data_recs.begin(); irec != data_recs.end(); ++irec)
-                data.add_data(irec->id, irec->timestamp, (float)irec->val);
+            track->data_recs(data);
         } else {
             if (!isLogical(_categorical) || Rf_length(_categorical) != 1 || asLogical(_categorical) == NA_LOGICAL)
                 verror("'categorical' argument must be logical");
@@ -122,7 +118,7 @@ SEXP emr_import(SEXP _track, SEXP _space, SEXP _categorical, SEXP _src, SEXP _ad
                 if (*endptr)
                     verror("%s, line %d: invalid data format", filename, lineno);
 
-                data.add_data(id, EMRTimeStamp((EMRTimeStamp::Hour)hour, (EMRTimeStamp::Refcount)ref), val);
+                data.add(id, EMRTimeStamp((EMRTimeStamp::Hour)hour, (EMRTimeStamp::Refcount)ref), val);
             }
         } else
             NRPoint::convert_rpoints_vals(_src, data, "'src': ");

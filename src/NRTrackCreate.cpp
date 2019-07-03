@@ -52,8 +52,8 @@ SEXP emr_track_create(SEXP _track, SEXP _space, SEXP _categorical, SEXP _expr, S
         EMRTrackData<float> data;
 
 		for (scanner.begin(_expr, NRTrackExprScanner::REAL_T, _stime, _etime, _iterator_policy, _keepref, _filter); !scanner.isend(); scanner.next()) {
-            data.add_data(scanner.point().id, scanner.point().timestamp, scanner.real());
-			g_naryn->verify_max_data_size(data.size(), "Result");
+            data.add(scanner.point().id, scanner.point().timestamp, scanner.real());
+			g_naryn->verify_max_data_size(data.data.size(), "Result");
 		}
 
         EMRTrack::serialize(track_filename.c_str(), categorical, data);

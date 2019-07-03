@@ -21,11 +21,12 @@ public:
     virtual double   maxval() const { return m_base_track ? m_base_track->maxval() : (double)m_sorted_unique_vals[m_num_percentiles - 1]; }
 
     virtual void ids(vector<unsigned> &ids);
-	virtual void data_recs(EMRTrackData<double>::DataRecs &data_recs);
+	virtual void data_recs(EMRTrackData<double> &data_recs);
+    virtual void data_recs(EMRTrackData<float> &data_recs);
 
     virtual size_t count_ids(const vector<unsigned> &ids) const;
 
-	static void serialize(BufferedFile &bfile, const EMRTrackData<T> &data, unsigned minid, unsigned maxid, unsigned flags);
+	static void serialize(BufferedFile &bfile, EMRTrackData<T> &data, unsigned minid, unsigned maxid, unsigned flags);
 
 protected:
 	friend class EMRTrack;
@@ -57,7 +58,7 @@ protected:
 	EMRTrackDense(const char *name, DataType data_type, unsigned flags, void *&mem, size_t &pos, size_t size,
                   unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime);
 
-    EMRTrackDense(const char *name, EMRTrack *base_track, const EMRTrackData<T> &track_data, DataType data_type,
+    EMRTrackDense(const char *name, EMRTrack *base_track, EMRTrackData<T> &track_data, DataType data_type,
                   bool build_percentiles, unsigned flags, unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime);
 
     unsigned data_size() const { return m_max_id - m_min_id + 1; }
@@ -114,14 +115,12 @@ EMRTrackDense<T>::EMRTrackDense(const char *name, DataType data_type, unsigned f
 }
 
 template <class T>
-EMRTrackDense<T>::EMRTrackDense(const char *name, EMRTrack *base_track, const EMRTrackData<T> &track_data, DataType data_type,
+EMRTrackDense<T>::EMRTrackDense(const char *name, EMRTrack *base_track, EMRTrackData<T> &track_data, DataType data_type,
                                 bool build_percentiles, unsigned flags, unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime) :
 	EMRTrack(name, DENSE, data_type, flags, base_track, minid, maxid, mintime, maxtime)
 {
-    m_num_recs = track_data.m_key2val.size();
-
-    typename EMRTrackData<T>::DataRecs data_recs;
-    data_recs.reserve(track_data.m_key2val.size());
+    track_data.finalize();
+    m_num_recs = track_data.data.size();
 
     unsigned data_size = maxid - minid + 1;
     vector<unsigned> data(data_size, (unsigned)-1);
@@ -129,18 +128,9 @@ EMRTrackDense<T>::EMRTrackDense(const char *name, EMRTrack *base_track, const EM
     vector<float> percentiles;
     vector<T> sorted_unique_vals;
 
-    for (typename EMRTrackData<T>::Key2Val::const_iterator idata = track_data.m_key2val.begin(); idata != track_data.m_key2val.end(); ++idata) {
-        typename EMRTrackData<T>::DataRec rec;
-        rec.id = idata->first.id;
-        rec.timestamp = idata->first.timestamp;
-        rec.val = idata->second;
-        data_recs.push_back(rec);
-    }
-    sort(data_recs.begin(), data_recs.end());
-
     unsigned rec_idx = 0;
 
-    for (typename EMRTrackData<T>::DataRecs::const_iterator irec = data_recs.begin(); irec != data_recs.end(); ++irec) {
+    for (auto irec = track_data.data.begin(); irec != track_data.data.end(); ++irec) {
         unsigned &_rec_idx = data[irec->id - minid];
 
         if (_rec_idx == (unsigned)-1)
@@ -153,7 +143,7 @@ EMRTrackDense<T>::EMRTrackDense(const char *name, EMRTrack *base_track, const EM
     if (build_percentiles) {
         vector<T> vals;
 
-        for (auto &rec : data_recs) {
+        for (const auto &rec : track_data.data) {
             if ((typeid(rec.val) == typeid(float) || typeid(rec.val) == typeid(double) || typeid(rec.val) == typeid(long double)) && !std::isnan(rec.val))
                 vals.push_back(rec.val);
         }
@@ -199,29 +189,22 @@ EMRTrackDense<T>::EMRTrackDense(const char *name, EMRTrack *base_track, const EM
 }
 
 template <class T>
-void EMRTrackDense<T>::serialize(BufferedFile &bfile, const EMRTrackData<T> &track_data, unsigned minid, unsigned maxid, unsigned flags)
+void EMRTrackDense<T>::serialize(BufferedFile &bfile, EMRTrackData<T> &track_data, unsigned minid, unsigned maxid, unsigned flags)
 {
-	typename EMRTrackData<T>::DataRecs data_recs;
-	data_recs.reserve(track_data.m_key2val.size());
+    track_data.finalize();
 
     unsigned data_size = maxid - minid + 1;
-    unsigned num_recs = track_data.m_key2val.size();
+    unsigned num_recs = track_data.data.size();
     vector<unsigned> data(data_size, (unsigned)-1);
     vector<Rec> recs(num_recs);
     vector<float> percentiles;
     vector<T> vals;
     vector<T> sorted_unique_vals;
 
-	for (typename EMRTrackData<T>::Key2Val::const_iterator idata = track_data.m_key2val.begin(); idata != track_data.m_key2val.end(); ++idata) {
-		typename EMRTrackData<T>::DataRec rec;
-		rec.id = idata->first.id;
-		rec.timestamp = idata->first.timestamp;
-		rec.val = idata->second;
-		data_recs.push_back(rec);
+    for (const auto &rec : track_data.data) {
         if ((typeid(rec.val) == typeid(float) || typeid(rec.val) == typeid(double) || typeid(rec.val) == typeid(long double)) && !std::isnan(rec.val))
             vals.push_back(rec.val);
 	}
-	sort(data_recs.begin(), data_recs.end());
 
     sort(vals.begin(), vals.end());
     if (vals.size()) {
@@ -238,7 +221,7 @@ void EMRTrackDense<T>::serialize(BufferedFile &bfile, const EMRTrackData<T> &tra
 
 	unsigned rec_idx = 0;
 
-	for (typename EMRTrackData<T>::DataRecs::const_iterator irec = data_recs.begin(); irec != data_recs.end(); ++irec) {
+	for (auto irec = track_data.data.begin(); irec != track_data.data.end(); ++irec) {
 		unsigned &_rec_idx = data[irec->id - minid];
 
 		if (_rec_idx == (unsigned)-1)
@@ -347,21 +330,30 @@ void EMRTrackDense<T>::ids(vector<unsigned> &ids)
 }
 
 template <class T>
-void EMRTrackDense<T>::data_recs(EMRTrackData<double>::DataRecs &data_recs)
+void EMRTrackDense<T>::data_recs(EMRTrackData<double> &data_recs)
 {
     unsigned idrange = data_size();
 
-    data_recs.clear();
-	data_recs.reserve(m_num_recs);
+    data_recs.data.clear();
+	data_recs.data.reserve(m_num_recs);
 	for (unsigned dataidx = 0; dataidx < idrange; ++dataidx) {
 		unsigned n = num_recs(dataidx);
-		for (unsigned irec = m_data[dataidx]; irec < m_data[dataidx] + n; ++irec) {
-			EMRTrackData<double>::DataRec rec;
-			rec.id = dataidx + m_min_id;
-			rec.timestamp = m_recs[irec].timestamp;
-			rec.val = (double)m_recs[irec].val;
-			data_recs.push_back(rec);
-		}
+		for (unsigned irec = m_data[dataidx]; irec < m_data[dataidx] + n; ++irec)
+            data_recs.add(dataidx + m_min_id, m_recs[irec].timestamp, (double)m_recs[irec].val);
+	}
+}
+
+template <class T>
+void EMRTrackDense<T>::data_recs(EMRTrackData<float> &data_recs)
+{
+    unsigned idrange = data_size();
+
+    data_recs.data.clear();
+	data_recs.data.reserve(m_num_recs);
+	for (unsigned dataidx = 0; dataidx < idrange; ++dataidx) {
+		unsigned n = num_recs(dataidx);
+		for (unsigned irec = m_data[dataidx]; irec < m_data[dataidx] + n; ++irec)
+            data_recs.add(dataidx + m_min_id, m_recs[irec].timestamp, (float)m_recs[irec].val);
 	}
 }
 

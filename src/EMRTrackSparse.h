@@ -20,11 +20,12 @@ public:
     virtual double   maxval() const { return m_base_track ? m_base_track->maxval() : (double)m_sorted_unique_vals[m_num_percentiles - 1]; }
 
     virtual void ids(vector<unsigned> &ids);
-	virtual void data_recs(EMRTrackData<double>::DataRecs &data_recs);
+	virtual void data_recs(EMRTrackData<double> &data_recs);
+    virtual void data_recs(EMRTrackData<float> &data_recs);
 
     virtual size_t count_ids(const vector<unsigned> &ids) const;
 
-	static void serialize(BufferedFile &bfile, const EMRTrackData<T> &data, unsigned data_size, unsigned flags);
+	static void serialize(BufferedFile &bfile, EMRTrackData<T> &data, unsigned num_unique_ids, unsigned flags);
 
 protected:
 	friend class EMRTrack;
@@ -66,7 +67,7 @@ protected:
 	EMRTrackSparse(const char *name, DataType data_type, unsigned flags, void *&mem, size_t &pos, size_t size,
                    unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime);
 
-    EMRTrackSparse(const char *name, EMRTrack *base_track, const EMRTrackData<T> &track_data, unsigned data_size, DataType data_type,
+    EMRTrackSparse(const char *name, EMRTrack *base_track, EMRTrackData<T> &track_data, unsigned num_unique_ids, DataType data_type,
                    bool build_percentiles, unsigned flags, unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime);
 
     unsigned num_recs(Data *idata) const;
@@ -117,35 +118,24 @@ EMRTrackSparse<T>::EMRTrackSparse(const char *name, DataType data_type, unsigned
 }
 
 template <class T>
-EMRTrackSparse<T>::EMRTrackSparse(const char *name, EMRTrack *base_track, const EMRTrackData<T> &track_data, unsigned data_size, DataType data_type,
+EMRTrackSparse<T>::EMRTrackSparse(const char *name, EMRTrack *base_track, EMRTrackData<T> &track_data, unsigned num_unique_ids, DataType data_type,
                                   bool build_percentiles, unsigned flags, unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime) :
 	EMRTrack(name, SPARSE, data_type, flags, base_track, minid, maxid, mintime, maxtime)
 {
-    m_data_size = data_size;
-    m_num_recs = track_data.m_key2val.size();
+    track_data.finalize();
+    m_data_size = num_unique_ids;
+    m_num_recs = track_data.data.size();
 
-    typename EMRTrackData<T>::DataRecs data_recs;
-    data_recs.reserve(track_data.m_key2val.size());
-
-    vector<Data> data(data_size);
+    vector<Data> data(num_unique_ids);
     vector<Rec> recs(m_num_recs);
     vector<float> percentiles;
     vector<T> sorted_unique_vals;
-
-    for (typename EMRTrackData<T>::Key2Val::const_iterator idata = track_data.m_key2val.begin(); idata != track_data.m_key2val.end(); ++idata) {
-        typename EMRTrackData<T>::DataRec rec;
-        rec.id = idata->first.id;
-        rec.timestamp = idata->first.timestamp;
-        rec.val = idata->second;
-        data_recs.push_back(rec);
-    }
-    sort(data_recs.begin(), data_recs.end());
 
     unsigned cur_dataid = (unsigned)-1;
     unsigned data_idx = 0;
     unsigned rec_idx = 0;
 
-    for (typename EMRTrackData<T>::DataRecs::const_iterator irec = data_recs.begin(); irec != data_recs.end(); ++irec) {
+    for (auto irec = track_data.data.begin(); irec != track_data.data.end(); ++irec) {
         if (irec->id != cur_dataid) {
             cur_dataid = irec->id;
             data[data_idx].id = irec->id;
@@ -160,7 +150,7 @@ EMRTrackSparse<T>::EMRTrackSparse(const char *name, EMRTrack *base_track, const 
     if (build_percentiles) {
         vector<T> vals;
 
-        for (auto &rec : data_recs) {
+        for (const auto &rec : track_data.data) {
             if ((typeid(rec.val) == typeid(float) || typeid(rec.val) == typeid(double) || typeid(rec.val) == typeid(long double)) && !std::isnan(rec.val))
                 vals.push_back(rec.val);
         }
@@ -206,29 +196,22 @@ EMRTrackSparse<T>::EMRTrackSparse(const char *name, EMRTrack *base_track, const 
 }
 
 template <class T>
-void EMRTrackSparse<T>::serialize(BufferedFile &bfile, const EMRTrackData<T> &track_data, unsigned data_size, unsigned flags)
+void EMRTrackSparse<T>::serialize(BufferedFile &bfile, EMRTrackData<T> &track_data, unsigned num_unique_ids, unsigned flags)
 {
-	typename EMRTrackData<T>::DataRecs data_recs;
-	data_recs.reserve(track_data.m_key2val.size());
+    track_data.finalize();
 
-    unsigned num_recs = track_data.m_key2val.size();
-    vector<Data> data(data_size);
+    unsigned num_recs = track_data.data.size();
+    vector<Data> data(num_unique_ids);
     vector<Rec> recs(num_recs);
     vector<float> percentiles;
     vector<T> vals;
     vector<T> sorted_unique_vals;
 
-    vals.reserve(track_data.m_key2val.size());
-	for (typename EMRTrackData<T>::Key2Val::const_iterator idata = track_data.m_key2val.begin(); idata != track_data.m_key2val.end(); ++idata) {
-		typename EMRTrackData<T>::DataRec rec;
-		rec.id = idata->first.id;
-		rec.timestamp = idata->first.timestamp;
-		rec.val = idata->second;
-		data_recs.push_back(rec);
+    vals.reserve(track_data.data.size());
+    for (const auto &rec : track_data.data) {
         if ((typeid(rec.val) == typeid(float) || typeid(rec.val) == typeid(double) || typeid(rec.val) == typeid(long double)) && !std::isnan(rec.val))
             vals.push_back(rec.val);
 	}
-	sort(data_recs.begin(), data_recs.end());
 
     sort(vals.begin(), vals.end());
     if (vals.size()) {
@@ -247,7 +230,7 @@ void EMRTrackSparse<T>::serialize(BufferedFile &bfile, const EMRTrackData<T> &tr
 	unsigned data_idx = 0;
 	unsigned rec_idx = 0;
 
-	for (typename EMRTrackData<T>::DataRecs::const_iterator irec = data_recs.begin(); irec != data_recs.end(); ++irec) {
+	for (auto irec = track_data.data.begin(); irec != track_data.data.end(); ++irec) {
 		if (irec->id != cur_dataid) {
 			cur_dataid = irec->id;
 			data[data_idx].id = irec->id;
@@ -259,7 +242,7 @@ void EMRTrackSparse<T>::serialize(BufferedFile &bfile, const EMRTrackData<T> &tr
 		++rec_idx;
 	}
 
-	if (bfile.write(&data_size, sizeof(data_size)) != sizeof(data_size) ||
+	if (bfile.write(&num_unique_ids, sizeof(num_unique_ids)) != sizeof(num_unique_ids) ||
         bfile.write(&num_recs, sizeof(num_recs)) != sizeof(num_recs) ||
         bfile.write(&num_percentiles, sizeof(num_percentiles)) != sizeof(num_percentiles) ||
         bfile.write(&data.front(), sizeof(Data) * data.size()) != sizeof(Data) * data.size() ||
@@ -303,19 +286,26 @@ void EMRTrackSparse<T>::ids(vector<unsigned> &ids)
 }
 
 template <class T>
-void EMRTrackSparse<T>::data_recs(EMRTrackData<double>::DataRecs &data_recs)
+void EMRTrackSparse<T>::data_recs(EMRTrackData<double> &data_recs)
 {
-	data_recs.clear();
-	data_recs.reserve(m_num_recs);
+	data_recs.data.clear();
+	data_recs.data.reserve(m_num_recs);
 	for (unsigned idata = 0; idata < m_data_size; ++idata) {
 		unsigned n = num_recs(m_data + idata);
-		for (unsigned irec = m_data[idata].rec_idx; irec < m_data[idata].rec_idx + n; ++irec) {
-			EMRTrackData<double>::DataRec rec;
-			rec.id = m_data[idata].id;
-			rec.timestamp = m_recs[irec].timestamp;
-			rec.val = (double)m_recs[irec].val;
-			data_recs.push_back(rec);
-		}
+		for (unsigned irec = m_data[idata].rec_idx; irec < m_data[idata].rec_idx + n; ++irec)
+            data_recs.add(m_data[idata].id, m_recs[irec].timestamp, (double)m_recs[irec].val);
+	}
+}
+
+template <class T>
+void EMRTrackSparse<T>::data_recs(EMRTrackData<float> &data_recs)
+{
+	data_recs.data.clear();
+	data_recs.data.reserve(m_num_recs);
+	for (unsigned idata = 0; idata < m_data_size; ++idata) {
+		unsigned n = num_recs(m_data + idata);
+		for (unsigned irec = m_data[idata].rec_idx; irec < m_data[idata].rec_idx + n; ++irec)
+            data_recs.add(m_data[idata].id, m_recs[irec].timestamp, (float)m_recs[irec].val);
 	}
 }
 

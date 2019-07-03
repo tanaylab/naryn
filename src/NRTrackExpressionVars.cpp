@@ -348,9 +348,9 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
                                    false, R_NilValue, true, rfilter); !scanner.isend(); scanner.next())
                 {
                     if (track->data_type() == EMRTrack::FLOAT)
-                        track_data_float.add_data(scanner.point().id, scanner.point().timestamp, scanner.real());
+                        track_data_float.add(scanner.point().id, scanner.point().timestamp, scanner.real());
                     else
-                        track_data_double.add_data(scanner.point().id, scanner.point().timestamp, scanner.real());
+                        track_data_double.add(scanner.point().id, scanner.point().timestamp, scanner.real());
                 }
 
                 if (track->data_type() == EMRTrack::FLOAT)

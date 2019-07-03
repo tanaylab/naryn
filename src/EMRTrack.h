@@ -79,21 +79,23 @@ public:
     virtual float    percentile_lower(double val) const = 0;
 
     virtual void ids(vector<unsigned> &ids) = 0;
-	virtual void data_recs(EMRTrackData<double>::DataRecs &data_recs) = 0;
+	virtual void data_recs(EMRTrackData<double> &data_recs) = 0;
+    virtual void data_recs(EMRTrackData<float> &data_recs) = 0;
 
     virtual size_t count_ids(const vector<unsigned> &ids) const = 0;
 
     // Construct an intermediate track for virtual track queries based on EMRTrackData and the original track
     template <class T>
-    static EMRTrack *construct(const char *name, EMRTrack *base_track, unsigned flags, const EMRTrackData<T> &data);
+    static EMRTrack *construct(const char *name, EMRTrack *base_track, unsigned flags, EMRTrackData<T> &data);
 
     // Construct an intermediate track for virtual track queries based on EMRTrackData.
     // func must be specified to spare the built of percentiles/quantiles if they are not needed.
     template <class T>
-    static EMRTrack *construct(const char *name, Func func, unsigned flags, const EMRTrackData<T> &data);
+    static EMRTrack *construct(const char *name, Func func, unsigned flags, EMRTrackData<T> &data);
 
+    // data must be already finalized
 	template <class T>
-	static TrackType serialize(const char *filename, unsigned flags, const EMRTrackData<T> &data);
+	static TrackType serialize(const char *filename, unsigned flags, EMRTrackData<T> &data);
 
 	static EMRTrack *unserialize(const char *name, const char *filename);
 
@@ -194,7 +196,7 @@ protected:
 	EMRTrack(const char *name, TrackType track_type, DataType data_type, unsigned flags, EMRTrack *base_track, unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime);
 
     template <class T>
-    static EMRTrack *construct(const char *name, EMRTrack *base_track, Func func, unsigned flags, const EMRTrackData<T> &data);
+    static EMRTrack *construct(const char *name, EMRTrack *base_track, Func func, unsigned flags, EMRTrackData<T> &data);
 
     template <class T>
     static int read_datum(void *mem, size_t &pos, size_t size, T &t, const char *trackname);
@@ -280,19 +282,19 @@ inline EMRTrack::~EMRTrack()
 }
 
 template <class T>
-EMRTrack *EMRTrack::construct(const char *name, EMRTrack *base_track, unsigned flags, const EMRTrackData<T> &data)
+EMRTrack *EMRTrack::construct(const char *name, EMRTrack *base_track, unsigned flags, EMRTrackData<T> &data)
 {
     return construct(name, base_track, NUM_FUNCS, flags, data);
 }
 
 template <class T>
-EMRTrack *EMRTrack::construct(const char *name, Func func, unsigned flags, const EMRTrackData<T> &data)
+EMRTrack *EMRTrack::construct(const char *name, Func func, unsigned flags, EMRTrackData<T> &data)
 {
     return construct(name, NULL, func, flags, data);
 }
 
 template <class T>
-EMRTrack *EMRTrack::construct(const char *name, EMRTrack *base_track, Func func, unsigned flags, const EMRTrackData<T> &data)
+EMRTrack *EMRTrack::construct(const char *name, EMRTrack *base_track, Func func, unsigned flags, EMRTrackData<T> &data)
 {
     TrackType track_type;
     DataType data_type;
@@ -303,30 +305,27 @@ EMRTrack *EMRTrack::construct(const char *name, EMRTrack *base_track, Func func,
     unsigned mintime = EMRTimeStamp::MAX_HOUR;
     unsigned maxtime = 0;
 
-    for (typename EMRTrackData<T>::Key2Val::const_iterator idata = data.m_key2val.begin(); idata != data.m_key2val.end(); ++idata) {
-        minid = min(minid, idata->first.id);
-        maxid = max(maxid, idata->first.id);
-        mintime = min(mintime, (unsigned)idata->first.timestamp.hour());
-        maxtime = max(maxtime, (unsigned)idata->first.timestamp.hour());
-    }
-
     // determine the density of patient ids
     double data_density = 0;
-    unsigned data_size = 0;
+    unsigned num_unique_ids = 0;
 
-    if (minid <= maxid) {
-        unsigned idrange = maxid - minid + 1;
-        vector<bool> idmap(idrange, false);
+    data.finalize();
+    if (data.data.size()) {
+        unsigned last_id = numeric_limits<unsigned>::max();
 
-        for (typename EMRTrackData<T>::Key2Val::const_iterator idata = data.m_key2val.begin(); idata != data.m_key2val.end(); ++idata)
-            idmap[idata->first.id - minid] = true;
+        minid = data.data.front().id;
+        maxid = data.data.back().id;
 
-        for (vector<bool>::const_iterator iidmap = idmap.begin(); iidmap != idmap.end(); ++iidmap) {
-            if (*iidmap) 
-                ++data_size;
+        for (auto idata = data.data.begin(); idata != data.data.end(); ++idata) {
+            mintime = min(mintime, (unsigned)idata->timestamp.hour());
+            maxtime = max(maxtime, (unsigned)idata->timestamp.hour());
+            if (idata->id != last_id) {
+                last_id = idata->id;
+                ++num_unique_ids;
+            }
         }
 
-        data_density = data_size / (double)idrange;
+        data_density = num_unique_ids / (double)(maxid - minid + 1);
     }
 
     // based on patients density determine the format of the track
@@ -368,7 +367,7 @@ EMRTrack *EMRTrack::construct(const char *name, EMRTrack *base_track, Func func,
     }
 
     if (track_type == SPARSE)
-        track = new EMRTrackSparse<T>(name, base_track, data, data_size, data_type, build_percentiles, flags, minid, maxid, mintime, maxtime);
+        track = new EMRTrackSparse<T>(name, base_track, data, num_unique_ids, data_type, build_percentiles, flags, minid, maxid, mintime, maxtime);
     else if (track_type == DENSE)
         track = new EMRTrackDense<T>(name, base_track, data, data_type, build_percentiles, flags, minid, maxid, mintime, maxtime);
 
@@ -376,7 +375,7 @@ EMRTrack *EMRTrack::construct(const char *name, EMRTrack *base_track, Func func,
 }
 
 template <class T>
-EMRTrack::TrackType EMRTrack::serialize(const char *filename, unsigned flags, const EMRTrackData<T> &data)
+EMRTrack::TrackType EMRTrack::serialize(const char *filename, unsigned flags, EMRTrackData<T> &data)
 {
     TrackType track_type;
 	DataType data_type;
@@ -387,31 +386,28 @@ EMRTrack::TrackType EMRTrack::serialize(const char *filename, unsigned flags, co
     unsigned mintime = EMRTimeStamp::MAX_HOUR;
     unsigned maxtime = 0;
 
-	for (typename EMRTrackData<T>::Key2Val::const_iterator idata = data.m_key2val.begin(); idata != data.m_key2val.end(); ++idata) {
-		minid = min(minid, idata->first.id);
-		maxid = max(maxid, idata->first.id);
-        mintime = min(mintime, (unsigned)idata->first.timestamp.hour());
-        maxtime = max(maxtime, (unsigned)idata->first.timestamp.hour());
-	}
-
 	// determine the density of patient ids
 	double data_density = 0;
-	unsigned data_size = 0;
+	unsigned num_unique_ids = 0;
 
-	if (minid <= maxid) {
-		unsigned idrange = maxid - minid + 1;
-		vector<bool> idmap(idrange, false);
+    data.finalize();
+    if (data.data.size()) {
+        unsigned last_id = numeric_limits<unsigned>::max();
 
-		for (typename EMRTrackData<T>::Key2Val::const_iterator idata = data.m_key2val.begin(); idata != data.m_key2val.end(); ++idata)
-			idmap[idata->first.id - minid] = true;
+        minid = data.data.front().id;
+        maxid = data.data.back().id;
 
-		for (vector<bool>::const_iterator iidmap = idmap.begin(); iidmap != idmap.end(); ++iidmap) {
-			if (*iidmap) 
-				++data_size;
-		}
+        for (auto idata = data.data.begin(); idata != data.data.end(); ++idata) {
+            mintime = min(mintime, (unsigned)idata->timestamp.hour());
+            maxtime = max(maxtime, (unsigned)idata->timestamp.hour());
+            if (idata->id != last_id) {
+                last_id = idata->id;
+                ++num_unique_ids;
+            }
+        }
 
-		data_density = data_size / (double)idrange;
-	}
+        data_density = num_unique_ids / (double)(maxid - minid + 1);
+    }
 
 	// based on patients density determine the format of the track
 	track_type = data_density > DENSE_TRACK_MIN_DENSITY ? DENSE : SPARSE;
@@ -455,7 +451,7 @@ EMRTrack::TrackType EMRTrack::serialize(const char *filename, unsigned flags, co
 	}
 
 	if (track_type == SPARSE) 
-		EMRTrackSparse<T>::serialize(bfile, data, data_size, flags);
+		EMRTrackSparse<T>::serialize(bfile, data, num_unique_ids, flags);
 	else if (track_type == DENSE) 
 		EMRTrackDense<T>::serialize(bfile, data, minid, maxid, flags);
 

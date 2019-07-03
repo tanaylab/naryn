@@ -72,7 +72,7 @@ void NRPoint::convert_rpoints_vals(SEXP rsrc, EMRTrackData<T> &data, const char 
         EMRTimeStamp::Refcount ref = ref_used ? (EMRTimeStamp::Refcount)(isReal(rcol[REF]) ? REAL(rcol[REF])[i] : INTEGER(rcol[REF])[i]) : EMRTimeStamp::NA_REFCOUNT;
         T val = (T)(isReal(rcol[VALUE]) ? REAL(rcol[VALUE])[i] : INTEGER(rcol[VALUE])[i]);
 
-        data.add_data(id, EMRTimeStamp(hour, ref), val);
+        data.add(id, EMRTimeStamp(hour, ref), val);
     }
 }
 
