@@ -148,9 +148,9 @@ Choosing between the two modes depends on the specific needs. While 'load.on.dem
 
 \subsection{Maintaining Database}
 
-Naryn caches certain data on the disk to maintain fast run-times. In particular two files (\texttt{.tracks} and \texttt{.ids}) are created in a global root directory and one file (\texttt{.ids}) in a user root directory.
+Naryn caches certain data on the disk to maintain fast run-times. In particular two files (\texttt{.naryn} and \texttt{.ids}) are created in a global root directory and one file (\texttt{.ids}) in a user root directory.
 
-\texttt{.tracks} file contains a list of all tracks in the current root directory and their last modification dates. This file spares a full root directory rescan when \texttt{emr\_db.init} is called. The recorded modification dates allow to efficiently synchronize the track changes induced by synchronically running R sessions.
+\texttt{.naryn} file contains a list of all tracks in the current root directory and their last modification dates. This file spares a full root directory rescan when \texttt{emr\_db.init} is called. The recorded modification dates allow to efficiently synchronize the track changes induced by synchronically running R sessions.
 
 \texttt{.ids} file contains available ids that are used to run certain types of \emph{track expression iterators} (see below). The source of these ids comes from a \texttt{patients.dob} (i.e. Date Of Birth) track, which must be present in the global root directory before these iterators may be utilized.
 

@@ -11,10 +11,10 @@
 #include "EMRTrack.h"
 
 const string  EMRDb::TRACK_FILE_EXT(".nrtrack");
-const char   *EMRDb::TRACK_LIST_FILENAME = ".tracks";
+const char   *EMRDb::TRACK_LIST_FILENAME = ".naryn";
 const char   *EMRDb::DOB_TRACKNAME = "patients.dob";
 const char   *EMRDb::IDS_FILENAME = ".ids";
-const int     EMRDb::IDS_SIGNATURE = 0xCACA0;
+const int     EMRDb::IDS_SIGNATURE = 0xC0FFEE;
 
 EMRDb *g_db = NULL;
 
@@ -34,7 +34,7 @@ void EMRDb::clear(bool is_global)
             ++itrack;
     }
 
-    m_track_list_ts[is_global] = 0;
+    m_track_list_ts[is_global] = {0, 0};
     m_track_names[is_global].clear();
     m_rootdirs[is_global] = "";
 
@@ -232,8 +232,18 @@ void EMRDb::load_track_list(bool is_global, BufferedFile *_pbf)
             verror("stat failed on file %s: %s", pbf->file_name().c_str(), strerror(errno));
 
         // track list in memory is synced with the track list on disk
-        if (m_track_list_ts[is_global] == fs.st_mtim.tv_sec) {
-            vdebug("Up-to-date track list is already in memory");
+        if (m_track_list_ts[is_global] == fs.st_mtim) {
+            vdebug("Up-to-date %s track list is already in memory", is_global ? "global" : "local");
+            if (g_naryn->debug()) {
+                int n = 0;
+                for (auto track : m_track_names[is_global]) {
+                    vdebug("%d. %s\n", n + 1, track.c_str());
+                    if (++n >= 5) {
+                        vdebug("(Only the first %d tracks are listed)\n", n);
+                        break;
+                    }
+                }
+            }
             return;
         }
 
@@ -248,9 +258,10 @@ void EMRDb::load_track_list(bool is_global, BufferedFile *_pbf)
                 break;
 
             if (!c) { // end of track name
-                time_t timestamp;
+                struct timespec timestamp;
 
-                if (pbf->read(&timestamp, sizeof(timestamp)) != sizeof(timestamp))
+                if (pbf->read(&timestamp.tv_sec, sizeof(timestamp.tv_sec)) != sizeof(timestamp.tv_sec) ||
+                    pbf->read(&timestamp.tv_nsec, sizeof(timestamp.tv_nsec)) != sizeof(timestamp.tv_nsec))
                     break;
 
                 if (!track_list.emplace(track_name, TrackInfo(NULL, track_filename(is_global, track_name), timestamp, is_global)).second)
@@ -271,8 +282,18 @@ void EMRDb::load_track_list(bool is_global, BufferedFile *_pbf)
             continue;
         }
 
-        m_track_list_ts[is_global] = fs.st_mtim.tv_sec;
+        m_track_list_ts[is_global] = fs.st_mtim;
         vdebug("Read %lu tracks", track_list.size());
+        if (g_naryn->debug()) {
+            int n = 0;
+            for (auto track : track_list) {
+                vdebug("%d. %s\n", n + 1, track.first.c_str());
+                if (++n >= 5) {
+                    vdebug("(Only the first %d tracks are listed)\n", n);
+                    break;
+                }
+            }
+        }
         break;
     }
 
@@ -357,7 +378,7 @@ void EMRDb::create_track_list_file(bool is_global, BufferedFile *_pbf)
                 !strncmp(dirp->d_name + len - TRACK_FILE_EXT.size(), TRACK_FILE_EXT.c_str(), TRACK_FILE_EXT.size()))
             {
                 string track_name(dirp->d_name, 0, len - TRACK_FILE_EXT.size());
-                track_list.emplace(track_name, TrackInfo(NULL, track_filename(is_global, track_name), fs.st_mtim.tv_sec, is_global));
+                track_list.emplace(track_name, TrackInfo(NULL, track_filename(is_global, track_name), fs.st_mtim, is_global));
             }
 
             check_interrupt();
@@ -378,13 +399,13 @@ void EMRDb::create_track_list_file(bool is_global, BufferedFile *_pbf)
 void EMRDb::update_track_list_file(const Name2Track &tracks, bool is_global, BufferedFile &bf)
 {
     vdebug("Writing %ld %s tracks to track list file", tracks.size(), is_global ? "global" : "local");
-
     bf.seek(0, SEEK_SET);   // rewind the file position
 
     for (const auto &name2track : tracks) {
         if (name2track.second.is_global == is_global &&
             (bf.write(name2track.first.c_str(), name2track.first.size() + 1) != name2track.first.size() + 1 ||
-             (bf.write(&name2track.second.timestamp, sizeof(name2track.second.timestamp)) != sizeof(name2track.second.timestamp))))
+             (bf.write(&name2track.second.timestamp.tv_sec, sizeof(name2track.second.timestamp.tv_sec)) != sizeof(name2track.second.timestamp.tv_sec)) ||
+             (bf.write(&name2track.second.timestamp.tv_nsec, sizeof(name2track.second.timestamp).tv_nsec) != sizeof(name2track.second.timestamp.tv_nsec))))
             verror("Failed to write file %s: %s", bf.file_name().c_str(), strerror(errno));
     }
 
@@ -396,6 +417,7 @@ void EMRDb::load_track(const char *track_name, bool is_global)
     string filename = track_filename(is_global, track_name);
     Name2Track::iterator itrack = m_tracks.find(track_name);
 
+    vdebug("Adding track %s to DB\n", track_name);
     if (itrack == m_tracks.end())
         m_track_names[is_global].push_back(track_name);
     else {
@@ -489,8 +511,8 @@ void EMRDb::clear_ids()
         munmap(m_shmem_ids, m_shmem_ids_size);
     m_shmem_ids = MAP_FAILED;
 
-    m_ids_ts = 0;
-    m_dob_ts = 0;
+    m_ids_ts = {0, 0};
+    m_dob_ts = {0, 0};
     m_ids_transact_ts = 0;
     m_ids = NULL;
     m_num_ids = 0;
@@ -527,7 +549,7 @@ void EMRDb::load_ids()
             if (fstat(fd, &sb) == -1)
                 verror("stat failed on file %s: %s", filename.c_str(), strerror(errno));
 
-            if (m_ids_ts == sb.st_mtim.tv_sec) {   // the up-to-date ids file has already been read into memory
+            if (m_ids_ts == sb.st_mtim) {   // the up-to-date ids file has already been read into memory
                 close(fd);
                 fd = -1;
                 if (rebuild_ids_file_on_dob_change())
@@ -556,22 +578,23 @@ void EMRDb::load_ids()
             close(fd);
             fd = -1;
 
-            if (m_shmem_ids_size < sizeof(int) + sizeof(m_dob_ts) ||
-                (m_shmem_ids_size - sizeof(int) - sizeof(m_dob_ts)) % sizeof(unsigned) ||
+            if (m_shmem_ids_size < sizeof(int) + sizeof(m_dob_ts.tv_sec) + sizeof(m_dob_ts.tv_nsec) ||
+                (m_shmem_ids_size - sizeof(int) - sizeof(m_dob_ts.tv_sec) - sizeof(m_dob_ts.tv_nsec)) % sizeof(unsigned) ||
                 *(int *)m_shmem_ids != IDS_SIGNATURE)
             {
                 vwarning("Invalid format of %s file, rebuilding it (%d)", filename.c_str());
                 create_ids_file();
                 continue;
             }
-            memcpy(&m_dob_ts, (char *)m_shmem_ids + sizeof(int), sizeof(m_dob_ts));
+            memcpy(&m_dob_ts.tv_sec, (char *)m_shmem_ids + sizeof(int), sizeof(m_dob_ts.tv_sec));
+            memcpy(&m_dob_ts.tv_nsec, (char *)m_shmem_ids + sizeof(int) + sizeof(m_dob_ts.tv_sec), sizeof(m_dob_ts.tv_nsec));
 
             if (rebuild_ids_file_on_dob_change())
                 continue;
 
-            m_ids = (unsigned *)((char *)m_shmem_ids + sizeof(int) + sizeof(m_dob_ts));
-            m_num_ids = (m_shmem_ids_size - sizeof(int) - sizeof(m_dob_ts)) / sizeof(unsigned);
-            m_ids_ts = sb.st_mtim.tv_sec;
+            m_ids = (unsigned *)((char *)m_shmem_ids + sizeof(int) + sizeof(m_dob_ts.tv_sec) + sizeof(m_dob_ts.tv_nsec));
+            m_num_ids = (m_shmem_ids_size - sizeof(int) - sizeof(m_dob_ts.tv_sec) - sizeof(m_dob_ts.tv_nsec)) / sizeof(unsigned);
+            m_ids_ts = sb.st_mtim;
             m_ids_transact_ts = m_transact_id;
 
             for (size_t i = 0; i < m_num_ids; ++i)
@@ -613,12 +636,13 @@ void EMRDb::create_ids_file()
             verror("Cannot retrieve ids: '%s' track is not in the global space", DOB_TRACKNAME);
 
         EMRTrack *dob = track(DOB_TRACKNAME);
-        time_t timestamp = dob->timestamp();
+        const struct timespec &timestamp = dob->timestamp();
         vector<unsigned> ids;
         dob->ids(ids);
 
         if (write(fd, &IDS_SIGNATURE, sizeof(IDS_SIGNATURE)) != sizeof(IDS_SIGNATURE) ||
-            write(fd, &timestamp, sizeof(timestamp)) != sizeof(timestamp) ||
+            write(fd, &timestamp.tv_sec, sizeof(timestamp.tv_sec)) != sizeof(timestamp.tv_sec) ||
+            write(fd, &timestamp.tv_nsec, sizeof(timestamp.tv_nsec)) != sizeof(timestamp.tv_nsec) ||
             write(fd, &ids.front(), sizeof(unsigned) * ids.size()) != (int64_t)(sizeof(unsigned) * ids.size()))
             verror("Failed to write file %s: %s", filename.c_str(), strerror(errno));
     } catch (TGLException &e) {
@@ -639,11 +663,11 @@ bool EMRDb::rebuild_ids_file_on_dob_change()
         verror("Failed to stat '%s' track: %s", DOB_TRACKNAME, strerror(errno));
     }
 
-    if (m_dob_ts != fs.st_mtim.tv_sec) {
+    if (m_dob_ts != fs.st_mtim) {
         // remove an outdated version of dob track from the memory
         // (it is there if the session has already accessed dob track in the past)
         Name2Track::iterator itrack = m_tracks.find(DOB_TRACKNAME);
-        if (itrack != m_tracks.end() && itrack->second.track && fs.st_mtim.tv_sec != itrack->second.track->timestamp()) {
+        if (itrack != m_tracks.end() && itrack->second.track && fs.st_mtim != itrack->second.track->timestamp()) {
             delete itrack->second.track;
             itrack->second.track = NULL;
         }

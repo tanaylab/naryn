@@ -528,7 +528,7 @@ void NRTrackExprScanner::create_expr_iterator(IteratorWithFilter *itr, SEXP rite
 
         if (track_name.empty()) {
             if (m_track_exprs.size() == 1)
-                verror("Unable to implicitly set iterator policy: track expression does not contain any tracks");
+                verror("Unable to implicitly set iterator policy: track expression (%s) does not contain any tracks", m_track_exprs[0].c_str());
             else
                 verror("Unable to implicitly set iterator policy: track expressions do not contain any tracks");
         }

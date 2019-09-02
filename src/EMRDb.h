@@ -20,12 +20,12 @@ public:
     typedef unordered_set<unsigned> IdsSubset;
 
     struct TrackInfo {
-        EMRTrack *track;
-        string   filename;
-        time_t   timestamp;
-        bool     is_global;
+        EMRTrack        *track;
+        string           filename;
+        struct timespec  timestamp;
+        bool             is_global;
 
-        TrackInfo(EMRTrack *_track, const string &_filename, time_t _timestamp, bool _is_global) :
+        TrackInfo(EMRTrack *_track, const string &_filename, const struct timespec &_timestamp, bool _is_global) :
             track(_track), filename(_filename), timestamp(_timestamp), is_global(_is_global) {}
     };
 
@@ -88,7 +88,7 @@ protected:
     Name2Track       m_tracks;
     string           m_rootdirs[2];   // 0 - user, 1 - global
     bool             m_load_on_demand[2]{ false, false };
-    time_t           m_track_list_ts[2]{ 0, 0 };
+    struct timespec  m_track_list_ts[2]{{0, 0}, {0, 0}};
     vector<string>   m_track_names[2];
     IdsSubset        m_ids_subset;
     string           m_ids_subset_src;
@@ -96,8 +96,8 @@ protected:
     bool             m_ids_subset_complementary;
     void            *m_shmem_ids{MAP_FAILED};
     size_t           m_shmem_ids_size;
-    time_t           m_ids_ts{0};
-    time_t           m_dob_ts{0};
+    struct timespec  m_ids_ts{0, 0};
+    struct timespec  m_dob_ts{0, 0};
     unsigned         m_ids_transact_ts{0}; // transact timestamp for ids: if differs from m_transact_ids, ids are reloaded
     unsigned        *m_ids{NULL};
     size_t           m_num_ids{0};

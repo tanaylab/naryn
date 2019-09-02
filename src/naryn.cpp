@@ -103,6 +103,7 @@ Naryn::Naryn(SEXP _env, bool check_db) :
 	if (s_ref_count == 1)
 		g_naryn = this;
 
+    vdebug("Starting Naryn\n");
     if (check_db) {
         if (!g_db)
             verror("Database was not loaded. Please call emr_db.init.");
@@ -113,6 +114,7 @@ Naryn::Naryn(SEXP _env, bool check_db) :
 
 Naryn::~Naryn()
 {
+    vdebug("Ending Naryn\n");
 	s_ref_count--;
 
 	if (!s_ref_count) {
@@ -570,8 +572,12 @@ void verror(const char *fmt, ...)
 	va_list ap;
 	char buf[1000];
 
+    buf[0] = '\0';
+    if (g_naryn->debug())
+        sprintf(buf, "[pid %d] ", (int)getpid());
+
 	va_start(ap, fmt);
-	vsnprintf(buf, sizeof(buf), fmt, ap);
+	vsnprintf(buf + strlen(buf), sizeof(buf), fmt, ap);
 	va_end(ap);
 
 	if (Naryn::s_ref_count)
@@ -601,7 +607,7 @@ void vdebug(const char *fmt, ...)
         gettimeofday(&tmnow, NULL);
         tm = localtime(&tmnow.tv_sec);
         strftime(buf, sizeof(buf), "%H:%M:%S", tm);
-        printf("[DEBUG %s.%03d] ", buf, (int)(tmnow.tv_usec / 1000));
+        printf("[DEBUG pid %d, %s.%03d] ", (int)getpid(), buf, (int)(tmnow.tv_usec / 1000));
 
         va_list ap;
     	va_start(ap, fmt);

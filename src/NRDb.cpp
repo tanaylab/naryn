@@ -24,7 +24,7 @@ SEXP emr_dbinit(SEXP _gdir, SEXP _udir, SEXP _gload_on_demand, SEXP _uload_on_de
             verror("'load.on.demand' argument must be a logical value");
 
         if (!isLogical(_do_load) || Rf_length(_do_load) != 1)
-            verror("'do.load' argument must be a logical value");
+            verror("'do.reload' argument must be a logical value");
 
         const char *gdirname = CHAR(STRING_ELT(_gdir, 0));
         const char *udirname = isNull(_udir) ? NULL : CHAR(STRING_ELT(_udir, 0));
