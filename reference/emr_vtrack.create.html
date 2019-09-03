@@ -18,13 +18,15 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script>
 
 <!-- Font Awesome icons -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/all.min.css" integrity="sha256-nAmazAk6vS34Xqo0BSrTb+abbtFlgsFK7NKSi6o7Y78=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/v4-shims.min.css" integrity="sha256-6qHlizsOWFskGlwVOKuns+D1nB6ssZrHQrNj1wGplHc=" crossorigin="anonymous" />
 
 <!-- clipboard.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script>
 
-<!-- sticky kit -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/sticky-kit/1.1.3/sticky-kit.min.js" integrity="sha256-c4Rlo1ZozqTPE2RLuvbusY3+SU1pQaJC0TjuhygMipw=" crossorigin="anonymous"></script>
+<!-- headroom.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/headroom.min.js" integrity="sha256-DJFC1kqIhelURkuza0AvYal5RxMtpzLjFhsnVIeuk+U=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script>
 
 <!-- pkgdown -->
 <link href="../pkgdown.css" rel="stylesheet">
@@ -50,6 +52,7 @@
 <![endif]-->
 
 
+
   </head>
 
   <body>
@@ -66,7 +69,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">naryn</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.5.3</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.5.4</span>
       </span>
     </div>
 
@@ -94,6 +97,7 @@
 </div><!--/.navbar -->
 
       
+
       </header>
 
 <div class="row">
@@ -158,76 +162,63 @@
 <p>Use the following table for a reference of all valid functions and parameters combinations.</p>
 <p>CATEGORICAL DATA SOURCE</p>
 <table class='table'>
-<tr><td></td><td>FUNC</td><td>PARAM</td></tr>
-<tr><td>DESCRIPTION</td><td></td><td>value</td></tr>
-<tr><td>vals/NULL</td><td>A source value or -1 if there is more than one.</td><td></td></tr>
+<tr><td>FUNC</td><td>PARAM</td><td>DESCRIPTION</td></tr>
+<tr><td>value</td><td>vals/NULL</td><td>A source value or -1 if there is more than one.</td></tr>
 <tr><td>exists</td><td>vals</td><td>1 if any of the 'vals' exist otherwise 0.</td></tr>
-<tr><td></td><td>sample</td><td>NULL</td></tr>
-<tr><td>Uniformly sampled source value.</td><td></td><td>sample.time</td></tr>
-<tr><td>NULL</td><td>Time of the uniformly sampled source value.</td><td></td></tr>
+<tr><td>sample</td><td>NULL</td><td>Uniformly sampled source value.</td></tr>
+<tr><td>sample.time</td><td>NULL</td><td>Time of the uniformly sampled source value.</td></tr>
 <tr><td>frequent</td><td>vals/NULL</td><td>The most frequent source value or -1 if there is more than one value.</td></tr>
-<tr><td></td><td>size</td><td>vals/NULL</td></tr>
-<tr><td>Number of values.</td><td></td><td>earliest</td></tr>
-<tr><td>vals/NULL</td><td>Earliest value or -1 if there is more than one.</td><td></td></tr>
+<tr><td>size</td><td>vals/NULL</td><td>Number of values.</td></tr>
+<tr><td>earliest</td><td>vals/NULL</td><td>Earliest value or -1 if there is more than one.</td></tr>
 <tr><td>latest</td><td>vals/NULL</td><td>Latest value or -1 if there is more than one.</td></tr>
-<tr><td></td><td>closest</td><td>vals/NULL</td></tr>
-<tr><td>Values closest to the middle of the interval or -1 if there is more than one.</td><td></td><td>earliest.time</td></tr>
-<tr><td>vals/NULL</td><td>Time of the earliest value.</td><td></td></tr>
+<tr><td>closest</td><td>vals/NULL</td><td>Values closest to the middle of the interval or -1 if there is more than one.</td></tr>
+<tr><td>earliest.time</td><td>vals/NULL</td><td>Time of the earliest value.</td></tr>
 <tr><td>latest.time</td><td>vals/NULL</td><td>Time of the latest value.</td></tr>
-<tr><td></td><td>closest.earlier.time</td><td>vals/NULL</td></tr>
-<tr><td>Time of the of the earlier of the closest values.</td><td></td><td>closest.later.time</td></tr>
-<tr><td>vals/NULL</td><td>Time of the of the later of the closest values.</td><td></td></tr>
+<tr><td>closest.earlier.time</td><td>vals/NULL</td><td>Time of the of the earlier of the closest values.</td></tr>
+<tr><td>closest.later.time</td><td>vals/NULL</td><td>Time of the of the later of the closest values.</td></tr>
 <tr><td>dt1.earliest</td><td>vals/NULL</td><td>Time difference between the earliest value and T1</td></tr>
-<tr><td></td><td>dt1.latest</td><td>vals/NULL</td></tr>
-<tr><td>Time difference between the latest value and T1</td><td></td><td>dt2.earliest</td></tr>
-<tr><td>vals/NULL</td><td>Time difference between T2 and the earliest value</td><td></td></tr>
+<tr><td>dt1.latest</td><td>vals/NULL</td><td>Time difference between the latest value and T1</td></tr>
+<tr><td>dt2.earliest</td><td>vals/NULL</td><td>Time difference between T2 and the earliest value</td></tr>
 <tr><td>dt2.latest</td><td>vals/NULL</td><td>Time difference between T2 and the latest value</td></tr>
-<tr><td></td><td></td><td>FUNC</td></tr>
 </table>
-    <p>* 'vals' is a vector of values. If not 'NULL' it serves as a filter: the function is applied only to the data source values that appear among 'vals'.</p>
+
+
+<p>* 'vals' is a vector of values. If not 'NULL' it serves as a filter: the function is applied only to the data source values that appear among 'vals'.</p>
 <p>QUANTITATIVE DATA SOURCE</p>
 <table class='table'>
-<tr><td></td><td>FUNC</td><td>PARAM</td></tr>
-<tr><td>DESCRIPTION</td><td></td><td>avg</td></tr>
-<tr><td>NULL</td><td>Average of all values.</td><td></td></tr>
+<tr><td>FUNC</td><td>PARAM</td><td>DESCRIPTION</td></tr>
+<tr><td>avg</td><td>NULL</td><td>Average of all values.</td></tr>
 <tr><td>min</td><td>NULL</td><td>Minimal value.</td></tr>
-<tr><td></td><td>max</td><td>NULL</td></tr>
-<tr><td>Maximal value.</td><td></td><td>sample</td></tr>
-<tr><td>NULL</td><td>Uniformly sampled source value.</td><td></td></tr>
+<tr><td>max</td><td>NULL</td><td>Maximal value.</td></tr>
+<tr><td>sample</td><td>NULL</td><td>Uniformly sampled source value.</td></tr>
 <tr><td>sample.time</td><td>NULL</td><td>Time of the uniformly sampled source value.</td></tr>
-<tr><td></td><td>size</td><td>NULL</td></tr>
-<tr><td>Number of values.</td><td></td><td>earliest</td></tr>
-<tr><td>NULL</td><td>Average of the earliest values.</td><td></td></tr>
+<tr><td>size</td><td>NULL</td><td>Number of values.</td></tr>
+<tr><td>earliest</td><td>NULL</td><td>Average of the earliest values.</td></tr>
 <tr><td>latest</td><td>NULL</td><td>Average of the latest values.</td></tr>
-<tr><td></td><td>closest</td><td>NULL</td></tr>
-<tr><td>Average of values closest to the middle of the interval.</td><td></td><td>stddev</td></tr>
-<tr><td>NULL</td><td>Unbiased standard deviation of the values.</td><td></td></tr>
+<tr><td>closest</td><td>NULL</td><td>Average of values closest to the middle of the interval.</td></tr>
+<tr><td>stddev</td><td>NULL</td><td>Unbiased standard deviation of the values.</td></tr>
 <tr><td>sum</td><td>NULL</td><td>Sum of values.</td></tr>
-<tr><td></td><td>quantile</td><td>Percentile in the range of [0, 1]</td></tr>
-<tr><td>Quantile of the values.</td><td></td><td>percentile.upper</td></tr>
-<tr><td>NULL</td><td>Average of upper-bound values percentiles.*</td><td></td></tr>
+<tr><td>quantile</td><td>Percentile in the range of [0, 1]</td><td>Quantile of the values.</td></tr>
+<tr><td>percentile.upper</td><td>NULL</td><td>Average of upper-bound values percentiles.*</td></tr>
 <tr><td>percentile.upper.min</td><td>NULL</td><td>Minimum of upper-bound values percentiles.*</td></tr>
-<tr><td></td><td>percentile.upper.max</td><td>NULL</td></tr>
-<tr><td>Maximum of upper-bound values percentiles.*</td><td></td><td>percentile.lower</td></tr>
-<tr><td>NULL</td><td>Average of lower-bound values percentiles.*</td><td></td></tr>
+<tr><td>percentile.upper.max</td><td>NULL</td><td>Maximum of upper-bound values percentiles.*</td></tr>
+<tr><td>percentile.lower</td><td>NULL</td><td>Average of lower-bound values percentiles.*</td></tr>
 <tr><td>percentile.lower.min</td><td>NULL</td><td>Minimum of lower-bound values percentiles.*</td></tr>
-<tr><td></td><td>percentile.lower.max</td><td>NULL</td></tr>
-<tr><td>Maximum of lower-bound values percentiles.*</td><td></td><td>lm.intercept</td></tr>
-<tr><td>NULL</td><td>Intercept (aka "alpha") of the simple linear regression (X = time, Y = values)</td><td></td></tr>
+<tr><td>percentile.lower.max</td><td>NULL</td><td>Maximum of lower-bound values percentiles.*</td></tr>
+<tr><td>lm.intercept</td><td>NULL</td><td>Intercept (aka "alpha") of the simple linear regression (X = time, Y = values)</td></tr>
 <tr><td>lm.slope</td><td>NULL</td><td>Slope (aka "beta") of the simple linear regression (X = time, Y = values)</td></tr>
-<tr><td></td><td>earliest.time</td><td>NULL</td></tr>
-<tr><td>Time of the earliest value.</td><td></td><td>latest.time</td></tr>
-<tr><td>NULL</td><td>Time of the latest value.</td><td></td></tr>
+<tr><td>earliest.time</td><td>NULL</td><td>Time of the earliest value.</td></tr>
+<tr><td>latest.time</td><td>NULL</td><td>Time of the latest value.</td></tr>
 <tr><td>closest.earlier.time</td><td>NULL</td><td>Time of the of the earlier of the closest values.</td></tr>
-<tr><td></td><td>closest.later.time</td><td>NULL</td></tr>
-<tr><td>Time of the of the later of the closest values.</td><td></td><td>dt1.earliest</td></tr>
-<tr><td>NULL</td><td>Time difference between the earliest value and T1</td><td></td></tr>
+<tr><td>closest.later.time</td><td>NULL</td><td>Time of the of the later of the closest values.</td></tr>
+<tr><td>dt1.earliest</td><td>NULL</td><td>Time difference between the earliest value and T1</td></tr>
 <tr><td>dt1.latest</td><td>NULL</td><td>Time difference between the latest value and T1</td></tr>
-<tr><td></td><td>dt2.earliest</td><td>NULL</td></tr>
-<tr><td>Time difference between T2 and the earliest value</td><td></td><td>dt2.latest</td></tr>
-<tr><td>NULL</td><td>Time difference between T2 and the latest value</td><td></td></tr>
+<tr><td>dt2.earliest</td><td>NULL</td><td>Time difference between T2 and the earliest value</td></tr>
+<tr><td>dt2.latest</td><td>NULL</td><td>Time difference between T2 and the latest value</td></tr>
 </table>
-    <p>* Percentile is calculated based on the values of the whole data source even if a subset or a filter are defined.</p>
+
+
+<p>* Percentile is calculated based on the values of the whole data source even if a subset or a filter are defined.</p>
 <p>Note: 'time.shift' can be used only when 'keepref' is 'FALSE'. Also when 'keepref' is 'TRUE' only 'avg', 'percentile.upper' and 'percentile.lower' can be used in 'func'.</p>
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
@@ -237,19 +228,17 @@
     <div class='dont-index'><p><code><a href='emr_vtrack.attr.src.html'>emr_vtrack.attr.src</a></code>, <code><a href='emr_vtrack.ls.html'>emr_vtrack.ls</a></code>, <code><a href='emr_vtrack.exists.html'>emr_vtrack.exists</a></code>, <code><a href='emr_vtrack.rm.html'>emr_vtrack.rm</a></code></p></div>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><span class='co'># NOT RUN {</span>
-<span class='fu'><a href='emr_db.init.html'>emr_db.init_examples</a></span>()
+    <pre class="examples"><span class='fu'><a href='emr_db.init.html'>emr_db.init_examples</a></span>()
 
 <span class='fu'>emr_vtrack.create</span>(<span class='st'>"vtrack1"</span>, <span class='st'>"dense_track"</span>, <span class='kw'>time.shift</span> <span class='kw'>=</span> <span class='fl'>1</span>,
                   <span class='kw'>func</span> <span class='kw'>=</span> <span class='st'>"max"</span>)
 <span class='fu'>emr_vtrack.create</span>(<span class='st'>"vtrack2"</span>, <span class='st'>"dense_track"</span>,
-                  <span class='kw'>time.shift</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(-<span class='fl'>5</span>, <span class='fl'>10</span>), <span class='kw'>func</span> <span class='kw'>=</span> <span class='st'>"min"</span>)
+                  <span class='kw'>time.shift</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(-<span class='fl'>5</span>, <span class='fl'>10</span>), <span class='kw'>func</span> <span class='kw'>=</span> <span class='st'>"min"</span>)
 <span class='no'>res</span> <span class='kw'>=</span> <span class='fu'><a href='emr_extract.html'>emr_extract</a></span>(<span class='st'>"dense_track"</span>, <span class='kw'>keepref</span><span class='kw'>=</span><span class='no'>T</span>, <span class='kw'>names</span><span class='kw'>=</span><span class='st'>"value"</span>)
-<span class='fu'>emr_vtrack.create</span>(<span class='st'>"vtrack3"</span>, <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/list'>list</a></span>(<span class='no'>res</span>, <span class='no'>F</span>), <span class='kw'>time.shift</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(-<span class='fl'>5</span>, <span class='fl'>10</span>),
+<span class='fu'>emr_vtrack.create</span>(<span class='st'>"vtrack3"</span>, <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='no'>res</span>, <span class='no'>F</span>), <span class='kw'>time.shift</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(-<span class='fl'>5</span>, <span class='fl'>10</span>),
                   <span class='kw'>func</span> <span class='kw'>=</span> <span class='st'>"min"</span>)
-<span class='fu'><a href='emr_extract.html'>emr_extract</a></span>(<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"dense_track"</span>, <span class='st'>"vtrack1"</span>, <span class='st'>"vtrack2"</span>, <span class='st'>"vtrack3"</span>),
-            <span class='kw'>keepref</span> <span class='kw'>=</span> <span class='no'>T</span>, <span class='kw'>iterator</span><span class='kw'>=</span><span class='st'>"dense_track"</span>)
-<span class='co'># }</span></pre>
+<span class='fu'><a href='emr_extract.html'>emr_extract</a></span>(<span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"dense_track"</span>, <span class='st'>"vtrack1"</span>, <span class='st'>"vtrack2"</span>, <span class='st'>"vtrack3"</span>),
+            <span class='kw'>keepref</span> <span class='kw'>=</span> <span class='no'>T</span>, <span class='kw'>iterator</span><span class='kw'>=</span><span class='st'>"dense_track"</span>)</pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
@@ -264,19 +253,23 @@
   </div>
 </div>
 
+
       <footer>
       <div class="copyright">
   <p>Developed by Misha Hoichman.</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.3.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.4.0.</p>
 </div>
+
       </footer>
    </div>
 
   
 
+
   </body>
 </html>
+
 
