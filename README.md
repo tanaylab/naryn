@@ -1,7 +1,7 @@
 naryn
 =====
 
-'naryn' package helps to efficiently analyze medical records data.
+‘naryn’ package helps to efficiently analyze medical records data.
 
 Installation
 ------------

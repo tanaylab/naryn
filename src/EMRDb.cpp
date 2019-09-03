@@ -352,7 +352,7 @@ void EMRDb::create_track_list_file(bool is_global, BufferedFile *_pbf)
             // If not done, an earlier scan might write its results to track list file after a later scan.
             string filename = track_list_filename(is_global);
             if (bf.open(filename.c_str(), "w", true))
-                verror("Failed to open file %s: %s", filename.c_str(), strerror(errno));
+                verror("Failed to open file %s: %s.", filename.c_str(), strerror(errno));
             vdebug("W lock acquired");
         }
 
