@@ -13,5 +13,5 @@ deploy:
   provider: script
   script: 
   - Rscript -e 'pkgdown::deploy_site_github(document = FALSE, examples = FALSE)'
-  - './push_misha_manual'
+  - 'bash $TRAVIS_BUILD_DIR/push_misha_manual'
   skip_cleanup: true
