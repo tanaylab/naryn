@@ -8,7 +8,7 @@ Date: 2019-09-03
 Author: Misha Hoichman
 Maintainer: Misha Hoichman <misha.hoichman@weizmann.ac.il>
 Description: Toolkit for medical records data analysis
-License: GPL-2
+License: TBD
 LazyLoad: yes
 NeedsCompilation: yes
 Packaged: 2019-09-03 12:14:04 UTC; hoichman
