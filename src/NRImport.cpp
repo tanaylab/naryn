@@ -119,6 +119,8 @@ SEXP emr_import(SEXP _track, SEXP _space, SEXP _categorical, SEXP _src, SEXP _ad
                     verror("%s, line %d: invalid data format", filename, lineno);
 
                 data.add(id, EMRTimeStamp((EMRTimeStamp::Hour)hour, (EMRTimeStamp::Refcount)ref), val);
+
+                check_interrupt();
             }
         } else
             NRPoint::convert_rpoints_vals(_src, data, "'src': ");

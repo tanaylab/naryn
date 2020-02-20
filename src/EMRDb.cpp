@@ -448,10 +448,13 @@ void EMRDb::unload_track(const char *track_name)
     bool is_global = itrack->second.is_global;
 
     vector<string>::iterator itr = find(m_track_names[is_global].begin(), m_track_names[is_global].end(), track_name);
-    if (itr != m_track_names[is_global].end())
+    if (itr != m_track_names[is_global].end()) {
         m_track_names[is_global].erase(itr);
+        vdebug("Unloaded track %s from memory", track_name);
+    }
 
     delete itrack->second.track;
+    itrack->second.track = NULL;
 
     BufferedFile bf;
     load_track_list(is_global, bf);   // lock track list for write
