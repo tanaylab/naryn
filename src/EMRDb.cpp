@@ -544,10 +544,12 @@ void EMRDb::load_ids()
             memset(&fl, 0, sizeof(fl));
             fl.l_type = F_RDLCK;
 
+            vdebug("Acquiring write lock for %s\n", filename.c_str());
             while (fcntl(fd, F_SETLKW, &fl) == -1) {
                 if (errno != EINTR)
                     verror("Locking file %s: %s", filename.c_str(), strerror(errno));
             }
+            vdebug("Lock set\n", filename.c_str());
 
             if (fstat(fd, &sb) == -1)
                 verror("stat failed on file %s: %s", filename.c_str(), strerror(errno));
