@@ -118,7 +118,10 @@ bool EMRIteratorFilterItem::is_passed_leaf(const EMRPoint &point)
     int sinterv = (int)point_hour + m_sshift;
     int einterv = (int)point_hour + m_eshift;
 
-    if (!m_itr_started) {
+    if (m_itr_started) {
+        if (m_itr->isend())
+            return false;
+    } else {
         m_itr_started = true;
 
         if (m_etime + m_eshift < 0 || m_stime + m_sshift > (int)EMRTimeStamp::MAX_HOUR)
