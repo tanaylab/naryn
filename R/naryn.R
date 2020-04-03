@@ -224,7 +224,7 @@ emr_track.import <- function(track, space, categorical, src) {
 
     space = tolower(space)
     if (space == "user" && (!exists("EMR_UROOT", envir = .GlobalEnv) || is.null(get("EMR_UROOT", envir = .GlobalEnv))))
-        stop(sprintf("User space root directory is not set. Please call emr_db.init(user.dir=...)", track), call. = F)
+        stop("User space root directory is not set. Please call emr_db.init(user.dir=...)", call. = F)
 
     if (emr_vtrack.exists(track))
         stop(sprintf("Virtual track %s already exists", track), call. = F)
@@ -251,6 +251,27 @@ emr_track.ls <- function(pattern = "", ignore.case = FALSE, perl = FALSE, fixed 
 	    sort(grep(pattern, tracks, value = TRUE, ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes))
     else
         sort(tracks)
+}
+
+emr_track.mv <- function(src, tgt, space = NULL) {
+	if (missing(src) || missing(tgt))
+		stop("Usage: emr_track.mv(src, tgt, space = NULL)", call. = F)
+    .emr_checkroot()
+
+    if (!is.null(space)) {
+        space = tolower(space)
+        if (space == "user" && (!exists("EMR_UROOT", envir = .GlobalEnv) || is.null(get("EMR_UROOT", envir = .GlobalEnv))))
+            stop("User space root directory is not set. Please call emr_db.init(user.dir=...)", call. = F)
+    }
+
+    if (emr_vtrack.exists(tgt))
+        stop(sprintf("Virtual track %s already exists", tgt), call. = F)
+
+    if (emr_filter.exists(tgt))
+        stop(sprintf("Filter %s already exists", tgt), call. = F)
+
+	.emr_call("emr_track_mv", src, tgt, space, new.env(parent = parent.frame()))
+    retv <- NULL
 }
 
 emr_track.percentile <- function(track, val, lower = T) {

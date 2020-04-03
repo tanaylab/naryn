@@ -22,6 +22,6 @@ None.
 }
 
 \seealso{
-\code{\link{emr_track.create}}, \code{\link{emr_track.ls}}
+\code{\link{emr_track.create}}, \code{\link{emr_track.mv}}, \code{\link{emr_track.ls}}
 }
 \keyword{ ~track }

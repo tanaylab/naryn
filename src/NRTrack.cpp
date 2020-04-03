@@ -19,6 +19,65 @@
 
 extern "C" {
 
+SEXP emr_track_mv(SEXP _srctrack, SEXP _tgttrack, SEXP _space, SEXP _envir)
+{
+	try {
+		Naryn naryn(_envir);
+
+		// check the arguments
+		if (!isString(_srctrack) || Rf_length(_srctrack) != 1)
+			verror("'src' argument is not a string");
+
+		if (!isString(_tgttrack) || Rf_length(_tgttrack) != 1)
+			verror("'tgt' argument is not a string");
+
+        if (!isNull(_space) && (!isString(_space) || Rf_length(_space) != 1))
+            verror("'space' must be a string");
+
+		const char *src_trackname = CHAR(STRING_ELT(_srctrack, 0));
+		const char *tgt_trackname = CHAR(STRING_ELT(_tgttrack, 0));
+        const EMRDb::TrackInfo *src_track_info = g_db->track_info(src_trackname);
+        string space;
+
+        if (!src_track_info)
+            verror("Track %s does not exist", src_trackname);
+
+        EMRDb::check_track_name(tgt_trackname);
+
+        if (isNull(_space))
+            space = src_track_info->is_global ? "global" : "user";
+        else {
+            space = CHAR(asChar(_space));
+            if (space != "global") {
+                if (space == "user") {
+                    if (g_db->urootdir().empty())
+                        verror("User space root directory is not set");
+                } else
+                    verror("Invalid value of 'space' argument");
+            }
+        }
+
+        if (strcmp(src_trackname, tgt_trackname)) {
+            if (g_db->track_info(tgt_trackname))
+                verror("Track %s already exists", tgt_trackname);
+        } else if ((space == "user") ^ src_track_info->is_global)
+            verror("Cannot move track '%s' into itself.", src_trackname);
+
+        string tgt_fname = (space == "global" ? g_db->grootdir() : g_db->urootdir()) + string("/") + tgt_trackname + EMRDb::TRACK_FILE_EXT;
+        vdebug("Moving track file %s to %s\n", src_track_info->filename.c_str(), tgt_fname.c_str());
+        if (rename(src_track_info->filename.c_str(), tgt_fname.c_str()))
+            verror("Error moving file %s to %s: %s\n", src_track_info->filename.c_str(), tgt_fname.c_str(), strerror(errno));
+
+        g_db->unload_track(src_trackname);
+        g_db->load_track(tgt_trackname, space == "global");
+	} catch (TGLException &e) {
+		rerror("%s", e.msg());
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
+	rreturn(R_NilValue);
+}
+
 SEXP emr_track_rm(SEXP _track, SEXP _envir)
 {
 	try {
