@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Deletes a named filter — emr_filter.rm • naryn</title>
+<title>Deletes a track — emr_track.mv • naryn</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Deletes a named filter — emr_filter.rm" />
-<meta property="og:description" content="Deletes a named filter." />
+<meta property="og:title" content="Deletes a track — emr_track.mv" />
+<meta property="og:description" content="Moves (renames) a track" />
 
 
 
@@ -111,43 +111,44 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Deletes a named filter</h1>
+    <h1>Deletes a track</h1>
     
-    <div class="hidden name"><code>emr_filter.rm.Rd</code></div>
+    <div class="hidden name"><code>emr_track.mv.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Deletes a named filter.</p>
+    <p>Moves (renames) a track</p>
     </div>
 
-    <pre class="usage"><span class='fu'>emr_filter.rm</span>(<span class='no'>filter</span>)</pre>
+    <pre class="usage"><span class='fu'>emr_track.mv</span>(<span class='no'>src</span>, <span class='no'>tgt</span>, <span class='kw'>space</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>filter</th>
-      <td><p>filter name</p></td>
+      <th>src</th>
+      <td><p>source track name</p></td>
+    </tr>
+    <tr>
+      <th>tgt</th>
+      <td><p>target track name</p></td>
+    </tr>
+    <tr>
+      <th>space</th>
+      <td><p>"global" or "user" or 'NULL'</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>This function deletes a named filter from current R environment.</p>
+    <p>This function moves (renames) 'src' track into 'tgt'. If 'space' equals 'NULL', the track remains in the same space. Otherwise it is moved to the specified space.</p>
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
     <p>None.</p>
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
-    <div class='dont-index'><p><code><a href='emr_filter.create.html'>emr_filter.create</a></code>, <code><a href='emr_filter.ls.html'>emr_filter.ls</a></code></p></div>
+    <div class='dont-index'><p><code><a href='emr_track.create.html'>emr_track.create</a></code>, <code><a href='emr_track.rm.html'>emr_track.rm</a></code>, <code><a href='emr_track.ls.html'>emr_track.ls</a></code></p></div>
 
-    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><span class='fu'><a href='emr_db.init.html'>emr_db.init_examples</a></span>()
-<span class='fu'><a href='emr_filter.create.html'>emr_filter.create</a></span>(<span class='st'>"f1"</span>, <span class='st'>"dense_track"</span>, <span class='kw'>time.shift</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>2</span>,<span class='fl'>4</span>))
-<span class='fu'><a href='emr_filter.create.html'>emr_filter.create</a></span>(<span class='st'>"f2"</span>, <span class='st'>"dense_track"</span>, <span class='kw'>keepref</span> <span class='kw'>=</span> <span class='no'>T</span>)
-<span class='fu'><a href='emr_filter.ls.html'>emr_filter.ls</a></span>()
-<span class='fu'>emr_filter.rm</span>(<span class='st'>"f1"</span>)
-<span class='fu'><a href='emr_filter.ls.html'>emr_filter.ls</a></span>()</pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
