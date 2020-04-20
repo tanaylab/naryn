@@ -3,6 +3,7 @@
 
 #include "EMRDb.h"
 #include "EMRTrack.h"
+#include "FileUtils.h"
 #include "naryn.h"
 #include "NRPoint.h"
 #include "strutil.h"
@@ -129,7 +130,7 @@ SEXP emr_import(SEXP _track, SEXP _space, SEXP _categorical, SEXP _src, SEXP _ad
             string tmp_filename = track_filename + ".tmp";
             EMRTrack::serialize(tmp_filename.c_str(), categorical ? EMRTrack::IS_CATEGORICAL : 0, data);
             unlink(track_filename.c_str());
-            rename(tmp_filename.c_str(), track_filename.c_str());
+            FileUtils::move_file(tmp_filename.c_str(), track_filename.c_str());
         } else
             EMRTrack::serialize(track_filename.c_str(), categorical, data);
         g_db->load_track(trackname.c_str(), is_global);

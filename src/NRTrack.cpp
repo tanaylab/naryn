@@ -14,6 +14,7 @@
 
 #include "EMRDb.h"
 #include "EMRTrack.h"
+#include "FileUtils.h"
 #include "naryn.h"
 #include "NRPoint.h"
 
@@ -65,8 +66,7 @@ SEXP emr_track_mv(SEXP _srctrack, SEXP _tgttrack, SEXP _space, SEXP _envir)
 
         string tgt_fname = (space == "global" ? g_db->grootdir() : g_db->urootdir()) + string("/") + tgt_trackname + EMRDb::TRACK_FILE_EXT;
         vdebug("Moving track file %s to %s\n", src_track_info->filename.c_str(), tgt_fname.c_str());
-        if (rename(src_track_info->filename.c_str(), tgt_fname.c_str()))
-            verror("Error moving file %s to %s: %s\n", src_track_info->filename.c_str(), tgt_fname.c_str(), strerror(errno));
+        FileUtils::move_file(src_track_info->filename.c_str(), tgt_fname.c_str());
 
         g_db->unload_track(src_trackname);
         g_db->load_track(tgt_trackname, space == "global");
