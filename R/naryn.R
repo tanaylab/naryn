@@ -94,6 +94,12 @@
 	vtrack
 }
 
+.emr_dir.mv <- function(src, tgt) {
+    dir.create(tgt, mode = "0777")
+    file.copy(paste0(src, '/.'), tgt, recursive = T)
+    unlink(src, recursive = TRUE)
+}
+
 emr_db.init <- function(global.dir = NULL, user.dir = NULL, global.load.on.demand = T, user.load.on.demand = T, do.reload = F) {
 	if (is.null(global.dir))
 		stop("Usage: emr_db.init(global.dir, user.dir = NULL, global.load.on.demand = T, user.load.on.demand = T, do.reload = F)", call. = F);
@@ -270,7 +276,17 @@ emr_track.mv <- function(src, tgt, space = NULL) {
     if (emr_filter.exists(tgt))
         stop(sprintf("Filter %s already exists", tgt), call. = F)
 
+    dirname1 <- .emr_track.var.dir(src)
+    dirname2 <- .emr_track.pyvar.dir(src)
+
 	.emr_call("emr_track_mv", src, tgt, space, new.env(parent = parent.frame()))
+
+    if (file.exists(dirname1))
+        .emr_dir.mv(dirname1, .emr_track.var.dir(tgt))
+
+    if (file.exists(dirname2))
+        .emr_dir.mv(dirname2, .emr_track.pyvar.dir(tgt))
+
     retv <- NULL
 }
 
