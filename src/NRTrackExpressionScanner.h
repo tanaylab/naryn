@@ -92,7 +92,7 @@ private:
 	vector<int *>    m_eval_ints;
     vector< vector<double> >  m_eval_doubles_mtask;
     vector< vector<int> >     m_eval_ints_mtask;
-    SEXP             m_ritr_times;
+    SEXP             m_ritr_times{R_NilValue};
     double          *m_itr_times;
 	unsigned         m_eval_buf_idx;
 	unsigned         m_eval_buf_limit;

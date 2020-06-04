@@ -18,7 +18,13 @@ void NRTrackExpressionVars::parse_exprs(const vector<string> &track_exprs, unsig
     SEXP emr_vtracks = R_NilValue;
     vector<SEXP> rvtracknames;
     vector<SEXP> vtracks;
-
+    
+    struct Cleaner {
+        Cleaner(SEXP &_emr_vtracks) : emr_vtracks(&_emr_vtracks) {}
+        ~Cleaner() { runprotect(*emr_vtracks); }
+        SEXP *emr_vtracks;
+    } cleaner(emr_vtracks);
+    
     // retrieve virtual track names (virtual track names are burried in a list of lists)
     rprotect(emr_vtracks = findVar(install("EMR_VTRACKS"), g_naryn->env()));
 

@@ -49,6 +49,7 @@ NRTrackExprScanner::NRTrackExprScanner() :
 NRTrackExprScanner::~NRTrackExprScanner()
 {
     delete []m_mtask_buf;
+    runprotect(m_ritr_times);
 }
 
 void NRTrackExprScanner::convert_rtrack_exprs(SEXP rtrack_exprs, vector<string> &track_exprs)
@@ -179,6 +180,7 @@ void NRTrackExprScanner::check(const vector<string> &track_exprs, unsigned stime
     		if (status != PARSE_OK)
     			verror("R parsing of expression \"%s\" failed", m_track_exprs[iexpr].c_str());
     		m_eval_exprs[iexpr] = VECTOR_ELT(parsed_expr, 0);
+            runprotect(parsed_expr);
     		runprotect(expr);
         }
 	}
@@ -672,4 +674,3 @@ void NRTrackExprScanner::create_expr_iterator(IteratorWithFilter *itr, SEXP rite
     if (call_begin)
         itr->begin();
 }
-

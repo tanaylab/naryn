@@ -43,13 +43,14 @@ public:
 
     struct TrackVar {
         string             var_name;
-        SEXP               rvar;
+        SEXP               rvar{R_NilValue};
         double            *var;
         double             percentile;
         IteratorManager   *imanager;
     };
 
 	NRTrackExpressionVars();
+    ~NRTrackExpressionVars();
 
 	unsigned get_num_track_vars() const { return m_track_vars.size(); }
 
@@ -82,6 +83,12 @@ private:
 
 
 // -------------------------------------------------- IMPLEMENTATION -------------------------------------------------------
+
+inline NRTrackExpressionVars::~NRTrackExpressionVars()
+{
+    for (TrackVars::iterator ivar = m_track_vars.begin(); ivar != m_track_vars.end(); ivar++)
+        runprotect(ivar->rvar);
+}
 
 inline bool NRTrackExpressionVars::IteratorManager::operator==(const IteratorManager &o) const
 {
