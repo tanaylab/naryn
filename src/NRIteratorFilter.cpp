@@ -13,14 +13,9 @@
 void NRIteratorFilter::init(SEXP filter, unsigned stime, unsigned etime)
 {
     SEXP emr_filters = R_NilValue;
+    SEXPCleaner emr_filters_cleaner(emr_filters);
     vector<SEXP> rfilter_names;
     vector<SEXP> filters;
-
-    struct Cleaner {
-        Cleaner(SEXP &_emr_filters) : emr_filters(&_emr_filters) {}
-        ~Cleaner() { runprotect(*emr_filters); }
-        SEXP *emr_filters;
-    } cleaner(emr_filters);
     
     // retrieve filter names (named filters are burried in a list of lists)
     rprotect(emr_filters = findVar(install("EMR_FILTERS"), g_naryn->env()));
