@@ -87,20 +87,20 @@ void NRIteratorFilter::build_subtree(vector<SEXP> &filters, vector<SEXP> &rfilte
             if (!idx) {
                 if (!strcmp(str, "&") || !strcmp(str, "&&")) {
 //for (int j = 0; j < depth; ++j)
-//printf("  ");
-//printf("& (not: %d)\n", operator_not);
+//REprintf("  ");
+//REprintf("& (not: %d)\n", operator_not);
                     *tree = new EMRIteratorFilterItem();
                     (*tree)->m_op = operator_not ? EMRIteratorFilterItem::OR : EMRIteratorFilterItem::AND;
                 } else if (!strcmp(str, "|") || !strcmp(str, "||")) {
 //for (int j = 0; j < depth; ++j)
-//printf("  ");
-//printf("& (not: %d)\n", operator_not);
+//REprintf("  ");
+//REprintf("& (not: %d)\n", operator_not);
                     *tree = new EMRIteratorFilterItem();
                     (*tree)->m_op = operator_not ? EMRIteratorFilterItem::AND : EMRIteratorFilterItem::OR;
                 } else if (!strcmp(str, "!")) {
 //for (int j = 0; j < depth; ++j)
-//printf("  ");
-//printf("! (not: %d)\n", operator_not);
+//REprintf("  ");
+//REprintf("! (not: %d)\n", operator_not);
                     operator_not = !operator_not;
                     filter = CDR(filter);
                     if (isNull(filter))
@@ -113,8 +113,8 @@ void NRIteratorFilter::build_subtree(vector<SEXP> &filters, vector<SEXP> &rfilte
                 else {
                     // track or list surrounded by brackets
 //for (int j = 0; j < depth; ++j)
-//printf("  ");
-//printf("track %s surrounded by brackets (not: %d)\n", str, operator_not);
+//REprintf("  ");
+//REprintf("track %s surrounded by brackets (not: %d)\n", str, operator_not);
 
                     if (!isNull(CDR(filter)))
                         verror("Syntax error in filter (6)");
@@ -126,8 +126,8 @@ void NRIteratorFilter::build_subtree(vector<SEXP> &filters, vector<SEXP> &rfilte
             else
 //{
 //for (int j = 0; j < depth; ++j)
-//printf("  ");
-//printf("track %s without brackets (not: %d)\n", str, operator_not);
+//REprintf("  ");
+//REprintf("track %s without brackets (not: %d)\n", str, operator_not);
                 // track or list
                 (*tree)->m_child[idx - 1] = create_filter_item(filters, rfilter_names, str, operator_not, stime, etime);
 //            }

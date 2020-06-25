@@ -527,7 +527,7 @@ void Naryn::sigint_handler(int)
     // Normally this condition should be always true since the kid installs the default handler for SIGINT.
     // However due to race condition the old handler might still be in use.
     if (getpid() == s_parent_pid)
-        printf("CTL-C!\n");
+        REprintf("CTL-C!\n");
 }
 
 void Naryn::sigalrm_handler(int)
@@ -607,7 +607,7 @@ void vdebug(const char *fmt, ...)
         gettimeofday(&tmnow, NULL);
         tm = localtime(&tmnow.tv_sec);
         strftime(buf, sizeof(buf), "%H:%M:%S", tm);
-        printf("[DEBUG pid %d, %s.%03d] ", (int)getpid(), buf, (int)(tmnow.tv_usec / 1000));
+        REprintf("[DEBUG pid %d, %s.%03d] ", (int)getpid(), buf, (int)(tmnow.tv_usec / 1000));
 
         va_list ap;
     	va_start(ap, fmt);
@@ -615,9 +615,9 @@ void vdebug(const char *fmt, ...)
         va_end(ap);
 
         if (!*fmt || (*fmt && fmt[strlen(fmt) - 1] != '\n'))
-            printf("\n");
+            REprintf("\n");
 
-        fflush(stdout);
+        fflush(stderr);
     }
 }
 
@@ -698,7 +698,8 @@ SEXP eval_in_R(SEXP parsed_command, SEXP envir)
 SEXP run_in_R(const char *command, SEXP envir)
 {
 	SEXP expr;
-	SEXP parsed_expr;
+	SEXP parsed_expr = R_NilValue;
+    SEXPCleaner parsed_expr_cleaner(parsed_expr);
 	ParseStatus status;
 
 	rprotect(expr = RSaneAllocVector(STRSXP, 1));

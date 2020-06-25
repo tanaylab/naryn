@@ -169,7 +169,8 @@ void NRTrackExprScanner::check(const vector<string> &track_exprs, unsigned stime
 
 	for (unsigned iexpr = 0; iexpr < m_track_exprs.size(); ++iexpr) {
         if (!m_expr_vars.var(m_track_exprs[iexpr].c_str())) {   // track expression is not a virtual track
-    		SEXP expr;
+    		SEXP expr = R_NilValue;
+            SEXPCleaner expr_cleaner(expr);
     		rprotect(expr = RSaneAllocVector(STRSXP, 1));
     		SET_STRING_ELT(expr, 0, mkChar(m_track_exprs[iexpr].c_str()));
 
@@ -180,8 +181,6 @@ void NRTrackExprScanner::check(const vector<string> &track_exprs, unsigned stime
     		if (status != PARSE_OK)
     			verror("R parsing of expression \"%s\" failed", m_track_exprs[iexpr].c_str());
     		m_eval_exprs[iexpr] = VECTOR_ELT(parsed_expr, 0);
-            runprotect(parsed_expr);
-    		runprotect(expr);
         }
 	}
 }
@@ -263,7 +262,7 @@ void NRTrackExprScanner::report_progress()
 
         if (delta > MIN_REPORT_INTERVAL) {
             if (m_last_progress_reported < 0 && m_eval_buf_limit == 1 && !m_multitasking)
-                Rprintf("Warning: track expression(s) cannot be evaluated as a vector. Run-times might be slow.\n");
+                REprintf("Warning: track expression(s) cannot be evaluated as a vector. Run-times might be slow.\n");
 
             int progress = 0;
 
@@ -277,9 +276,9 @@ void NRTrackExprScanner::report_progress()
             progress = max(progress, m_last_progress_reported);  // just to be on the safe side
             if (progress != 100) {
                 if (progress != m_last_progress_reported)
-                    Rprintf("%d%%...", progress);
+                    REprintf("%d%%...", progress);
                 else
-                    Rprintf(".");
+                    REprintf(".");
                 m_last_progress_reported = progress;
             }
             m_num_evals = 0;

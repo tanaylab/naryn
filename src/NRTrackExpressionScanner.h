@@ -189,9 +189,9 @@ inline bool NRTrackExprScanner::next()
     // did we start reporting progress?
     if (m_last_progress_reported >= 0) {
         if (m_last_progress_reported != 100)
-            Rprintf("100%%\n");
+            REprintf("100%%\n");
         else
-            Rprintf("\n");
+            REprintf("\n");
     }
 
     if (!m_multitasking)

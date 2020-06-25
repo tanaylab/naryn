@@ -171,12 +171,12 @@ bool EMRIteratorFilterItem::is_passed_leaf(const EMRPoint &point)
 void EMRIteratorFilterItem::debug_print(int depth)
 {
     if (is_leaf()) {
-        printf("%*sNOT:     %d\n", depth * 2, "", m_is_not);
-        printf("%*sSSHIFT:  %d\n", depth * 2, "", m_sshift);
-        printf("%*sESHIFT:  %d\n", depth * 2, "", m_eshift);
-        printf("%*sKEEPREF: %d\n", depth * 2, "", m_keepref);
-        printf("%*s%s\n", depth * 2, "", m_itr->tostr().c_str());
+        vemsg("%*sNOT:     %d\n", depth * 2, "", m_is_not);
+        vemsg("%*sSSHIFT:  %d\n", depth * 2, "", m_sshift);
+        vemsg("%*sESHIFT:  %d\n", depth * 2, "", m_eshift);
+        vemsg("%*sKEEPREF: %d\n", depth * 2, "", m_keepref);
+        vemsg("%*s%s\n", depth * 2, "", m_itr->tostr().c_str());
     } else
-        printf("%*s%s\n", depth * 2, "", OP_NAMES[m_op]);
+        vemsg("%*s%s\n", depth * 2, "", OP_NAMES[m_op]);
 }
 

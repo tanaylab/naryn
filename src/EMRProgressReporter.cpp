@@ -42,15 +42,15 @@ void EMRProgressReporter::report(uint64_t delta_steps_done)
             progress = min(progress, 100);
 
             if (m_last_progress_reported < 0 && !m_report_prefix.empty())
-                vmsg("%s", m_report_prefix.c_str());
+                vemsg("%s", m_report_prefix.c_str());
 
             if (progress != m_last_progress_reported) {
                 if (progress == 100)
-                    vmsg("%d%%", progress);
+                    vemsg("%d%%", progress);
                 else
-                    vmsg("%d%%...", progress);
+                    vemsg("%d%%...", progress);
             } else
-                vmsg(".");
+                vemsg(".");
 			m_last_progress_reported = progress;
 			m_numsteps_from_last_report = 0;
 			m_last_report_clock = curclock;
@@ -63,8 +63,8 @@ void EMRProgressReporter::report_last()
 {
 	if (m_last_progress_reported >= 0) {
 		if (m_last_progress_reported != 100)
-			vmsg("100%%\n");
+			vemsg("100%%\n");
 		else
-			vmsg("\n");
+			vemsg("\n");
 	}
 }

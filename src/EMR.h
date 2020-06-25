@@ -11,6 +11,7 @@ using namespace std::rel_ops;
     #define unif_rand drand48
 
     void vmsg(const char *fmt, ...);
+    void vemsg(const char *fmt, ...);
 
 #else
 
@@ -26,6 +27,7 @@ using namespace std::rel_ops;
     #endif
 
     #define vmsg Rprintf
+    #define vemsg REprintf
 
 #endif
 

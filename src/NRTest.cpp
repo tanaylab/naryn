@@ -52,7 +52,7 @@ SEXP netta_bug(SEXP envir)
 
 		for (int i = 0; i < NUM_TRACKS; ++i) {
 			EMRTrack::serialize(filename[i].c_str(), true, data[i]);
-			printf("Track %s created...\n", filename[i].c_str());
+			REprintf("Track %s created...\n", filename[i].c_str());
 		}
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
@@ -148,7 +148,7 @@ SEXP nrtest_track_create(SEXP envir)
 
 		for (int i = 0; i < NUM_TRACKS; ++i) {
 			EMRTrack::serialize(filename[i].c_str(), is_categorical[i], data[i]);
-			printf("Track %s created...\n", filename[i].c_str());
+			REprintf("Track %s created...\n", filename[i].c_str());
 		}
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
@@ -197,7 +197,7 @@ SEXP nrtest_regressiondb_create(SEXP envir)
 
             sprintf(filename, "%s/track%d%s", is_global[itrack] ? g_db->grootdir().c_str() : g_db->urootdir().c_str(), itrack, EMRDb::TRACK_FILE_EXT.c_str());
             EMRTrack::TrackType track_type = EMRTrack::serialize(filename, is_categorical[itrack], data);
-            printf("Track %s created (%s)...\n", filename, EMRTrack::TRACK_TYPE_NAMES[track_type]);
+            REprintf("Track %s created (%s)...\n", filename, EMRTrack::TRACK_TYPE_NAMES[track_type]);
 
             // if dense track is created create another one in sparse format
             if (track_type == EMRTrack::DENSE) {
@@ -209,7 +209,7 @@ SEXP nrtest_regressiondb_create(SEXP envir)
                 data.add(id, EMRTimeStamp(hour, 0), val);
                 sprintf(filename, "%s/track%d_sparse%s", g_db->grootdir().c_str(), itrack, EMRDb::TRACK_FILE_EXT.c_str());
                 EMRTrack::TrackType track_type = EMRTrack::serialize(filename, is_categorical[itrack], data);
-                printf("Track %s created (%s)...\n", filename, EMRTrack::TRACK_TYPE_NAMES[track_type]);
+                REprintf("Track %s created (%s)...\n", filename, EMRTrack::TRACK_TYPE_NAMES[track_type]);
             }
         }
 	} catch (TGLException &e) {
@@ -234,7 +234,7 @@ SEXP nrtest_vtrack(SEXP _track, SEXP envir)
         EMRTrack::DataFetcher df;
         EMRInterval interv(0, 0, 0, 0);
 
-        printf("Track loaded %s... Type: %s, Data: %s\n", t->name(), EMRTrack::TRACK_TYPE_NAMES[t->track_type()], EMRTrack::DATA_TYPE_NAMES[t->data_type()]);
+        REprintf("Track loaded %s... Type: %s, Data: %s\n", t->name(), EMRTrack::TRACK_TYPE_NAMES[t->track_type()], EMRTrack::DATA_TYPE_NAMES[t->data_type()]);
 
         EMRTrackData<double> data_recs;
         int f = -1;
@@ -242,7 +242,7 @@ SEXP nrtest_vtrack(SEXP _track, SEXP envir)
             char buf[1000];
             double percentile;
 
-            printf("Enter function name or an interval as \"pid stime etime ref\" or print or func or quit: ");
+            REprintf("Enter function name or an interval as \"pid stime etime ref\" or print or func or quit: ");
             if (scanf("%s", buf) != 1)
                 continue;
 
@@ -251,16 +251,16 @@ SEXP nrtest_vtrack(SEXP _track, SEXP envir)
 
             if (!strcmp(buf, "print")) {
                 t->data_recs(data_recs);
-                printf("Num patients: %ld\n", data_recs.data.size());
+                REprintf("Num patients: %ld\n", data_recs.data.size());
                 for (EMRTrackData<double>::DataRecs::const_iterator ipr = data_recs.data.begin(); ipr != data_recs.data.end(); ++ipr)
-                    printf("Patient %d, time %s, val %g\n", ipr->id, ipr->timestamp.tostr().c_str(), ipr->val);
+                    REprintf("Patient %d, time %s, val %g\n", ipr->id, ipr->timestamp.tostr().c_str(), ipr->val);
                 continue;
             }
 
             if (!strcmp(buf, "func")) {
                 for (int i = 0; i < EMRTrack::NUM_FUNCS; ++i)
-                    printf("%s ", EMRTrack::FUNC_INFOS[i].name);
-                printf("\n\n");
+                    REprintf("%s ", EMRTrack::FUNC_INFOS[i].name);
+                REprintf("\n\n");
                 continue;
             }
 
@@ -269,11 +269,11 @@ SEXP nrtest_vtrack(SEXP _track, SEXP envir)
                 if (!strcmp(EMRTrack::FUNC_INFOS[i].name, buf)) {
                     f = i;
                     if (f == EMRTrack::QUANTILE) {
-                        printf("Enter percentile: ");
+                        REprintf("Enter percentile: ");
                         if (scanf("%lf", &percentile) != 1)
                             continue;
                     }
-                    printf("Function %s was defined\n", EMRTrack::FUNC_INFOS[f].name);
+                    REprintf("Function %s was defined\n", EMRTrack::FUNC_INFOS[f].name);
                     break;
                 }
             }
@@ -283,14 +283,14 @@ SEXP nrtest_vtrack(SEXP _track, SEXP envir)
                 df.register_function((EMRTrack::Func)f);
                 interv.init(0, 0, 0, 0);
             } else if (f == -1)
-                printf("Function must be defined first\n");
+                REprintf("Function must be defined first\n");
             else {
                 char *endptr;
                 int pid, stime, etime, ref;
                 pid = strtol(buf, &endptr, 10);
 
                 if (*endptr) {
-                    printf("Invalid command\n");
+                    REprintf("Invalid command\n");
                     continue;
                 }
 
@@ -298,24 +298,24 @@ SEXP nrtest_vtrack(SEXP _track, SEXP envir)
                     continue;
 
                 if (pid < interv.id) {
-                    printf("New pid < old pid\n");
+                    REprintf("New pid < old pid\n");
                     continue;
                 }
                 if (pid == interv.id && stime < interv.stime) {
-                    printf("New stime < old stime\n");
+                    REprintf("New stime < old stime\n");
                     continue;
                 }
                 if (stime > etime) {
-                    printf("stime > etime\n");
+                    REprintf("stime > etime\n");
                     continue;
                 }
                 interv.init(pid, stime, etime, ref);
                 df.set_vals(interv);
 
                 if ((EMRTrack::Func)f == EMRTrack::QUANTILE)
-                    printf("Res: %g\n", df.quantile(percentile));
+                    REprintf("Res: %g\n", df.quantile(percentile));
                 else
-                    printf("Res: %g\n", df.val());
+                    REprintf("Res: %g\n", df.val());
             }
         }
 	} catch (TGLException &e) {
@@ -389,7 +389,7 @@ SEXP nrtest_iterator(SEXP envir)
 
 		for (int i = 0; i < 2; ++i) {
 			EMRTrack::serialize(filename[i].c_str(), false, data[i]);
-			printf("Track %s created...\n", filename[i].c_str());
+			REprintf("Track %s created...\n", filename[i].c_str());
 			t[i] = EMRTrack::unserialize(trackname[i].c_str(), filename[i].c_str());
 		}
 
@@ -401,7 +401,7 @@ SEXP nrtest_iterator(SEXP envir)
             char buf[1000];
             double percentile;
 
-            printf("Enter index: ");
+            REprintf("Enter index: ");
             if (scanf("%d", &idx) != 1)
                 continue;
 
@@ -409,18 +409,18 @@ SEXP nrtest_iterator(SEXP envir)
 				break;
 
 			t[idx]->data_recs(data_recs);
-			printf("Num patients: %ld\n", data_recs.data.size());
+			REprintf("Num patients: %ld\n", data_recs.data.size());
 			for (EMRTrackData<double>::DataRecs::const_iterator ipr = data_recs.data.begin(); ipr != data_recs.data.end(); ++ipr)
-				printf("Patient %d, time %s, val %g\n", ipr->id, ipr->timestamp.tostr().c_str(), ipr->val);
+				REprintf("Patient %d, time %s, val %g\n", ipr->id, ipr->timestamp.tostr().c_str(), ipr->val);
 
-			printf("Enter time scope and keep_ref (0/1): ");
+			REprintf("Enter time scope and keep_ref (0/1): ");
 			int stime, etime, keep_ref;
 			if (scanf("%d%d%d", &stime, &etime, &keep_ref) != 3)
                 continue;
 
             itr.init(t[idx], keep_ref, stime, etime, unordered_set<double>());
 			for (itr.begin(); !itr.isend(); itr.next()) {
-				printf("pid: %d, timestamp: %s\n", itr.point().id, itr.point().timestamp.tostr().c_str());
+				REprintf("pid: %d, timestamp: %s\n", itr.point().id, itr.point().timestamp.tostr().c_str());
 			}
         }
 	} catch (TGLException &e) {
@@ -446,7 +446,7 @@ SEXP nrtrack(SEXP _track, SEXP _envir)
 
 		track->data_recs(data_recs);
 		for (EMRTrackData<double>::DataRecs::const_iterator ipr = data_recs.data.begin(); ipr != data_recs.data.end(); ++ipr)
-			printf("Patient %d, time %s, val %g\n", ipr->id, ipr->timestamp.tostr().c_str(), ipr->val);
+			REprintf("Patient %d, time %s, val %g\n", ipr->id, ipr->timestamp.tostr().c_str(), ipr->val);
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
     } catch (const bad_alloc &e) {
@@ -492,7 +492,7 @@ SEXP nrimport_clalit(SEXP _dirname, SEXP _envir)
 				vector<string> fields;
 				int lineno = 0;
 
-				printf("Reading %s\n", filename);
+				REprintf("Reading %s\n", filename);
 				if (bfile.open(filename, "r"))
 					verror("Failed to open file %s for reading: %s", filename, strerror(errno));
 
@@ -555,7 +555,7 @@ SEXP nrimport_clalit(SEXP _dirname, SEXP _envir)
 		for (Datasets::iterator idataset = datasets.begin(); idataset != datasets.end(); ++idataset) {
 			char filename[PATH_MAX + 100];
 
-			printf("Writing track %d\n", idataset->first);
+			REprintf("Writing track %d\n", idataset->first);
 			sprintf(filename, "%s/t%d%s", g_db->grootdir().c_str(), idataset->first, EMRDb::TRACK_FILE_EXT.c_str());
 			EMRTrack::serialize(filename, false, *idataset->second);
 		}
@@ -585,12 +585,12 @@ void print_tree(SEXP tree, int depth)
         } else {
             const char *str = CHAR(asChar(data));
             if (is_op && strcmp(str, "&") && strcmp(str, "|") && strcmp(str, "!") && strcmp(str, "(")) {
-                printf("FUNCTION\n");
+                REprintf("FUNCTION\n");
                 is_function = true;
 
                 for (int i = 0; i < depth; ++i)
-                    printf("  ");
-                printf("%s\n", str);
+                    REprintf("  ");
+                REprintf("%s\n", str);
 
                 while (1) {
                     tree = CDR(tree);
@@ -601,22 +601,22 @@ void print_tree(SEXP tree, int depth)
                     if (isReal(res)) {
                         for (int i = 0; i < Rf_length(res); ++i) {
                             for (int j = 0; j < depth; ++j)
-                                printf("  ");
-                            printf("REAL %g\n", REAL(res)[i]);
+                                REprintf("  ");
+                            REprintf("REAL %g\n", REAL(res)[i]);
                         }
                     } else if (isLogical(res)) {
                         for (int i = 0; i < Rf_length(res); ++i) {
                             for (int j = 0; j < depth; ++j)
-                                printf("  ");
-                            printf("LOGICAL %d\n", LOGICAL(res)[i]);
+                                REprintf("  ");
+                            REprintf("LOGICAL %d\n", LOGICAL(res)[i]);
                         }
                     } else
                         verror("Error in eval");
                 }
             } else {
                 for (int i = 0; i < depth; ++i)
-                    printf("  ");
-                printf("%s\n", str);
+                    REprintf("  ");
+                REprintf("%s\n", str);
             }
             is_op = false;
         }
@@ -637,7 +637,7 @@ SEXP nrtest_substitute(SEXP _expr, SEXP _envir)
         if (isLanguage(_expr))
             print_tree(_expr, 0);
         else
-            printf("PLAIN %s\n", CHAR(asChar(_expr)));
+            REprintf("PLAIN %s\n", CHAR(asChar(_expr)));
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
     } catch (const bad_alloc &e) {
@@ -657,7 +657,7 @@ SEXP nrfilter(SEXP _expr, SEXP _stime, SEXP _etime, SEXP _envir)
         filter.debug_print();
 
         while (1) {
-            printf("Enter iterator point (id, time, ref) or quit: ");
+            REprintf("Enter iterator point (id, time, ref) or quit: ");
             char buf[1000];
             if (!fgets(buf, sizeof(buf), stdin))
                 continue;
@@ -671,12 +671,12 @@ SEXP nrfilter(SEXP _expr, SEXP _stime, SEXP _etime, SEXP _envir)
                 if (retv == 2)
                     ref = -1;
 
-                printf("Filtering....\n");
+                REprintf("Filtering....\n");
                 EMRPoint point(id, EMRTimeStamp(time, (unsigned char)ref));
                 if (filter.is_passed(point))
-                    printf("PASSED\n");
+                    REprintf("PASSED\n");
                 else
-                    printf("NOT PASSED, next point: %s\n", filter.jumpto().tostr().c_str());
+                    REprintf("NOT PASSED, next point: %s\n", filter.jumpto().tostr().c_str());
             } else {
                 if (!strcmp(buf, "quit"))
                     break;
@@ -707,8 +707,8 @@ SEXP nrtest_time_iterator(SEXP _times, SEXP _stime, SEXP _etime, SEXP _keepref, 
         itr.begin();
 
         while (1) {
-            printf("Current point %s\n", itr.point().tostr().c_str());
-            printf("Enter iterator point (id, time, ref) or quit: ");
+            REprintf("Current point %s\n", itr.point().tostr().c_str());
+            REprintf("Enter iterator point (id, time, ref) or quit: ");
             char buf[1000];
             if (!fgets(buf, sizeof(buf), stdin))
                 continue;
@@ -724,7 +724,7 @@ SEXP nrtest_time_iterator(SEXP _times, SEXP _stime, SEXP _etime, SEXP _keepref, 
 
                 itr.next(EMRPoint(id, EMRTimeStamp(time, -1)));
                 if (itr.isend()) {
-                    printf("End\n");
+                    REprintf("End\n");
                     break;
                 }
             } else {
@@ -784,7 +784,7 @@ SEXP emr_test_pipe(SEXP _num_processes, SEXP _timeout, SEXP _envir)
         }
 
         vdebug("End\n");
-        printf("Received: %ld bytes, rate: %ld bytes / sec\n", bytes_read, bytes_read / timeout);
+        REprintf("Received: %ld bytes, rate: %ld bytes / sec\n", bytes_read, bytes_read / timeout);
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
     } catch (const bad_alloc &e) {
@@ -826,7 +826,7 @@ SEXP emr_test_eval(SEXP _expr, SEXP _n, SEXP _envir)
             REAL(bbb)[0] = i + 1;
             SEXP res = eval_in_R(eval_expr, g_naryn->env());
             int lres = REAL(res)[0];
-//            printf("res: %g\n", REAL(res)[0]);
+//            REprintf("res: %g\n", REAL(res)[0]);
             runprotect(res);
         }
 	} catch (TGLException &e) {
