@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Creates a track from a track expression — emr_track.create • naryn</title>
+<title>Gets or sets "read-only" property of a track — emr_track.readonly • naryn</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Creates a track from a track expression — emr_track.create" />
-<meta property="og:description" content="Creates a track from a track expression." />
+<meta property="og:title" content="Gets or sets "read-only" property of a track — emr_track.readonly" />
+<meta property="og:description" content="Gets or sets &quot;readonly&quot; property of a track." />
 
 
 
@@ -111,69 +111,39 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Creates a track from a track expression</h1>
+    <h1>Gets or sets "read-only" property of a track</h1>
     
-    <div class="hidden name"><code>emr_track.create.Rd</code></div>
+    <div class="hidden name"><code>emr_track.readonly.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Creates a track from a track expression.</p>
+    <p>Gets or sets "readonly" property of a track.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>emr_track.create</span>(<span class='no'>track</span>, <span class='no'>space</span>, <span class='no'>categorical</span>, <span class='no'>expr</span>, <span class='kw'>stime</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-                 <span class='kw'>etime</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>iterator</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>keepref</span> <span class='kw'>=</span> <span class='no'>F</span>,
-                 <span class='kw'>filter</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
+    <pre class="usage"><span class='fu'>emr_track.readonly</span>(<span class='no'>track</span>, <span class='kw'>readonly</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>track</th>
-      <td><p>the name of the newly created track</p></td>
+      <td><p>track name</p></td>
     </tr>
     <tr>
-      <th>space</th>
-      <td><p>"user" or "global" space</p></td>
-    </tr>
-    <tr>
-      <th>categorical</th>
-      <td><p>if 'TRUE' track is marked as categorical</p></td>
-    </tr>
-    <tr>
-      <th>expr</th>
-      <td><p>track expression</p></td>
-    </tr>
-    <tr>
-      <th>stime</th>
-      <td><p>start time scope</p></td>
-    </tr>
-    <tr>
-      <th>etime</th>
-      <td><p>end time scope</p></td>
-    </tr>
-    <tr>
-      <th>iterator</th>
-      <td><p>track expression iterator. If 'NULL' iterator is determined implicitly based on track expressions</p></td>
-    </tr>
-    <tr>
-      <th>keepref</th>
-      <td><p>If 'TRUE' references are preserved in the iterator</p></td>
-    </tr>
-    <tr>
-      <th>filter</th>
-      <td><p>Iterator filter</p></td>
+      <th>readonly</th>
+      <td><p>if 'NULL', return "readonlyness" of the track, otherwise sets it</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>This function creates a new user or global track based on the values from the track expression. The location of the track is controlled via 'space' parameter which can be either "user" or to "global".</p>
+    <p>This function gets or sets "read-onlyness" of the track. If 'readonly' is 'NULL' the functions retuns whether the track is R/O. Otherwise it sets "read-onlyness" to the value indicated by 'readonly'.</p>
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
     <p>None.</p>
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
-    <div class='dont-index'><p><code><a href='emr_track.import.html'>emr_track.import</a></code>, <code><a href='emr_track.addto.html'>emr_track.addto</a></code>, <code><a href='emr_track.rm.html'>emr_track.rm</a></code>, <code><a href='emr_track.readonly.html'>emr_track.readonly</a></code>, <code><a href='emr_track.ls.html'>emr_track.ls</a></code>, <code><a href='emr_track.exists.html'>emr_track.exists</a></code></p></div>
+    <div class='dont-index'><p><code><a href='emr_track.create.html'>emr_track.create</a></code>, <code><a href='emr_track.mv.html'>emr_track.mv</a></code>, <code><a href='emr_track.ls.html'>emr_track.ls</a></code>, <code><a href='emr_track.rm.html'>emr_track.rm</a></code></p></div>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
