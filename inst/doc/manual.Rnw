@@ -132,11 +132,13 @@ Naryn can work under R (as a package) or Python (as a module). The vast majority
 
 \section{Database}
 
-\subsection{Global and User Space}
+\subsection{Global and User Space, Read-Only Tracks}
 
 Naryn allows accessing the data that resides in \emph{tracks} where each track holds certain type of medical data such as patients' diagnoses or their hemoglobin level at certain points of time. The track files are aggregated in a directory. Before the tracks can be accessed, Naryn needs to establish connection to this directory, also referred as a \emph{global root} or \emph{global space root}. Call \texttt{emr\_db.init} function to establish the access to the tracks in the global root directory. Optionally \texttt{emr\_db.init} accepts an additional \emph{user root} (or \emph{user space root}) directory which can also constains additional tracks.
 
-Even though both global and user root directories may contain track files their designation is different. The global root directory is intended to stay mainly read-only with a notable exception of periodic updates to the existing data which can be performed via \texttt{emr\_track.addto} function. No tracks are allowed to be deleted from the global root directory. Unlike that user root directory is intended to store volatile data like the results of intermediate calculations. New tracks can be created in both user or global space using \texttt{emr\_track.import} or \texttt{emr\_track.create} yet the creation of tracks in the global space is strongly discouraged.
+Even though both global and user root directories may contain track files their designation is different. The global root directory is intended to stay mainly read-only. The user root directory on the other hand is intended to store volatile data like the results of intermediate calculations. New tracks can be created in both user or global space using \texttt{emr\_track.import} or \texttt{emr\_track.create} yet the creation of tracks in the global space should be done for a well justified reason.
+
+A track may be marked as read-only to prevent its accidential deletion or modification. Use \texttt{emr\_track.readonly} to set or get read-only property of the track. A newly created tracks is always writable. If you wish to mark it as "read-only", please do it in a separate call.
 
 \subsection{Load-on-demand vs. Pre-load Modes}
 

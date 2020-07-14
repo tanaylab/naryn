@@ -28,6 +28,6 @@ None.
 }
 
 \seealso{
-\code{\link{emr_track.addto}}, \code{\link{emr_track.create}}, \code{\link{emr_db.init}}, \code{\link{emr_track.ls}}
+\code{\link{emr_track.addto}}, \code{\link{emr_track.create}}, \code{\link{emr_track.readonly}}, \code{\link{emr_db.init}}, \code{\link{emr_track.ls}}
 }
 \keyword{ ~import }

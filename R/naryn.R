@@ -65,20 +65,24 @@
     filter
 }
 
-.emr_track.var.dir <- function(track) {
+.emr_track.dir <- function(track) {
     if (is.na(match(track, .emr_call("emr_global_track_names", new.env(parent = parent.frame()), silent = TRUE))))
         dirname <- get("EMR_UROOT", envir = .GlobalEnv)
     else
         dirname <- get("EMR_GROOT", envir = .GlobalEnv)
-    paste0(dirname, "/.", track, ".var")
+    dirname
+}
+
+.emr_track.filename <- function(track) {
+    paste0(.emr_track.dir(track), "/", track, ".nrtrack")
+}
+
+.emr_track.var.dir <- function(track) {
+    paste0(.emr_track.dir(track), "/.", track, ".var")
 }
 
 .emr_track.pyvar.dir <- function(track) {
-    if (is.na(match(track, .emr_call("emr_global_track_names", new.env(parent = parent.frame()), silent = TRUE))))
-        dirname <- get("EMR_UROOT", envir = .GlobalEnv)
-    else
-        dirname <- get("EMR_GROOT", envir = .GlobalEnv)
-    paste0(dirname, "/.", track, ".pyvar")
+    paste0(.emr_track.dir(track), "/.", track, ".pyvar")
 }
 
 .emr_vtrack.get <- function(vtrackstr) {
@@ -181,6 +185,9 @@ emr_track.addto <- function(track, src) {
 		stop("Usage: emr_track.addto(track, src)", call. = F)
     .emr_checkroot()
 
+    if (emr_track.readonly(track))
+		stop(sprintf("Cannot add data to track %s: it is read-only.\n", track), call. = F)
+
 	.emr_call("emr_import", track, NULL, NULL, src, T, new.env(parent = parent.frame()))
     retv <- NULL
 }
@@ -270,6 +277,9 @@ emr_track.mv <- function(src, tgt, space = NULL) {
             stop("User space root directory is not set. Please call emr_db.init(user.dir=...)", call. = F)
     }
 
+    if (emr_track.readonly(src))
+		stop(sprintf("Cannot move track %s: it is read-only.\n", src), call. = F)
+
     if (emr_vtrack.exists(tgt))
         stop(sprintf("Virtual track %s already exists", tgt), call. = F)
 
@@ -297,6 +307,35 @@ emr_track.percentile <- function(track, val, lower = T) {
     .emr_call("emr_track_percentile", track, val, lower, new.env(parent = parent.frame()))
 }
 
+emr_track.readonly <- function(track, readonly = NULL) {
+	if (missing(track))
+		stop("Usage: emr_track.readonly(track, readonly = NULL)", call. = F)
+    .emr_checkroot()
+
+	if (!emr_track.exists(track))
+		stop(sprintf("Track %s does not exist", track), call. = F)
+
+    file <- .emr_track.filename(track)
+    if (file.access(file, 0) == -1)
+        stop(sprintf("File %s does not exist", file), call. = F)
+
+    if (is.null(readonly)) {
+        # read-only == no write permissions
+        if (file.access(file, 2) == 0)
+            return(FALSE)
+        return(TRUE)
+    }
+    
+    if (readonly)
+        mode <- "444"
+    else
+        mode <- "666"
+
+    if (Sys.chmod(file, mode, use_umask = F) == FALSE)
+        stop(sprintf("Failed to set read-only attribute for track %s", track), call. = F)
+    retv <- NULL
+}
+
 emr_track.rm <- function(track, force = F) {
 	if (missing(track))
 		stop("Usage: emr_track.rm(track, force = F)", call. = F)
@@ -308,8 +347,14 @@ emr_track.rm <- function(track, force = F) {
 		stop(sprintf("Track %s does not exist", track), call. = F)
 	}
 
-	if (!is.na(match(track, .emr_call("emr_global_track_names", new.env(parent = parent.frame()), silent = TRUE))))
-		stop(sprintf("Cannot remove track %s: it is located in the global space.\n", track), call. = F)
+    readonly <- F
+    if (force)
+        tryCatch({ readonly <- emr_track.readonly(track) })
+    else
+        readonly <- emr_track.readonly(track)
+
+    if (readonly)
+		stop(sprintf("Cannot remove track %s: it is read-only.\n", track), call. = F)
 
 	answer <- "N"
 	if (force)
@@ -321,15 +366,15 @@ emr_track.rm <- function(track, force = F) {
 	}
 	
 	if (answer == "Y" || answer == "YES") {
+        dirname1 <- .emr_track.var.dir(track)
+        dirname2 <- .emr_track.pyvar.dir(track)
     	.emr_call("emr_track_rm", track, new.env(parent = parent.frame()))
 
-        dirname <- .emr_track.var.dir(track)
-        if (file.exists(dirname))
-            unlink(dirname, recursive = TRUE)
+        if (file.exists(dirname1))
+            unlink(dirname1, recursive = TRUE)
 
-        dirname <- .emr_track.pyvar.dir(track)
-        if (file.exists(dirname))
-            unlink(dirname, recursive = TRUE)
+        if (file.exists(dirname2))
+            unlink(dirname2, recursive = TRUE)
     }
 
     retv <- NULL
@@ -400,6 +445,9 @@ emr_track.var.rm <- function(track, var) {
 	if (!emr_track.exists(track))
 		stop(sprintf("Track %s does not exist", track), call. = F)
 
+    if (emr_track.readonly(track))
+		stop(sprintf("Cannot remove vars from track %s: it is read-only.\n", track), call. = F)
+
     dirname <- .emr_track.var.dir(track)
     filename <- paste(dirname, var, sep = "/");
 	if (!file.exists(filename))
@@ -420,6 +468,9 @@ emr_track.var.set <- function(track, var, value) {
 
 	if (!emr_track.exists(track))
 		stop(sprintf("Track %s does not exist", track), call. = F)
+
+    if (emr_track.readonly(track))
+		stop(sprintf("Cannot set vars for track %s: it is read-only.\n", track), call. = F)
 
     dirname <- .emr_track.var.dir(track)
 

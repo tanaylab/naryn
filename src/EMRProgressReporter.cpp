@@ -1,4 +1,4 @@
-#include <sys/timeb.h>
+#include <sys/time.h>
 
 #include "EMR.h"
 #include "EMRProgressReporter.h"
@@ -19,9 +19,9 @@ void EMRProgressReporter::init(uint64_t maxsteps, uint64_t init_report_step, uin
 
 uint64_t EMRProgressReporter::get_cur_clock()
 {
-	struct timeb tp;
-	ftime(&tp);
-	return tp.time * 1000 + tp.millitm;
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return tv.tv_sec * 1000 + tv.tv_usec / 1000;
 }
 
 void EMRProgressReporter::report(uint64_t delta_steps_done)

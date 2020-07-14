@@ -31,7 +31,7 @@ None.
 }
 
 \seealso{
-\code{\link{emr_track.import}}, \code{\link{emr_track.addto}}, \code{\link{emr_track.rm}}, \code{\link{emr_track.ls}}, \code{\link{emr_track.exists}}
+\code{\link{emr_track.import}}, \code{\link{emr_track.addto}}, \code{\link{emr_track.rm}}, \code{\link{emr_track.readonly}}, \code{\link{emr_track.ls}}, \code{\link{emr_track.exists}}
 }
 \keyword{ ~track }
 \keyword{ ~create }
