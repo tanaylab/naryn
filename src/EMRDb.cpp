@@ -11,7 +11,9 @@
 #include "EMRTrack.h"
 
 const string  EMRDb::TRACK_FILE_EXT(".nrtrack");
+const string  EMRDb::TRACK_ATTRS_FILE_EXT(".attrs");
 const char   *EMRDb::TRACK_LIST_FILENAME = ".naryn";
+const char   *EMRDb::TRACKS_ATTRS_FILENAME = ".attrs";
 const char   *EMRDb::DOB_TRACKNAME = "patients.dob";
 const char   *EMRDb::IDS_FILENAME = ".ids";
 const int     EMRDb::IDS_SIGNATURE = 0xC0FFEE;
@@ -134,8 +136,11 @@ void EMRDb::reload()
 
     vdebug("EMRDb::reload()\n");
     create_track_list_file(true, NULL);
-    if (!m_rootdirs[0].empty())
+    create_tracks_attrs_file(true, false);
+    if (!m_rootdirs[0].empty()) {
         create_track_list_file(false, NULL);
+        create_tracks_attrs_file(false, false);
+    }
 
     refresh();
 }
@@ -191,15 +196,33 @@ void EMRDb::cache_tracks()
 #endif
 }
 
+void EMRDb::lock_track_lists(BufferedFile *locks, const char *mode)
+{
+    if (!m_rootdirs[0].empty())
+        lock_track_list(false, locks[0], mode);
+    if (!m_rootdirs[1].empty())
+        lock_track_list(true, locks[1], mode);
+}
+
+void EMRDb::lock_track_list(bool is_global, BufferedFile &lock, const char *mode)
+{
+    if (!lock.opened()) {
+        string filename = track_list_filename(is_global);
+        if (lock.open(filename.c_str(), mode, true))
+            verror("Failed to open file %s: %s", filename.c_str(), strerror(errno));
+        if (!strcmp(mode, "r"))
+            vdebug("R lock acquired\n");
+        else if (!strcmp(mode, "w"))
+            vdebug("W lock acquired\n");
+        else
+            vdebug("R/W lock acquired\n");
+    }
+}
+
 void EMRDb::load_track_list(bool is_global, BufferedFile &bf)
 {
     vdebug("Loading %s track list before update\n", is_global ? "global" : "local");
-    string filename = track_list_filename(is_global);
-    if (bf.open(filename.c_str(), "r+", true))
-        verror("Failed to open file %s: %s", filename.c_str(), strerror(errno));
-
-    vdebug("R/W lock acquired\n");
-
+    lock_track_list(is_global, bf, "r+");
     load_track_list(is_global, &bf);
 }
 
@@ -218,7 +241,7 @@ void EMRDb::load_track_list(bool is_global, BufferedFile *_pbf)
         if (!_pbf && pbf->open(filename.c_str(), "r", true)) {
             if (errno != ENOENT)
                 verror("Failed to open file %s: %s", filename.c_str(), strerror(errno));
-            create_track_list_file(is_global, _pbf);
+            create_track_list_file(is_global, NULL);
             continue;
         }
 
@@ -348,12 +371,9 @@ void EMRDb::create_track_list_file(bool is_global, BufferedFile *_pbf)
 
         if (!_pbf) {
             vdebug("Opening %s track list for write", is_global ? "global" : "local");
-            // Lock the file for writing before scan to prevent concurent scan at the same time.
+            // Lock the file for writing before scan to prevent concurrent scan at the same time.
             // If not done, an earlier scan might write its results to track list file after a later scan.
-            string filename = track_list_filename(is_global);
-            if (bf.open(filename.c_str(), "w", true))
-                verror("Failed to open file %s: %s.", filename.c_str(), strerror(errno));
-            vdebug("W lock acquired");
+            lock_track_list(is_global, bf, "w");
         }
 
         // scan directory structure
@@ -460,6 +480,209 @@ void EMRDb::unload_track(const char *track_name)
     load_track_list(is_global, bf);   // lock track list for write
     m_tracks.erase(track_name);
     update_track_list_file(m_tracks, is_global, bf);
+}
+
+EMRDb::Track2Attrs EMRDb::get_tracks_attrs(const vector<string> &tracks, vector<string> &attrs)
+{
+    Track2Attrs res;
+    bool tracks_attrs_loaded[2] = { false, false };
+    BufferedFile locks[2];
+    lock_track_lists(locks, "r+");
+
+    for (const auto &trackname : tracks) {
+        Name2Track::iterator itrack = m_tracks.find(trackname);
+
+        if (itrack == m_tracks.end())
+            verror("Track %s does not exist", trackname.c_str());
+
+        bool is_global = itrack->second.is_global;
+        if (!tracks_attrs_loaded[is_global]) {
+            load_tracks_attrs(is_global, true);
+            tracks_attrs_loaded[is_global] = true;
+        }
+        
+        auto itrack2attrs = m_track2attrs[is_global].find(trackname);
+        if (itrack2attrs != m_track2attrs[is_global].end()) {
+            if (attrs.empty())
+                res.emplace(trackname, itrack2attrs->second);
+            else {
+                Track2Attrs::iterator ires_track2attrs = res.end();
+                for (const auto &attr : attrs) {
+                    auto iattr = itrack2attrs->second.find(attr);
+                    if (iattr != itrack2attrs->second.end()) {
+                        if (ires_track2attrs == res.end())
+                            ires_track2attrs = res.emplace(trackname, TrackAttrs()).first;
+                        ires_track2attrs->second.emplace(iattr->first, iattr->second);
+                    }
+                }
+            }
+        }
+    }
+    return res;
+}
+
+void EMRDb::set_track_attr(const char *trackname, const char *attr, const char *val)
+{
+    BufferedFile locks[2];
+    lock_track_lists(locks, "r+");
+
+    Name2Track::iterator itrack = m_tracks.find(trackname);
+
+    if (itrack == m_tracks.end())
+        verror("Track %s does not exist", trackname);
+
+    bool is_global = itrack->second.is_global;
+    locks[!is_global].close();   // release lock for the other space
+
+    string track_attrs_fname(track_attrs_filename(is_global, trackname));
+    TrackAttrs track_attrs = EMRTrack::load_attrs(trackname, track_attrs_fname.c_str());
+
+    if (val)
+        track_attrs[attr] = val;
+    else
+        track_attrs.erase(attr);
+
+    EMRTrack::save_attrs(trackname, track_attrs_fname.c_str(), track_attrs);
+
+    load_tracks_attrs(is_global, true);
+
+    if (track_attrs.empty())
+        m_track2attrs[is_global].erase(trackname);
+    else
+        m_track2attrs[is_global][trackname] = track_attrs;
+
+    update_tracks_attrs_file(is_global, true);
+}
+
+void EMRDb::load_tracks_attrs(bool is_global, bool locked)
+{
+    BufferedFile lock;
+    if (!locked)
+        lock_track_list(is_global, lock, "r+");
+
+    while (1) {
+        BufferedFile bf;
+        string filename = tracks_attrs_filename(is_global);
+
+        if (bf.open(filename.c_str(), "r")) {
+            if (errno != ENOENT)
+                verror("Failed to open file %s: %s", filename.c_str(), strerror(errno));
+            create_tracks_attrs_file(is_global, true);
+            continue;
+        }
+
+        struct stat fs;
+        if (bf.stat(&fs) == -1)
+            verror("stat failed on file %s: %s", bf.file_name().c_str(), strerror(errno));
+
+        // tracks attributes in memory are synced with the attributes file on disk
+        if (m_tracks_attrs_ts[is_global] == fs.st_mtim) {
+            vdebug("Up-to-date %s tracks attributes are already in memory", is_global ? "global" : "local");
+            return;
+        }
+
+        m_track2attrs[is_global].clear();
+
+        if (bf.file_size()) {
+            int c;
+            string buf;
+            string attr;
+            uint32_t num_attrs;
+            enum { TRACK, ATTR, VAL } token = TRACK;
+            Track2Attrs::iterator itrack2attrs;
+
+            while ((c = bf.getc()) != EOF) {
+                if (c)
+                    buf.push_back(c);
+
+                if (!c) { // end of string
+                    if (token == TRACK) {
+                        if (bf.read(&num_attrs, sizeof(num_attrs)) != sizeof(num_attrs))
+                            break;
+                        if (!num_attrs)
+                            break;
+                        itrack2attrs = m_track2attrs[is_global].emplace(buf, TrackAttrs()).first;
+                        token = ATTR;
+                    } else if (token == ATTR) {
+                        attr = buf;
+                        token = VAL;
+                    } else {
+                        itrack2attrs->second.emplace(attr, buf);
+                        --num_attrs;
+                        token = num_attrs ? ATTR : TRACK;
+                    }
+
+                    buf.clear();
+                }
+            }
+
+            if (bf.error())
+                verror("Failed to read file %s: %s", bf.file_name().c_str(), strerror(errno));
+            
+            if (c != EOF || num_attrs) {
+                vwarning("Invalid format of file %s, rebuilding it", bf.file_name().c_str());
+                bf.close();
+                create_tracks_attrs_file(is_global, true);
+                continue;
+            }
+        }
+
+        m_tracks_attrs_ts[is_global] = fs.st_mtim;
+        vdebug("Read %lu tracks with attributes", m_track2attrs[is_global].size());
+        break;
+    }
+}
+
+void EMRDb::create_tracks_attrs_file(bool is_global, bool locked)
+{
+    BufferedFile lock;
+    if (!locked)
+        lock_track_list(is_global, lock, "r+");
+
+    EMRProgressReporter progress;
+    progress.init(m_tracks.size(), 1);
+    m_track2attrs[is_global].clear();
+
+    vdebug("Scanning tracks in %s space for attributes\n", is_global ? "global" : "user");
+    for (const auto &name2track_info : m_tracks) {
+        const string &trackname = name2track_info.first;
+        string filename = track_attrs_filename(is_global, trackname);
+        EMRTrack::TrackAttrs attrs = EMRTrack::load_attrs(trackname.c_str(), filename.c_str());
+        if (!attrs.empty())
+            m_track2attrs[is_global].emplace(trackname, attrs);
+        check_interrupt();
+        progress.report(1);
+    }
+    progress.report_last();
+
+    vdebug("Found %lu tracks with attributes\n", m_track2attrs[is_global].size());
+    update_tracks_attrs_file(is_global, true);
+}
+
+void EMRDb::update_tracks_attrs_file(bool is_global, bool locked)
+{
+    BufferedFile lock;
+    if (!locked)
+        lock_track_list(is_global, lock, "r+");
+
+    BufferedFile bf;
+    string filename = tracks_attrs_filename(is_global);
+
+    vdebug("Creating %s with attributes from %lu tracks", filename.c_str(), m_track2attrs[is_global].size());
+    if (bf.open(filename.c_str(), "w"))
+        verror("Failed to open file %s: %s", filename.c_str(), strerror(errno));
+
+    for (auto const &track2attr : m_track2attrs[is_global]) {
+        bf.write(track2attr.first.c_str(), track2attr.first.size() + 1);   // track name
+        uint32_t num_attrs = (uint32_t)track2attr.second.size();           // number of attributes
+        bf.write(&num_attrs, sizeof(num_attrs));
+        for (const auto &attr : track2attr.second) {
+            bf.write(attr.first.c_str(), attr.first.size() + 1);           // attribute
+            bf.write(attr.second.c_str(), attr.second.size() + 1);         // value
+        }
+    }
+    if (bf.error())
+        verror("Error while writing file %s: %s\n", bf.file_name().c_str(), strerror(errno));
 }
 
 void EMRDb::clear_ids_subset(bool warn)

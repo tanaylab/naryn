@@ -1,5 +1,7 @@
 \name{emr_track.ls}
 \alias{emr_track.ls}
+\alias{emr_track.global.ls}
+\alias{emr_track.user.ls}
 \title{
 Returns a list of track names
 }
@@ -9,6 +11,10 @@ Returns a list of track names in the database.
 \usage{
 emr_track.ls(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE,
              useBytes = FALSE)
+emr_track.global.ls(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE,
+             useBytes = FALSE)
+emr_track.user.ls(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE,
+             useBytes = FALSE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -16,14 +22,20 @@ emr_track.ls(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE,
   \item{ignore.case, perl, fixed, useBytes}{see 'grep'}
 }
 \details{
-This function returns a list of all tracks (global and user) in the database that match the pattern (see 'grep'). If called without any arguments all tracks are returned.
+'emr_track.ls' returns a list of all tracks (global and user) in the database that match the pattern (see 'grep'). If called without any arguments all tracks are returned.
+
+If pattern is specified without a track attribute (i.e. in the form of 'pattern') then filtering is applied to the track names. If pattern is supplied with a track attribute (i.e. in the form of 'name = pattern') then track attribute is matched against the pattern.
+
+Multiple patterns are applied one after another. The resulted list of tracks should match all the patterns.
+
+'emr_track.global.ls' and 'emr_track.user.ls' work similarly to 'emr_track.ls' but instead of returning all track names, each of them returns either global or local tracks accordingly.
 }
 \value{
 An array that contains the names of tracks that match the supplied patterns.
 }
 
 \seealso{
-\code{\link{grep}}, \code{\link{emr_db.init}}, \code{\link{emr_track.global.ls}}, \code{\link{emr_track.user.ls}}, \code{\link{emr_track.exists}}
+\code{\link{grep}}, \code{\link{emr_db.init}}, \code{\link{emr_track.exists}}
 }
 \examples{
 emr_db.init_examples()
@@ -33,6 +45,12 @@ emr_track.ls()
 
 # get track names that match the pattern "den*"
 emr_track.ls("den*")
+
+emr_track.attr.set("sparse_track", "gender", "female")
+emr_track.attr.set("dense_track", "gender", "male")
+emr_track.ls(gender='')
+emr_track.ls(gender='female')
+emr_track.ls(gender='^male')
 }
 \keyword{ ~track }
 \keyword{ ~tracks }

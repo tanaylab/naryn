@@ -180,11 +180,49 @@ The operations that can be applied to both of these types can be very different.
 
 During the track creation one must specify the type of the track: categorical or quantitative. Various operations that can be later applied to the track are bound to the track type.
 
+\subsubsection{Track Attributes}
+
+In addition to numeric data a track may store arbitrary meta-data such as description, source, etc. The meta-data is stored in the form of name-value pairs or attributes where the value is a character string.
+
+Though not officially enforced attributes are intended to store relatively short character strings. Please use \emph{track variables} to store data in any other format. 
+
+A single attribute can be retrieved, added, modified or deleted using \texttt{emr\_track.attr.get} and \texttt{emr\_track.attr.set} functions. Bulk access to more than one attribute is facilitated by \texttt{emr\_track.attr.export} function. \newline
+
+\noindent\fbox{
+\parbox{\textwidth}{
+\textbf{R}
+
+Track names which attributes values match a pattern can be retrieved using \texttt{emr\_track.ls}, \texttt{emr\_track.global.ls} and \texttt{emr\_track.user.ls} functions.
+}
+} \newline
+
 \subsubsection{Track Variables}
 
 Track statistics, results of time-consuming per-track calculations, historical data and any other data in arbitrary format can be stored in a track's supplementary data in the form of track variables. Track variable can be retrieved, added, modified or deleted using \texttt{emr\_track.var.get}, \texttt{emr\_track.var.set}, \texttt{emr\_track.var.rm} functions. List of track variables can be retrieved using \texttt{emr\_track.var.ls} function.
 
 Note: track variables created in R are not visible in Python and vice versa.
+
+\subsubsection{Track Attributes vs. Track Variables}
+
+Though both track attributes and track variables can be used to store meta-data of a track, there are a few important differences between the two that are summed up in the following table: 
+\subparagraph*{}
+
+\begin{tabular}{|l|p{2in}|p{2in}|}
+  \hline
+   & Track Attributes & Track Variables \\
+  \hline
+  Optimal use case & Track properties as short, non-empty character strings (description, source, ...) & Arbitrary data associated with the track \\
+  Value type & Character string & Arbitrary  \\
+  Single value retrieval & \texttt{emr\_track.attr.get} & \texttt{emr\_track.var.get} \\
+  Bulk value retrieval & \texttt{emr\_track.attr.export} & --- \\
+  Single value modification & \texttt{emr\_track.attr.set} & \texttt{emr\_track.var.set} \\
+  Object names retrieval & \texttt{emr\_track.attr.export} & \texttt{emr\_track.var.ls} \\
+  Object removal & \texttt{emr\_track.attr.rm} & \texttt{emr\_track.var.rm} \\
+  Search by value & R: \newline \texttt{emr\_track.ls}, \texttt{emr\_track.global.ls}, \texttt{emr\_track.user.ls} & --- \\
+  R vs. Python compatibility & Yes & No \\
+  \hline
+\end{tabular}
+\subparagraph*{}
 
 \subsubsection{Subsets}
 

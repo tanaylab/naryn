@@ -1,6 +1,7 @@
 #ifndef EMRDB_H_INCLUDED
 #define EMRDB_H_INCLUDED
 
+#include <map>
 #include <sys/mman.h>
 #include <unordered_map>
 #include <unordered_set>
@@ -18,6 +19,8 @@ class EMRTrack;
 class EMRDb {
 public:
     typedef unordered_set<unsigned> IdsSubset;
+    typedef map<string, string> TrackAttrs;
+    typedef map<string, TrackAttrs> Track2Attrs;
 
     struct TrackInfo {
         EMRTrack        *track;
@@ -30,6 +33,7 @@ public:
     };
 
     static const string TRACK_FILE_EXT;
+    static const string TRACK_ATTRS_FILE_EXT;
 
 	~EMRDb();
 
@@ -61,6 +65,14 @@ public:
     void load_track(const char *track_name, bool is_global);
     void unload_track(const char *track_name);
 
+    // Returns tracks attributes.
+    // Prefer this method over EMRTrack::load_attrs as the current method might return cached attributes
+    // thus eliminating the need for a file access.
+    Track2Attrs get_tracks_attrs(const vector<string> &tracks, vector<string> &attrs);
+
+    // sets track attribute; if val == NULL, the attribute is removed
+    void set_track_attr(const char *track_name, const char *attr, const char *val);
+
     unsigned id(size_t idx);
     size_t id2idx(unsigned id);  // returns id index given id
     bool id_exists(unsigned id);
@@ -80,16 +92,19 @@ protected:
     typedef unordered_map<unsigned, size_t> Id2Idx;
 
     static const char *TRACK_LIST_FILENAME;
+    static const char *TRACKS_ATTRS_FILENAME;
     static const char *DOB_TRACKNAME;
     static const char *IDS_FILENAME;
-    static const int IDS_SIGNATURE;
+    static const int   IDS_SIGNATURE;
 
     unsigned         m_transact_id{1};
     Name2Track       m_tracks;
     string           m_rootdirs[2];   // 0 - user, 1 - global
     bool             m_load_on_demand[2]{ false, false };
     struct timespec  m_track_list_ts[2]{{0, 0}, {0, 0}};
+    struct timespec  m_tracks_attrs_ts[2]{{0, 0}, {0, 0}};
     vector<string>   m_track_names[2];
+    Track2Attrs      m_track2attrs[2];
     IdsSubset        m_ids_subset;
     string           m_ids_subset_src;
     double           m_ids_subset_fraction;
@@ -104,13 +119,21 @@ protected:
     Id2Idx           m_id2idx;
 
     string track_filename(bool is_global, const string &track_name) const { return m_rootdirs[is_global] + string("/") + track_name + TRACK_FILE_EXT; }
+    string track_attrs_filename(bool is_global, const string &track_name) const { return m_rootdirs[is_global] + string("/.") + track_name + TRACK_ATTRS_FILE_EXT; }
     string track_list_filename(bool is_global) const { return m_rootdirs[is_global] + "/" + TRACK_LIST_FILENAME; }
+    string tracks_attrs_filename(bool is_global) const { return m_rootdirs[is_global] + "/" + TRACKS_ATTRS_FILENAME; }
     string ids_filename() const { return m_rootdirs[1] + "/" + IDS_FILENAME; }
 
     void clear(bool is_global);
     void clear_ids();
 
     void cache_tracks();
+
+    // opens and locks track list file according to the mode: "r", "r+", "w"
+    void lock_track_list(bool is_global, BufferedFile &lock, const char *mode);
+
+    // opens and locks track list files (both global and user) according to the mode: "r", "r+", "w"
+    void lock_track_lists(BufferedFile *locks, const char *mode);
 
     // Scans root directory for tracks, creates track list file with the gathered data.
     void create_track_list_file(bool is_global, BufferedFile *pbf);
@@ -124,6 +147,15 @@ protected:
 
     // Loads track list before update (opens the file for r+w and locks it).
     void load_track_list(bool is_global, BufferedFile &bf);
+
+    // Scans root directory for tracks attributes, creates tracks attributes file with the gathered data.
+    void create_tracks_attrs_file(bool is_global, bool locked);
+
+    // Writes data into tracks attributes file.
+    void update_tracks_attrs_file(bool is_global, bool locked);
+
+    // Loads track attributes file. If corrupted or missing, recreates it.
+    void load_tracks_attrs(bool is_global, bool locked);
 
     void create_ids_file();
     void load_ids();

@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <limits>
+#include <map>
 #include <memory>
 #include <string.h>
 #include <typeinfo>
@@ -22,7 +23,7 @@
 
 class EMRTrack {
 public:
-	enum { FILE_ERROR, BAD_DATA_TYPE, BAD_FORMAT };
+	enum { FILE_ERROR, BAD_DATA_TYPE, BAD_FORMAT, BAD_ATTRS };
 
 	enum TrackType { SPARSE, DENSE, NUM_TRACK_TYPES };
 
@@ -47,6 +48,8 @@ public:
         bool        quantitative;
         bool        keepref;
     };
+
+    typedef map<string, string> TrackAttrs;
 
     static const FuncInfo FUNC_INFOS[NUM_FUNCS];
 
@@ -98,6 +101,9 @@ public:
 	static TrackType serialize(const char *filename, unsigned flags, EMRTrackData<T> &data);
 
 	static EMRTrack *unserialize(const char *name, const char *filename);
+
+	static TrackAttrs load_attrs(const char *track, const char *filename);
+	static void save_attrs(const char *track, const char *filename, const TrackAttrs &attrs);
 
 public:
 	class DataFetcher {

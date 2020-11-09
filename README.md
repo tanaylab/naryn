@@ -1,4 +1,5 @@
 <!-- badges: start -->
+
 [![Travis build
 status](https://travis-ci.com/tanaylab/naryn.svg?branch=master)](https://travis-ci.org/tanaylab/naryn)
 <!-- badges: end -->

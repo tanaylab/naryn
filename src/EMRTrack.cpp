@@ -172,3 +172,76 @@ EMRTrack *EMRTrack::unserialize(const char *name, const char *filename)
     return NULL;
 }
 
+EMRTrack::TrackAttrs EMRTrack::load_attrs(const char *, const char *filename)
+{
+	BufferedFile bfile;
+	int c;
+	int idx = 0;
+	string name;
+	string val;
+    TrackAttrs attrs;
+
+	if (bfile.open(filename, "rb")) {
+		if (errno == ENOENT)   // no file = no attributes
+			return attrs;
+		TGLError<EMRTrack>(FILE_ERROR, "Failed to read attributes file %s: %s", filename, strerror(errno));
+	}
+
+	while ((c = bfile.getc()) >= 0) {
+		if (c) {
+			if (idx) 
+				val.push_back((char)c);
+			else
+				name.push_back((char)c);
+		} else {
+			if (idx) {
+				if (name.empty() || val.empty())
+					TGLError<EMRTrack>(BAD_FORMAT, "Invalid format of attributes file %s", filename); 
+
+				if (attrs.find(name) != attrs.end()) // duplicated attributes
+					TGLError<EMRTrack>(BAD_FORMAT, "Invalid format of attributes file %s", filename); 
+
+				attrs[name] = val;
+				name.clear();
+				val.clear();
+			}
+			idx = 1 - idx;
+		}
+	}
+
+	if (bfile.error()) 
+		TGLError<EMRTrack>(FILE_ERROR, "Failed to read attributes file %s: %s", filename, strerror(errno));
+
+	if (idx) 
+		TGLError<EMRTrack>(BAD_FORMAT, "Invalid format of attributes file %s", filename); 
+    return attrs;
+}
+
+void EMRTrack::save_attrs(const char *track, const char *filename, const TrackAttrs &attrs)
+{
+	if (attrs.empty()) {
+		if (unlink(filename) && errno != ENOENT)
+			TGLError<EMRTrack>(FILE_ERROR, "Failed accessing attributes file %s: %s", filename, strerror(errno));
+		return;
+	}
+
+	for (TrackAttrs::const_iterator iattr = attrs.begin(); iattr != attrs.end(); ++iattr) {
+		if (iattr->first.empty())
+			TGLError<EMRTrack>(BAD_ATTRS, "Track %s: attribute name is an empty string", track); 
+	}
+
+	BufferedFile bfile;
+
+	if (bfile.open(filename, "wb"))
+		TGLError<EMRTrack>(FILE_ERROR, "Failed to write attributes file %s: %s", filename, strerror(errno));
+
+	for (TrackAttrs::const_iterator iattr = attrs.begin(); iattr != attrs.end(); ++iattr) {
+		if (!iattr->second.empty())  {
+			bfile.write(iattr->first.c_str(), iattr->first.length() + 1);
+			bfile.write(iattr->second.c_str(), iattr->second.length() + 1);
+		}
+	}
+
+	if (bfile.error())
+		TGLError<EMRTrack>(FILE_ERROR, "Failed to write attributes file %s: %s", filename, strerror(errno));
+}

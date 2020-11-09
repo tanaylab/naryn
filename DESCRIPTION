@@ -1,16 +1,16 @@
 Package: naryn
 Type: Package
 Title: Toolkit for analysis of medical records
-Version: 2.5.11
+Version: 2.6.0
 Depends: utils
 SystemRequirements: GNU make
-Date: 2020-07-14
+Date: 2020-11-09
 Author: Misha Hoichman
-Maintainer: Misha Hoichman <misha.hoichman@weizmann.ac.il>
+Maintainer: Misha Hoichman <misha@hoichman.com>
 Description: Toolkit for medical records data analysis
 License: GPL-2
 LazyLoad: yes
 NeedsCompilation: yes
-Packaged: 2020-07-14 14:01:05 UTC; hoichman
+Packaged: 2020-11-09 18:12:03 UTC; hoichman
 Authors@R: person("Misha", "Hoichman", email = "misha@hoichman.com", role = c("aut", "cre"))
 BugReports: https://github.com/tanaylab/naryn/issues

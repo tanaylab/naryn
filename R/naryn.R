@@ -104,6 +104,42 @@
     unlink(src, recursive = TRUE)
 }
 
+.emr_tracks_filter <- function(..., tracks, ignore.case, perl, fixed, useBytes) {
+    args <- as.list(substitute(list(...)))[-1L]
+    args <- list(...)
+
+    if (is.null(tracks) || !length(tracks))
+        return (character(0))
+
+    if (length(args) >= 1) {
+        attrs <- c()
+        patterns <- c()
+
+        # first filter out file names (this filtering is faster than filtering by track attribute)
+        for (i in 1 : length(args)) {
+            arg <- as.character(args[[i]])
+            if (is.null(names(args)) || names(args)[i] == "")
+                tracks <- grep(arg, tracks, value = TRUE, ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes)
+            else {
+                attrs <- c(attrs, names(args)[i])
+                patterns <- c(patterns, as.character(args[[i]]))
+            }
+        }
+
+        # filter out by attributes
+        if (length(attrs)) {
+            attrs_table <- .emr_call("emr_get_tracks_attrs", tracks, attrs, new.env(parent = parent.frame()))
+            for (i in 1 : length(attrs)) {
+                tracks <- with(attrs_table, attrs_table[attr==attrs[i] & grepl(patterns[i], value),])$track
+                attrs_table <- attrs_table[attrs_table$track %in% tracks,]
+                if (!nrow(attrs_table))
+                    return (character(0))
+            }
+        }
+    }
+    sort(tracks)
+}
+
 emr_db.init <- function(global.dir = NULL, user.dir = NULL, global.load.on.demand = T, user.load.on.demand = T, do.reload = F) {
 	if (is.null(global.dir))
 		stop("Usage: emr_db.init(global.dir, user.dir = NULL, global.load.on.demand = T, user.load.on.demand = T, do.reload = F)", call. = F);
@@ -192,6 +228,49 @@ emr_track.addto <- function(track, src) {
     retv <- NULL
 }
 
+emr_track.attr.export <- function(track = NULL, attr = NULL) {
+	.emr_checkroot()
+
+	if (is.null(track))
+	    track <- .emr_call("emr_track_names", new.env(parent = parent.frame()), silent = TRUE)
+    else
+	    track <- unique(track)
+	if (!is.null(attr))
+	    attr <- unique(attr)
+
+	.emr_call("emr_get_tracks_attrs", track, attr, new.env(parent = parent.frame()))
+}
+
+emr_track.attr.get <- function(track = NULL, attr = NULL) {
+	if (missing(track) || missing(attr))
+	    stop("Usage: emr_track.attr.get(track, attr)", call. = F)
+	.emr_checkroot()
+
+	res <- emr_track.attr.export(track, attr)
+    if (nrow(res))
+	    res[1, 2]
+    else
+        NULL
+}
+
+emr_track.attr.rm <- function(track = NULL, attr = NULL) {
+	if (missing(track) || missing(attr))
+	    stop("Usage: emr_track.attr.rm(track, attr)", call. = F)
+	.emr_checkroot()
+
+    .emr_call("emr_set_track_attr", track, attr, NULL, new.env(parent = parent.frame()))
+	retv <- 0 # suppress return value
+}
+
+emr_track.attr.set <- function(track = NULL, attr = NULL, value = NULL) {
+	if (missing(track) || missing(attr) || missing(value))
+	    stop("Usage: emr_track.attr.set(track, attr, value)", call. = F)
+	.emr_checkroot()
+
+    .emr_call("emr_set_track_attr", track, attr, value, new.env(parent = parent.frame()))
+	retv <- 0 # suppress return value
+}
+
 emr_track.create <- function(track, space, categorical, expr, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)
 {
 	if (missing(track) || missing(space) || missing(categorical) || missing(expr))
@@ -257,13 +336,10 @@ emr_track.info <- function(track) {
 	.emr_call("emr_track_info", track, new.env(parent = parent.frame()))
 }
 
-emr_track.ls <- function(pattern = "", ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
+emr_track.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
     .emr_checkroot()
 	tracks <- .emr_call("emr_track_names", new.env(parent = parent.frame()), silent = TRUE)
-    if (pattern != "")
-	    sort(grep(pattern, tracks, value = TRUE, ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes))
-    else
-        sort(tracks)
+    .emr_tracks_filter(..., tracks=tracks, ignore.case=ignore.case, perl=perl, fixed=fixed, useBytes=useBytes)
 }
 
 emr_track.mv <- function(src, tgt, space = NULL) {
@@ -380,16 +456,16 @@ emr_track.rm <- function(track, force = F) {
     retv <- NULL
 }
 
-emr_track.global.ls <- function(pattern = "", ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
+emr_track.global.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
     .emr_checkroot()
 	tracks <- .emr_call("emr_global_track_names", new.env(parent = parent.frame()), silent = TRUE)
-	sort(grep(pattern, tracks, value = TRUE, ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes))
+    .emr_tracks_filter(..., tracks=tracks, ignore.case=ignore.case, perl=perl, fixed=fixed, useBytes=useBytes)
 }
 
-emr_track.user.ls <- function(pattern = "", ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
+emr_track.user.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
     .emr_checkroot()
 	tracks <- .emr_call("emr_user_track_names", new.env(parent = parent.frame()), silent = TRUE)
-	sort(grep(pattern, tracks, value = TRUE, ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes))
+    .emr_tracks_filter(..., tracks=tracks, ignore.case=ignore.case, perl=perl, fixed=fixed, useBytes=useBytes)
 }
 
 emr_track.unique <- function(track) {
@@ -1188,4 +1264,3 @@ emr_traceback <- function(x = NULL, max.lines = getOption("deparse.max.lines")) 
 
 	traceback(x, max.lines)
 }
-

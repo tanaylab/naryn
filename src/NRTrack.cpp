@@ -302,4 +302,95 @@ SEXP emr_track_percentile(SEXP _track, SEXP _value, SEXP _lower, SEXP _envir)
 	return R_NilValue;
 }
 
+SEXP emr_get_tracks_attrs(SEXP _tracks, SEXP _attrs, SEXP _envir)
+{
+	try {
+		Naryn naryn(_envir);
+
+		if (!isNull(_tracks) && (!isString(_tracks) || xlength(_tracks) < 1))
+			verror("'track' argument must be a vector of strings");
+
+		if (!isNull(_attrs) && (!isString(_attrs) || xlength(_tracks) < 1))
+			verror("'attr' argument must be a vector of strings");
+
+        vector<string> tracks(xlength(_tracks));
+        vector<string> attrs(xlength(_attrs));
+
+        for (R_xlen_t i = 0; i < xlength(_tracks); ++i)
+            tracks[i] = CHAR(STRING_ELT(_tracks, i));
+        for (R_xlen_t i = 0; i < xlength(_attrs); ++i)
+            attrs[i] = CHAR(STRING_ELT(_attrs, i));
+
+        EMRDb::Track2Attrs track2attrs = g_db->get_tracks_attrs(tracks, attrs);
+        size_t num_attrs = 0;
+
+        for (const auto &v : track2attrs)
+            num_attrs += v.second.size();
+
+        SEXP ranswer, rtracks, rattrs, rvals, rcol_names, rrow_names;
+        int row = 0;
+        
+        rprotect(ranswer = RSaneAllocVector(VECSXP, 3));
+        rprotect(rcol_names = RSaneAllocVector(STRSXP, 3));
+        rprotect(rrow_names = RSaneAllocVector(INTSXP, num_attrs));
+        rprotect(rtracks = RSaneAllocVector(STRSXP, num_attrs));
+        rprotect(rattrs = RSaneAllocVector(STRSXP, num_attrs));
+        rprotect(rvals = RSaneAllocVector(STRSXP, num_attrs));
+
+        for (const auto &v : track2attrs) {
+            const string &trackname = v.first;
+            for (const auto &attr : v.second) {
+                SET_STRING_ELT(rtracks, row, mkChar(trackname.c_str()));
+                SET_STRING_ELT(rattrs, row, mkChar(attr.first.c_str()));
+                SET_STRING_ELT(rvals, row, mkChar(attr.second.c_str()));
+                INTEGER(rrow_names)[row] = row + 1;
+                ++row;
+            }
+        }
+        SET_VECTOR_ELT(ranswer, 0, rtracks);
+        SET_VECTOR_ELT(ranswer, 1, rattrs);
+        SET_VECTOR_ELT(ranswer, 2, rvals);
+        SET_STRING_ELT(rcol_names, 0, mkChar("track"));
+        SET_STRING_ELT(rcol_names, 1, mkChar("attr"));
+        SET_STRING_ELT(rcol_names, 2, mkChar("value"));
+        setAttrib(ranswer, R_NamesSymbol, rcol_names);        
+        setAttrib(ranswer, R_RowNamesSymbol, rrow_names);
+        setAttrib(ranswer, R_ClassSymbol, mkString("data.frame"));
+        return ranswer;
+	} catch (TGLException &e) {
+		rerror("%s", e.msg());
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
+	return R_NilValue;
+}
+
+SEXP emr_set_track_attr(SEXP _track, SEXP _attr, SEXP _value, SEXP _envir)
+{
+	try {
+		Naryn naryn(_envir);
+
+		// check the arguments
+		if (!isString(_track) || Rf_length(_track) != 1)
+			verror("'track' argument must be a string");
+
+        if (!isString(_attr) || Rf_length(_attr) != 1)
+            verror("'attr' argument must be a string");
+
+        if (!isNull(_value) && (!isString(_value) || Rf_length(_value) != 1))
+            verror("'value' argument must be a string");
+
+        const char *trackname = CHAR(asChar(_track));
+        const char *attr = CHAR(asChar(_attr));
+        const char *value = isNull(_value) ? NULL : CHAR(asChar(_value));
+
+        g_db->set_track_attr(trackname, attr, value);
+	} catch (TGLException &e) {
+		rerror("%s", e.msg());
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
+	return R_NilValue;
+}
+
 }
