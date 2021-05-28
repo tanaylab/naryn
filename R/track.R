@@ -1,4 +1,3 @@
-
 .emr_tracks_filter <- function(..., tracks, ignore.case, perl, fixed, useBytes) {
     args <- as.list(substitute(list(...)))[-1L]
     args <- list(...)
@@ -66,6 +65,31 @@
 }
 
 
+
+
+#' Adds new records to a track
+#' 
+#' Adds new records to a track from a TAB-delimited file or a data frame.
+#' 
+#' This function adds new records to a track. The records are contained either
+#' in a file or a data frame.
+#' 
+#' If 'src' is a file name, the latter must be constituted of four columns
+#' separated by spaces or 'TAB' characters: ID, time, reference and value. The
+#' file might contain lines of comments which should start with a '#'
+#' character.
+#' 
+#' Alternatively 'src' can be a data frame consisting of the columns named
+#' "id", "time", "ref" and "value". Note: "ref" column in the data frame is
+#' optional.
+#' 
+#' @param track track name
+#' @param src file name or data-frame containing the track records
+#' @return None.
+#' @seealso \code{\link{emr_track.import}}, \code{\link{emr_track.create}},
+#' \code{\link{emr_db.init}}, \code{\link{emr_track.ls}}
+#' @keywords ~import
+#' @export emr_track.addto
 emr_track.addto <- function(track, src) {
     if (missing(track) || missing(src)) {
           stop("Usage: emr_track.addto(track, src)", call. = F)
@@ -80,6 +104,42 @@ emr_track.addto <- function(track, src) {
     retv <- NULL
 }
 
+
+
+#' Returns attributes values of tracks
+#' 
+#' Returns attributes values of tracks.
+#' 
+#' This function returns a data frame that contains attributes values of one or
+#' more tracks. The data frame is constituted of 3 columns named 'track',
+#' 'attr' and 'value'.
+#' 
+#' 'track' parameter is optionally used to retrieve only the attributes of the
+#' specific track(s). If 'NULL', attributes of all the tracks are returned.
+#' 
+#' Likewise 'attr' allows to retrieve only specifically named attributes.
+#' 
+#' If both 'track' and 'attr' are used, the attributes that fulfill both of the
+#' conditions are returned.
+#' 
+#' @param track a vector of track names or 'NULL'
+#' @param attr a vector of attribute names or 'NULL'
+#' @return A data frame containing attributes values of tracks.
+#' @seealso \code{\link{emr_track.attr.get}}, \code{\link{emr_track.attr.set}}
+#' @keywords ~attr ~attribute
+#' @examples
+#' 
+#' emr_db.init_examples()
+#' emr_track.attr.export()
+#' emr_track.attr.set("sparse_track", "gender", "female")
+#' emr_track.attr.set("sparse_track", "tag", "")
+#' emr_track.attr.set("dense_track", "gender", "male")
+#' emr_track.attr.export()
+#' emr_track.attr.export(track = "sparse_track")
+#' emr_track.attr.export(attr = "gender")
+#' emr_track.attr.export(track = "sparse_track", attr = "gender")
+#' 
+#' @export emr_track.attr.export
 emr_track.attr.export <- function(track = NULL, attr = NULL) {
     .emr_checkroot()
 
@@ -95,6 +155,28 @@ emr_track.attr.export <- function(track = NULL, attr = NULL) {
     .emr_call("emr_get_tracks_attrs", track, attr, new.env(parent = parent.frame()))
 }
 
+
+
+#' Returns the value of the track attribute
+#' 
+#' Returns the value of the track attribute.
+#' 
+#' This function returns the value of a track attribute or 'NULL' if the
+#' attribute does not exist.
+#' 
+#' @param track track name
+#' @param attr attribute name
+#' @return Track attribute value or 'NULL'.
+#' @seealso \code{\link{emr_track.attr.export}},
+#' \code{\link{emr_track.attr.set}}
+#' @keywords ~attr ~attribute
+#' @examples
+#' 
+#' emr_db.init_examples()
+#' emr_track.attr.set("sparse_track", "test_attr", "value")
+#' emr_track.attr.get("sparse_track", "test_attr")
+#' 
+#' @export emr_track.attr.get
 emr_track.attr.get <- function(track = NULL, attr = NULL) {
     if (missing(track) || missing(attr)) {
           stop("Usage: emr_track.attr.get(track, attr)", call. = F)
@@ -109,6 +191,29 @@ emr_track.attr.get <- function(track = NULL, attr = NULL) {
       }
 }
 
+
+
+#' Deletes a track attribute
+#' 
+#' Deletes a track attribute.
+#' 
+#' This function deletes a track attribute.
+#' 
+#' @param track track name
+#' @param attr attribute name
+#' @return None.
+#' @seealso \code{\link{emr_track.attr.set}}, \code{\link{emr_track.attr.get}},
+#' \code{\link{emr_track.attr.export}}
+#' @keywords ~attr ~attribute
+#' @examples
+#' 
+#' emr_db.init_examples()
+#' emr_track.attr.set("sparse_track", "test_attr", "value")
+#' emr_track.attr.export()
+#' emr_track.attr.rm("sparse_track", "test_attr")
+#' emr_track.attr.export()
+#' 
+#' @export emr_track.attr.rm
 emr_track.attr.rm <- function(track = NULL, attr = NULL) {
     if (missing(track) || missing(attr)) {
           stop("Usage: emr_track.attr.rm(track, attr)", call. = F)
@@ -119,6 +224,29 @@ emr_track.attr.rm <- function(track = NULL, attr = NULL) {
     retv <- 0 # suppress return value
 }
 
+
+
+#' Assigns a value to the track attribute
+#' 
+#' Assigns a value to the track attribute.
+#' 
+#' This function creates a track attribute and assigns 'value' to it. If the
+#' attribute already exists its value is overwritten.
+#' 
+#' @param track track name
+#' @param attr attribute name
+#' @param value value
+#' @return None.
+#' @seealso \code{\link{emr_track.attr.get}}, \code{\link{emr_track.attr.rm}},
+#' \code{\link{emr_track.attr.export}}
+#' @keywords ~attr ~attribute
+#' @examples
+#' 
+#' emr_db.init_examples()
+#' emr_track.attr.set("sparse_track", "test_attr", "value")
+#' emr_track.attr.get("sparse_track", "test_attr")
+#' 
+#' @export emr_track.attr.set
 emr_track.attr.set <- function(track = NULL, attr = NULL, value = NULL) {
     if (missing(track) || missing(attr) || missing(value)) {
           stop("Usage: emr_track.attr.set(track, attr, value)", call. = F)
@@ -129,6 +257,32 @@ emr_track.attr.set <- function(track = NULL, attr = NULL, value = NULL) {
     retv <- 0 # suppress return value
 }
 
+
+
+#' Creates a track from a track expression
+#' 
+#' Creates a track from a track expression.
+#' 
+#' This function creates a new user or global track based on the values from
+#' the track expression. The location of the track is controlled via 'space'
+#' parameter which can be either "user" or to "global".
+#' 
+#' @param track the name of the newly created track
+#' @param space "user" or "global" space
+#' @param categorical if 'TRUE' track is marked as categorical
+#' @param expr track expression
+#' @param stime start time scope
+#' @param etime end time scope
+#' @param iterator track expression iterator. If 'NULL' iterator is determined
+#' implicitly based on track expressions
+#' @param keepref If 'TRUE' references are preserved in the iterator
+#' @param filter Iterator filter
+#' @return None.
+#' @seealso \code{\link{emr_track.import}}, \code{\link{emr_track.addto}},
+#' \code{\link{emr_track.rm}}, \code{\link{emr_track.readonly}},
+#' \code{\link{emr_track.ls}}, \code{\link{emr_track.exists}}
+#' @keywords ~track ~create
+#' @export emr_track.create
 emr_track.create <- function(track, space, categorical, expr, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL) {
     if (missing(track) || missing(space) || missing(categorical) || missing(expr)) {
           stop("Usage: emr_track.create(track, space = \"user\", categorical, expr, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
@@ -156,6 +310,24 @@ emr_track.create <- function(track, space, categorical, expr, stime = NULL, etim
     retv <- NULL
 }
 
+
+
+#' Checks whether the track exists
+#' 
+#' Checks whether the track exists.
+#' 
+#' This function checks whether the track exists.
+#' 
+#' @param track track name
+#' @return 'TRUE' if the tracks exists, otherwise 'FALSE'
+#' @seealso \code{\link{emr_track.ls}}, \code{\link{emr_track.info}}
+#' @keywords ~track ~exists
+#' @examples
+#' 
+#' emr_db.init_examples()
+#' emr_track.exists("sparse_track")
+#' 
+#' @export emr_track.exists
 emr_track.exists <- function(track) {
     if (missing(track)) {
           stop("Usage: emr_track.exist(track)", call. = F)
@@ -164,6 +336,27 @@ emr_track.exists <- function(track) {
     !is.na(match(track, .emr_call("emr_track_names", new.env(parent = parent.frame()), silent = TRUE)))
 }
 
+
+
+#' Returns track ids
+#' 
+#' Returns the ids contained by the track.
+#' 
+#' Returns the ids contained by the track.
+#' 
+#' Note: this function ignores the current subset, i.e. ids of the whole track
+#' are returned.
+#' 
+#' @param track track name
+#' @return An Ids Table
+#' @seealso \code{\link{emr_track.unique}}, \code{\link{emr_track.info}}
+#' @keywords ~track ~ids
+#' @examples
+#' 
+#' emr_db.init_examples()
+#' emr_track.ids("categorical_track")
+#' 
+#' @export emr_track.ids
 emr_track.ids <- function(track) {
     if (missing(track)) {
           stop("Usage: emr_track.ids(track)", call. = F)
@@ -173,6 +366,34 @@ emr_track.ids <- function(track) {
     .emr_call("emr_track_ids", track, new.env(parent = parent.frame()))
 }
 
+
+
+#' Imports a track from a file or data-frame
+#' 
+#' Imports a track from a file or data-frame.
+#' 
+#' This function creates a new track from a text file or a data-frame. The
+#' location of the track is controlled via 'space' parameter which can be
+#' either "user" or to "global".
+#' 
+#' If 'src' is a file name, the latter must be constituted of four columns
+#' separated by spaces or 'TAB' characters: ID, time, reference and value. The
+#' file might contain lines of comments which should start with a '#'
+#' character.
+#' 
+#' Alternatively 'src' can be an ID-Time Values table (see "User Manual" for
+#' more info).
+#' 
+#' @param track the name of the newly created track
+#' @param space "user" or "global" space
+#' @param categorical if 'TRUE' track is marked as categorical
+#' @param src file name or data-frame containing the track records
+#' @return None.
+#' @seealso \code{\link{emr_track.addto}}, \code{\link{emr_track.create}},
+#' \code{\link{emr_track.readonly}}, \code{\link{emr_db.init}},
+#' \code{\link{emr_track.ls}}
+#' @keywords ~import
+#' @export emr_track.import
 emr_track.import <- function(track, space, categorical, src) {
     if (missing(track) || missing(space) || missing(src) || missing(categorical)) {
           stop("Usage: emr_track.import(track, space, categorical, src)", call. = F)
@@ -196,6 +417,29 @@ emr_track.import <- function(track, space, categorical, src) {
     retv <- NULL
 }
 
+
+
+#' Returns information about the track
+#' 
+#' Returns information about the track.
+#' 
+#' This function returns information about the track: type, data type, number
+#' of vales, number of unique values, minimal / maximal value, minimal /
+#' maximal id, minimal / maximal time.
+#' 
+#' Note: this function ignores the current subset, i.e. it is applied to the
+#' whole track.
+#' 
+#' @param track track name
+#' @return A list that contains track properties
+#' @seealso \code{\link{emr_track.ls}}
+#' @keywords ~track ~info ~property
+#' @examples
+#' 
+#' emr_db.init_examples()
+#' emr_track.info("sparse_track")
+#' 
+#' @export emr_track.info
 emr_track.info <- function(track) {
     if (missing(track)) {
           stop("Usage: emr_track.info(track)", call. = F)
@@ -205,12 +449,78 @@ emr_track.info <- function(track) {
     .emr_call("emr_track_info", track, new.env(parent = parent.frame()))
 }
 
+
+
+#' Returns a list of track names
+#' 
+#' Returns a list of track names in the database.
+#' 
+#' 'emr_track.ls' returns a list of all tracks (global and user) in the
+#' database that match the pattern (see 'grep'). If called without any
+#' arguments all tracks are returned.
+#' 
+#' If pattern is specified without a track attribute (i.e. in the form of
+#' 'pattern') then filtering is applied to the track names. If pattern is
+#' supplied with a track attribute (i.e. in the form of 'name = pattern') then
+#' track attribute is matched against the pattern.
+#' 
+#' Multiple patterns are applied one after another. The resulted list of tracks
+#' should match all the patterns.
+#' 
+#' 'emr_track.global.ls' and 'emr_track.user.ls' work similarly to
+#' 'emr_track.ls' but instead of returning all track names, each of them
+#' returns either global or local tracks accordingly.
+#' 
+#' @aliases emr_track.ls emr_track.global.ls emr_track.user.ls
+#' @param ... these arguments are of either form 'pattern' or 'attribute =
+#' pattern'
+#' @param ignore.case,perl,fixed,useBytes see 'grep'
+#' @return An array that contains the names of tracks that match the supplied
+#' patterns.
+#' @seealso \code{\link{grep}}, \code{\link{emr_db.init}},
+#' \code{\link{emr_track.exists}}
+#' @keywords ~track ~tracks ~ls
+#' @examples
+#' 
+#' emr_db.init_examples()
+#' 
+#' # get all track names
+#' emr_track.ls()
+#' 
+#' # get track names that match the pattern "den*"
+#' emr_track.ls("den*")
+#' 
+#' emr_track.attr.set("sparse_track", "gender", "female")
+#' emr_track.attr.set("dense_track", "gender", "male")
+#' emr_track.ls(gender='')
+#' emr_track.ls(gender='female')
+#' emr_track.ls(gender='^male')
+#' 
+#' @export emr_track.ls
 emr_track.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
     .emr_checkroot()
     tracks <- .emr_call("emr_track_names", new.env(parent = parent.frame()), silent = TRUE)
     .emr_tracks_filter(..., tracks = tracks, ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes)
 }
 
+
+
+#' Deletes a track
+#' 
+#' Moves (renames) a track
+#' 
+#' This function moves (renames) 'src' track into 'tgt'. If 'space' equals
+#' 'NULL', the track remains in the same space. Otherwise it is moved to the
+#' specified space.
+#' 
+#' @param src source track name
+#' @param tgt target track name
+#' @param space "global" or "user" or 'NULL'
+#' @return None.
+#' @seealso \code{\link{emr_track.create}}, \code{\link{emr_track.rm}},
+#' \code{\link{emr_track.ls}}
+#' @keywords ~track
+#' @export emr_track.mv
 emr_track.mv <- function(src, tgt, space = NULL) {
     if (missing(src) || missing(tgt)) {
           stop("Usage: emr_track.mv(src, tgt, space = NULL)", call. = F)
@@ -252,6 +562,40 @@ emr_track.mv <- function(src, tgt, space = NULL) {
     retv <- NULL
 }
 
+
+
+#' Returns track percentile of the values
+#' 
+#' Returns track percentile of the values.
+#' 
+#' This function returns the percentiles of the values given in 'val' based on
+#' track data.
+#' 
+#' If 'lower' is 'TRUE' percentile indicates the relative number of track
+#' values lower than 'val'. If 'lower' is 'FALSE' percentile reflects the
+#' relative number of track values lower or equal than 'val'.
+#' 
+#' @param track track name
+#' @param val vector of values
+#' @param lower how to calculate percentiles
+#' @return A vector of percentile values
+#' @seealso \code{\link{emr_track.unique}}
+#' @keywords ~track ~percentile
+#' @examples
+#' 
+#' emr_db.init_examples()
+#' 
+#' # percentiles of 30, 50
+#' emr_track.percentile("dense_track", c(30, 50))
+#' 
+#' # calculate percentiles of track's earliest values in time window
+#' emr_vtrack.create("v1", src = "dense_track", func = "earliest",
+#'                   time.shift = c(-5, 5))
+#' emr_extract(c("dense_track",
+#'               "emr_track.percentile(\"dense_track\", v1, F)"),
+#'               keepref = T, names =  c("col1", "col2"))
+#' 
+#' @export emr_track.percentile
 emr_track.percentile <- function(track, val, lower = T) {
     if (missing(track) || missing(val)) {
           stop("Usage: emr_track.percentile(track, val, lower)", call. = F)
@@ -260,6 +604,24 @@ emr_track.percentile <- function(track, val, lower = T) {
     .emr_call("emr_track_percentile", track, val, lower, new.env(parent = parent.frame()))
 }
 
+
+
+#' Gets or sets "read-only" property of a track
+#' 
+#' Gets or sets "readonly" property of a track.
+#' 
+#' This function gets or sets "read-onlyness" of the track. If 'readonly' is
+#' 'NULL' the functions retuns whether the track is R/O. Otherwise it sets
+#' "read-onlyness" to the value indicated by 'readonly'.
+#' 
+#' @param track track name
+#' @param readonly if 'NULL', return "readonlyness" of the track, otherwise
+#' sets it
+#' @return None.
+#' @seealso \code{\link{emr_track.create}}, \code{\link{emr_track.mv}},
+#' \code{\link{emr_track.ls}}, \code{\link{emr_track.rm}}
+#' @keywords ~track
+#' @export emr_track.readonly
 emr_track.readonly <- function(track, readonly = NULL) {
     if (missing(track)) {
           stop("Usage: emr_track.readonly(track, readonly = NULL)", call. = F)
@@ -295,6 +657,23 @@ emr_track.readonly <- function(track, readonly = NULL) {
     retv <- NULL
 }
 
+
+
+#' Deletes a track
+#' 
+#' Deletes a track.
+#' 
+#' This function deletes a user track from the database. By default
+#' 'emr_track.rm' requires the user to interactively confirm the deletion. Set
+#' 'force' to 'TRUE' to suppress the user prompt.
+#' 
+#' @param track track name
+#' @param force if 'TRUE', supresses user confirmation of a named track removal
+#' @return None.
+#' @seealso \code{\link{emr_track.create}}, \code{\link{emr_track.mv}},
+#' \code{\link{emr_track.ls}}, \code{\link{emr_track.readonly}}
+#' @keywords ~track
+#' @export emr_track.rm
 emr_track.rm <- function(track, force = F) {
     if (missing(track)) {
           stop("Usage: emr_track.rm(track, force = F)", call. = F)
@@ -359,6 +738,28 @@ emr_track.user.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FA
     .emr_tracks_filter(..., tracks = tracks, ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes)
 }
 
+
+
+#' Returns track values
+#' 
+#' Returns unique and sorted track values
+#' 
+#' Returns unique and sorted track values. NaN values (if exist in the track)
+#' are not returned.
+#' 
+#' Note: this function ignores the current subset, i.e. the unique values of
+#' the whole track are returned.
+#' 
+#' @param track track name
+#' @return A vector of values
+#' @seealso \code{\link{emr_track.ids}}, \code{\link{emr_track.info}}
+#' @keywords ~track ~unique
+#' @examples
+#' 
+#' emr_db.init_examples()
+#' emr_track.unique("categorical_track")
+#' 
+#' @export emr_track.unique
 emr_track.unique <- function(track) {
     if (missing(track)) {
           stop("Usage: emr_track.unique(track)", call. = F)
@@ -368,6 +769,29 @@ emr_track.unique <- function(track) {
     .emr_call("emr_track_unique", track, new.env(parent = parent.frame()))
 }
 
+
+
+#' Returns value of a track variable
+#' 
+#' Returns value of a track variable.
+#' 
+#' This function returns the value of a track variable. If the variable does
+#' not exist an error is reported.
+#' 
+#' @param track track name
+#' @param var track variable name
+#' @return Track variable value.
+#' @seealso \code{\link{emr_track.var.set}}, \code{\link{emr_track.var.ls}},
+#' \code{\link{emr_track.var.rm}}
+#' @keywords ~variable
+#' @examples
+#' 
+#' emr_db.init_examples()
+#' emr_track.var.set("sparse_track", "test_var", 1 : 10)
+#' emr_track.var.get("sparse_track", "test_var")
+#' emr_track.var.rm("sparse_track", "test_var")
+#' 
+#' @export emr_track.var.get
 emr_track.var.get <- function(track, var) {
     if (missing(track) || missing(var)) {
           stop("Usage: emr_track.var.get(track, var)", call. = F)
@@ -389,6 +813,34 @@ emr_track.var.get <- function(track, var) {
     val
 }
 
+
+
+#' Returns a list of track variables for a track
+#' 
+#' Returns a list of track variables for a track.
+#' 
+#' This function returns a list of track variables of a track that match the
+#' pattern (see 'grep'). If called without any arguments all track variables of
+#' a track are returned.
+#' 
+#' @param track track name
+#' @param pattern,ignore.case,perl,fixed,useBytes see 'grep'
+#' @return An array that contains the names of track variables.
+#' @seealso \code{\link{grep}}, \code{\link{emr_track.var.get}},
+#' \code{\link{emr_track.var.set}}, \code{\link{emr_track.var.rm}}
+#' @keywords ~variable ~ls
+#' @examples
+#' 
+#' emr_db.init_examples()
+#' emr_track.var.ls("sparse_track")
+#' emr_track.var.set("sparse_track", "test_var1", 1 : 10)
+#' emr_track.var.set("sparse_track", "test_var2", "v")
+#' emr_track.var.ls("sparse_track")
+#' emr_track.var.ls("sparse_track", pattern = "2")
+#' emr_track.var.rm("sparse_track", "test_var1")
+#' emr_track.var.rm("sparse_track", "test_var2")
+#' 
+#' @export emr_track.var.ls
 emr_track.var.ls <- function(track, pattern = "", ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
     if (missing(track)) {
           stop("Usage: emr_track.var.ls(track, pattern = \"\", ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE)", call. = F)
@@ -411,6 +863,31 @@ emr_track.var.ls <- function(track, pattern = "", ignore.case = FALSE, perl = FA
       }
 }
 
+
+
+#' Deletes a track variable
+#' 
+#' Deletes a track variable.
+#' 
+#' This function deletes a track variable.
+#' 
+#' @param track track name
+#' @param var track variable name
+#' @return None.
+#' @seealso \code{\link{emr_track.var.get}}, \code{\link{emr_track.var.set}},
+#' \code{\link{emr_track.var.ls}}
+#' @keywords ~variable
+#' @examples
+#' 
+#' emr_db.init_examples()
+#' emr_track.var.set("sparse_track", "test_var1", 1 : 10)
+#' emr_track.var.set("sparse_track", "test_var2", "v")
+#' emr_track.var.ls("sparse_track")
+#' emr_track.var.rm("sparse_track", "test_var1")
+#' emr_track.var.rm("sparse_track", "test_var2")
+#' emr_track.var.ls("sparse_track")
+#' 
+#' @export emr_track.var.rm
 emr_track.var.rm <- function(track, var) {
     if (missing(track) || missing(var)) {
           stop("Usage: emr_track.var.rm(track, var)", call. = F)
@@ -440,6 +917,30 @@ emr_track.var.rm <- function(track, var) {
     retv <- NULL
 }
 
+
+
+#' Assigns value to a track variable
+#' 
+#' Assigns value to a track variable.
+#' 
+#' This function creates a track variable and assigns 'value' to it. If the
+#' track variable already exists its value is overwritten.
+#' 
+#' @param track track name
+#' @param var track variable name
+#' @param value value
+#' @return None.
+#' @seealso \code{\link{emr_track.var.get}}, \code{\link{emr_track.var.ls}},
+#' \code{\link{emr_track.var.rm}}
+#' @keywords ~variable
+#' @examples
+#' 
+#' emr_db.init_examples()
+#' emr_track.var.set("sparse_track", "test_var", 1 : 10)
+#' emr_track.var.get("sparse_track", "test_var")
+#' emr_track.var.rm("sparse_track", "test_var")
+#' 
+#' @export emr_track.var.set
 emr_track.var.set <- function(track, var, value) {
     if (missing(track) || missing(var) || missing(value)) {
           stop("Usage: emr_track.var.set(track, var, value)", call. = F)
