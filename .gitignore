@@ -1,0 +1,3 @@
+inst/naryndb/test/.naryn
+src/*.so
+src/*.o
