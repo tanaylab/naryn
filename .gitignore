@@ -2,3 +2,4 @@ inst/naryndb/test/.naryn
 src/*.so
 src/*.o
 src/*.d
+tests/testdb
