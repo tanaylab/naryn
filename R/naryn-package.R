@@ -12,6 +12,7 @@
 #' 
 #' 
 #' @name naryn-package
+#' @useDynLib naryn
 #' @aliases naryn-package naryn
 #' @docType package
 #' @keywords package

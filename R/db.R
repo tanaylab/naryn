@@ -60,37 +60,28 @@
 #' \code{\link{emr_filter.ls}}
 #' @keywords ~db ~data ~database
 #' @export emr_db.init
-emr_db.init <- function(global.dir = NULL, user.dir = NULL, global.load.on.demand = T, user.load.on.demand = T, do.reload = F) {
+emr_db.init <- function(global.dir = NULL, user.dir = NULL, global.load.on.demand = TRUE, user.load.on.demand = TRUE, do.reload = F) {
     if (is.null(global.dir)) {
-          stop("Usage: emr_db.init(global.dir, user.dir = NULL, global.load.on.demand = T, user.load.on.demand = T, do.reload = F)", call. = F)
+          stop("Usage: emr_db.init(global.dir, user.dir = NULL, global.load.on.demand = T, user.load.on.demand = T, do.reload = F)", call. = FALSE)
       }
 
-    # replace ~ mark by full path
-    oldwd <- getwd()
-
-    global.dir <- path.expand(global.dir)
-    setwd(global.dir)
-    global.dir <- getwd() # get absolute path
-    setwd(oldwd)
+    global.dir <- normalizePath(global.dir) # get absolute path
 
     if (!is.null(user.dir)) {
-        user.dir <- path.expand(user.dir)
-        setwd(user.dir)
-        user.dir <- getwd() # get absolute path
-        setwd(oldwd)
+        user.dir <- normalizePath(user.dir) # get absolute path
 
         if (global.dir == user.dir) {
-              stop("Global space root directory should differ from user space root directory", call. = F)
+              stop("Global space root directory should differ from user space root directory", call. = FALSE)
           }
     }
 
     EMR_GROOT <<- global.dir
     EMR_UROOT <<- user.dir
-    success <- F
+    success <- FALSE
     tryCatch(
         {
             .emr_call("emr_dbinit", global.dir, user.dir, global.load.on.demand, user.load.on.demand, do.reload, new.env(parent = parent.frame()), silent = TRUE)
-            success <- T
+            success <- TRUE
         },
         finally = {
             if (!success) {
@@ -102,8 +93,8 @@ emr_db.init <- function(global.dir = NULL, user.dir = NULL, global.load.on.deman
     retv <- NULL
 }
 
-emr_db.init_examples <- function() {
-    emr_db.init(paste(.EMR_LIBDIR, "naryndb/test", sep = "/"))
+emr_db.init_examples <- function() {    
+    emr_db.init(system.file("naryndb/test", package="naryn"))    
 }
 
 

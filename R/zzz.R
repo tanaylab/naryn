@@ -12,7 +12,7 @@
           assign(".EMR_LIBDIR", .path.package("naryn"), envir = .GlobalEnv)
       }
 
-    options(emr_multitasking = T)
+    options(emr_multitasking = TRUE)
     options(emr_min.processes = 8)
     options(emr_max.processes = 20)
     options(emr_max.data.size = 10000000)
