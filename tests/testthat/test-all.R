@@ -1,52 +1,8 @@
 
-# This is a dump from Misha's regression test. They need to be edited to testthat form, 
+# This is a dump from Misha's regression test. They need to be edited to testthat form,
 # see test-track.attr.R for examples.
 
-# test_that("test", {
-#     emr_track.rm("test_track1", T)
-#     emr_track.create("test_track1", "user", F, "track0", keepref=T)
-#     e1<-emr_extract(c("test_track1", "track0"), iterator="test_track1", keepref=T)
-#     e2<-emr_extract(c("test_track1", "track0"), iterator="track0", keepref=T)
-#     track.info <- emr_track.info("test_track1")
-#     track.info$path <- NULL
-#     r<-list(identical(e1, e2), identical(e1$test_track1, e1$track0), dim(e1), track.info)
-#     emr_track.rm("test_track1", T)
-#     r
-# })
 
-# test_that("test", {
-#     emr_track.rm("test_track1", T)
-#     emr_track.create("test_track1", "user", F, "track0+2", keepref=F)
-#     r<-emr_extract("test_track1", keepref=T)
-#     emr_track.rm("test_track1", T)
-#     r
-# })
-
-# test_that("test", {
-#     emr_track.rm("test_track1", T)
-#     emr_track.create("test_track1", "user", F, "track0", filter="!track0")
-#     r<-emr_extract("test_track1", keepref=T)
-#     emr_track.rm("test_track1", T)
-#     r
-# })
-
-# test_that("test", {
-#     emr_track.rm("test_track1", T)
-#     emr_track.create("test_track1", "user", F, "track0+2", keepref=F)
-#     emr_track.mv("test_track1", "test_track2")
-#     r<-list(emr_track.global.ls(), emr_track.user.ls())
-#     emr_track.rm("test_track2", T)
-#     r
-# })
-
-# test_that("test", {
-#     emr_track.rm("test_track1", T)
-#     emr_track.create("test_track1", "global", F, "track0+2", keepref=F)
-#     emr_track.mv("test_track1", "test_track2", "user")
-#     r<-list(emr_track.global.ls(), emr_track.user.ls())
-#     emr_track.rm("test_track2", T)
-#     r
-# })
 
 # test_that("test", emr_track.readonly("track0"))
 
@@ -1477,4 +1433,3 @@
 #     options(emr_max.data.size=10000000)
 #     r
 # })
-
