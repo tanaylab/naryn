@@ -1,25 +1,25 @@
 #' Calculates correlation statistics for pairs of track expressions
-#' 
+#'
 #' Calculates correlation statistics for pairs of track expressions.
-#' 
+#'
 #' This function works in a similar manner to 'emr_dist'. However instead of
 #' returning a single counter for each bin 'emr_cor' returns 5 matrices of
 #' 'length(cor.exprs) X length(cor.exprs)' size. Each matrix represents the
 #' correlation statistics for each pair of track expressions from 'cor.exprs'.
 #' Given a 'bin' and a pair of track expressions 'cor.exprs[i]' and
 #' 'cor.exprs[j]' the corresponding matrix contains the following information:
-#' 
+#'
 #' $n[bin,i,j] - number of times when both 'cor.exprs[i]' and 'cor.exprs[j]'
 #' exist $e[bin,i,j] - expectation (average) of values from 'cor.exprs[i]' when
 #' 'cor.exprs[j]' exists $var[bin,i,j] - variance of values from 'cor.exprs[i]'
 #' when 'cor.exprs[j]' exists $cov[bin,i,j] - covariance of 'cor.exprs[i]' and
 #' 'cor.exprs[j]' $cor[bin,i,j] - correlation of 'cor.exprs[i]' and
 #' 'cor.exprs[j]'
-#' 
+#'
 #' Similarly to 'emr_dist' 'emr_cor' can do multi-dimensional binning. Given N
 #' dimensional binning the individual data in the matrices can be accessed as:
 #' $cor[bin1, ..., binN, i, j].
-#' 
+#'
 #' @param expr track expression.
 #' @param breaks breaks that determine the bin or 'NULL'.
 #' @param cor.exprs vector of track expressions for which correlation
@@ -41,13 +41,13 @@
 #' \code{\link{emr_track.unique}}
 #' @keywords ~correlation ~covariance ~variance
 #' @examples
-#' 
+#'
 #' emr_db.init_examples()
 #' emr_cor("categorical_track", c(0, 2, 5),
-#'         cor.exprs = c("sparse_track", "1/dense_track"),
-#'         include.lowest = T, iterator = "categorical_track",
-#'         keepref = T)
-#' 
+#'     cor.exprs = c("sparse_track", "1/dense_track"),
+#'     include.lowest = T, iterator = "categorical_track",
+#'     keepref = T
+#' )
 #' @export emr_cor
 emr_cor <- function(..., cor.exprs = NULL, include.lowest = FALSE, right = TRUE, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL) {
     args <- list(...)
@@ -73,27 +73,27 @@ emr_cor <- function(..., cor.exprs = NULL, include.lowest = FALSE, right = TRUE,
 
 
 #' Calculates distribution of track expressions
-#' 
+#'
 #' Calculates distribution of track expressions' values over the given set of
 #' bins.
-#' 
+#'
 #' This function calculates the distribution of values of the numeric track
 #' expressions over the given set of bins.
-#' 
+#'
 #' The range of bins is determined by 'breaks' argument. For example:
 #' 'breaks=c(x1, x2, x3, x4)' represents three different intervals (bins): (x1,
 #' x2], (x2, x3], (x3, x4].
-#' 
+#'
 #' If the track expression constitutes of a categorical track or a virtual
 #' track which source is a categorical track, the 'breaks' is allowed to be
 #' 'NULL' meaning that the breaks are derived implicitly from the unique values
 #' of the underlying track.
-#' 
+#'
 #' 'emr_dist' can work with any number of dimensions. If more than one
 #' 'expr'-'breaks' pair is passed, the result is a multidimensional vector, and
 #' an individual value can be accessed by [i1,i2,...,iN] notation, where 'i1'
 #' is the first track and 'iN' is the last track expression.
-#' 
+#'
 #' @param expr track expression
 #' @param breaks breaks that determine the bin or 'NULL'
 #' @param include.lowest if 'TRUE', the lowest (or highest, for ‘right =
@@ -110,10 +110,9 @@ emr_cor <- function(..., cor.exprs = NULL, include.lowest = FALSE, right = TRUE,
 #' @seealso \code{\link{emr_cor}}, \code{\link{cut}}
 #' @keywords ~distribution
 #' @examples
-#' 
+#'
 #' emr_db.init_examples()
 #' emr_dist("sparse_track", c(0, 15, 20, 30, 40, 50), keepref = T)
-#' 
 #' @export emr_dist
 emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, etime = NULL, iterator = NULL, keepref = FALSE, filter = NULL) {
     args <- list(...)
@@ -137,30 +136,30 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, et
 
 
 #' Returns evaluated track expression
-#' 
+#'
 #' Returns the result of track expressions evaluation for each of the iterator
 #' points.
-#' 
+#'
 #' This function returns the result of track expressions evaluation for each of
 #' the iterator stops.
-#' 
+#'
 #' If 'tidy' is 'TRUE' the returned value is a set of ID-Time points with two
 #' additional columns named 'expr' and 'value'. 'expr' marks the track
 #' expression that produced the value. Rows with NaN values are omitted from
 #' the tidy format.
-#' 
+#'
 #' If 'tidy' is 'FALSE' the returned value is a set of ID-Time points with an
 #' additional column for the values of each of the track expressions.
-#' 
+#'
 #' If 'sort' is 'TRUE' the returned value is sorted by id, time and reference,
 #' otherwise the order is not guaranteed especially for longer runs, when
 #' multitasking might be launched. Sorting requires additional time, so it is
 #' switched off by default.
-#' 
+#'
 #' 'names' parameter sets the labels for the track expressions in the return
 #' value. If 'names' is 'NULL' the labels are set to the track expression
 #' themselves.
-#' 
+#'
 #' @param expr vector of track expressions
 #' @param tidy if 'TRUE' result is returned in "tidy"" format
 #' @param sort if 'TRUE' result is sorted by id, time and reference
@@ -177,10 +176,9 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, et
 #' @seealso \code{\link{emr_screen}}
 #' @keywords ~extract
 #' @examples
-#' 
+#'
 #' emr_db.init_examples()
 #' emr_extract("dense_track", stime = 1, etime = 3)
-#' 
 #' @export emr_extract
 emr_extract <- function(expr, tidy = F, sort = F, names = NULL, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL) {
     if (missing(expr)) {
@@ -194,18 +192,18 @@ emr_extract <- function(expr, tidy = F, sort = F, names = NULL, stime = NULL, et
 
 
 #' Returns ids coverage per track
-#' 
+#'
 #' Returns ids coverage per track.
-#' 
+#'
 #' This function accepts a set of ids and a vector of categorical tracks. For
 #' each track it calculates how many ids appear in the track. Each id is
 #' counted only once.
-#' 
+#'
 #' Ids can originate from a track or be provided within Ids Table.
-#' 
+#'
 #' Note: The internal iterator that runs over each track is defined with
 #' 'keepref=T'.
-#' 
+#'
 #' @param ids track name or Ids Table
 #' @param tracks a vector of track names
 #' @param stime start time scope
@@ -216,10 +214,9 @@ emr_extract <- function(expr, tidy = F, sort = F, names = NULL, stime = NULL, et
 #' \code{\link{emr_dist}}
 #' @keywords ~coverage
 #' @examples
-#' 
+#'
 #' emr_db.init_examples()
-#' emr_ids_coverage(data.frame(id=c(15,24,27)), "categorical_track")
-#' 
+#' emr_ids_coverage(data.frame(id = c(15, 24, 27)), "categorical_track")
 #' @export emr_ids_coverage
 emr_ids_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filter = NULL) {
     if (missing(ids) || missing(tracks)) {
@@ -256,19 +253,19 @@ emr_ids_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filter = N
 
 
 #' Returns ids coverage per value track
-#' 
+#'
 #' Returns ids coverage per value track.
-#' 
+#'
 #' This function accepts a set of ids and a vector of categorical tracks. For
 #' each track value it calculates how many ids share this value. Each id is
 #' counted only once. A data frame with 3 columns 'track', 'val' and 'count' is
 #' returned.
-#' 
+#'
 #' Ids can originate from a track or be provided within Ids Table.
-#' 
+#'
 #' Note: The internal iterator that runs over each track is defined with
 #' 'keepref=T'.
-#' 
+#'
 #' @param ids track name or Ids Table
 #' @param tracks a vector of track names
 #' @param stime start time scope
@@ -279,10 +276,9 @@ emr_ids_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filter = N
 #' \code{\link{emr_dist}}
 #' @keywords ~coverage
 #' @examples
-#' 
+#'
 #' emr_db.init_examples()
-#' emr_ids_vals_coverage(data.frame(id=c(15,24,27)), "categorical_track")
-#' 
+#' emr_ids_vals_coverage(data.frame(id = c(15, 24, 27)), "categorical_track")
 #' @export emr_ids_vals_coverage
 emr_ids_vals_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filter = NULL) {
     if (missing(ids) || missing(tracks)) {
@@ -315,15 +311,15 @@ emr_ids_vals_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filte
 
 
 #' Calculates quantiles of a track expression
-#' 
+#'
 #' Calculates quantiles of a track expression for the given percentiles.
-#' 
+#'
 #' This function calculates quantiles for the given percentiles.
-#' 
+#'
 #' If data size exceeds the limit (see: 'getOption(emr_max.data.size)'), the
 #' data is randomly sampled to fit the limit. A warning message is generated
 #' then.
-#' 
+#'
 #' @param expr track expression
 #' @param percentiles an array of percentiles of quantiles in [0, 1] range
 #' @param stime start time scope
@@ -336,10 +332,9 @@ emr_ids_vals_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filte
 #' @seealso \code{\link{emr_extract}}
 #' @keywords ~quantiles ~percentiles
 #' @examples
-#' 
+#'
 #' emr_db.init_examples()
 #' emr_quantiles("sparse_track", c(0.1, 0.6, 0.8))
-#' 
 #' @export emr_quantiles
 emr_quantiles <- function(expr, percentiles = 0.5, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL) {
     if (missing(expr)) {
@@ -353,17 +348,17 @@ emr_quantiles <- function(expr, percentiles = 0.5, stime = NULL, etime = NULL, i
 
 
 #' Finds Id-Time points that match track expression
-#' 
+#'
 #' Finds all patient-time pairs where track expression is 'TRUE'.
-#' 
+#'
 #' This function finds all Id-Time points where track expression's value is
 #' 'TRUE'.
-#' 
+#'
 #' If 'sort' is 'TRUE' the returned value is sorted by id, time and reference,
 #' otherwise the order is not guaranteed especially for longer runs, when
 #' multitasking might be launched. Sorting requires additional time, so it is
 #' switched off by default.
-#' 
+#'
 #' @param expr logical track expression
 #' @param sort if 'TRUE' result is sorted by id, time and reference
 #' @param stime start time scope
@@ -376,11 +371,11 @@ emr_quantiles <- function(expr, percentiles = 0.5, stime = NULL, etime = NULL, i
 #' @seealso \code{\link{emr_extract}}
 #' @keywords ~screen
 #' @examples
-#' 
+#'
 #' emr_db.init_examples()
 #' emr_screen("sparse_track == 13 | dense_track < 80",
-#'            iterator = "sparse_track", keepref = T)
-#' 
+#'     iterator = "sparse_track", keepref = T
+#' )
 #' @export emr_screen
 emr_screen <- function(expr, sort = F, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL) {
     if (missing(expr)) {
@@ -394,13 +389,13 @@ emr_screen <- function(expr, sort = F, stime = NULL, etime = NULL, iterator = NU
 
 
 #' Calculates summary statistics of track expression
-#' 
+#'
 #' Calculates summary statistics of track expression.
-#' 
+#'
 #' This function returns summary statistics of a track expression: total number
 #' of values, number of NaN values, min, max, sum, mean and standard deviation
 #' of the values.
-#' 
+#'
 #' @param expr track expression.
 #' @param stime start time scope.
 #' @param etime end time scope.
@@ -412,10 +407,9 @@ emr_screen <- function(expr, sort = F, stime = NULL, etime = NULL, iterator = NU
 #' @seealso \code{\link{emr_track.info}}
 #' @keywords ~summary ~statistics
 #' @examples
-#' 
+#'
 #' emr_db.init_examples()
 #' emr_summary("sparse_track")
-#' 
 #' @export emr_summary
 emr_summary <- function(expr, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL) {
     if (missing(expr)) {

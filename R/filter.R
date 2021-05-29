@@ -20,33 +20,33 @@
 
 
 #' Creates a new named filter
-#' 
+#'
 #' Creates a new named filter.
-#' 
+#'
 #' This function creates a new named filter.
-#' 
+#'
 #' 'src' can be either a track name or an id-time table - data frame with the
 #' first columns named "id", "time" and an optional "ref".
-#' 
+#'
 #' If 'val' is not 'NULL', the time window of the filter is required to contain
 #' at least one value from the vector of 'val'.
-#' 
+#'
 #' 'val' is allowed to be used only when 'src' is a name of a categorical
 #' track.
-#' 
+#'
 #' If 'expiration' is not 'NULL' and the filter window contains a value at time
 #' 't', the existence of previous values in the time window of [t-expiration,
 #' t-1] (aka: "expiration window") is checked. If no such values are found in
 #' the expiration window, the filter returns 'TRUE', otherwise 'FALSE'.
-#' 
+#'
 #' 'expiration' is allowed to be used only when 'src' is a name of a
 #' categorical track and 'keepref' is 'FALSE'.
-#' 
+#'
 #' If both 'val' and 'expiration' are not 'NULL' then only values from 'val'
 #' vector are checked both in time window and expiration window.
-#' 
+#'
 #' Note: 'time.shift' can be used only when 'keepref' is 'FALSE'.
-#' 
+#'
 #' @param filter filter name
 #' @param src source (track name or id-time table)
 #' @param keepref 'TRUE' or 'FALSE'
@@ -58,12 +58,11 @@
 #' \code{\link{emr_filter.exists}}, \code{\link{emr_filter.rm}}
 #' @keywords ~filter
 #' @examples
-#' 
+#'
 #' emr_db.init_examples()
-#' emr_filter.create("f1", "dense_track", time.shift = c(2,4))
+#' emr_filter.create("f1", "dense_track", time.shift = c(2, 4))
 #' emr_filter.create("f2", "dense_track", keepref = T)
 #' emr_extract("sparse_track", filter = "!f1 & f2")
-#' 
 #' @export emr_filter.create
 emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val = NULL, expiration = NULL) {
     if (missing(filter) || missing(src)) {
@@ -104,20 +103,20 @@ emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val =
 
 
 #' Get or set attributes of a named filter
-#' 
+#'
 #' Get or set attributes of a named filter.
-#' 
+#'
 #' When only 'filter' argument is used in the call, the functions return the
 #' corresponding attribute of the named filter. Otherwise a new attribute value
 #' is set.
-#' 
+#'
 #' Note: since inter-dependency exists between certain attributes, the
 #' correctness of the attributes as a whole can only be verified when the named
 #' filter is applied to a track expression.
-#' 
+#'
 #' For more information about the valid attribute values please refer to the
 #' documentation of 'emr_filter.create'.
-#' 
+#'
 #' @aliases emr_filter.attr.src emr_filter.attr.keepref
 #' emr_filter.attr.time.shift emr_filter.attr.val emr_filter.attr.expiration
 #' @param filter filter name.
@@ -126,13 +125,12 @@ emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val =
 #' @seealso \code{\link{emr_filter.create}}
 #' @keywords ~filter
 #' @examples
-#' 
+#'
 #' emr_db.init_examples()
-#' emr_filter.create("f1", "dense_track", time.shift = c(2,4))
+#' emr_filter.create("f1", "dense_track", time.shift = c(2, 4))
 #' emr_filter.attr.src("f1")
 #' emr_filter.attr.src("f1", "sparse_track")
 #' emr_filter.attr.src("f1")
-#' 
 #' @export emr_filter.attr.src
 emr_filter.attr.src <- function(filter, src) {
     if (missing(filter)) {
@@ -280,21 +278,20 @@ emr_filter.attr.expiration <- function(filter, expiration) {
 
 
 #' Checks whether the named filter exists
-#' 
+#'
 #' Checks whether the named filter exists.
-#' 
+#'
 #' This function checks whether the named filter exists.
-#' 
+#'
 #' @param filter filter name
 #' @return 'TRUE', if the named filter exists, otherwise 'FALSE'.
 #' @seealso \code{\link{emr_filter.create}}, \code{\link{emr_filter.ls}}
 #' @keywords ~filter ~exists
 #' @examples
-#' 
+#'
 #' emr_db.init_examples()
-#' emr_filter.create("f1", "dense_track", time.shift = c(2,4))
+#' emr_filter.create("f1", "dense_track", time.shift = c(2, 4))
 #' emr_filter.exists("f1")
-#' 
 #' @export emr_filter.exists
 emr_filter.exists <- function(filter) {
     if (missing(filter)) {
@@ -314,21 +311,20 @@ emr_filter.exists <- function(filter) {
 
 
 #' Returns the definition of a named filter
-#' 
+#'
 #' Returns the definition of a named filter.
-#' 
+#'
 #' This function returns the internal represenation of a named filter.
-#' 
+#'
 #' @param filter filter name
 #' @return Internal representation of a named filter.
 #' @seealso \code{\link{emr_filter.create}}
 #' @keywords ~filter
 #' @examples
-#' 
+#'
 #' emr_db.init_examples()
-#' emr_filter.create("f1", "dense_track", time.shift = c(2,4))
+#' emr_filter.create("f1", "dense_track", time.shift = c(2, 4))
 #' emr_filter.info("f1")
-#' 
 #' @export emr_filter.info
 emr_filter.info <- function(filter) {
     if (missing(filter)) {
@@ -342,26 +338,25 @@ emr_filter.info <- function(filter) {
 
 
 #' Returns a list of named filters
-#' 
+#'
 #' Returns a list of named filters.
-#' 
+#'
 #' This function returns a list of named filters that exist in current R
 #' environment that match the pattern (see 'grep'). If called without any
 #' arguments all named filters are returned.
-#' 
+#'
 #' @param pattern,ignore.case,perl,fixed,useBytes see 'grep'
 #' @return An array that contains the names of filters.
 #' @seealso \code{\link{grep}}, \code{\link{emr_filter.exists}},
 #' \code{\link{emr_filter.create}}, \code{\link{emr_filter.rm}}
 #' @keywords ~filter ~ls
 #' @examples
-#' 
+#'
 #' emr_db.init_examples()
-#' emr_filter.create("f1", "dense_track", time.shift = c(2,4))
+#' emr_filter.create("f1", "dense_track", time.shift = c(2, 4))
 #' emr_filter.create("f2", "dense_track", keepref = T)
 #' emr_filter.ls()
 #' emr_filter.ls("*2")
-#' 
 #' @export emr_filter.ls
 emr_filter.ls <- function(pattern = "", ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
     if (!exists("EMR_FILTERS", envir = .GlobalEnv)) {
@@ -407,24 +402,23 @@ emr_filter.ls <- function(pattern = "", ignore.case = FALSE, perl = FALSE, fixed
 
 
 #' Deletes a named filter
-#' 
+#'
 #' Deletes a named filter.
-#' 
+#'
 #' This function deletes a named filter from current R environment.
-#' 
+#'
 #' @param filter filter name
 #' @return None.
 #' @seealso \code{\link{emr_filter.create}}, \code{\link{emr_filter.ls}}
 #' @keywords ~filter
 #' @examples
-#' 
+#'
 #' emr_db.init_examples()
-#' emr_filter.create("f1", "dense_track", time.shift = c(2,4))
+#' emr_filter.create("f1", "dense_track", time.shift = c(2, 4))
 #' emr_filter.create("f2", "dense_track", keepref = T)
 #' emr_filter.ls()
 #' emr_filter.rm("f1")
 #' emr_filter.ls()
-#' 
 #' @export emr_filter.rm
 emr_filter.rm <- function(filter) {
     if (missing(filter)) {

@@ -1,23 +1,24 @@
 #' Prints call stack of the last uncaught error
-#' 
+#'
 #' Prints call stack of the last uncaught error in a friendly way.
-#' 
+#'
 #' Similarly to 'traceback' this function prints the call stack of the last
 #' uncaught error. Yet 'emr_traceback' does it in a more friendly way by
 #' omitting the calls that occurred inside the library.
-#' 
+#'
 #' @param x see 'traceback'
 #' @param max.lines see 'traceback'
 #' @return See 'traceback'.
 #' @seealso \code{\link{traceback}}
 #' @keywords ~trace ~error ~exception
 #' @examples
-#' 
+#'
 #' emr_db.init_examples()
-#' f <- function() { emr_screen("blablabla") }
+#' f <- function() {
+#'     emr_screen("blablabla")
+#' }
 #' f()
 #' emr_traceback()
-#' 
 #' @export emr_traceback
 emr_traceback <- function(x = NULL, max.lines = getOption("deparse.max.lines")) {
     x <- NULL
