@@ -29,11 +29,10 @@ arguments all named filters are returned.
 \examples{
 
 emr_db.init_examples()
-emr_filter.create("f1", "dense_track", time.shift = c(2,4))
+emr_filter.create("f1", "dense_track", time.shift = c(2, 4))
 emr_filter.create("f2", "dense_track", keepref = T)
 emr_filter.ls()
 emr_filter.ls("*2")
-
 }
 \seealso{
 \code{\link{grep}}, \code{\link{emr_filter.exists}},

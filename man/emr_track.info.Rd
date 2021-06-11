@@ -27,7 +27,6 @@ whole track.
 
 emr_db.init_examples()
 emr_track.info("sparse_track")
-
 }
 \seealso{
 \code{\link{emr_track.ls}}

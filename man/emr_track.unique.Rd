@@ -26,7 +26,6 @@ the whole track are returned.
 
 emr_db.init_examples()
 emr_track.unique("categorical_track")
-
 }
 \seealso{
 \code{\link{emr_track.ids}}, \code{\link{emr_track.info}}

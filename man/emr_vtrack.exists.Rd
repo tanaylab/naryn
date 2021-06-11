@@ -23,7 +23,6 @@ This function checks whether the virtual track exists.
 emr_db.init_examples()
 emr_vtrack.create("vtrack1", "dense_track", c(5, 10), "max")
 emr_vtrack.exists("vtrack1")
-
 }
 \seealso{
 \code{\link{emr_vtrack.create}}, \code{\link{emr_vtrack.ls}}

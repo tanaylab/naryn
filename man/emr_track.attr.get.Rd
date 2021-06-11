@@ -26,7 +26,6 @@ attribute does not exist.
 emr_db.init_examples()
 emr_track.attr.set("sparse_track", "test_attr", "value")
 emr_track.attr.get("sparse_track", "test_attr")
-
 }
 \seealso{
 \code{\link{emr_track.attr.export}},

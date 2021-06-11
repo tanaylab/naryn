@@ -144,16 +144,21 @@ can be used in 'func'.
 
 emr_db.init_examples()
 
-emr_vtrack.create("vtrack1", "dense_track", time.shift = 1,
-                  func = "max")
+emr_vtrack.create("vtrack1", "dense_track",
+    time.shift = 1,
+    func = "max"
+)
 emr_vtrack.create("vtrack2", "dense_track",
-                  time.shift = c(-5, 10), func = "min")
-res = emr_extract("dense_track", keepref=T, names="value")
-emr_vtrack.create("vtrack3", list(res, F), time.shift = c(-5, 10),
-                  func = "min")
+    time.shift = c(-5, 10), func = "min"
+)
+res <- emr_extract("dense_track", keepref = T, names = "value")
+emr_vtrack.create("vtrack3", list(res, F),
+    time.shift = c(-5, 10),
+    func = "min"
+)
 emr_extract(c("dense_track", "vtrack1", "vtrack2", "vtrack3"),
-            keepref = T, iterator="dense_track")
-
+    keepref = T, iterator = "dense_track"
+)
 }
 \seealso{
 \code{\link{emr_vtrack.attr.src}}, \code{\link{emr_vtrack.ls}},

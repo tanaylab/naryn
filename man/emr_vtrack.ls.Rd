@@ -33,7 +33,6 @@ emr_vtrack.create("vtrack1", "dense_track", func = "max")
 emr_vtrack.create("vtrack2", "dense_track", func = "min")
 emr_vtrack.ls()
 emr_vtrack.ls("*2")
-
 }
 \seealso{
 \code{\link{grep}}, \code{\link{emr_vtrack.exists}},

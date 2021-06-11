@@ -21,9 +21,8 @@ This function returns the internal represenation of a named filter.
 \examples{
 
 emr_db.init_examples()
-emr_filter.create("f1", "dense_track", time.shift = c(2,4))
+emr_filter.create("f1", "dense_track", time.shift = c(2, 4))
 emr_filter.info("f1")
-
 }
 \seealso{
 \code{\link{emr_filter.create}}

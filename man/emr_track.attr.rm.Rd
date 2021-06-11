@@ -27,7 +27,6 @@ emr_track.attr.set("sparse_track", "test_attr", "value")
 emr_track.attr.export()
 emr_track.attr.rm("sparse_track", "test_attr")
 emr_track.attr.export()
-
 }
 \seealso{
 \code{\link{emr_track.attr.set}}, \code{\link{emr_track.attr.get}},

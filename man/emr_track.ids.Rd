@@ -25,7 +25,6 @@ are returned.
 
 emr_db.init_examples()
 emr_track.ids("categorical_track")
-
 }
 \seealso{
 \code{\link{emr_track.unique}}, \code{\link{emr_track.info}}

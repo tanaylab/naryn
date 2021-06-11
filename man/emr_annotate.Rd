@@ -43,11 +43,10 @@ order!). Note however that all the package functions (such as 'emr_extract',
 
 emr_db.init_examples()
 
-r1<-emr_extract("sparse_track", keepref=T)
-r2<-emr_extract("dense_track", keepref=T)
+r1 <- emr_extract("sparse_track", keepref = T)
+r2 <- emr_extract("dense_track", keepref = T)
 r2$dense_track <- r2$dense_track + 1000
 emr_annotate(r1, r2)
-
 }
 \seealso{
 \code{\link{emr_extract}}

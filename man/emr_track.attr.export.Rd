@@ -41,7 +41,6 @@ emr_track.attr.export()
 emr_track.attr.export(track = "sparse_track")
 emr_track.attr.export(attr = "gender")
 emr_track.attr.export(track = "sparse_track", attr = "gender")
-
 }
 \seealso{
 \code{\link{emr_track.attr.get}}, \code{\link{emr_track.attr.set}}

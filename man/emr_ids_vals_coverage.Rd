@@ -37,8 +37,7 @@ Note: The internal iterator that runs over each track is defined with
 \examples{
 
 emr_db.init_examples()
-emr_ids_vals_coverage(data.frame(id=c(15,24,27)), "categorical_track")
-
+emr_ids_vals_coverage(data.frame(id = c(15, 24, 27)), "categorical_track")
 }
 \seealso{
 \code{\link{emr_ids_coverage}}, \code{\link{emr_track.ids}},

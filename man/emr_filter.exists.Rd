@@ -21,9 +21,8 @@ This function checks whether the named filter exists.
 \examples{
 
 emr_db.init_examples()
-emr_filter.create("f1", "dense_track", time.shift = c(2,4))
+emr_filter.create("f1", "dense_track", time.shift = c(2, 4))
 emr_filter.exists("f1")
-
 }
 \seealso{
 \code{\link{emr_filter.create}}, \code{\link{emr_filter.ls}}

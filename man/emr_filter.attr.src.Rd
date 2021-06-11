@@ -36,11 +36,10 @@ documentation of 'emr_filter.create'.
 \examples{
 
 emr_db.init_examples()
-emr_filter.create("f1", "dense_track", time.shift = c(2,4))
+emr_filter.create("f1", "dense_track", time.shift = c(2, 4))
 emr_filter.attr.src("f1")
 emr_filter.attr.src("f1", "sparse_track")
 emr_filter.attr.src("f1")
-
 }
 \seealso{
 \code{\link{emr_filter.create}}
