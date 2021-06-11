@@ -88,3 +88,37 @@ test_that("emr_cor works", {
         )))
     )
 })
+
+test_that("emr_cor works when dataframe = TRUE", {
+    # The warning is due to the bit iterator
+    expect_warning(res <- emr_cor("track0", c(0, 10, 500, 1000), cor.exprs = c("track0", "track1", "track2", "track3"), iterator = 1, stime = 20, etime = 5000, keepref = F, dataframe = TRUE))
+
+    expect_warning(res_non_df <- emr_cor("track0", c(0, 10, 500, 1000), cor.exprs = c("track0", "track1", "track2", "track3"), iterator = 1, stime = 20, etime = 5000, keepref = F, dataframe = FALSE))
+
+    expect_true(all(res_non_df$n == res$n))
+    expect_true(all(res_non_df$e == res$e, na.rm = TRUE))
+    expect_true(all(res_non_df$var == res$var, na.rm = TRUE))
+    expect_true(all(res_non_df$cov == res$cov, na.rm = TRUE))
+    expect_true(all(res_non_df$cor == res$cor, na.rm = TRUE))
+
+    expect_true(is.factor(res$i))
+    expect_true(is.factor(res$j))
+    expect_equal(levels(res$i), c("track0", "track1", "track2", "track3"))
+    expect_equal(levels(res$j), c("track0", "track1", "track2", "track3"))
+    expect_equal(levels(res$track0), rownames(res_non_df$n))
+
+    # make sure we have all the pairs
+    pairs <- combn(levels(res$i), 2) %>%
+        t() %>%
+        as.data.frame() %>%
+        rename(i = V1, j = V2)
+
+    expect_true(nrow(anti_join(pairs, res, by = c("i", "j"))) == 0)
+})
+
+test_that("emr_cor works when dataframe = TRUE", {
+    # The warning is due to the bit iterator
+    expect_warning(res <- emr_cor("track0", c(0, 10, 500, 1000), cor.exprs = c("track0", "track1", "track2", "track3"), iterator = 1, stime = 20, etime = 5000, keepref = F, dataframe = TRUE, names = "savta"))
+
+    expect_equal(colnames(res), c("savta", "i", "j", "n", "e", "var", "cov", "cor"))
+})

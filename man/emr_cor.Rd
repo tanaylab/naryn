@@ -13,7 +13,9 @@ emr_cor(
   etime = NULL,
   iterator = NULL,
   keepref = F,
-  filter = NULL
+  filter = NULL,
+  dataframe = FALSE,
+  names = NULL
 )
 }
 \arguments{
@@ -37,6 +39,10 @@ implicitly based on track expressions.}
 
 \item{filter}{Iterator filter.}
 
+\item{dataframe}{return a data frame instead of an N-dimensional vector.}
+
+\item{names}{names for track expressions in the returned dataframe (only relevant when \code{dataframe == TRUE})}
+
 \item{expr}{track expression.}
 
 \item{breaks}{breaks that determine the bin or 'NULL'.}
@@ -44,7 +50,7 @@ implicitly based on track expressions.}
 \value{
 A list of 5 elements each containing a N-dimensional vector (N is
 the number of 'expr'-'breaks' pairs). The member of each vector is a
-specific statistics matrix.
+specific statistics matrix. If \code{dataframe == TRUE} - a data frame with a column for each track expression, additional columns i,j with pairs of \code{cor_exprs} and another 5 columns: 'n', 'e', 'var', 'cov', 'cor', see description.
 }
 \description{
 Calculates correlation statistics for pairs of track expressions.
@@ -67,6 +73,10 @@ when 'cor.exprs[j]' exists $cov[bin,i,j] - covariance of 'cor.exprs[i]' and
 Similarly to 'emr_dist' 'emr_cor' can do multi-dimensional binning. Given N
 dimensional binning the individual data in the matrices can be accessed as:
 $cor[bin1, ..., binN, i, j].
+
+If \code{dataframe == TRUE} the return value is a data frame with a column for each track expression, additional columns i,j with pairs of \code{cor_exprs}
+and another 5 columns: 'n', 'e', 'var', 'cov', 'cor' with the same values 
+as the matrices described above.
 }
 \examples{
 
