@@ -606,40 +606,6 @@
 
 # test_that("test", emr_cor("track0", c(0,10,500,1000), cor.exprs=c("track0", "track1", "track2", "track3"), iterator=1, stime=20, etime=5000, keepref=F))
 
-# test_that("test", emr_dist("track2", c(100, 300, 500, 900, 2000, 3000)))
-
-# test_that("test", emr_dist("track2", c(100, 300, 500, 900, 2000, 3000), keepref=T))
-
-# test_that("test", emr_dist("track1", c(100, 300, 500, 900, 2000, 3000), "track2", c(50, 60, 80, 90)))
-
-# test_that("test", emr_dist("track1", c(100, 300, 500, 900, 2000, 3000), "track2", c(50, 60, 80, 90), iterator="track1"))
-
-# test_that("test", emr_dist("track1", NULL, "track2", c(50, 60, 80, 90), iterator="track1"))
-
-# test_that("test", {
-#     EMR_VTRACKS <<- list()
-#     emr_vtrack.create("v1", "track7", func="dt1.earliest", time.shift=c(-10, 10))
-#     emr_dist("v1", NULL, "track2", c(50, 60, 80, 90), iterator="track1")
-# })
-
-# test_that("test", {
-#     EMR_VTRACKS <<- list()
-#     emr_vtrack.create("v1", "track7", func="frequent", time.shift=c(-10, 10))
-#     emr_dist("v1", NULL, "track2", c(50, 60, 80, 90), iterator="track1")
-# })
-
-# test_that("test", {
-#     EMR_VTRACKS <<- list()
-#     emr_vtrack.create("v1", "track7", func="sample", time.shift=c(-10, 10))
-#     emr_dist("v1", NULL, "track2", c(50, 60, 80, 90), iterator="track1")
-# })
-
-# test_that("test", {
-#     EMR_VTRACKS <<- list()
-#     emr_vtrack.create("v1", "track7", func="sample.time", time.shift=c(-10, 10))
-#     emr_dist("v1", NULL, "track2", c(50, 60, 80, 90), iterator="track1")
-# })
-
 # test_that("test", emr_ids_coverage(data.frame(id=0:200), c("track7", "track6")))
 
 # test_that("test", emr_ids_coverage(data.frame(id=0:200), c("track7", "track6"), filter="track2"))
