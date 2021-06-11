@@ -116,6 +116,7 @@ emr_cor <- function(..., cor.exprs = NULL, include.lowest = FALSE, right = TRUE,
 #'
 #' emr_db.init_examples()
 #' emr_dist("sparse_track", c(0, 15, 20, 30, 40, 50), keepref = T)
+#' emr_dist("sparse_track", c(0, 15, 20, 30, 40, 50), keepref = T, dataframe = TRUE)
 #' @export emr_dist
 emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, etime = NULL, iterator = NULL, keepref = FALSE, filter = NULL, dataframe = FALSE, names = NULL) {
     args <- list(...)

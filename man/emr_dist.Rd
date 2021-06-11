@@ -72,6 +72,7 @@ is the first track and 'iN' is the last track expression.
 
 emr_db.init_examples()
 emr_dist("sparse_track", c(0, 15, 20, 30, 40, 50), keepref = T)
+emr_dist("sparse_track", c(0, 15, 20, 30, 40, 50), keepref = T, dataframe = TRUE)
 }
 \seealso{
 \code{\link{emr_cor}}, \code{\link{cut}}
