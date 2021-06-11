@@ -2,42 +2,6 @@
 # This is a dump from Misha's regression test. They need to be edited to testthat form,
 # see test-track.attr.R for examples.
 
-
-
-# test_that("test", emr_track.readonly("track0"))
-
-# test_that("test", {
-#     if (emr_track.exists("test_track1_ro")) {
-#         emr_track.readonly("test_track1_ro", F)
-#         emr_track.rm("test_track1_ro", T)
-#     }
-#     emr_track.create("test_track1_ro", "user", F, "track0+2", keepref=F)
-#     emr_track.readonly("test_track1_ro", T)
-#     r<-emr_track.readonly("test_track1_ro")
-#     tryCatch({
-#         emr_track.rm("test_track1_ro", T)
-#         r<<-append(r, "oops - deleted R/O track")
-#     },
-#     error=function(cond) {
-#         r<<-append(r, list(cond))
-#     })
-#     emr_track.readonly("test_track1_ro", F)
-#     emr_track.rm("test_track1_ro", T)
-#     r
-# })
-
-# test_that("test", {
-#     emr_track.rm("test_track1", T)
-#     emr_track.create("test_track1", "user", F, "track0+2", keepref=F)
-#     r<-emr_track.ls()
-#     emr_track.rm("test_track1", T)
-#     list(emr_track.ls(), r)
-# })
-
-# test_that("test", emr_track.exists("track2"))
-
-# test_that("test", emr_track.exists("sdaf"))
-
 # test_that("test", emr_track.info("blabla"))
 
 # test_that("test", {

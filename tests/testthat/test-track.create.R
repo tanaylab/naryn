@@ -82,3 +82,4 @@ test_that("emr_track.mv works with different values", {
     expect_true(emr_track.exists("test_track2"))    
     withr::defer(emr_track.rm("test_track2", TRUE))    
 })
+
