@@ -54,6 +54,12 @@
 #'     include.lowest = T, iterator = "categorical_track",
 #'     keepref = T
 #' )
+#' emr_cor("categorical_track", c(0, 2, 5),
+#'     cor.exprs = c("sparse_track", "1/dense_track"),
+#'     include.lowest = T, iterator = "categorical_track",
+#'     keepref = T, 
+#'     dataframe = TRUE
+#' )
 #' @export emr_cor
 emr_cor <- function(..., cor.exprs = NULL, include.lowest = FALSE, right = TRUE, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL, dataframe = FALSE, names = NULL) {
     args <- list(...)

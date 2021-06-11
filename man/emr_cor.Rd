@@ -75,7 +75,7 @@ dimensional binning the individual data in the matrices can be accessed as:
 $cor[bin1, ..., binN, i, j].
 
 If \code{dataframe == TRUE} the return value is a data frame with a column for each track expression, additional columns i,j with pairs of \code{cor_exprs}
-and another 5 columns: 'n', 'e', 'var', 'cov', 'cor' with the same values 
+and another 5 columns: 'n', 'e', 'var', 'cov', 'cor' with the same values
 as the matrices described above.
 }
 \examples{
@@ -85,6 +85,12 @@ emr_cor("categorical_track", c(0, 2, 5),
     cor.exprs = c("sparse_track", "1/dense_track"),
     include.lowest = T, iterator = "categorical_track",
     keepref = T
+)
+emr_cor("categorical_track", c(0, 2, 5),
+    cor.exprs = c("sparse_track", "1/dense_track"),
+    include.lowest = T, iterator = "categorical_track",
+    keepref = T, 
+    dataframe = TRUE
 )
 }
 \seealso{
