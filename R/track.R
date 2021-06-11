@@ -723,8 +723,8 @@ emr_track.rm <- function(track, force = F) {
 }
 
 #' emr_track.ls for global db
-#' 
-#' @export 
+#'
+#' @export
 #' @rdname emr_track.ls
 emr_track.global.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
     .emr_checkroot()
@@ -733,8 +733,8 @@ emr_track.global.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = 
 }
 
 #' emr_track.ls for user db
-#' 
-#' @export 
+#'
+#' @export
 #' @rdname emr_track.ls
 emr_track.user.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
     .emr_checkroot()

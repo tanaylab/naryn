@@ -41,8 +41,8 @@ test_that("emr_track.user.ls works", {
 
 test_that("emr_track.ls responds to creation and deletion", {
     emr_track.rm("test_track1", TRUE)
-    emr_track.create("test_track1", "user", F, "track0+2", keepref=F)
+    emr_track.create("test_track1", "user", F, "track0+2", keepref = F)
     expect_true("test_track1" %in% emr_track.ls())
     emr_track.rm("test_track1", TRUE)
-    expect_false("test_track1" %in% emr_track.ls())    
+    expect_false("test_track1" %in% emr_track.ls())
 })
