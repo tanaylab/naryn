@@ -44,7 +44,7 @@ implicitly based on track expressions.}
 \item{breaks}{breaks that determine the bin or 'NULL'}
 }
 \value{
-N-dimensional vector where N is the number of 'expr'-'breaks' pairs. if \code{dataframe == TRUE} - a data frame with a column for each track expression and an additional column 'n' with counts.
+N-dimensional vector where N is the number of 'expr'-'breaks' pairs. If \code{dataframe == TRUE} - a data frame with a column for each track expression and an additional column 'n' with counts.
 }
 \description{
 Calculates distribution of track expressions' values over the given set of
