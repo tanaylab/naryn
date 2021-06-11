@@ -4,5 +4,7 @@ if (dir.exists("../testdb")) {
 }
 system("cp -rf /net/mraid14/export/tgdata/db/tgdb/emr/naryn_testdb ../testdb")
 
+library(dplyr)
+
 emr_db.init("../testdb", "../testdb/utest")
 emr_db.reload()
