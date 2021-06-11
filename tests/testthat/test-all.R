@@ -2,20 +2,6 @@
 # This is a dump from Misha's regression test. They need to be edited to testthat form,
 # see test-track.attr.R for examples.
 
-# test_that("test", emr_track.info("blabla"))
-
-# test_that("test", {
-#     track.info <- emr_track.info("track4")
-#     track.info$path <- NULL
-#     track.info
-# })
-
-# test_that("test", {
-#     track.info <- emr_track.info("track1_sparse")
-#     track.info$path <- NULL
-#     track.info
-# })
-
 # test_that("test", emr_track.var.get("aaa", "blablablabla"))
 
 # test_that("test", emr_track.var.get("track1", "blablablabla"))
