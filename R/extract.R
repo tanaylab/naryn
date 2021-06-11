@@ -109,7 +109,7 @@ emr_cor <- function(..., cor.exprs = NULL, include.lowest = FALSE, right = TRUE,
 #' @param dataframe return a data frame instead of an N-dimensional vector.
 #' @param names names for track expressions in the returned dataframe (only relevant when \code{dataframe == TRUE})
 #'
-#' @return N-dimensional vector where N is the number of 'expr'-'breaks' pairs. if \code{dataframe == TRUE} - a data frame with a column for each track expression and an additional column 'n' with counts.
+#' @return N-dimensional vector where N is the number of 'expr'-'breaks' pairs. If \code{dataframe == TRUE} - a data frame with a column for each track expression and an additional column 'n' with counts.
 #' @seealso \code{\link{emr_cor}}, \code{\link{cut}}
 #' @keywords ~distribution
 #' @examples
