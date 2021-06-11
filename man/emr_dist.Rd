@@ -12,7 +12,9 @@ emr_dist(
   etime = NULL,
   iterator = NULL,
   keepref = FALSE,
-  filter = NULL
+  filter = NULL,
+  dataframe = FALSE,
+  names = NULL
 )
 }
 \arguments{
@@ -33,12 +35,16 @@ implicitly based on track expressions.}
 
 \item{filter}{Iterator filter.}
 
+\item{dataframe}{return a data frame instead of an N-dimensional vector.}
+
+\item{names}{names for track expressions in the returned dataframe (only relevant when \code{dataframe == TRUE})}
+
 \item{expr}{track expression}
 
 \item{breaks}{breaks that determine the bin or 'NULL'}
 }
 \value{
-N-dimensional vector where N is the number of 'expr'-'breaks' pairs.
+N-dimensional vector where N is the number of 'expr'-'breaks' pairs. if \code{dataframe == TRUE} - a data frame with a column for each track expression and an additional column 'n' with counts.
 }
 \description{
 Calculates distribution of track expressions' values over the given set of

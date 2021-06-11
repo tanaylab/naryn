@@ -128,3 +128,72 @@ test_that("emr_dist with vtrack sample.time", {
         )))
     )
 })
+
+test_that("emr_dist works when dataframe = TRUE", {
+    dst <- emr_dist("track2", c(100, 300, 500, 900, 2000, 3000), dataframe = TRUE)
+    dst_non_df <- emr_dist("track2", c(100, 300, 500, 900, 2000, 3000), dataframe = FALSE)
+    expect_true(all(dst$n == dst_non_df))
+    expect_true(all(dst$track2 == names(dst_non_df)))
+    expect_true(is.factor(dst$track2))
+    expect_true(all(levels(dst$track2) == names(dst_non_df)))
+
+    expect_equal(
+        dst,
+        structure(list(
+            track2 = structure(1:5, .Label = c(
+                "(100,300]",
+                "(300,500]", "(500,900]", "(900,2000]", "(2000,3000]"
+            ), class = "factor"),
+            n = c(430934, 474818, 906870, 197080, 0)
+        ), class = "data.frame", row.names = c(
+            NA,
+            -5L
+        ))
+    )
+})
+
+test_that("emr_dist 2d works when dataframe = TRUE", {
+    dst <- emr_dist("track1", c(100, 300, 500, 900, 2000, 3000), "track2", c(50, 60, 80, 90), iterator = "track1", dataframe = TRUE)
+    expect_equal(colnames(dst), c("track1", "track2", "n"))
+    dst_non_df <- emr_dist("track1", c(100, 300, 500, 900, 2000, 3000), "track2", c(50, 60, 80, 90), iterator = "track1", dataframe = FALSE)
+    expect_true(all(dst$n == dst_non_df))
+    expect_true(is.factor(dst$track2))
+    expect_true(is.factor(dst$track1))
+    expect_true(all(levels(dst$track2) == colnames(dst_non_df)))
+    expect_true(all(levels(dst$track1) == rownames(dst_non_df)))
+
+    expect_equal(
+        dst,
+        structure(list(
+            track1 = structure(c(
+                1L, 2L, 3L, 4L, 5L, 1L, 2L,
+                3L, 4L, 5L, 1L, 2L, 3L, 4L, 5L
+            ), .Label = c(
+                "(100,300]", "(300,500]",
+                "(500,900]", "(900,2000]", "(2000,3000]"
+            ), class = "factor"),
+            track2 = structure(c(
+                1L, 1L, 1L, 1L, 1L, 2L, 2L, 2L, 2L,
+                2L, 3L, 3L, 3L, 3L, 3L
+            ), .Label = c(
+                "(50,60]", "(60,80]",
+                "(80,90]"
+            ), class = "factor"), n = c(
+                186, 198, 400, 80, 0,
+                380, 416, 771, 182, 0, 212, 195, 363, 107, 0
+            )
+        ), class = "data.frame", row.names = c(
+            NA,
+            -15L
+        ))
+    )
+})
+
+test_that("emr_dist dataframe = TRUE with names", {
+    dst <- emr_dist("track1", c(100, 300, 500, 900, 2000, 3000), "track2", c(50, 60, 80, 90), iterator = "track1", dataframe = TRUE, names = c("mytrack1", "mytrack2"))
+    expect_equal(colnames(dst), c("mytrack1", "mytrack2", "n"))
+
+    dst1 <- emr_dist("track1", c(100, 300, 500, 900, 2000, 3000), "track2", c(50, 60, 80, 90), iterator = "track1", dataframe = TRUE)
+    colnames(dst1) <- c("mytrack1", "mytrack2", "n")
+    expect_equal(dst, dst1)
+})

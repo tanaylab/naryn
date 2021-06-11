@@ -106,7 +106,10 @@ emr_cor <- function(..., cor.exprs = NULL, include.lowest = FALSE, right = TRUE,
 #' implicitly based on track expressions.
 #' @param keepref If 'TRUE' references are preserved in the iterator.
 #' @param filter Iterator filter.
-#' @return N-dimensional vector where N is the number of 'expr'-'breaks' pairs.
+#' @param dataframe return a data frame instead of an N-dimensional vector.
+#' @param names names for track expressions in the returned dataframe (only relevant when \code{dataframe == TRUE})
+#'
+#' @return N-dimensional vector where N is the number of 'expr'-'breaks' pairs. if \code{dataframe == TRUE} - a data frame with a column for each track expression and an additional column 'n' with counts.
 #' @seealso \code{\link{emr_cor}}, \code{\link{cut}}
 #' @keywords ~distribution
 #' @examples
@@ -114,11 +117,11 @@ emr_cor <- function(..., cor.exprs = NULL, include.lowest = FALSE, right = TRUE,
 #' emr_db.init_examples()
 #' emr_dist("sparse_track", c(0, 15, 20, 30, 40, 50), keepref = T)
 #' @export emr_dist
-emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, etime = NULL, iterator = NULL, keepref = FALSE, filter = NULL) {
+emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, etime = NULL, iterator = NULL, keepref = FALSE, filter = NULL, dataframe = FALSE, names = NULL) {
     args <- list(...)
     if (length(args) < 2 || (length(args) %% 2 != 0 && (length(args) - 1) %% 2 != 0)) {
-          stop("Usage: emr_dist([expr, breaks]+, include.lowest = F, right = T, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
-      }
+        stop("Usage: emr_dist([expr, breaks]+, include.lowest = F, right = T, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
+    }
     .emr_checkroot()
 
     exprs <- c()
@@ -130,7 +133,14 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, et
     }
 
     res <- .emr_call("emr_dist", exprs, breaks, include.lowest, right, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
-    res
+
+    if (dataframe) {
+        res <- as.data.frame.table(res)
+        names <- names %||% exprs
+        colnames(res) <- c(names, "n")
+    }
+
+    return(res)
 }
 
 
