@@ -42,7 +42,6 @@ of the values.
 
 emr_db.init_examples()
 emr_summary("sparse_track")
-
 }
 \seealso{
 \code{\link{emr_track.info}}

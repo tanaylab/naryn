@@ -22,8 +22,10 @@ Packaged: 2020-11-09 18:12:03 UTC; hoichman
 RoxygenNote: 7.1.1
 SystemRequirements: GNU make
 Suggests: 
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    dplyr,
+    glue
 Config/testthat/edition: 3
-Config/testthat/parallel: true
+Config/testthat/parallel: false
 Imports: 
     magrittr

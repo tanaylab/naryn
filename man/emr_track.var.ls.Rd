@@ -33,13 +33,12 @@ a track are returned.
 
 emr_db.init_examples()
 emr_track.var.ls("sparse_track")
-emr_track.var.set("sparse_track", "test_var1", 1 : 10)
+emr_track.var.set("sparse_track", "test_var1", 1:10)
 emr_track.var.set("sparse_track", "test_var2", "v")
 emr_track.var.ls("sparse_track")
 emr_track.var.ls("sparse_track", pattern = "2")
 emr_track.var.rm("sparse_track", "test_var1")
 emr_track.var.rm("sparse_track", "test_var2")
-
 }
 \seealso{
 \code{\link{grep}}, \code{\link{emr_track.var.get}},

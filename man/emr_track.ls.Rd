@@ -13,6 +13,22 @@ emr_track.ls(
   fixed = FALSE,
   useBytes = FALSE
 )
+
+emr_track.global.ls(
+  ...,
+  ignore.case = FALSE,
+  perl = FALSE,
+  fixed = FALSE,
+  useBytes = FALSE
+)
+
+emr_track.user.ls(
+  ...,
+  ignore.case = FALSE,
+  perl = FALSE,
+  fixed = FALSE,
+  useBytes = FALSE
+)
 }
 \arguments{
 \item{...}{these arguments are of either form 'pattern' or 'attribute =
@@ -56,10 +72,9 @@ emr_track.ls("den*")
 
 emr_track.attr.set("sparse_track", "gender", "female")
 emr_track.attr.set("dense_track", "gender", "male")
-emr_track.ls(gender='')
-emr_track.ls(gender='female')
-emr_track.ls(gender='^male')
-
+emr_track.ls(gender = "")
+emr_track.ls(gender = "female")
+emr_track.ls(gender = "^male")
 }
 \seealso{
 \code{\link{grep}}, \code{\link{emr_db.init}},

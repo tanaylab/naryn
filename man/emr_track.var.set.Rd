@@ -26,10 +26,9 @@ track variable already exists its value is overwritten.
 \examples{
 
 emr_db.init_examples()
-emr_track.var.set("sparse_track", "test_var", 1 : 10)
+emr_track.var.set("sparse_track", "test_var", 1:10)
 emr_track.var.get("sparse_track", "test_var")
 emr_track.var.rm("sparse_track", "test_var")
-
 }
 \seealso{
 \code{\link{emr_track.var.get}}, \code{\link{emr_track.var.ls}},

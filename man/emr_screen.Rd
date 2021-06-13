@@ -49,8 +49,8 @@ switched off by default.
 
 emr_db.init_examples()
 emr_screen("sparse_track == 13 | dense_track < 80",
-           iterator = "sparse_track", keepref = T)
-
+    iterator = "sparse_track", keepref = T
+)
 }
 \seealso{
 \code{\link{emr_extract}}

@@ -22,7 +22,6 @@ This function checks whether the track exists.
 
 emr_db.init_examples()
 emr_track.exists("sparse_track")
-
 }
 \seealso{
 \code{\link{emr_track.ls}}, \code{\link{emr_track.info}}

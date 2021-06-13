@@ -44,7 +44,6 @@ emr_time2year(t)
 # cover all times when Islam Karimov could have been born
 # (if we don't know the exact hour!)
 t <- emr_date2time(30, 1, 1938, 0:23)
-
 }
 \seealso{
 \code{\link{emr_time2hour}}, \code{\link{emr_time2dayofmonth}},

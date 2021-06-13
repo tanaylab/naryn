@@ -43,7 +43,6 @@ emr_vtrack.create("vtrack1", "dense_track")
 emr_vtrack.attr.src("vtrack1")
 emr_vtrack.attr.src("vtrack1", "sparse_track")
 emr_vtrack.attr.src("vtrack1")
-
 }
 \seealso{
 \code{\link{emr_vtrack.create}}

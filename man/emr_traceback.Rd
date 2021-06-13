@@ -25,10 +25,11 @@ omitting the calls that occurred inside the library.
 \examples{
 
 emr_db.init_examples()
-f <- function() { emr_screen("blablabla") }
+f <- function() {
+    emr_screen("blablabla")
+}
 f()
 emr_traceback()
-
 }
 \seealso{
 \code{\link{traceback}}

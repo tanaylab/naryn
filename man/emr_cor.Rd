@@ -72,10 +72,10 @@ $cor[bin1, ..., binN, i, j].
 
 emr_db.init_examples()
 emr_cor("categorical_track", c(0, 2, 5),
-        cor.exprs = c("sparse_track", "1/dense_track"),
-        include.lowest = T, iterator = "categorical_track",
-        keepref = T)
-
+    cor.exprs = c("sparse_track", "1/dense_track"),
+    include.lowest = T, iterator = "categorical_track",
+    keepref = T
+)
 }
 \seealso{
 \code{\link{emr_dist}}, \code{\link{cut}},

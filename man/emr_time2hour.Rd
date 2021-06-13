@@ -29,7 +29,6 @@ emr_time2hour(t)
 emr_time2dayofmonth(t)
 emr_time2month(t)
 emr_time2year(t)
-
 }
 \seealso{
 \code{\link{emr_time2dayofmonth}}, \code{\link{emr_time2month}},

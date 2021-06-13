@@ -23,13 +23,12 @@ This function deletes a track variable.
 \examples{
 
 emr_db.init_examples()
-emr_track.var.set("sparse_track", "test_var1", 1 : 10)
+emr_track.var.set("sparse_track", "test_var1", 1:10)
 emr_track.var.set("sparse_track", "test_var2", "v")
 emr_track.var.ls("sparse_track")
 emr_track.var.rm("sparse_track", "test_var1")
 emr_track.var.rm("sparse_track", "test_var2")
 emr_track.var.ls("sparse_track")
-
 }
 \seealso{
 \code{\link{emr_track.var.get}}, \code{\link{emr_track.var.set}},

@@ -2,56 +2,6 @@
 # This is a dump from Misha's regression test. They need to be edited to testthat form,
 # see test-track.attr.R for examples.
 
-
-
-# test_that("test", emr_track.readonly("track0"))
-
-# test_that("test", {
-#     if (emr_track.exists("test_track1_ro")) {
-#         emr_track.readonly("test_track1_ro", F)
-#         emr_track.rm("test_track1_ro", T)
-#     }
-#     emr_track.create("test_track1_ro", "user", F, "track0+2", keepref=F)
-#     emr_track.readonly("test_track1_ro", T)
-#     r<-emr_track.readonly("test_track1_ro")
-#     tryCatch({
-#         emr_track.rm("test_track1_ro", T)
-#         r<<-append(r, "oops - deleted R/O track")
-#     },
-#     error=function(cond) {
-#         r<<-append(r, list(cond))
-#     })
-#     emr_track.readonly("test_track1_ro", F)
-#     emr_track.rm("test_track1_ro", T)
-#     r
-# })
-
-# test_that("test", {
-#     emr_track.rm("test_track1", T)
-#     emr_track.create("test_track1", "user", F, "track0+2", keepref=F)
-#     r<-emr_track.ls()
-#     emr_track.rm("test_track1", T)
-#     list(emr_track.ls(), r)
-# })
-
-# test_that("test", emr_track.exists("track2"))
-
-# test_that("test", emr_track.exists("sdaf"))
-
-# test_that("test", emr_track.info("blabla"))
-
-# test_that("test", {
-#     track.info <- emr_track.info("track4")
-#     track.info$path <- NULL
-#     track.info
-# })
-
-# test_that("test", {
-#     track.info <- emr_track.info("track1_sparse")
-#     track.info$path <- NULL
-#     track.info
-# })
-
 # test_that("test", emr_track.var.get("aaa", "blablablabla"))
 
 # test_that("test", emr_track.var.get("track1", "blablablabla"))
@@ -655,40 +605,6 @@
 # })
 
 # test_that("test", emr_cor("track0", c(0,10,500,1000), cor.exprs=c("track0", "track1", "track2", "track3"), iterator=1, stime=20, etime=5000, keepref=F))
-
-# test_that("test", emr_dist("track2", c(100, 300, 500, 900, 2000, 3000)))
-
-# test_that("test", emr_dist("track2", c(100, 300, 500, 900, 2000, 3000), keepref=T))
-
-# test_that("test", emr_dist("track1", c(100, 300, 500, 900, 2000, 3000), "track2", c(50, 60, 80, 90)))
-
-# test_that("test", emr_dist("track1", c(100, 300, 500, 900, 2000, 3000), "track2", c(50, 60, 80, 90), iterator="track1"))
-
-# test_that("test", emr_dist("track1", NULL, "track2", c(50, 60, 80, 90), iterator="track1"))
-
-# test_that("test", {
-#     EMR_VTRACKS <<- list()
-#     emr_vtrack.create("v1", "track7", func="dt1.earliest", time.shift=c(-10, 10))
-#     emr_dist("v1", NULL, "track2", c(50, 60, 80, 90), iterator="track1")
-# })
-
-# test_that("test", {
-#     EMR_VTRACKS <<- list()
-#     emr_vtrack.create("v1", "track7", func="frequent", time.shift=c(-10, 10))
-#     emr_dist("v1", NULL, "track2", c(50, 60, 80, 90), iterator="track1")
-# })
-
-# test_that("test", {
-#     EMR_VTRACKS <<- list()
-#     emr_vtrack.create("v1", "track7", func="sample", time.shift=c(-10, 10))
-#     emr_dist("v1", NULL, "track2", c(50, 60, 80, 90), iterator="track1")
-# })
-
-# test_that("test", {
-#     EMR_VTRACKS <<- list()
-#     emr_vtrack.create("v1", "track7", func="sample.time", time.shift=c(-10, 10))
-#     emr_dist("v1", NULL, "track2", c(50, 60, 80, 90), iterator="track1")
-# })
 
 # test_that("test", emr_ids_coverage(data.frame(id=0:200), c("track7", "track6")))
 

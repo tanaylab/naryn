@@ -26,7 +26,6 @@ emr_vtrack.create("vtrack2", "dense_track")
 emr_vtrack.ls()
 emr_vtrack.rm("vtrack1")
 emr_vtrack.ls()
-
 }
 \seealso{
 \code{\link{emr_vtrack.create}}, \code{\link{emr_vtrack.ls}}

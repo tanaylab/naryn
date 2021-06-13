@@ -23,7 +23,6 @@ This function returns the internal represenation of a virtual track.
 emr_db.init_examples()
 emr_vtrack.create("vtrack1", "dense_track", "max", time.shift = c(5, 10))
 emr_vtrack.info("vtrack1")
-
 }
 \seealso{
 \code{\link{emr_vtrack.create}}

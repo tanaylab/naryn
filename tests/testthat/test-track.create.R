@@ -1,7 +1,8 @@
 test_that("emr_track.create works", {
     emr_track.rm("test_track1", TRUE)
     emr_track.create("test_track1", "user", FALSE, "track0", keepref = TRUE)
-    withr::defer(emr_track.rm("test_track1", T))
+    expect_true(emr_track.exists("test_track1"))
+    withr::defer(emr_track.rm("test_track1", TRUE))
 
     e0 <- emr_extract("track0", keepref = TRUE)
     e1 <- emr_extract(c("test_track1", "track0"), iterator = "test_track1", keepref = TRUE)
@@ -31,36 +32,53 @@ test_that("emr_track.create works", {
     track.info$path <- NULL
 })
 
-# test_that("test", {
-#     emr_track.rm("test_track1", T)
-#     emr_track.create("test_track1", "user", F, "track0+2", keepref=F)
-#     r<-emr_extract("test_track1", keepref=T)
-#     emr_track.rm("test_track1", T)
-#     r
-# })
+test_that("create and remove categorical", {
+    emr_track.rm("test_track1", TRUE)
+    r_extract <- emr_extract("track0+2", keepref = TRUE, names = "test_track1")
+    emr_track.create("test_track1", "user", FALSE, "track0+2", keepref = TRUE)
+    expect_true(emr_track.exists("test_track1"))
+    r_create <- emr_extract("test_track1", keepref = TRUE)
+    expect_equal(r_extract, r_create)
+    emr_track.rm("test_track1", TRUE)
+    expect_false(emr_track.exists("test_track1"))
+})
 
-# test_that("test", {
-#     emr_track.rm("test_track1", T)
-#     emr_track.create("test_track1", "user", F, "track0", filter="!track0")
-#     r<-emr_extract("test_track1", keepref=T)
-#     emr_track.rm("test_track1", T)
-#     r
-# })
+test_that("create categorical keepref=FALSE", {
+    emr_track.rm("test_track1", TRUE)
+    r_extract <- emr_extract("track0+2", keepref = FALSE, names = "test_track1")
+    emr_track.create("test_track1", "user", FALSE, "track0+2", keepref = FALSE)
+    expect_true(emr_track.exists("test_track1"))
+    withr::defer(emr_track.rm("test_track1", TRUE))
 
-# test_that("test", {
-#     emr_track.rm("test_track1", T)
-#     emr_track.create("test_track1", "user", F, "track0+2", keepref=F)
-#     emr_track.mv("test_track1", "test_track2")
-#     r<-list(emr_track.global.ls(), emr_track.user.ls())
-#     emr_track.rm("test_track2", T)
-#     r
-# })
+    r_create <- emr_extract("test_track1", keepref = TRUE)
+    expect_equal(nrow(r_create), 99508)
+    expect_equal(r_extract, r_create, tolerance = 1e-7)
+})
 
-# test_that("test", {
-#     emr_track.rm("test_track1", T)
-#     emr_track.create("test_track1", "global", F, "track0+2", keepref=F)
-#     emr_track.mv("test_track1", "test_track2", "user")
-#     r<-list(emr_track.global.ls(), emr_track.user.ls())
-#     emr_track.rm("test_track2", T)
-#     r
-# })
+test_that("create categorical with filter", {
+    emr_track.rm("test_track1", TRUE)
+    emr_track.create("test_track1", "user", FALSE, "track0", filter = "!track0")
+    expect_true(emr_track.exists("test_track1"))
+    withr::defer(emr_track.rm("test_track1", TRUE))
+
+    r_create <- emr_extract("test_track1", keepref = TRUE)
+    expect_equal(nrow(r_create), 0)
+})
+
+test_that("emr_track.mv works", {
+    emr_track.rm("test_track1", TRUE)
+    emr_track.create("test_track1", "user", F, "track0+2", keepref = F)
+    emr_track.mv("test_track1", "test_track2")
+    expect_false(emr_track.exists("test_track1"))
+    expect_true(emr_track.exists("test_track2"))
+    withr::defer(emr_track.rm("test_track2", TRUE))
+})
+
+test_that("emr_track.mv works with different values", {
+    emr_track.rm("test_track1", TRUE)
+    emr_track.create("test_track1", "global", F, "track0+2", keepref = F)
+    emr_track.mv("test_track1", "test_track2", "user")
+    expect_false(emr_track.exists("test_track1"))
+    expect_true(emr_track.exists("test_track2"))
+    withr::defer(emr_track.rm("test_track2", TRUE))
+})

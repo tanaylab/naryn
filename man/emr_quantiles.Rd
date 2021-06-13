@@ -47,7 +47,6 @@ then.
 
 emr_db.init_examples()
 emr_quantiles("sparse_track", c(0.1, 0.6, 0.8))
-
 }
 \seealso{
 \code{\link{emr_extract}}

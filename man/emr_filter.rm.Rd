@@ -21,12 +21,11 @@ This function deletes a named filter from current R environment.
 \examples{
 
 emr_db.init_examples()
-emr_filter.create("f1", "dense_track", time.shift = c(2,4))
+emr_filter.create("f1", "dense_track", time.shift = c(2, 4))
 emr_filter.create("f2", "dense_track", keepref = T)
 emr_filter.ls()
 emr_filter.rm("f1")
 emr_filter.ls()
-
 }
 \seealso{
 \code{\link{emr_filter.create}}, \code{\link{emr_filter.ls}}

@@ -35,12 +35,16 @@ emr_db.init_examples()
 emr_track.percentile("dense_track", c(30, 50))
 
 # calculate percentiles of track's earliest values in time window
-emr_vtrack.create("v1", src = "dense_track", func = "earliest",
-                  time.shift = c(-5, 5))
-emr_extract(c("dense_track",
-              "emr_track.percentile(\"dense_track\", v1, F)"),
-              keepref = T, names =  c("col1", "col2"))
-
+emr_vtrack.create("v1",
+    src = "dense_track", func = "earliest",
+    time.shift = c(-5, 5)
+)
+emr_extract(c(
+    "dense_track",
+    "emr_track.percentile(\"dense_track\", v1, F)"
+),
+keepref = T, names = c("col1", "col2")
+)
 }
 \seealso{
 \code{\link{emr_track.unique}}

@@ -70,7 +70,6 @@ themselves.
 
 emr_db.init_examples()
 emr_extract("dense_track", stime = 1, etime = 3)
-
 }
 \seealso{
 \code{\link{emr_screen}}
