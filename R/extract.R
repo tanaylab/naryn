@@ -20,6 +20,10 @@
 #' dimensional binning the individual data in the matrices can be accessed as:
 #' $cor[bin1, ..., binN, i, j].
 #'
+#' If \code{dataframe == TRUE} the return value is a data frame with a column for each track expression, additional columns i,j with pairs of \code{cor_exprs}
+#' and another 5 columns: 'n', 'e', 'var', 'cov', 'cor' with the same values
+#' as the matrices described above.
+#'
 #' @param expr track expression.
 #' @param breaks breaks that determine the bin or 'NULL'.
 #' @param cor.exprs vector of track expressions for which correlation
@@ -36,7 +40,9 @@
 #' @param filter Iterator filter.
 #' @return A list of 5 elements each containing a N-dimensional vector (N is
 #' the number of 'expr'-'breaks' pairs). The member of each vector is a
-#' specific statistics matrix.
+#' specific statistics matrix. If \code{dataframe == TRUE} - a data frame with a column for each track expression, additional columns i,j with pairs of \code{cor_exprs} and another 5 columns: 'n', 'e', 'var', 'cov', 'cor', see description.
+#' @param dataframe return a data frame instead of an N-dimensional vector.
+#' @param names names for track expressions in the returned dataframe (only relevant when \code{dataframe == TRUE})
 #' @seealso \code{\link{emr_dist}}, \code{\link{cut}},
 #' \code{\link{emr_track.unique}}
 #' @keywords ~correlation ~covariance ~variance
@@ -48,12 +54,18 @@
 #'     include.lowest = T, iterator = "categorical_track",
 #'     keepref = T
 #' )
+#' emr_cor("categorical_track", c(0, 2, 5),
+#'     cor.exprs = c("sparse_track", "1/dense_track"),
+#'     include.lowest = T, iterator = "categorical_track",
+#'     keepref = T, 
+#'     dataframe = TRUE
+#' )
 #' @export emr_cor
-emr_cor <- function(..., cor.exprs = NULL, include.lowest = FALSE, right = TRUE, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL) {
+emr_cor <- function(..., cor.exprs = NULL, include.lowest = FALSE, right = TRUE, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL, dataframe = FALSE, names = NULL) {
     args <- list(...)
     if (length(args) < 2 || (length(args) %% 2 != 0 && (length(args) - 1) %% 2 != 0) || is.null(cor.exprs)) {
-          stop("Usage: emr_cor([factor.expr, breaks]+, cor.exprs, include.lowest = F, right = T, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
-      }
+        stop("Usage: emr_cor([factor.expr, breaks]+, cor.exprs, include.lowest = F, right = T, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
+    }
     .emr_checkroot()
 
     exprs <- c()
@@ -64,9 +76,21 @@ emr_cor <- function(..., cor.exprs = NULL, include.lowest = FALSE, right = TRUE,
         breaks[length(breaks) + 1] <- list(args[[i * 2 + 2]])
     }
 
+    first_exprs <- exprs
     exprs <- append(exprs, cor.exprs)
 
     res <- .emr_call("emr_covariance", exprs, breaks, include.lowest, right, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
+
+    if (dataframe) {
+        names <- names %||% first_exprs
+        res <- purrr::imap(res, ~ {
+            .x <- as.data.frame.table(.x)
+            colnames(.x) <- c(names, "i", "j", .y)
+            return(.x)
+        })
+        res <- purrr::reduce(res, dplyr::left_join, by = c(names, "i", "j"))
+    }
+
     res
 }
 
@@ -106,19 +130,23 @@ emr_cor <- function(..., cor.exprs = NULL, include.lowest = FALSE, right = TRUE,
 #' implicitly based on track expressions.
 #' @param keepref If 'TRUE' references are preserved in the iterator.
 #' @param filter Iterator filter.
-#' @return N-dimensional vector where N is the number of 'expr'-'breaks' pairs.
+#' @param dataframe return a data frame instead of an N-dimensional vector.
+#' @param names names for track expressions in the returned dataframe (only relevant when \code{dataframe == TRUE})
+#'
+#' @return N-dimensional vector where N is the number of 'expr'-'breaks' pairs. If \code{dataframe == TRUE} - a data frame with a column for each track expression and an additional column 'n' with counts.
 #' @seealso \code{\link{emr_cor}}, \code{\link{cut}}
 #' @keywords ~distribution
 #' @examples
 #'
 #' emr_db.init_examples()
 #' emr_dist("sparse_track", c(0, 15, 20, 30, 40, 50), keepref = T)
+#' emr_dist("sparse_track", c(0, 15, 20, 30, 40, 50), keepref = T, dataframe = TRUE)
 #' @export emr_dist
-emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, etime = NULL, iterator = NULL, keepref = FALSE, filter = NULL) {
+emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, etime = NULL, iterator = NULL, keepref = FALSE, filter = NULL, dataframe = FALSE, names = NULL) {
     args <- list(...)
     if (length(args) < 2 || (length(args) %% 2 != 0 && (length(args) - 1) %% 2 != 0)) {
-          stop("Usage: emr_dist([expr, breaks]+, include.lowest = F, right = T, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
-      }
+        stop("Usage: emr_dist([expr, breaks]+, include.lowest = F, right = T, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
+    }
     .emr_checkroot()
 
     exprs <- c()
@@ -130,7 +158,14 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, et
     }
 
     res <- .emr_call("emr_dist", exprs, breaks, include.lowest, right, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
-    res
+
+    if (dataframe) {
+        res <- as.data.frame.table(res)
+        names <- names %||% exprs
+        colnames(res) <- c(names, "n")
+    }
+
+    return(res)
 }
 
 
