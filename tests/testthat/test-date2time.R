@@ -17,7 +17,7 @@ test_that("emr_date2time with hour and month vector", {
 })
 
 test_that("emr_date2time fails when length of hour vector is different than month", {
-    expet_error(emr_date2time(15, c(2, 5, 6), 1869, c(10, 20)))
+    expect_error(emr_date2time(15, c(2, 5, 6), 1869, c(10, 20)))
 })
 
 test_that("emr_time2dayofmonth works", {
