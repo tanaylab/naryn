@@ -348,3 +348,110 @@ test_that("filter works", {
     emr_track.rm("test_track1", T)
     expect_regression(r)
 })
+
+# TODO
+
+test_that("emr_filter.attr.src works", {
+    EMR_FILTERS <<- list()
+    emr_filter.create("f1", "track1", time.shift=c(-10,20))
+    emr_filter.attr.src("f1", "track2")
+    expect_equal(emr_filter.attr.src("f1"), "track2")
+})
+
+test_that("emr_filter.attr.src fails when track doesn't exist", {
+    EMR_FILTERS <<- list()
+    emr_filter.create("f1", "track1", time.shift=c(-10,20))
+    expect_error(emr_filter.attr.src("f1", "track10"))
+    expect_equal(emr_filter.attr.src("f1"), "track1")
+})
+
+test_that("emr_filter.attr.src works wotj data frame", {
+    EMR_FILTERS <<- list()
+    emr_filter.create("f1", "track1", time.shift=c(-10,20))
+    emr_filter.attr.src("f1", data.frame(id=c(1,3), time=c(10,30)))
+    expect_equal(
+        emr_filter.attr.src("f1"), 
+        structure(list(id = c(1, 3), time = c(10, 30)), class = "data.frame", row.names = c(NA, -2L))
+    )
+})
+
+test_that("emr_filter.attr.src fails with invalit dataframe", {
+    EMR_FILTERS <<- list()
+    emr_filter.create("f1", "track1", time.shift=c(-10,20))
+    expect_error(emr_filter.attr.src("f1", data.frame(bla=2)))
+    expect_equal(emr_filter.attr.src("f1"), "track1")
+})
+
+test_that("emr_filter.attr.keepref works", {
+    EMR_FILTERS <<- list()
+    emr_filter.create("f1", "track1", time.shift=c(-10,20))
+    emr_filter.attr.keepref("f1", T)
+    expect_true(emr_filter.attr.keepref("f1"))
+})
+
+test_that("emr_filter.attr.time.shift works", {
+    EMR_FILTERS <<- list()
+    emr_filter.create("f1", "track1", time.shift=c(-10,20))
+    emr_filter.attr.time.shift("f1", c(-17,30))
+    expect_equal(emr_filter.attr.time.shift("f1"), c(-17, 30))
+})
+
+test_that("emr_filter.attr.val works", {
+    EMR_FILTERS <<- list()
+    emr_filter.create("f1", "track1", time.shift=c(-10,20))
+    emr_filter.attr.val("f1", 500)
+    expect_equal(emr_filter.attr.val("f1"), 500)
+})
+
+test_that("emr_filter.attr.expiration works", {
+    EMR_FILTERS <<- list()
+    emr_filter.create("f1", "track1", time.shift=c(-10,20))
+    emr_filter.attr.expiration("f1", 300)
+    expect_equal(emr_filter.attr.expiration("f1"), 300)
+})
+
+test_that("emr_filter.exists works", {
+    EMR_FILTERS <<- list()
+    emr_filter.create("f1", "track2", keepref=F, time.shift=c(-10, 20))
+    emr_filter.create("f2", "track2", keepref=F, time.shift=c(-10, 30))
+    expect_true(emr_filter.exists("f1"))
+})
+
+test_that("emr_filter.exists works", {
+    EMR_FILTERS <<- list()
+    emr_filter.create("f1", "track2", keepref=F, time.shift=c(-10, 20))
+    emr_filter.create("f2", "track2", keepref=F, time.shift=c(-10, 30))
+    expect_false(emr_filter.exists("sdaf"))
+})
+
+test_that("emr_filter.info works", {
+    EMR_FILTERS <<- list()
+    emr_filter.create("f1", "track2", keepref=F, time.shift=c(-10, 20))
+    expect_equal(
+        emr_filter.info("f1"), 
+        list(src = "track2", time_shift = c(-10, 20), keepref = FALSE,
+    val = NULL, expiration = NULL)
+    )
+})
+
+test_that("emr_filter.ls works", {
+    EMR_FILTERS <<- list()
+    emr_filter.create("f1", "track2", keepref=F, time.shift=c(-10, 20))
+    emr_filter.create("f2", "track2", keepref=F, time.shift=c(-10, 30))
+    expect_equal(emr_filter.ls(), c("f1", "f2"))
+})
+
+test_that("emr_filter.ls works", {
+    EMR_FILTERS <<- list()
+    expect_error(emr_filter.create("f1", "track10", keepref=F, time.shift=c(-10, 20)))
+    emr_filter.create("f2", "track1", keepref=F, time.shift=c(-10, 30))
+    expect_equal(emr_filter.ls(), "f2")
+})
+
+test_that("emr_filter.ls works", {
+    EMR_FILTERS <<- list()
+    emr_filter.create("f1", "track2", keepref=F, time.shift=c(-10, 20))
+    emr_filter.create("f2", "track2", keepref=F, time.shift=c(-10, 30))
+    emr_filter.rm("f1")
+    expect_equal(emr_filter.ls(), "f2")
+})
