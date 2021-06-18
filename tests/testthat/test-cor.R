@@ -124,7 +124,7 @@ test_that("emr_cor works when dataframe = TRUE", {
 })
 
 test_that("emr_cor works with beat iterator", {
-    emr_cor("track0", c(0,10,500,1000), cor.exprs=c("track0", "track1", "track2", "track3"), iterator=1, stime=20, etime=5000, keepref=F) %>% 
-        expect_regression() %>% 
+    emr_cor("track0", c(0, 10, 500, 1000), cor.exprs = c("track0", "track1", "track2", "track3"), iterator = 1, stime = 20, etime = 5000, keepref = F) %>%
+        expect_regression() %>%
         expect_warning()
 })
