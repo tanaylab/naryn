@@ -57,7 +57,7 @@
 #' emr_cor("categorical_track", c(0, 2, 5),
 #'     cor.exprs = c("sparse_track", "1/dense_track"),
 #'     include.lowest = T, iterator = "categorical_track",
-#'     keepref = T, 
+#'     keepref = T,
 #'     dataframe = TRUE
 #' )
 #' @export emr_cor
