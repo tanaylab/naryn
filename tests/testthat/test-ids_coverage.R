@@ -33,23 +33,23 @@ test_that("emr_ids_coverage with filter", {
 })
 
 test_that("emr_ids_vals_coverage works", {
-    expect_regression(emr_ids_vals_coverage(data.frame(id = 0:200), c("track7", "track6")))
+    expect_regression(emr_ids_vals_coverage(data.frame(id = 0:200), c("track7", "track6")), "ids_coverage.1")
 })
 
 test_that("emr_ids_vals_coverage works with filter", {
-    expect_regression(emr_ids_vals_coverage(data.frame(id = 0:200), c("track7", "track6"), filter = "track2"))
+    expect_regression(emr_ids_vals_coverage(data.frame(id = 0:200), c("track7", "track6"), filter = "track2"), "ids_coverage.2")
 })
 
 test_that("emr_ids_vals_coverage works with filter emr_extract df ", {
     r <- emr_extract("track4")
-    expect_regression(emr_ids_vals_coverage(r, c("track7", "track6")))
+    expect_regression(emr_ids_vals_coverage(r, c("track7", "track6")), "ids_coverage.3")
 })
 
 test_that("emr_ids_vals_coverage works with emr_extract df and a filter", {
     r <- emr_extract("track4")
-    expect_regression(emr_ids_vals_coverage(r, c("track7", "track6"), filter = "track2"))
+    expect_regression(emr_ids_vals_coverage(r, c("track7", "track6"), filter = "track2"), "ids_coverage.4")
 })
 
 test_that("emr_ids_vals_coverage works with track name and filter", {
-    expect_regression(emr_ids_vals_coverage("track5", c("track7", "track6"), filter = "track1"))
+    expect_regression(emr_ids_vals_coverage("track5", c("track7", "track6"), filter = "track1"), "ids_coverage.5")
 })

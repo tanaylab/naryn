@@ -10,5 +10,5 @@ test_that("emr_screen works when expr doesn't return data", {
 })
 
 test_that("emr_screen works ", {
-    expect_regression(emr_screen("track1 > 990"))
+    expect_regression(emr_screen("track1 > 990"), "screen.1")
 })
