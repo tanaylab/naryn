@@ -23,10 +23,8 @@ RoxygenNote: 7.1.1
 SystemRequirements: GNU make
 Suggests: 
     testthat (>= 3.0.0),
-    glue,
-    digest,
-    readr,
-    brio
+    glue,    
+    readr    
 Config/testthat/edition: 3
 Config/testthat/parallel: false
 Imports: 
