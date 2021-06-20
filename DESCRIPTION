@@ -26,7 +26,7 @@ Suggests:
     glue,    
     readr    
 Config/testthat/edition: 3
-Config/testthat/parallel: false
+Config/testthat/parallel: true
 Imports: 
     purrr,
     dplyr,
