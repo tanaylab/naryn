@@ -3,3 +3,4 @@ src/*.so
 src/*.o
 src/*.d
 tests/testdb
+tests/snapshot
