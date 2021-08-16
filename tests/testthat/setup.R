@@ -12,10 +12,13 @@ emr_db.init(testdb_dir, file.path(testdb_dir, "utest"))
 emr_db.reload()
 
 # Clean examples db
-withr::defer({
-    emr_db.init_examples()
-    system(glue("rm -rf {testdb_dir}"))
-}, teardown_env())
+withr::defer(
+    {
+        emr_db.init_examples()
+        system(glue("rm -rf {testdb_dir}"))
+    },
+    teardown_env()
+)
 
 #' Tests if an object was changed since the last run.
 #' If an rds file named \code{snapshot_dir/id.rds} exists its contents are compared with \{obj},
