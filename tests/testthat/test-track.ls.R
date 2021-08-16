@@ -2,7 +2,7 @@ test_that("emr_track.ls works", {
     expect_equal(
         emr_track.ls(),
         c(
-            "patients.dob", "stam1", "track0", "track0_sparse", "track1",
+            "patients.dob", "physical_track1", "physical_track_subset_15", "stam1", "track0", "track0_sparse", "track1",
             "track1_sparse", "track2", "track2_sparse", "track3", "track4",
             "track4_sparse", "track5", "track5_sparse", "track6", "track7",
             "track7_sparse", "track8", "track8_sparse"
@@ -24,7 +24,7 @@ test_that("emr_track.global.ls works", {
     expect_equal(
         emr_track.global.ls(),
         c(
-            "patients.dob", "stam1", "track0", "track0_sparse", "track1",
+            "patients.dob", "physical_track1", "physical_track_subset_15", "stam1", "track0", "track0_sparse", "track1",
             "track1_sparse", "track2", "track2_sparse", "track3", "track4",
             "track4_sparse", "track5", "track5_sparse", "track6", "track7",
             "track7_sparse", "track8", "track8_sparse"
