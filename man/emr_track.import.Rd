@@ -31,8 +31,10 @@ separated by spaces or 'TAB' characters: ID, time, reference and value. The
 file might contain lines of comments which should start with a '#'
 character.
 
-Alternatively 'src' can be an ID-Time Values table (see "User Manual" for
-more info).
+Alternatively 'src' can be an ID-Time Values table, which is a data frame with 
+the following columns: "id" "time" "ref" and "value". 
+
+(see "User Manual" for more info).
 }
 \seealso{
 \code{\link{emr_track.addto}}, \code{\link{emr_track.create}},

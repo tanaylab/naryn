@@ -20,7 +20,7 @@ LazyLoad: yes
 NeedsCompilation: yes
 Packaged: 2020-11-09 18:12:03 UTC; hoichman
 RoxygenNote: 7.1.1
-SystemRequirements: GNU make
+SystemRequirements: GNU make, C++11
 Suggests: 
     testthat (>= 3.0.0),
     glue,    
@@ -31,3 +31,5 @@ Imports:
     purrr,
     dplyr,
     magrittr
+LinkingTo: 
+    cpp11

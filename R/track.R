@@ -375,8 +375,10 @@ emr_track.ids <- function(track) {
 #' file might contain lines of comments which should start with a '#'
 #' character.
 #'
-#' Alternatively 'src' can be an ID-Time Values table (see "User Manual" for
-#' more info).
+#' Alternatively 'src' can be an ID-Time Values table, which is a data frame with
+#' the following columns: "id" "time" "ref" and "value".
+#'
+#' (see "User Manual" for more info).
 #'
 #' @param track the name of the newly created track
 #' @param space "user" or "global" space
