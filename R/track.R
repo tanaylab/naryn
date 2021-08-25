@@ -92,13 +92,13 @@
 #' @export emr_track.addto
 emr_track.addto <- function(track, src) {
     if (missing(track) || missing(src)) {
-          stop("Usage: emr_track.addto(track, src)", call. = F)
-      }
+        stop("Usage: emr_track.addto(track, src)", call. = F)
+    }
     .emr_checkroot()
 
     if (emr_track.readonly(track)) {
-          stop(sprintf("Cannot add data to track %s: it is read-only.\n", track), call. = F)
-      }
+        stop(sprintf("Cannot add data to track %s: it is read-only.\n", track), call. = F)
+    }
 
     .emr_call("emr_import", track, NULL, NULL, src, T, new.env(parent = parent.frame()))
     retv <- NULL
@@ -315,6 +315,7 @@ emr_track.create <- function(track, space, categorical, expr, stime = NULL, etim
 #' This function checks whether the track exists.
 #'
 #' @param track track name
+#'
 #' @return 'TRUE' if the tracks exists, otherwise 'FALSE'
 #' @seealso \code{\link{emr_track.ls}}, \code{\link{emr_track.info}}
 #' @keywords ~track ~exists
@@ -325,10 +326,15 @@ emr_track.create <- function(track, space, categorical, expr, stime = NULL, etim
 #' @export emr_track.exists
 emr_track.exists <- function(track) {
     if (missing(track)) {
-          stop("Usage: emr_track.exist(track)", call. = F)
-      }
+        stop("Usage: emr_track.exist(track)", call. = F)
+    }
     .emr_checkroot()
-    !is.na(match(track, .emr_call("emr_track_names", new.env(parent = parent.frame()), silent = TRUE)))
+    track_exists <- !is.na(match(track, .emr_call("emr_track_names", new.env(parent = parent.frame()), silent = TRUE)))
+
+
+    track_exists <- track_exists || !is.na(match(track, .emr_call("emr_logical_track_names", new.env(parent = parent.frame()), silent = TRUE)))
+
+    return(track_exists)
 }
 
 
@@ -353,9 +359,15 @@ emr_track.exists <- function(track) {
 #' @export emr_track.ids
 emr_track.ids <- function(track) {
     if (missing(track)) {
-          stop("Usage: emr_track.ids(track)", call. = F)
-      }
+        stop("Usage: emr_track.ids(track)", call. = F)
+    }
     .emr_checkroot()
+
+    if (emr_track.is_logical(track)) {
+        res <- emr_extract(track, iterator = track) %>%
+            distinct(id)
+        return(res)
+    }
 
     .emr_call("emr_track_ids", track, new.env(parent = parent.frame()))
 }
@@ -392,25 +404,24 @@ emr_track.ids <- function(track) {
 #' @export emr_track.import
 emr_track.import <- function(track, space, categorical, src) {
     if (missing(track) || missing(space) || missing(src) || missing(categorical)) {
-          stop("Usage: emr_track.import(track, space, categorical, src)", call. = F)
-      }
+        stop("Usage: emr_track.import(track, space, categorical, src)", call. = F)
+    }
     .emr_checkroot()
 
     space <- tolower(space)
     if (space == "user" && (!exists("EMR_UROOT", envir = .GlobalEnv) || is.null(get("EMR_UROOT", envir = .GlobalEnv)))) {
-          stop("User space root directory is not set. Please call emr_db.init(user.dir=...)", call. = F)
-      }
+        stop("User space root directory is not set. Please call emr_db.init(user.dir=...)", call. = F)
+    }
 
     if (emr_vtrack.exists(track)) {
-          stop(sprintf("Virtual track %s already exists", track), call. = F)
-      }
+        stop(sprintf("Virtual track %s already exists", track), call. = F)
+    }
 
     if (emr_filter.exists(track)) {
-          stop(sprintf("Filter %s already exists", track), call. = F)
-      }
+        stop(sprintf("Filter %s already exists", track), call. = F)
+    }
 
     .emr_call("emr_import", track, space, categorical, src, F, new.env(parent = parent.frame()))
-    retv <- NULL
 }
 
 
@@ -462,11 +473,11 @@ emr_track.info <- function(track) {
 #' Multiple patterns are applied one after another. The resulted list of tracks
 #' should match all the patterns.
 #'
-#' 'emr_track.global.ls' and 'emr_track.user.ls' work similarly to
+#' 'emr_track.global.ls', 'emr_track.user.ls', 'emr_track.logical.ls' work similarly to
 #' 'emr_track.ls' but instead of returning all track names, each of them
-#' returns either global or local tracks accordingly.
+#' returns either global, local or logical tracks accordingly.
 #'
-#' @aliases emr_track.ls emr_track.global.ls emr_track.user.ls
+#' @aliases emr_track.ls emr_track.global.ls emr_track.user.ls emr_track.logical.ls
 #' @param ... these arguments are of either form 'pattern' or 'attribute =
 #' pattern'
 #' @param ignore.case,perl,fixed,useBytes see 'grep'
@@ -494,12 +505,13 @@ emr_track.info <- function(track) {
 emr_track.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
     .emr_checkroot()
     tracks <- .emr_call("emr_track_names", new.env(parent = parent.frame()), silent = TRUE)
-    .emr_tracks_filter(..., tracks = tracks, ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes)
+    logical_tracks <- .emr_call("emr_logical_track_names", new.env(parent = parent.frame()), silent = TRUE)
+    .emr_tracks_filter(..., tracks = sort(c(tracks, logical_tracks)), ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes)
 }
 
 
 
-#' Deletes a track
+#' Moves (renames) a track
 #'
 #' Moves (renames) a track
 #'
@@ -731,7 +743,8 @@ emr_track.rm <- function(track, force = F) {
 emr_track.global.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
     .emr_checkroot()
     tracks <- .emr_call("emr_global_track_names", new.env(parent = parent.frame()), silent = TRUE)
-    .emr_tracks_filter(..., tracks = tracks, ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes)
+    logical_tracks <- .emr_call("emr_logical_track_names", new.env(parent = parent.frame()), silent = TRUE)
+    .emr_tracks_filter(..., tracks = sort(c(tracks, logical_tracks)), ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes)
 }
 
 #' emr_track.ls for user db
@@ -742,6 +755,16 @@ emr_track.user.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FA
     .emr_checkroot()
     tracks <- .emr_call("emr_user_track_names", new.env(parent = parent.frame()), silent = TRUE)
     .emr_tracks_filter(..., tracks = tracks, ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes)
+}
+
+#' emr_track.ls for logical tracks
+#'
+#' @noRd
+emr_track.logical.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
+    .emr_checkroot()
+    tracks <- .emr_call("emr_logical_track_names", new.env(parent = parent.frame()), silent = TRUE)
+    tracks <- .emr_tracks_filter(..., tracks = tracks, ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes)
+    return(sort(tracks))
 }
 
 

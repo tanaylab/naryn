@@ -217,9 +217,19 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, et
 #' @export emr_extract
 emr_extract <- function(expr, tidy = F, sort = F, names = NULL, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL) {
     if (missing(expr)) {
-          stop("Usage: emr_extract(expr, tidy = F, sort = F, names = NULL, tidy = F, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
-      }
+        stop("Usage: emr_extract(expr, tidy = F, sort = F, names = NULL, tidy = F, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
+    }
     .emr_checkroot()
+
+    if (is.null(iterator)) {
+        iterator <- expand_null_iterator(expr)
+    }
+
+    if (is.character(iterator) && emr_track.is_logical(iterator)) {
+        ltrack <- emr_logical_track.info(iterator)
+        iterator <- ltrack$source
+        filter <- create_logical_track_filter(ltrack, filter)
+    }
 
     .emr_call("emr_extract", expr, names, tidy, sort, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
 }

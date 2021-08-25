@@ -154,31 +154,31 @@
 #' @export emr_vtrack.create
 emr_vtrack.create <- function(vtrack, src, func = NULL, params = NULL, keepref = F, time.shift = NULL, id.map = NULL, filter = NULL) {
     if (missing(vtrack) || missing(src)) {
-          stop("Usage: emr_vtrack.create(vtrack, src, func = NULL, params = NULL, keepref = F, time.shift = NULL, id.map = NULL, filter = NULL)", call. = F)
-      }
+        stop("Usage: emr_vtrack.create(vtrack, src, func = NULL, params = NULL, keepref = F, time.shift = NULL, id.map = NULL, filter = NULL)", call. = F)
+    }
     .emr_checkroot()
 
     if (vtrack != make.names(vtrack)) {
-          stop(sprintf("\"%s\" is not a syntactically valid name for a variable", vtrack), call. = F)
-      }
+        stop(sprintf("\"%s\" is not a syntactically valid name for a variable", vtrack), call. = F)
+    }
 
     if (!exists("EMR_VTRACKS", envir = .GlobalEnv)) {
-          EMR_VTRACKS <<- list()
-      }
+        EMR_VTRACKS <<- list()
+    }
 
     if (emr_track.exists(vtrack)) {
-          stop(sprintf("Track %s already exists", vtrack), call. = F)
-      }
+        stop(sprintf("Track %s already exists", vtrack), call. = F)
+    }
 
     if (emr_filter.exists(vtrack)) {
-          stop(sprintf("Filter %s already exists", vtrack), call. = F)
-      }
+        stop(sprintf("Filter %s already exists", vtrack), call. = F)
+    }
 
     if (is.character(src) && length(src) == 1 && !is.na(match(src, .emr_call("emr_user_track_names", new.env(parent = parent.frame()), silent = TRUE)))) {
-          root <- get("EMR_UROOT", envir = .GlobalEnv)
-      } else {
-          root <- get("EMR_GROOT", envir = .GlobalEnv)
-      }
+        root <- get("EMR_UROOT", envir = .GlobalEnv)
+    } else {
+        root <- get("EMR_GROOT", envir = .GlobalEnv)
+    }
 
     var <- list(src = src, time_shift = time.shift, func = func, params = params, keepref = keepref, id_map = id.map, filter = .emr_filter(filter))
     .emr_call("emr_check_vtrack", vtrack, var, new.env(parent = parent.frame()))

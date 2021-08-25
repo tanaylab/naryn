@@ -1,0 +1,220 @@
+
+clean_logical_tracks <- function() {
+    purrr::walk(emr_track.logical.ls(), emr_track.logical.rm, force = TRUE)
+}
+clean_logical_tracks()
+
+logical_track_ok <- function(track, source, values = NULL) {
+    expect_true(track %in% emr_track.logical.ls())
+    expect_true(track %in% emr_track.ls())
+    expect_true(track %in% emr_track.global.ls())
+    expect_true(emr_track.is_logical(track))
+    expect_equal(emr_logical_track.info(track)$source, source)
+    if (is.null(values)) {
+        expect_null(emr_logical_track.info(track)$values)
+    } else {
+        expect_equal(emr_logical_track.info(track)$values, values)
+    }
+
+    expect_true(emr_track.exists(track))
+}
+
+test_that("emr_track.create_logical tracks works", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("logical_track", "physical_track1", c(15, 16))
+    logical_track_ok("logical_track", "physical_track1", c(15, 16))
+    expect_false(emr_track.is_logical("track1"))
+})
+
+test_that("emr_track.create_logical tracks works without values", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("logical_track1", "physical_track1")
+    logical_track_ok("logical_track1", "physical_track1")
+})
+
+test_that("emr_track.create_logical tracks fails with existing tracks", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("logical_track", "physical_track1", c(15, 16))
+    expect_error(emr_track.create_logical("logical_track", "physical_track1", c(15, 16)))
+    expect_error(emr_track.create_logical("track1", "physical_track1", c(15, 16)))
+})
+
+test_that("emr_track.create_logical tracks fails with non-categorical tracks", {
+    expect_error(emr_track.create_logical("logical_track", "track2", c(15, 16)))
+})
+
+test_that("emr_track.create_logical tracks fails with illegal track names", {
+    expect_error(emr_track.create_logical(".logical_track", "physical_track1", c(15, 16)))
+})
+
+test_that("emr_logical_track.info returns correct value", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("logical_track", "physical_track1", c(15, 16))
+    res <- emr_logical_track.info("logical_track")
+    expect_equal(names(res), c("source", "values"))
+    expect_equal(res$source, "physical_track1")
+    expect_equal(res$values, c(15, 16))
+    expect_error(emr_logical_track.info("track1"))
+    expect_error(emr_logical_track.info("blahblah"))
+})
+
+test_that("emr_track.logical.rm works ", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("logical_track_test", "physical_track1", c(15, 16))
+    logical_track_ok("logical_track_test", "physical_track1", c(15, 16))
+    emr_track.logical.rm("logical_track_test", force = TRUE)
+    expect_false("logical_track_test" %in% emr_track.logical.ls())
+    expect_false("logical_track_test" %in% emr_track.ls())
+    expect_false("logical_track_test" %in% emr_track.global.ls())
+    expect_false(emr_track.exists("logical_track_test"))
+    expect_error(emr_extract("logical_track_test"))
+    expect_error(emr_logical_track.info("logical_track_test"))
+})
+
+test_that("emr_track.logical.rm fails when track doesn't exist ", {
+    expect_error(emr_track.logical.rm("blahblahblah"))
+})
+
+test_that("emr_track.logical.rm fails when track is physical", {
+    expect_error(emr_track.logical.rm("physical_track1"))
+})
+
+# TODO: test multiple processes
+
+test_that("emr_track.logical.ls works", {
+    withr::defer(clean_logical_tracks())
+    for (i in 1:10) {
+        emr_track.create_logical(paste0("logical_track", i), "physical_track1", c(15, 16))
+    }
+    for (i in 11:20) {
+        emr_track.create_logical(paste0("logical_track", i), "physical_track1")
+    }
+
+    expect_setequal(emr_track.logical.ls(), paste0("logical_track", 1:20))
+    expect_true(all(paste0("logical_track", 1:20) %in% emr_track.ls()))
+    expect_true(all(paste0("logical_track", 1:20) %in% emr_track.global.ls()))
+})
+
+# detect logical tracks in expression
+test_that("detect_expr_logical_tracks works", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("logical_track6", "physical_track1", c(15, 16))
+    emr_track.create_logical("logical_track", "physical_track1", c(15, 16))
+    emr_track.create_logical("savta", "physical_track1", c(15, 16))
+    expect_setequal(detect_expr_logical_tracks("logical_track+logical_track6/log(savta)"), c("logical_track", "logical_track6", "savta"))
+    expect_equal(detect_expr_logical_tracks("logical_track*2"), "logical_track")
+    expect_equal(detect_expr_logical_tracks("blah/blah+logical"), character(0))
+    expect_equal(detect_expr_logical_tracks("logical_track-sababa"), "logical_track")
+})
+
+# detect physical tracks in expression
+test_that("detect_expr_physical_tracks works", {
+    expect_setequal(detect_expr_physical_tracks("track1+track2/log(track3)"), c("track1", "track2", "track3"))
+    expect_equal(detect_expr_physical_tracks("track1*2"), "track1")
+    expect_equal(detect_expr_physical_tracks("blah/blah+logical"), character(0))
+    expect_equal(detect_expr_physical_tracks("track1-sababa"), "track1")
+})
+
+# detect virtual tracks in expression
+test_that("detect_expr_virtual_tracks works", {
+    emr_vtrack.create("vt1", "physical_track1")
+    emr_vtrack.create("vt2", "track1")
+    emr_vtrack.create("vt3", "track2")
+    withr::defer(EMR_VTRACKS <<- list())
+    expect_setequal(detect_expr_virtual_tracks("vt1+vt2/log(vt3)"), c("vt1", "vt2", "vt3"))
+    expect_equal(detect_expr_virtual_tracks("vt1*2"), "vt1")
+    expect_equal(detect_expr_virtual_tracks("blah/blah+logical"), character(0))
+    expect_equal(detect_expr_virtual_tracks("vt1-sababa"), "vt1")
+})
+
+# test implicit vtrack creation
+test_that("logical track returns a valid vtrack R object without values", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("logical_track1", "physical_track1")
+    res <- .emr_call("logical_track_vtrack", "logical_track1", new.env(parent = parent.frame()), silent = TRUE)
+    emr_vtrack.create("vt", "physical_track1", keepref = TRUE)
+    vt <- EMR_VTRACKS[[1]]$vt
+    expect_equal(vt, res)
+    withr::defer(emr_vtrack.rm("vt"))
+})
+
+test_that("logical track returns a valid vtrack R object with values", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("logical_track1", "physical_track1", c(15, 16))
+    res <- .emr_call("logical_track_vtrack", "logical_track1", new.env(parent = parent.frame()), silent = TRUE)
+    emr_vtrack.create("vt", "physical_track1", params = c(15, 16), keepref = TRUE)
+    vt <- EMR_VTRACKS[[1]]$vt
+    expect_equal(vt, res)
+    withr::defer(emr_vtrack.rm("vt"))
+})
+
+# addto
+
+# attributes
+
+# create
+
+
+# ids
+
+
+# extract
+
+test_that("emr_extract works with logical track as expression and implicit iterator", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("logical_track", "physical_track1")
+    a <- emr_extract("logical_track", keepref = TRUE)
+    b <- emr_extract("physical_track1", names = "logical_track", keepref = TRUE)
+    expect_equal(a, b, ignore_attr = TRUE)
+
+    a <- emr_extract("logical_track*2", names = "logical_track", keepref = TRUE)
+    b <- emr_extract("physical_track1*2", names = "logical_track", keepref = TRUE)
+    expect_equal(a, b, ignore_attr = TRUE)
+})
+
+test_that("emr_extract works with logical track with values as expression and implicit iterator", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("logical_track", "physical_track1", c(15, 16))
+    a <- emr_extract("logical_track", keepref = TRUE)
+    emr_filter.create("my_filter", src = "physical_track1", val = c(15, 16), keepref = TRUE)
+    withr::defer(emr_filter.rm("my_filter"))
+    b <- emr_extract("physical_track1", filter = "my_filter", names = "logical_track", keepref = TRUE)
+    expect_equal(a, b, ignore_attr = TRUE)
+
+    a <- emr_extract("logical_track*2", names = "logical_track", keepref = TRUE)
+    b <- emr_extract("physical_track1*2", filter = "my_filter", names = "logical_track", keepref = TRUE)
+    expect_equal(a, b, ignore_attr = TRUE)
+})
+
+test_that("emr_extract works with logical track as expression and explicit iterator", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("logical_track", "physical_track1")
+    a <- emr_extract("logical_track", iterator = "logical_track", keepref = TRUE)
+    b <- emr_extract("physical_track1", iterator = "logical_track", names = "logical_track", keepref = TRUE)
+    expect_equal(a, b, ignore_attr = TRUE)
+
+    a <- emr_extract("logical_track*2", iterator = "logical_track", names = "logical_track", keepref = TRUE)
+    b <- emr_extract("physical_track1*2", iterator = "physical_track1", , names = "logical_track", keepref = TRUE)
+    expect_equal(a, b, ignore_attr = TRUE)
+})
+
+test_that("emr_extract works with logical track with values as expression and explicit iterator", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("logical_track", "physical_track1", c(15, 16))
+    a <- emr_extract("logical_track", iterator = "logical_track", keepref = TRUE)
+    emr_filter.create("my_filter", src = "physical_track1", val = c(15, 16), keepref = TRUE)
+    withr::defer(emr_filter.rm("my_filter"))
+    b <- emr_extract("physical_track1", iterator = "physical_track1", filter = "my_filter", names = "logical_track", keepref = TRUE)
+    expect_equal(a, b, ignore_attr = TRUE)
+})
+
+test_that("emr_extract works with logical track and multiple expressions", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("logical_track1", "physical_track1", c(15, 16))
+    emr_track.create_logical("logical_track2", "physical_track1", c(13, 14))
+    a <- emr_extract(c("logical_track1", "track1"), iterator = "logical_track1", keepref = TRUE)
+    emr_filter.create("my_filter", src = "physical_track1", val = c(15, 16), keepref = TRUE)
+    withr::defer(emr_filter.rm("my_filter"))
+    b <- emr_extract(c("physical_track1", "track1"), iterator = "physical_track1", filter = "my_filter", names = c("logical_track1", "track1"), keepref = TRUE)
+    expect_equal(a, b, ignore_attr = TRUE)
+})

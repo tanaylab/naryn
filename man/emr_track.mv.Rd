@@ -2,7 +2,7 @@
 % Please edit documentation in R/track.R
 \name{emr_track.mv}
 \alias{emr_track.mv}
-\title{Deletes a track}
+\title{Moves (renames) a track}
 \usage{
 emr_track.mv(src, tgt, space = NULL)
 }

@@ -60,6 +60,27 @@ void NRTrackExpressionVars::parse_exprs(const vector<string> &track_exprs, unsig
             }
         }
 
+        // look for logical tracks and add a virtual track if needed
+        vector<string> logical_track_names = g_db->logical_track_names();
+        for (vector<string>::const_iterator itrack =
+                 logical_track_names.begin();
+             itrack < logical_track_names.end(); ++itrack) {
+            size_t pos = 0;
+
+            while ((pos = iexpr->find(*itrack, pos)) != string::npos) {
+                if (is_var(*iexpr, pos, pos + itrack->size())) {
+                    const EMRLogicalTrack *logical_track =
+                        g_db->logical_track((*itrack).c_str());
+                    add_vtrack_var(
+                        *itrack,
+                        logical_track->vtrack(),                                   
+                        false, stime, etime);
+                    break;
+                }
+                pos += itrack->size();
+            }
+        }
+
         // look for virtual tracks
         for (size_t i = 0; i < vtracks.size(); ++i) {
             if (isString(rvtracknames[i])) {

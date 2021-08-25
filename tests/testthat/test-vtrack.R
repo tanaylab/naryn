@@ -441,6 +441,14 @@ test_that("Unable to implicitly set iterator policy with vtracks", {
     expect_error(emr_extract(c("v1", "track1"), keepref = T))
 })
 
+test_that("Unable to implicitly set iterator policy with logical tracks", {
+    EMR_VTRACKS <<- list()
+    emr_track.create_logical("logical_track1", "physical_track1", c(15, 16))
+    withr::defer(emr_track.logical.rm("logical_track1", force = TRUE))
+    expect_error(emr_extract(c("logical_track1", "track1"), keepref = T))
+})
+
+
 test_that("emr_vtrack.attr.src works", {
     EMR_VTRACKS <<- list()
     emr_vtrack.create("v1", "track1")
@@ -570,4 +578,10 @@ test_that("emr_vtrack works", {
     EMR_VTRACKS <<- list()
     emr_vtrack.create("v1", "track7", func = "frequent", params = c(2:5), time.shift = c(-100, 200))
     expect_regression(emr_extract("v1"), "vtrack.62")
+})
+
+test_that("vtrack and extract return the same", {
+    EMR_VTRACKS <<- list()
+    emr_vtrack.create("vt", "track1")
+    expect_equal(emr_extract("vt"), emr_extract("track1", names = "vt"))
 })
