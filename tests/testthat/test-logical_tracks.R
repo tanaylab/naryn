@@ -218,3 +218,19 @@ test_that("emr_extract works with logical track and multiple expressions", {
     b <- emr_extract(c("physical_track1", "track1"), iterator = "physical_track1", filter = "my_filter", names = c("logical_track1", "track1"), keepref = TRUE)
     expect_equal(a, b, ignore_attr = TRUE)
 })
+
+# emr_cor
+# emr_dist
+# emr_screen
+# emr_quantile
+# emr_summary
+# emr_track.unique
+
+test_that("emr_track.unique works on logical tracks", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("logical_track1", "physical_track1", c(15, 16))
+    expect_equal(emr_track.unique("logical_track1"), c(15, 16))
+
+    emr_track.create_logical("logical_track2", "physical_track1")
+    expect_equal(emr_track.unique("logical_track2"), emr_track.unique("physical_track1"))
+})

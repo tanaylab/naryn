@@ -790,11 +790,21 @@ emr_track.logical.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed =
 #' @export emr_track.unique
 emr_track.unique <- function(track) {
     if (missing(track)) {
-          stop("Usage: emr_track.unique(track)", call. = F)
-      }
+        stop("Usage: emr_track.unique(track)", call. = F)
+    }
     .emr_checkroot()
 
-    .emr_call("emr_track_unique", track, new.env(parent = parent.frame()))
+    if (emr_track.is_logical(track)) {
+        ltrack <- emr_logical_track.info(track)
+        res <- .emr_call("emr_track_unique", ltrack$source, new.env(parent = parent.frame()))
+        if (!is.null(ltrack$values)) {
+            res <- res[res %in% ltrack$values]
+        }
+    } else {
+        res <- .emr_call("emr_track_unique", track, new.env(parent = parent.frame()))
+    }
+
+    return(res)
 }
 
 
