@@ -20,7 +20,7 @@
 #' dimensional binning the individual data in the matrices can be accessed as:
 #' $cor[bin1, ..., binN, i, j].
 #'
-#' If \code{dataframe == TRUE} the return value is a data frame with a column for each track expression, additional columns i,j with pairs of \code{cor_exprs}
+#' If \code{dataframe = TRUE} the return value is a data frame with a column for each track expression, additional columns i,j with pairs of \code{cor_exprs}
 #' and another 5 columns: 'n', 'e', 'var', 'cov', 'cor' with the same values
 #' as the matrices described above.
 #'
@@ -78,6 +78,16 @@ emr_cor <- function(..., cor.exprs = NULL, include.lowest = FALSE, right = TRUE,
 
     first_exprs <- exprs
     exprs <- append(exprs, cor.exprs)
+
+    if (is.null(iterator)) {
+        iterator <- expand_null_iterator(first_exprs)
+    }
+
+    if (is.character(iterator) && emr_track.is_logical(iterator)) {
+        ltrack <- emr_logical_track.info(iterator)
+        iterator <- ltrack$source
+        filter <- create_logical_track_filter(ltrack, filter)
+    }
 
     res <- .emr_call("emr_covariance", exprs, breaks, include.lowest, right, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
 
@@ -155,6 +165,16 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, et
     for (i in (0:(length(args) / 2 - 1))) {
         exprs <- append(exprs, args[[i * 2 + 1]])
         breaks[length(breaks) + 1] <- list(args[[i * 2 + 2]])
+    }
+
+    if (is.null(iterator)) {
+        iterator <- expand_null_iterator(exprs)
+    }
+
+    if (is.character(iterator) && emr_track.is_logical(iterator)) {
+        ltrack <- emr_logical_track.info(iterator)
+        iterator <- ltrack$source
+        filter <- create_logical_track_filter(ltrack, filter)
     }
 
     res <- .emr_call("emr_dist", exprs, breaks, include.lowest, right, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
@@ -383,9 +403,19 @@ emr_ids_vals_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filte
 #' @export emr_quantiles
 emr_quantiles <- function(expr, percentiles = 0.5, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL) {
     if (missing(expr)) {
-          stop("Usage: emr_quantiles(expr, percentiles = 0.5, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
-      }
+        stop("Usage: emr_quantiles(expr, percentiles = 0.5, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
+    }
     .emr_checkroot()
+
+    if (is.null(iterator)) {
+        iterator <- expand_null_iterator(expr)
+    }
+
+    if (is.character(iterator) && emr_track.is_logical(iterator)) {
+        ltrack <- emr_logical_track.info(iterator)
+        iterator <- ltrack$source
+        filter <- create_logical_track_filter(ltrack, filter)
+    }
 
     .emr_call("emr_quantiles", expr, percentiles, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
 }
@@ -424,9 +454,19 @@ emr_quantiles <- function(expr, percentiles = 0.5, stime = NULL, etime = NULL, i
 #' @export emr_screen
 emr_screen <- function(expr, sort = F, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL) {
     if (missing(expr)) {
-          stop("Usage: emr_screen(expr, sort = F, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
-      }
+        stop("Usage: emr_screen(expr, sort = F, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
+    }
     .emr_checkroot()
+
+    if (is.null(iterator)) {
+        iterator <- expand_null_iterator(expr)
+    }
+
+    if (is.character(iterator) && emr_track.is_logical(iterator)) {
+        ltrack <- emr_logical_track.info(iterator)
+        iterator <- ltrack$source
+        filter <- create_logical_track_filter(ltrack, filter)
+    }
 
     .emr_call("emr_screen", expr, sort, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
 }
@@ -458,9 +498,19 @@ emr_screen <- function(expr, sort = F, stime = NULL, etime = NULL, iterator = NU
 #' @export emr_summary
 emr_summary <- function(expr, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL) {
     if (missing(expr)) {
-          stop("Usage: emr_summary(expr, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
-      }
+        stop("Usage: emr_summary(expr, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
+    }
     .emr_checkroot()
+
+    if (is.null(iterator)) {
+        iterator <- expand_null_iterator(expr)
+    }
+
+    if (is.character(iterator) && emr_track.is_logical(iterator)) {
+        ltrack <- emr_logical_track.info(iterator)
+        iterator <- ltrack$source
+        filter <- create_logical_track_filter(ltrack, filter)
+    }
 
     .emr_call("emr_summary", expr, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
 }
