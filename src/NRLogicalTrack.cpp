@@ -7,6 +7,7 @@
 #include "EMRLogicalTrack.h"
 #include "EMRTrack.h"
 #include "FileUtils.h"
+#include "NRTrackExpressionVars.h"
 #include "naryn.h"
 #include "strutil.h"
 
@@ -200,13 +201,8 @@ SEXP emr_expr_logical_tracks(SEXP _expr, SEXP _envir) {
              itrack < logical_track_names.end(); ++itrack) {
             size_t pos = 0;
 
-            while ((pos = expr.find(*itrack, pos)) != string::npos) {
-                // check that it is a variable (taken from NRTrackExpressionVars
-                // is_var function)
-                size_t start = pos;
-                size_t end = pos + itrack->size();
-                if ((!start || !is_R_var_char(expr[start - 1])) &&
-                    (end == expr.size() || !is_R_var_char(expr[end]))) {
+            while ((pos = expr.find(*itrack, pos)) != string::npos) {                
+                if (NRTrackExpressionVars::is_var(expr, pos, pos + itrack->size())){                
                     logical_tracks.push_back(string(*itrack));
                     break;
                 }
@@ -251,13 +247,7 @@ SEXP emr_expr_physical_tracks(SEXP _expr, SEXP _envir) {
                 size_t pos = 0;
 
                 while ((pos = expr.find(*itrack, pos)) != string::npos) {
-                    // check that it is a variable (taken from
-                    // NRTrackExpressionVars
-                    // is_var function)
-                    size_t start = pos;
-                    size_t end = pos + itrack->size();
-                    if ((!start || !is_R_var_char(expr[start - 1])) &&
-                        (end == expr.size() || !is_R_var_char(expr[end]))) {                            
+                  if (NRTrackExpressionVars::is_var(expr, pos, pos + itrack->size())){                 
                             tracks.push_back(string(*itrack));
                             break;
                         }
@@ -344,13 +334,7 @@ SEXP emr_expr_virtual_tracks(SEXP _expr, SEXP _envir) {
                     size_t pos = 0;
 
                     while ((pos = expr.find(track, pos)) != string::npos) {
-                        // check that it is a variable (taken from
-                        // NRTrackExpressionVars
-                        // is_var function)
-                        size_t start = pos;
-                        size_t end = pos + track.size();
-                        if ((!start || !is_R_var_char(expr[start - 1])) &&
-                            (end == expr.size() || !is_R_var_char(expr[end]))) {
+                        if (NRTrackExpressionVars::is_var(expr, pos, pos + track.size())){
                             tracks.push_back(track);
                             break;
                         }
