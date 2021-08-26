@@ -79,7 +79,69 @@ test_that("emr_track.logical.rm fails when track is physical", {
     expect_error(emr_track.logical.rm("physical_track1"))
 })
 
-# TODO: test multiple processes
+# test multiple processes
+test_that("logical tracks creation persists between R sessions", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("logical_track_test1", "physical_track1", c(15, 16))
+    emr_track.create_logical("logical_track_test2", "physical_track1")
+    res <- callr::r(
+        function(root) {
+            devtools::load_all()
+            emr_db.init(global.dir = root)
+            return(emr_track.logical.ls())
+        },
+        args = list(root = EMR_GROOT)
+    )
+    expect_equal(res, c("logical_track_test1", "logical_track_test2"))
+})
+
+test_that("logical tracks creation persists between R sessions for existing sessions", {
+    withr::defer(clean_logical_tracks())
+    callr::r(
+        function(root) {
+            devtools::load_all()
+            emr_db.init(global.dir = root)
+            emr_track.create_logical("logical_track_test1", "physical_track1", c(15, 16))
+            emr_track.create_logical("logical_track_test2", "physical_track1")
+        },
+        args = list(root = EMR_GROOT)
+    )
+    expect_equal(emr_track.logical.ls(), c("logical_track_test1", "logical_track_test2"))
+    a <- emr_extract("logical_track_test2", keepref = TRUE)
+    b <- emr_extract("physical_track1", names = c("logical_track_test2"), keepref = TRUE)
+    expect_equal(a, b, ignore_attr = TRUE)
+})
+
+test_that("logical tracks creation persists between R sessions", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("logical_track_test1", "physical_track1", c(15, 16))
+    emr_track.create_logical("logical_track_test2", "physical_track1")
+    emr_track.logical.rm("logical_track_test1", force = TRUE)
+    res <- callr::r(
+        function(root) {
+            devtools::load_all()
+            emr_db.init(global.dir = root)
+            return(emr_track.logical.ls())
+        },
+        args = list(root = EMR_GROOT)
+    )
+    expect_equal(res, "logical_track_test2")
+})
+
+test_that("logical tracks deletion persists between R sessions for existing sessions", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("logical_track_test1", "physical_track1", c(15, 16))
+    emr_track.create_logical("logical_track_test2", "physical_track1")
+    res <- callr::r(
+        function(root) {
+            devtools::load_all()
+            emr_db.init(global.dir = root)
+            emr_track.logical.rm("logical_track_test1", force = TRUE)
+        },
+        args = list(root = EMR_GROOT)
+    )
+    expect_equal(emr_track.logical.ls(), "logical_track_test2")
+})
 
 test_that("emr_track.logical.ls works", {
     withr::defer(clean_logical_tracks())

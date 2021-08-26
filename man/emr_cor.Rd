@@ -74,7 +74,7 @@ Similarly to 'emr_dist' 'emr_cor' can do multi-dimensional binning. Given N
 dimensional binning the individual data in the matrices can be accessed as:
 $cor[bin1, ..., binN, i, j].
 
-If \code{dataframe == TRUE} the return value is a data frame with a column for each track expression, additional columns i,j with pairs of \code{cor_exprs}
+If \code{dataframe = TRUE} the return value is a data frame with a column for each track expression, additional columns i,j with pairs of \code{cor_exprs}
 and another 5 columns: 'n', 'e', 'var', 'cov', 'cor' with the same values
 as the matrices described above.
 }
