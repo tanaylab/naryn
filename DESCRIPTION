@@ -15,22 +15,22 @@ License: GPL-2
 BugReports: https://github.com/tanaylab/naryn/issues
 Depends: 
     utils
+Imports: 
+    dplyr,
+    glue,
+    magrittr,
+    purrr
+Suggests: 
+    callr,
+    readr,
+    testthat (>= 3.0.0)
+LinkingTo: 
+    cpp11
+Config/testthat/edition: 3
+Config/testthat/parallel: true
 Encoding: UTF-8
 LazyLoad: yes
 NeedsCompilation: yes
 Packaged: 2020-11-09 18:12:03 UTC; hoichman
 RoxygenNote: 7.1.1
 SystemRequirements: GNU make, C++11
-Suggests: 
-    testthat (>= 3.0.0),
-    glue,    
-    readr,
-    callr    
-Config/testthat/edition: 3
-Config/testthat/parallel: true
-Imports: 
-    purrr,
-    dplyr,
-    magrittr
-LinkingTo: 
-    cpp11

@@ -201,7 +201,7 @@ create_logical_track_filter <- function(ltrack, filter = NULL, filter_name = NUL
 
     res <- filter_name
     if (!is.null(filter)) {
-        res <- glue("({filter_name}) & ({filter})")
+        res <- glue::glue("({filter_name}) & ({filter})")
     }
 
     return(res)
