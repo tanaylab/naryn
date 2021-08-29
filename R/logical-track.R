@@ -2,6 +2,9 @@
 #'
 #' Creates a logical track
 #'
+#' This function creates a logical track based on an existing categorical track
+#' in the global space.
+#'
 #'
 #' @param track the name of the newly created logical track
 #' @param src name of the physical track
@@ -32,7 +35,7 @@ emr_track.logical.rm <- function(track, force = FALSE) {
         stop(sprintf("Track %s does not exist", track), call. = F)
     }
 
-    if (!emr_track.is_logical(track)) {
+    if (!emr_track.logical.exists(track)) {
         stop(sprintf("Track %s is not a logical track", track), call. = F)
     }
 
@@ -59,9 +62,9 @@ emr_track.logical.rm <- function(track, force = FALSE) {
 #'
 #' @examples
 #'
-#' emr_track.is_logical("logical_track")
+#' emr_track.logical.exists("logical_track")
 #' @noRd
-emr_track.is_logical <- function(track) {
+emr_track.logical.exists <- function(track) {
     .emr_checkroot()
     .emr_call("emr_is_logical", track, new.env(parent = parent.frame()), silent = TRUE)
 }
@@ -80,11 +83,11 @@ emr_track.is_logical <- function(track) {
 #' @examples
 #'
 #' emr_db.init_examples()
-#' emr_logical_track.info("logical_track")
+#' emr_track.logical.info("logical_track")
 #' @noRd
-emr_logical_track.info <- function(track) {
+emr_track.logical.info <- function(track) {
     if (missing(track)) {
-        stop("Usage: emr_logical_track.info(track)", call. = F)
+        stop("Usage: emr_track.logical.info(track)", call. = F)
     }
     .emr_checkroot()
 
@@ -174,7 +177,7 @@ random_filter_name <- function(pattern) {
 
 #' Create a filter for logical track
 #'
-#' @param ltrack output of \code{emr_logical_track.info}
+#' @param ltrack output of \code{emr_track.logical.info}
 #' @param filter existing filter (the new filter would be added)
 #' @param filter_name name for the new filter (optional)
 #'
@@ -183,7 +186,7 @@ random_filter_name <- function(pattern) {
 #'
 #' @examples
 #'
-#' ltrack <- emr_logical_track.info("logical_track")
+#' ltrack <- emr_track.logical.info("logical_track")
 #' create_logical_track_filter("logical_track")
 #' @noRd
 create_logical_track_filter <- function(ltrack, filter = NULL, filter_name = NULL, env = parent.frame()) {
@@ -198,7 +201,7 @@ create_logical_track_filter <- function(ltrack, filter = NULL, filter_name = NUL
 
     res <- filter_name
     if (!is.null(filter)) {
-        res <- glue("({filter_name}) & ({filter})")
+        res <- glue::glue("({filter_name}) & ({filter})")
     }
 
     return(res)

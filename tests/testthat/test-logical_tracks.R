@@ -8,12 +8,12 @@ logical_track_ok <- function(track, source, values = NULL) {
     expect_true(track %in% emr_track.logical.ls())
     expect_true(track %in% emr_track.ls())
     expect_true(track %in% emr_track.global.ls())
-    expect_true(emr_track.is_logical(track))
-    expect_equal(emr_logical_track.info(track)$source, source)
+    expect_true(emr_track.logical.exists(track))
+    expect_equal(emr_track.logical.info(track)$source, source)
     if (is.null(values)) {
-        expect_null(emr_logical_track.info(track)$values)
+        expect_null(emr_track.logical.info(track)$values)
     } else {
-        expect_equal(emr_logical_track.info(track)$values, values)
+        expect_equal(emr_track.logical.info(track)$values, values)
     }
 
     expect_true(emr_track.exists(track))
@@ -23,7 +23,7 @@ test_that("emr_track.create_logical tracks works", {
     withr::defer(clean_logical_tracks())
     emr_track.create_logical("logical_track", "physical_track1", c(15, 16))
     logical_track_ok("logical_track", "physical_track1", c(15, 16))
-    expect_false(emr_track.is_logical("track1"))
+    expect_false(emr_track.logical.exists("track1"))
 })
 
 test_that("emr_track.create_logical tracks works without values", {
@@ -47,15 +47,15 @@ test_that("emr_track.create_logical tracks fails with illegal track names", {
     expect_error(emr_track.create_logical(".logical_track", "physical_track1", c(15, 16)))
 })
 
-test_that("emr_logical_track.info returns correct value", {
+test_that("emr_track.logical.info returns correct value", {
     withr::defer(clean_logical_tracks())
     emr_track.create_logical("logical_track", "physical_track1", c(15, 16))
-    res <- emr_logical_track.info("logical_track")
+    res <- emr_track.logical.info("logical_track")
     expect_equal(names(res), c("source", "values"))
     expect_equal(res$source, "physical_track1")
     expect_equal(res$values, c(15, 16))
-    expect_error(emr_logical_track.info("track1"))
-    expect_error(emr_logical_track.info("blahblah"))
+    expect_error(emr_track.logical.info("track1"))
+    expect_error(emr_track.logical.info("blahblah"))
 })
 
 test_that("emr_track.logical.rm works ", {
@@ -68,7 +68,7 @@ test_that("emr_track.logical.rm works ", {
     expect_false("logical_track_test" %in% emr_track.global.ls())
     expect_false(emr_track.exists("logical_track_test"))
     expect_error(emr_extract("logical_track_test"))
-    expect_error(emr_logical_track.info("logical_track_test"))
+    expect_error(emr_track.logical.info("logical_track_test"))
 })
 
 test_that("emr_track.logical.rm fails when track doesn't exist ", {
@@ -220,7 +220,7 @@ test_that("logical track returns a valid vtrack R object with values", {
 # ids
 
 
-# extract
+# emr_extract
 
 test_that("emr_extract works with logical track as expression and implicit iterator", {
     withr::defer(clean_logical_tracks())
