@@ -83,11 +83,11 @@ emr_track.logical.exists <- function(track) {
 #' @examples
 #'
 #' emr_db.init_examples()
-#' emr_logical_track.info("logical_track")
+#' emr_track.logical.info("logical_track")
 #' @noRd
-emr_logical_track.info <- function(track) {
+emr_track.logical.info <- function(track) {
     if (missing(track)) {
-        stop("Usage: emr_logical_track.info(track)", call. = F)
+        stop("Usage: emr_track.logical.info(track)", call. = F)
     }
     .emr_checkroot()
 
@@ -177,7 +177,7 @@ random_filter_name <- function(pattern) {
 
 #' Create a filter for logical track
 #'
-#' @param ltrack output of \code{emr_logical_track.info}
+#' @param ltrack output of \code{emr_track.logical.info}
 #' @param filter existing filter (the new filter would be added)
 #' @param filter_name name for the new filter (optional)
 #'
@@ -186,7 +186,7 @@ random_filter_name <- function(pattern) {
 #'
 #' @examples
 #'
-#' ltrack <- emr_logical_track.info("logical_track")
+#' ltrack <- emr_track.logical.info("logical_track")
 #' create_logical_track_filter("logical_track")
 #' @noRd
 create_logical_track_filter <- function(ltrack, filter = NULL, filter_name = NULL, env = parent.frame()) {

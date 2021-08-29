@@ -84,7 +84,7 @@ emr_cor <- function(..., cor.exprs = NULL, include.lowest = FALSE, right = TRUE,
     }
 
     if (is.character(iterator) && emr_track.logical.exists(iterator)) {
-        ltrack <- emr_logical_track.info(iterator)
+        ltrack <- emr_track.logical.info(iterator)
         iterator <- ltrack$source
         filter <- create_logical_track_filter(ltrack, filter)
     }
@@ -172,7 +172,7 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, et
     }
 
     if (is.character(iterator) && emr_track.logical.exists(iterator)) {
-        ltrack <- emr_logical_track.info(iterator)
+        ltrack <- emr_track.logical.info(iterator)
         iterator <- ltrack$source
         filter <- create_logical_track_filter(ltrack, filter)
     }
@@ -246,7 +246,7 @@ emr_extract <- function(expr, tidy = F, sort = F, names = NULL, stime = NULL, et
     }
 
     if (is.character(iterator) && emr_track.logical.exists(iterator)) {
-        ltrack <- emr_logical_track.info(iterator)
+        ltrack <- emr_track.logical.info(iterator)
         iterator <- ltrack$source
         filter <- create_logical_track_filter(ltrack, filter)
     }
@@ -412,7 +412,7 @@ emr_quantiles <- function(expr, percentiles = 0.5, stime = NULL, etime = NULL, i
     }
 
     if (is.character(iterator) && emr_track.logical.exists(iterator)) {
-        ltrack <- emr_logical_track.info(iterator)
+        ltrack <- emr_track.logical.info(iterator)
         iterator <- ltrack$source
         filter <- create_logical_track_filter(ltrack, filter)
     }
@@ -463,7 +463,7 @@ emr_screen <- function(expr, sort = F, stime = NULL, etime = NULL, iterator = NU
     }
 
     if (is.character(iterator) && emr_track.logical.exists(iterator)) {
-        ltrack <- emr_logical_track.info(iterator)
+        ltrack <- emr_track.logical.info(iterator)
         iterator <- ltrack$source
         filter <- create_logical_track_filter(ltrack, filter)
     }
@@ -507,7 +507,7 @@ emr_summary <- function(expr, stime = NULL, etime = NULL, iterator = NULL, keepr
     }
 
     if (is.character(iterator) && emr_track.logical.exists(iterator)) {
-        ltrack <- emr_logical_track.info(iterator)
+        ltrack <- emr_track.logical.info(iterator)
         iterator <- ltrack$source
         filter <- create_logical_track_filter(ltrack, filter)
     }
