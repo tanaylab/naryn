@@ -365,8 +365,11 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const 
 
                 filter->m_itr = new EMRPointsIterator(points, filter->m_keepref, _stime, _etime);
             } catch (TGLException &e) {
-                if (e.type() == typeid(NRPoint) && e.code() != NRPoint::BAD_FORMAT) 
-                    verror("Filter %s: 'src' is neigther a track nor an id-time data frame", name);
+                if (e.type() == typeid(NRPoint) && e.code() != NRPoint::BAD_FORMAT)
+                    verror(
+                        "Filter %s: 'src' is neither a track nor an id-time "
+                        "data frame",
+                        name);
 
                 verror("Filter item %s: %s", name, e.msg());
             }
