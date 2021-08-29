@@ -92,12 +92,14 @@ emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val =
           root <- get("EMR_GROOT", envir = .GlobalEnv)
       }
 
-    if (emr_track.is_logical(src)){
-        ltrack_info <- emr_logical_track.info(src)
-        val <- intersect(val, ltrack_info$values)
+    if (emr_track.logical.exists(src)){
+        ltrack_info <- emr_track.logical.info(src)
+        if (is.null(val)){
+            val <- ltrack_info$values
+        } else {
+            val <- intersect(val, ltrack_info$values)
+        }
         src <- ltrack_info$source
-        print(unique(val))
-        print(src)
     }
 
     var <- list(src = src, time_shift = time.shift, keepref = keepref, val = val, expiration = expiration)

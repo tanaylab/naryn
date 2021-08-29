@@ -599,3 +599,42 @@ test_that("emr_track.unique works on logical tracks", {
     emr_track.create_logical("logical_track2", "physical_track1")
     expect_equal(emr_track.unique("logical_track2"), emr_track.unique("physical_track1"))
 })
+
+# emr_filter.create
+test_that("emr_filter.create works on logical track with and without keepref", {
+    withr::defer(clean_logical_tracks())
+
+    emr_track.create_logical("ltrack", "physical_track1", c(15, 16))
+    t1 <- emr_extract("ltrack", names=c("vals"), keepref=TRUE) %>% dplyr::filter(vals == 15) %>% dplyr::select(-ref)
+
+    emr_filter.create("f_ltrack", src="ltrack", val=c(15), keepref=TRUE)
+    t2 <- emr_extract("ltrack", names=c("vals"), filter="f_ltrack", keepref=TRUE) %>% dplyr::select(-ref)
+    
+    expect_equal(t1, t2)
+
+    # t1 <- emr_extract("ltrack", names=c("vals"), keepref=TRUE) %>% dplyr::filter(vals == 15) %>% dplyr::select(c(id, time, vals)) %>% dplyr::distinct(id, time, vals)
+    # t2 <- emr_extract("ltrack", names=c("vals"), filter="f_ltrack", keepref=FALSE) %>% dplyr::select(-ref)
+
+    # expect_equal(t1, t2)
+})
+
+test_that("empty emr_filter.create works on logical track",{
+    withr::defer(clean_logical_tracks())
+
+    emr_track.create_logical("ltrack", "physical_track1", c(15, 16))
+    
+    emr_filter.create("f_ltrack", src="ltrack")
+    
+    t1 <- emr_extract("ltrack", names=c("vals"), filter="f_ltrack", keepref=TRUE) %>% dplyr::select(-ref)
+    t2 <- emr_extract("ltrack", names=c("vals"), keepref=TRUE) %>% dplyr::select(-ref)
+
+    expect_equal(t1, t2)
+})
+
+test_that("multiple emr_filter.create works on logical track",{
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("ltrack", "physical_track1", seq(1, 16, 1))
+
+    emr_filter.create("f_ltrack", src="ltrack", val=c(15), keepref=TRUE)
+})
+
