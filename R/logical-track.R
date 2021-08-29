@@ -2,6 +2,9 @@
 #'
 #' Creates a logical track
 #'
+#' This function creates a logical track based on an existing categorical track
+#' in the global space.
+#'
 #'
 #' @param track the name of the newly created logical track
 #' @param src name of the physical track
@@ -32,7 +35,7 @@ emr_track.logical.rm <- function(track, force = FALSE) {
         stop(sprintf("Track %s does not exist", track), call. = F)
     }
 
-    if (!emr_track.is_logical(track)) {
+    if (!emr_track.logical.exists(track)) {
         stop(sprintf("Track %s is not a logical track", track), call. = F)
     }
 
@@ -59,9 +62,9 @@ emr_track.logical.rm <- function(track, force = FALSE) {
 #'
 #' @examples
 #'
-#' emr_track.is_logical("logical_track")
+#' emr_track.logical.exists("logical_track")
 #' @noRd
-emr_track.is_logical <- function(track) {
+emr_track.logical.exists <- function(track) {
     .emr_checkroot()
     .emr_call("emr_is_logical", track, new.env(parent = parent.frame()), silent = TRUE)
 }

@@ -19,5 +19,9 @@ None.
 \description{
 Creates a logical track
 }
+\details{
+This function creates a logical track based on an existing categorical track 
+in the global space.
+}
 \keyword{~create_logical}
 \keyword{~track}

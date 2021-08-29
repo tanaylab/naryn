@@ -363,7 +363,7 @@ emr_track.ids <- function(track) {
     }
     .emr_checkroot()
 
-    if (emr_track.is_logical(track)) {
+    if (emr_track.logical.exists(track)) {
         res <- emr_extract(track, iterator = track) %>%
             distinct(id)
         return(res)
@@ -794,7 +794,7 @@ emr_track.unique <- function(track) {
     }
     .emr_checkroot()
 
-    if (emr_track.is_logical(track)) {
+    if (emr_track.logical.exists(track)) {
         ltrack <- emr_logical_track.info(track)
         res <- .emr_call("emr_track_unique", ltrack$source, new.env(parent = parent.frame()))
         if (!is.null(ltrack$values)) {

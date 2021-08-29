@@ -8,7 +8,7 @@ logical_track_ok <- function(track, source, values = NULL) {
     expect_true(track %in% emr_track.logical.ls())
     expect_true(track %in% emr_track.ls())
     expect_true(track %in% emr_track.global.ls())
-    expect_true(emr_track.is_logical(track))
+    expect_true(emr_track.logical.exists(track))
     expect_equal(emr_logical_track.info(track)$source, source)
     if (is.null(values)) {
         expect_null(emr_logical_track.info(track)$values)
@@ -23,7 +23,7 @@ test_that("emr_track.create_logical tracks works", {
     withr::defer(clean_logical_tracks())
     emr_track.create_logical("logical_track", "physical_track1", c(15, 16))
     logical_track_ok("logical_track", "physical_track1", c(15, 16))
-    expect_false(emr_track.is_logical("track1"))
+    expect_false(emr_track.logical.exists("track1"))
 })
 
 test_that("emr_track.create_logical tracks works without values", {
@@ -220,7 +220,7 @@ test_that("logical track returns a valid vtrack R object with values", {
 # ids
 
 
-# extract
+# emr_extract
 
 test_that("emr_extract works with logical track as expression and implicit iterator", {
     withr::defer(clean_logical_tracks())
