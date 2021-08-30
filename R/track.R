@@ -376,7 +376,8 @@ emr_track.ids <- function(track) {
 #' character.
 #'
 #' Alternatively 'src' can be an ID-Time Values table, which is a data frame with
-#' the following columns: "id" "time" "ref" and "value".
+#' the following columns: "id" "time" "ref" and "value". Note that the
+#' file should not contain a header.
 #'
 #' (see "User Manual" for more info).
 #'
