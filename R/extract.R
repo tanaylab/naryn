@@ -285,24 +285,24 @@ emr_extract <- function(expr, tidy = F, sort = F, names = NULL, stime = NULL, et
 #' @export emr_ids_coverage
 emr_ids_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filter = NULL) {
     if (missing(ids) || missing(tracks)) {
-          stop("Usage: emr_ids_coverage(ids, tracks, stime = NULL, etime = NULL, filter = NULL)", call. = F)
-      }
+        stop("Usage: emr_ids_coverage(ids, tracks, stime = NULL, etime = NULL, filter = NULL)", call. = F)
+    }
     .emr_checkroot()
 
     if (is.null(stime) && is.null(etime) && is.null(filter)) {
-          .emr_call("emr_ids_dist", ids, tracks, new.env(parent = parent.frame()))
-      } else {
+        .emr_call("emr_ids_dist", ids, tracks, new.env(parent = parent.frame()))
+    } else {
         if (is.null(filter)) {
-              filter <- "..emr_tmp_filter"
-          } else {
-              filter <- paste0("(", filter, ")", "& ..emr_tmp_filter")
-          }
+            filter <- "..emr_tmp_filter"
+        } else {
+            filter <- paste0("(", filter, ")", "& ..emr_tmp_filter")
+        }
 
         if (is.character(ids)) { # ids is a name of the track
-              assign("..emr_tmp_filter", emr_track.ids(ids), envir = .GlobalEnv)
-          } else {
-              assign("..emr_tmp_filter", data.frame(id = unique(ids$id)), envir = .GlobalEnv)
-          }
+            assign("..emr_tmp_filter", emr_track.ids(ids), envir = .GlobalEnv)
+        } else {
+            assign("..emr_tmp_filter", data.frame(id = unique(ids$id)), envir = .GlobalEnv)
+        }
 
         tryCatch(
             {
@@ -347,21 +347,21 @@ emr_ids_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filter = N
 #' @export emr_ids_vals_coverage
 emr_ids_vals_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filter = NULL) {
     if (missing(ids) || missing(tracks)) {
-          stop("Usage: emr_ids_vals_coverage(ids, tracks, stime = NULL, etime = NULL, filter = NULL)", call. = F)
-      }
+        stop("Usage: emr_ids_vals_coverage(ids, tracks, stime = NULL, etime = NULL, filter = NULL)", call. = F)
+    }
     .emr_checkroot()
 
     if (is.null(filter)) {
-          filter <- "..emr_tmp_filter"
-      } else {
-          filter <- paste0("(", filter, ")", "& ..emr_tmp_filter")
-      }
+        filter <- "..emr_tmp_filter"
+    } else {
+        filter <- paste0("(", filter, ")", "& ..emr_tmp_filter")
+    }
 
     if (is.character(ids)) { # ids is a name of the track
-          assign("..emr_tmp_filter", emr_track.ids(ids), envir = .GlobalEnv)
-      } else {
-          assign("..emr_tmp_filter", data.frame(id = unique(ids$id)), envir = .GlobalEnv)
-      }
+        assign("..emr_tmp_filter", emr_track.ids(ids), envir = .GlobalEnv)
+    } else {
+        assign("..emr_tmp_filter", data.frame(id = unique(ids$id)), envir = .GlobalEnv)
+    }
 
     tryCatch(
         {

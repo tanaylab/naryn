@@ -287,10 +287,10 @@ test_that("emr_extract with keepref=FALSE works", {
     emr_track.create_logical("l15", "ph1", 15)
     a <- emr_extract("l15", keepref = FALSE)
     expect_true(!any(a$l15 == -1))
-    all_data <- emr_extract("ph1", keepref=TRUE, names="ph1")
+    all_data <- emr_extract("ph1", keepref = TRUE, names = "ph1")
     ptd_with_multiple_values <- all_data %>%
         dplyr::filter(ref != 0, ph1 == 15) %>%
-        dplyr::select(id, time)    
+        dplyr::select(id, time)
     susp_values <- a %>%
         dplyr::inner_join(ptd_with_multiple_values) %>%
         dplyr::pull(l15)
@@ -623,15 +623,15 @@ test_that("emr_filter.create works as expected", {
     withr::defer(clean_logical_tracks())
     emr_track.create_logical("ltrack", "ph1", c(15, 16))
 
-    emr_filter.create("f1", src="ltrack", val=c(14, 15), keepref=TRUE)
+    emr_filter.create("f1", src = "ltrack", val = c(14, 15), keepref = TRUE)
     filter_info <- emr_filter.info("f1")
     expect_equal(filter_info$val, c(14, 15))
 
-    emr_filter.create("f2", src="ltrack", keepref=TRUE)
+    emr_filter.create("f2", src = "ltrack", keepref = TRUE)
     filter_info <- emr_filter.info("f2")
     expect_null(filter_info$val)
 
-    emr_filter.create("f3", src="ltrack", val=c(17), keepref=TRUE)
+    emr_filter.create("f3", src = "ltrack", val = c(17), keepref = TRUE)
     filter_info <- emr_filter.info("f3")
     expect_equal(filter_info$val, c(17))
 })
@@ -639,17 +639,19 @@ test_that("emr_filter.create works as expected", {
 test_that("emr_filter.create works on logical track with and without keepref", {
     EMR_FILTERS <<- list()
     withr::defer(clean_logical_tracks())
-    
+
     emr_track.create_logical("ltrack", "ph1", c(15, 16))
 
-    emr_filter.create("f1", src="ltrack", val=c(15), keepref=TRUE)
-    t1 <- emr_extract("ltrack", names=c("vals"), keepref=TRUE) %>% dplyr::filter(vals == 15) %>% dplyr::select(-ref)
-    t2 <- emr_extract("ltrack", names=c("vals"), filter="f1", keepref=TRUE) %>% dplyr::select(-ref)
+    emr_filter.create("f1", src = "ltrack", val = c(15), keepref = TRUE)
+    t1 <- emr_extract("ltrack", names = c("vals"), keepref = TRUE) %>%
+        dplyr::filter(vals == 15) %>%
+        dplyr::select(-ref)
+    t2 <- emr_extract("ltrack", names = c("vals"), filter = "f1", keepref = TRUE) %>% dplyr::select(-ref)
     expect_equal(t1, t2)
-    
-    emr_filter.create("f2", src="ltrack", keepref=TRUE)
-    t1 <- emr_extract("ltrack", names=c("vals"), keepref=TRUE) 
-    t2 <- emr_extract("ltrack", names=c("vals"), filter="f2", keepref=TRUE)
+
+    emr_filter.create("f2", src = "ltrack", keepref = TRUE)
+    t1 <- emr_extract("ltrack", names = c("vals"), keepref = TRUE)
+    t2 <- emr_extract("ltrack", names = c("vals"), filter = "f2", keepref = TRUE)
     expect_equal(t1, t2)
 
     # currently fails until cpp fix
@@ -659,38 +661,39 @@ test_that("emr_filter.create works on logical track with and without keepref", {
     # expect_equal(t1, t2)
 })
 
-test_that("empty emr_filter.create works on logical track",{
+test_that("empty emr_filter.create works on logical track", {
     EMR_FILTERS <<- list()
     withr::defer(clean_logical_tracks())
 
     emr_track.create_logical("ltrack", "ph1", c(15, 16))
-    
-    emr_filter.create("f_ltrack", src="ltrack")
-    
-    t1 <- emr_extract("ltrack", names=c("vals"), filter="f_ltrack", keepref=TRUE) %>% dplyr::select(-ref)
-    t2 <- emr_extract("ltrack", names=c("vals"), keepref=TRUE) %>% dplyr::select(-ref)
+
+    emr_filter.create("f_ltrack", src = "ltrack")
+
+    t1 <- emr_extract("ltrack", names = c("vals"), filter = "f_ltrack", keepref = TRUE) %>% dplyr::select(-ref)
+    t2 <- emr_extract("ltrack", names = c("vals"), keepref = TRUE) %>% dplyr::select(-ref)
 
     expect_equal(t1, t2)
 })
 
-test_that("multiple emr_filter.create works on logical track",{
+test_that("multiple emr_filter.create works on logical track", {
     EMR_FILTERS <<- list()
     withr::defer(clean_logical_tracks())
     emr_track.create_logical("ltrack", "ph1", seq(1, 16, 1))
 
-    emr_filter.create("f1", src="ltrack", val=c(14), keepref=TRUE)
-    emr_filter.create("f2", src="ltrack", val=c(15, 16), keepref=TRUE)
-    emr_filter.create("f3", src="ltrack", val=c(14, 15, 16), keepref=TRUE)
+    emr_filter.create("f1", src = "ltrack", val = c(14), keepref = TRUE)
+    emr_filter.create("f2", src = "ltrack", val = c(15, 16), keepref = TRUE)
+    emr_filter.create("f3", src = "ltrack", val = c(14, 15, 16), keepref = TRUE)
 
-    t1 <- emr_extract("ltrack", names=c("vals"), filter="f1 || f2", keepref=TRUE) 
-    t2 <- emr_extract("ltrack", names=c("vals"), filter="f3", keepref=TRUE) 
+    t1 <- emr_extract("ltrack", names = c("vals"), filter = "f1 || f2", keepref = TRUE)
+    t2 <- emr_extract("ltrack", names = c("vals"), filter = "f3", keepref = TRUE)
 
     expect_equal(t1, t2)
 
-    t1 <- emr_extract("ltrack", names=c("vals"), filter="f1 && f2", keepref=TRUE) 
+    t1 <- emr_extract("ltrack", names = c("vals"), filter = "f1 && f2", keepref = TRUE)
     expect_equal(t1 %>% nrow(), 0)
-
 })
+
+# emr_filter.info
 
 test_that("emr_filter.info works with filters on logical tracks", {
     EMR_FILTERS <<- list()
@@ -698,24 +701,26 @@ test_that("emr_filter.info works with filters on logical tracks", {
 
     emr_track.create_logical("ltrack", "ph1", c(15, 16))
 
-    emr_filter.create("f1", src="ltrack", val=c(14, 15), keepref=TRUE)
+    emr_filter.create("f1", src = "ltrack", val = c(14, 15), keepref = TRUE)
     info <- emr_filter.info("f1")
     expect_equal(info$val, c(14, 15))
     expect_equal(info$src, "ltrack")
     expect_equal(info$keepref, TRUE)
 
-    emr_filter.create("f2", src="ltrack", val=c(17), keepref=TRUE)
+    emr_filter.create("f2", src = "ltrack", val = c(17), keepref = TRUE)
     info <- emr_filter.info("f2")
     expect_equal(info$val, c(17))
     expect_equal(info$src, "ltrack")
     expect_equal(info$keepref, TRUE)
 
-    emr_filter.create("f3", src="ltrack", keepref=TRUE)
+    emr_filter.create("f3", src = "ltrack", keepref = TRUE)
     info <- emr_filter.info("f3")
     expect_null(info$val)
     expect_equal(info$src, "ltrack")
     expect_equal(info$keepref, TRUE)
 })
+
+# emr_filter.attr.src
 
 test_that("emr_filter.attr.src works no input", {
     EMR_FILTERS <<- list()
@@ -723,7 +728,7 @@ test_that("emr_filter.attr.src works no input", {
 
     emr_track.create_logical("ltrack", "ph1", c(15, 16))
 
-    emr_filter.create("f1", src="ltrack", val=c(14, 15), keepref=TRUE)
+    emr_filter.create("f1", src = "ltrack", val = c(14, 15), keepref = TRUE)
     src <- emr_filter.attr.src("f1")
     expect_equal("ltrack", src)
 })
@@ -735,19 +740,18 @@ test_that("emr_filter.attr.src works change from logical to logical", {
     emr_track.create_logical("l1", "ph1", c(15, 16))
     emr_track.create_logical("l2", "ph1", c(14, 15, 16))
 
-    emr_filter.create("f1", src="l1", val=c(14, 15), keepref=TRUE)
-    emr_filter.attr.src("f1", src="l2")
+    emr_filter.create("f1", src = "l1", val = c(14, 15), keepref = TRUE)
+    emr_filter.attr.src("f1", src = "l2")
 
     filter_info <- emr_filter.info("f1")
 
     expect_equal("l2", filter_info$src)
     expect_equal(c(14, 15), filter_info$val)
 
-    t1 <- emr_extract("l2", names=c('vals'), filter="f1", keepref=TRUE)
-    t2 <- emr_extract("l2", names=c('vals'), keepref=TRUE) %>% dplyr::filter(vals == 15 | vals == 14)
+    t1 <- emr_extract("l2", names = c("vals"), filter = "f1", keepref = TRUE)
+    t2 <- emr_extract("l2", names = c("vals"), keepref = TRUE) %>% dplyr::filter(vals == 15 | vals == 14)
 
     expect_equal(t1, t2)
-
 })
 
 test_that("emr_filter.attr.src works change from logical to physical", {
@@ -756,16 +760,16 @@ test_that("emr_filter.attr.src works change from logical to physical", {
 
     emr_track.create_logical("l1", "ph1", c(15, 16))
 
-    emr_filter.create("f1", src="l1", val=c(14, 15), keepref=TRUE)
-    emr_filter.attr.src("f1", src="ph1")
+    emr_filter.create("f1", src = "l1", val = c(14, 15), keepref = TRUE)
+    emr_filter.attr.src("f1", src = "ph1")
 
     filter_info <- emr_filter.info("f1")
 
     expect_equal("ph1", filter_info$src)
     expect_equal(c(14, 15), filter_info$val)
 
-    t1 <- emr_extract("ph1", names=c('vals'), filter="f1", keepref=TRUE)
-    t2 <- emr_extract("ph1", names=c('vals'), keepref=TRUE) %>% dplyr::filter(vals == 15 | vals == 14)
+    t1 <- emr_extract("ph1", names = c("vals"), filter = "f1", keepref = TRUE)
+    t2 <- emr_extract("ph1", names = c("vals"), keepref = TRUE) %>% dplyr::filter(vals == 15 | vals == 14)
 
     expect_equal(t1, t2)
 })
@@ -776,19 +780,21 @@ test_that("emr_filter.attr.src works when changed from physical to logical", {
 
     emr_track.create_logical("l1", "ph1", c(15, 16))
 
-    emr_filter.create("f1", src="ph1", val=c(14, 15), keepref=TRUE)
-    emr_filter.attr.src("f1", src="l1")
+    emr_filter.create("f1", src = "ph1", val = c(14, 15), keepref = TRUE)
+    emr_filter.attr.src("f1", src = "l1")
 
     filter_info <- emr_filter.info("f1")
 
     expect_equal("l1", filter_info$src)
     expect_equal(c(14, 15), filter_info$val)
 
-    t1 <- emr_extract("l1", names=c('vals'), filter="f1", keepref=TRUE)
-    t2 <- emr_extract("l1", names=c('vals'), keepref=TRUE) %>% dplyr::filter(vals == 15 | vals == 14)
+    t1 <- emr_extract("l1", names = c("vals"), filter = "f1", keepref = TRUE)
+    t2 <- emr_extract("l1", names = c("vals"), keepref = TRUE) %>% dplyr::filter(vals == 15 | vals == 14)
 
     expect_equal(t1, t2)
 })
+
+# emr_filter.attr.val
 
 test_that("emr_filter.attr.val works no input", {
     EMR_FILTERS <<- list()
@@ -796,19 +802,27 @@ test_that("emr_filter.attr.val works no input", {
 
     emr_track.create_logical("ltrack", "ph1", c(15, 16))
 
-    emr_filter.create("f1", src="ltrack", val=c(14, 15), keepref=TRUE)
+    emr_filter.create("f1", src = "ltrack", val = c(14, 15), keepref = TRUE)
     val <- emr_filter.attr.val("f1")
     expect_equal(c(14, 15), val)
 })
 
-# test_that("emr_filter.attr.val works change from logical to logical", {
+test_that("emr_filter.attr.val changes work on logical track", {
+    EMR_FILTERS <<- list()
+    withr::defer(clean_logical_tracks())
 
-# })
+    emr_track.create_logical("l1", "ph1", c(15, 16))
+    emr_filter.create("f1", src = "l1", val = c(14, 15), keepref = TRUE)
 
-# test_that("emr_filter.attr.val works change from physical to logical", {
+    emr_filter.attr.val("f1", val = c(10, 15, 20))
 
-# })
+    filter_info <- emr_filter.info("f1")
 
-# test_that("emr_filter.attr.val works change from logical to physical", {
+    expect_equal("l1", filter_info$src)
+    expect_equal(c(10, 15, 20), filter_info$val)
 
-# })
+    t1 <- emr_extract("l1", names = c("vals"), filter = "f1", keepref = TRUE)
+    t2 <- emr_extract("l1", names = c("vals"), keepref = TRUE) %>% dplyr::filter(vals == 10 | vals == 15 | vals == 20)
+
+    expect_equal(t1, t2)
+})

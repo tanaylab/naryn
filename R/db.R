@@ -156,8 +156,8 @@ emr_db.reload <- function() {
 #' @export emr_db.subset
 emr_db.subset <- function(src = "", fraction = NULL, complementary = NULL) {
     if (!is.null(src) && src == "") {
-          stop("Usage: emr_db.subset(src, fraction, complementary)", call. = F)
-      }
+        stop("Usage: emr_db.subset(src, fraction, complementary)", call. = F)
+    }
     .emr_checkroot()
 
     .emr_call("emr_db_subset", src, fraction, complementary, new.env(parent = parent.frame()))
