@@ -24,8 +24,8 @@ emr_traceback <- function(x = NULL, max.lines = getOption("deparse.max.lines")) 
     x <- NULL
 
     if (is.null(x) && (exists(".Traceback", envir = baseenv()))) {
-          x <- get(".Traceback", envir = baseenv())
-      }
+        x <- get(".Traceback", envir = baseenv())
+    }
 
     if (!is.null(x) && length(x) > 0) {
         # get the call stack and concatenate all complex commands together
