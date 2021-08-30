@@ -118,11 +118,12 @@ emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val =
         ltrack_info <- emr_track.logical.info(src)
         val <- .emr_filter_calc_val_logical(src, val)
 
-        if (length(val) == 0) {
-            logical$empty <- TRUE
-        }
-
         src <- ltrack_info$source
+
+        if (length(val) == 0) {
+            src <- data.frame(id = numeric(), time = numeric())
+            val <- NULL
+        }
     }
 
     var <- list(src = src, time_shift = time.shift, keepref = keepref, val = val, expiration = expiration, logical = logical)
@@ -205,6 +206,7 @@ emr_filter.attr.src <- function(filter, src) {
 
         if (length(filter.var$val) == 0) {
             filter.var$src <- data.frame(id = numeric(), time = numeric())
+            filter.var$val <- NULL
         }
     } else {
         .emr_call("emr_check_filter_attr_src", src, new.env(parent = parent.frame()))
@@ -320,6 +322,7 @@ emr_filter.attr.val <- function(filter, val) {
 
         if (length(filter.var$val) == 0) {
             filter.var$src <- data.frame(id = numeric(), time = numeric())
+            filter.var$val <- NULL
         }
 
         EMR_FILTERS[[root]][[filter]] <<- filter.var

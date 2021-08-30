@@ -636,7 +636,7 @@ test_that("emr_filter.create works as expected", {
     expect_equal(filter_info$val, c(17))
 })
 
-test_that("emr_filter.create works on logical track with and without keepref", {
+test_that("emr_filter.create works on logical track", {
     EMR_FILTERS <<- list()
     withr::defer(clean_logical_tracks())
 
@@ -655,10 +655,10 @@ test_that("emr_filter.create works on logical track with and without keepref", {
     expect_equal(t1, t2)
 
     # currently fails until cpp fix
-    # emr_filter.create("f3", src="ltrack", val=c(17), keepref=TRUE)
-    # t1 <- emr_extract("ltrack", names=c("vals"), keepref=TRUE) %>% dplyr::filter(vals == 17) %>% dplyr::select(-ref)
-    # t2 <- emr_extract("ltrack", names=c("vals"), filter="f3", keepref=TRUE) %>% dplyr::select(-ref)
-    # expect_equal(t1, t2)
+    emr_filter.create("f3", src="ltrack", val=c(17), keepref=TRUE)
+    t1 <- emr_extract("ltrack", names=c("vals"), keepref=TRUE) %>% dplyr::filter(vals == 17) %>% dplyr::select(-ref)
+    t2 <- emr_extract("ltrack", names=c("vals"), filter="f3", keepref=TRUE) %>% dplyr::select(-ref)
+    expect_equal(t1, t2)
 })
 
 test_that("empty emr_filter.create works on logical track", {
