@@ -287,10 +287,10 @@ test_that("emr_extract with keepref=FALSE works", {
     emr_track.create_logical("l15", "ph1", 15)
     a <- emr_extract("l15", keepref = FALSE)
     expect_true(!any(a$l15 == -1))
-    all_data <- emr_extract("ph1", keepref=TRUE, names="ph1")
+    all_data <- emr_extract("ph1", keepref = TRUE, names = "ph1")
     ptd_with_multiple_values <- all_data %>%
         dplyr::filter(ref != 0, ph1 == 15) %>%
-        dplyr::select(id, time)    
+        dplyr::select(id, time)
     susp_values <- a %>%
         dplyr::inner_join(ptd_with_multiple_values) %>%
         dplyr::pull(l15)
@@ -617,3 +617,55 @@ test_that("emr_track.unique works on logical tracks", {
 })
 
 
+# filters
+test_that("logical track can be used as filter", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("l15", "ph1", 15)
+    emr_track.create_logical("l16", "ph1", 16)
+
+    df <- emr_extract("ph1", keepref = TRUE)
+    emr_track.import("p15", space = "global", categorical = TRUE, src = df %>% dplyr::filter(ph1 == 15) %>% dplyr::select(id, time, ref, value = ph1))
+    emr_track.import("p16", space = "global", categorical = TRUE, src = df %>% dplyr::filter(ph1 == 16) %>% dplyr::select(id, time, ref, value = ph1))
+    withr::defer(emr_track.rm("p15", force = TRUE))
+    withr::defer(emr_track.rm("p16", force = TRUE))
+
+    a <- emr_extract("ph1", filter = "p15 & p16", keepref = TRUE)
+    b <- emr_extract("ph1", filter = "l15 & l16", keepref = TRUE)
+    expect_equal(a, b)
+
+    a <- emr_extract("ph1", filter = "p15", keepref = TRUE)
+    b <- emr_extract("ph1", filter = "l15", keepref = TRUE)
+    expect_equal(a, b)
+
+    a <- emr_extract("ph1", filter = "p15 | p16", keepref = TRUE)
+    b <- emr_extract("ph1", filter = "p15 | p16", keepref = TRUE)
+    expect_equal(a, b)
+
+    a <- emr_extract("ph1", filter = "p15 & p16", keepref = TRUE)
+    b <- emr_extract("ph1", filter = "p15 & l16", keepref = TRUE)
+    expect_equal(a, b)
+
+    a <- emr_extract("ph1", filter = "p15 | p16", keepref = TRUE)
+    b <- emr_extract("ph1", filter = "p15 | l16", keepref = TRUE)
+    expect_equal(a, b)
+
+    a <- emr_extract("l15", filter = "l15", keepref = TRUE)
+    b <- emr_extract("p15", filter = "l15", keepref = TRUE, names = "l15")
+    expect_equal(a, b)
+
+    a <- emr_extract("l15", filter = "l15", keepref = TRUE)
+    b <- emr_extract("p15", filter = "p15", keepref = TRUE, names = "l15")
+    expect_equal(a, b)
+
+    a <- emr_extract("l15", filter = "l16", keepref = TRUE)
+    b <- emr_extract("p15", filter = "l16", keepref = TRUE, names = "l15")
+    expect_equal(a, b)
+
+    a <- emr_extract("l15", filter = "l16", keepref = TRUE)
+    b <- emr_extract("p15", filter = "p16", keepref = TRUE, names = "l15")
+    expect_equal(a, b)
+
+    a <- emr_extract("l15", filter = "l15 & l16", keepref = TRUE)
+    b <- emr_extract("p15", filter = "l15 & l16", keepref = TRUE, names = "l15")
+    expect_equal(a, b)
+})

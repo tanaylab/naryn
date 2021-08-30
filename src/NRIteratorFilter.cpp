@@ -170,6 +170,20 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(vector<SEXP> &filter
             return filter;
         }
 
+        // create a filter based on logical track
+        const EMRLogicalTrack *logical_track = g_db->logical_track(str);
+
+        if (logical_track) {
+            track = g_db->track(logical_track->source.c_str());
+            unordered_set<double> vals;
+            for (auto v : logical_track->values){                
+                vals.insert(v);
+            }
+            filter->m_itr = new EMRTrackIterator(track, filter->m_keepref,
+                                                 stime, etime, move(vals));
+            return filter;
+        }
+
         SEXP rval = findVar(install(str), g_naryn->env());
         bool success = false;
 
