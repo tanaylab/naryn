@@ -2,6 +2,7 @@
     eval(parse(text = sprintf("substitute(%s)", filter)))
 }
 
+
 .emr_filter.get <- function(filterstr) {
     if (!emr_filter.exists(filterstr)) {
           stop(sprintf("Filter %s does not exist", filterstr), call. = F)
@@ -13,7 +14,25 @@
         root <- get("EMR_UROOT", envir = .GlobalEnv)
         filter <- get("EMR_FILTERS", envir = .GlobalEnv)[[root]][[filterstr]]
     }
+    if (!is.null(filter$logical)){
+        filter$src <- filter$logical$src
+        filter$val <- filter$logical$val
+    } 
+    filter$logical <- NULL
+
     filter
+}
+
+.emr_filter_calc_val_logical <- function(ltrack_name, val) {
+
+    ltrack_info <- emr_track.logical.info(ltrack_name)
+
+    if (is.null(val)){
+        return (ltrack_info$values)
+    } 
+    
+    return (intersect(val, ltrack_info$values))
+
 }
 
 
@@ -92,17 +111,23 @@ emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val =
           root <- get("EMR_GROOT", envir = .GlobalEnv)
       }
 
-    if (emr_track.logical.exists(src)){
+    logical <- NULL
+
+    if (is.character(src) && emr_track.logical.exists(src)){
+        logical$src = src
+        logical$val = val
+
         ltrack_info <- emr_track.logical.info(src)
-        if (is.null(val)){
-            val <- ltrack_info$values
-        } else {
-            val <- intersect(val, ltrack_info$values)
+        val <- .emr_filter_calc_val_logical(src, val)
+
+        if (length(val) == 0) {
+            logical$empty = TRUE
         }
+
         src <- ltrack_info$source
     }
 
-    var <- list(src = src, time_shift = time.shift, keepref = keepref, val = val, expiration = expiration)
+    var <- list(src = src, time_shift = time.shift, keepref = keepref, val = val, expiration = expiration, logical=logical)
     .emr_call("emr_check_named_filter", var, filter, new.env(parent = parent.frame()))
     emr_filter.rm(filter)
     EMR_FILTERS[[root]][[filter]] <<- var
@@ -150,6 +175,7 @@ emr_filter.attr.src <- function(filter, src) {
 
     root <- get("EMR_GROOT", envir = .GlobalEnv)
     filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[root]][[filter]]
+
     if (is.null(filter.var)) {
         root <- get("EMR_UROOT", envir = .GlobalEnv)
         filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[root]][[filter]]
@@ -157,22 +183,52 @@ emr_filter.attr.src <- function(filter, src) {
 
     if (is.null(filter.var)) {
           stop(sprintf("Filter \"%s\" does not exist", filter), call. = F)
-      }
+    }
+
+    is_logical_filter <- !is.null(filter.var$logical)
 
     if (missing(src)) {
-          filter.var$src
-      } else {
+        if (is_logical_filter) {
+        return(filter.var$logical$src)
+        } else {
+        return(filter.var$src)
+        }
+    } 
+    else if (is.character(src) && emr_track.logical.exists(src)){ 
+        emr_filter.rm(filter)    
+        filter.var$logical$src <- src
+
+        if (!is_logical_filter) {
+            filter.var$logical$val <- filter.var$val
+        }
+        
+        filter.var$val <- .emr_filter_calc_val_logical(src, filter.var$logical$val)
+        ltrack_info <- emr_track.logical.info(src)
+        filter.var$src <- ltrack_info$source
+
+        if (length(filter.var$val) == 0) {
+            filter.var$src = data.frame(id=numeric(), time=numeric())
+        }
+
+    } 
+    else {
         .emr_call("emr_check_filter_attr_src", src, new.env(parent = parent.frame()))
         emr_filter.rm(filter)
         filter.var$src <- src
-        if (is.character(src) && length(src) == 1 && !is.na(match(src, .emr_call("emr_user_track_names", new.env(parent = parent.frame()), silent = TRUE)))) {
-              root <- get("EMR_UROOT", envir = .GlobalEnv)
-          } else {
-              root <- get("EMR_GROOT", envir = .GlobalEnv)
-          }
-        EMR_FILTERS[[root]][[filter]] <<- filter.var
-        retv <- NULL
+
+        if (is_logical_filter) {
+            filter.var$val <- filter.var$logical$val
+            filter.var$logical <- NULL
+        }
     }
+        
+    if (is.character(src) && length(src) == 1 && !is.na(match(src, .emr_call("emr_user_track_names", new.env(parent = parent.frame()), silent = TRUE)))) {
+            root <- get("EMR_UROOT", envir = .GlobalEnv)
+        } else {
+            root <- get("EMR_GROOT", envir = .GlobalEnv)
+        }
+    EMR_FILTERS[[root]][[filter]] <<- filter.var
+    retv <- NULL
 }
 
 emr_filter.attr.keepref <- function(filter, keepref) {
@@ -245,18 +301,36 @@ emr_filter.attr.val <- function(filter, val) {
 
     if (is.null(filter.var)) {
           stop(sprintf("Filter \"%s\" does not exist", filter), call. = F)
-      }
+    }
+
+    is_logical_filter <- !is.null(filter.var$logical)
 
     if (missing(val)) {
-          filter.var$val
-      } else {
-        if (!is.numeric(val)) {
-              stop("'val' parameter must be a numeric vector", call. = F)
-          }
-
-        EMR_FILTERS[[root]][[filter]]["val"] <<- unique(list(val))
-        retv <- NULL
+        if (is_logical_filter) {
+            return(filter.var$logical$val)
+        } else {
+            return(filter.var$val)
+        }
     }
+     
+    if (!is.numeric(val)) {
+            stop("'val' parameter must be a numeric vector", call. = F)
+    }
+    
+    if (is_logical_filter) {
+        
+        filter.var$logical$val <- val
+        ltrack_info <- emr_track.logical.info(src)
+
+        filter.var$val <- .emr_filter_calc_val_logical(src, val)
+
+        if (length(filter.var$val) == 0) {
+            filter.var$src = data.frame(id=numeric(), time=numeric())
+        }
+    }
+
+    EMR_FILTERS[[root]][[filter]]["val"] <<- unique(list(val))
+    retv <- NULL
 }
 
 emr_filter.attr.expiration <- function(filter, expiration) {
