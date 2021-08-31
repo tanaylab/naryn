@@ -40,7 +40,7 @@ struct EMRTrackData {
     EMRTrackData() {}
 
     void add(unsigned id, EMRTimeStamp timestamp, T val);
-    void finalize();
+    void finalize(const bool& unify = false);
 
     DataRecs data;
 };
@@ -62,7 +62,7 @@ void EMRTrackData<T>::add(unsigned id, EMRTimeStamp timestamp, T val) {
 }
 
 template <class T>
-void EMRTrackData<T>::finalize() {
+void EMRTrackData<T>::finalize(const bool& unify) {
     bool finalized = true;
 
     for (auto idata = data.begin() + 1; idata < data.end(); ++idata) {
@@ -74,8 +74,10 @@ void EMRTrackData<T>::finalize() {
 
     if (!finalized) {
         sort(data.begin(), data.end());
-        // unify same data records (same id,time,ref and value)
-        data.resize(distance(data.begin(), unique(data.begin(), data.end())));
+        if (unify){
+            // unify same data records (same id,time,ref and value)
+            data.resize(distance(data.begin(), unique(data.begin(), data.end())));
+        }
 
         // make sure there is no record with same id,time,ref and different
         // value

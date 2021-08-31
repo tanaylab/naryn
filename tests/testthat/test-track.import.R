@@ -107,3 +107,12 @@ test_that("emr_track.addto works when time points already exist with the same va
         new = file.path(EMR_GROOT, "temp_track.nrtrack")
     ))
 })
+
+
+test_that("creating a virtual track with duplicate values still fails", {
+    a <- emr_extract("track1", names = "value")
+    b <- rbind(a[1:3, ], a[1:3, ])
+    emr_vtrack.create("vt", src = list(b, FALSE))
+    expect_error(emr_extract("vt"))
+    expect_error(emr_extract("vt", iterator = "track1"))
+})
