@@ -95,11 +95,15 @@ test_that("emr_track.addto fails when time points already exist with different v
     expect_error(emr_track.addto("temp_track", b))
 })
 
-test_that("emr_track.addto fails when time points already exist with the same value", {
+test_that("emr_track.addto works when time points already exist with the same value", {
     a <- emr_extract("track1", keepref = TRUE, names = "value")
     emr_track.import("temp_track", "global", categorical = FALSE, src = a)
     withr::defer(emr_track.rm("temp_track", force = TRUE))
     emr_track.addto("temp_track", a[1:2, ])
     b <- emr_extract("temp_track", keepref = TRUE, names = "value")
     expect_equal(a, b)
+    expect_true(compare_file_binary(
+        old = file.path(EMR_GROOT, "track1.nrtrack"),
+        new = file.path(EMR_GROOT, "temp_track.nrtrack")
+    ))
 })
