@@ -77,11 +77,12 @@
 #' If 'src' is a file name, the latter must be constituted of four columns
 #' separated by spaces or 'TAB' characters: ID, time, reference and value. The
 #' file might contain lines of comments which should start with a '#'
-#' character.
+#' character. Note that the file should not contain a header line.
 #'
 #' Alternatively 'src' can be a data frame consisting of the columns named
 #' "id", "time", "ref" and "value". Note: "ref" column in the data frame is
 #' optional.
+#'
 #'
 #' @param track track name
 #' @param src file name or data-frame containing the track records
@@ -376,7 +377,8 @@ emr_track.ids <- function(track) {
 #' character.
 #'
 #' Alternatively 'src' can be an ID-Time Values table, which is a data frame with
-#' the following columns: "id" "time" "ref" and "value".
+#' the following columns: "id" "time" "ref" and "value". Note that the
+#' file should not contain a header.
 #'
 #' (see "User Manual" for more info).
 #'
