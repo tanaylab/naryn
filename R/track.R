@@ -365,7 +365,7 @@ emr_track.ids <- function(track) {
 
     if (emr_track.logical.exists(track)) {
         res <- emr_extract(track, iterator = track) %>%
-            distinct(id)
+            dplyr::distinct(id)
         return(res)
     }
 

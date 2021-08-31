@@ -289,32 +289,62 @@ emr_ids_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filter = N
     }
     .emr_checkroot()
 
-    if (is.null(stime) && is.null(etime) && is.null(filter)) {
-        .emr_call("emr_ids_dist", ids, tracks, new.env(parent = parent.frame()))
-    } else {
-        if (is.null(filter)) {
-            filter <- "..emr_tmp_filter"
-        } else {
-            filter <- paste0("(", filter, ")", "& ..emr_tmp_filter")
-        }
+    orig_tracks <- tracks
+    res_logical <- list()
+    res <- list()
 
-        if (is.character(ids)) { # ids is a name of the track
-            assign("..emr_tmp_filter", emr_track.ids(ids), envir = .GlobalEnv)
-        } else {
-            assign("..emr_tmp_filter", data.frame(id = unique(ids$id)), envir = .GlobalEnv)
+    for (track in tracks) {
+        if (emr_track.logical.exists(track)) {
+            ltrack <- emr_track.logical.info(track)
+            res_logical[[track]] <-
+                emr_ids_coverage(
+                    ids,
+                    ltrack$source,
+                    filter = create_logical_track_filter(ltrack, filter), stime = stime,
+                    etime = etime
+                )[[1]]
         }
-
-        tryCatch(
-            {
-                .emr_call("emr_ids_dist_with_iterator", ids, tracks, stime, etime, .emr_filter(filter), new.env(parent = parent.frame()))
-            },
-            finally = {
-                rm("..emr_tmp_filter", envir = .GlobalEnv)
-            }
-        )
     }
-}
 
+    tracks <- tracks[!(tracks %in% names(res_logical))]
+
+    if (length(tracks) > 0) {
+        if (is.null(stime) && is.null(etime) && is.null(filter)) {
+            res <- .emr_call("emr_ids_dist", ids, tracks, new.env(parent = parent.frame()))
+        } else {
+            if (is.null(filter)) {
+                filter <- "..emr_tmp_filter"
+            } else {
+                filter <- paste0("(", filter, ")", " & ..emr_tmp_filter")
+            }
+
+            if (is.character(ids)) { # ids is a name of the track
+                track_ids <- emr_track.ids(ids)
+                assign("..emr_tmp_filter", track_ids, envir = .GlobalEnv)
+                if (emr_track.logical.exists(ids)) {
+                    ids <- track_ids
+                }
+            } else {
+                assign("..emr_tmp_filter", data.frame(id = unique(ids$id)), envir = .GlobalEnv)
+            }
+
+            tryCatch(
+                {
+                    res <- .emr_call("emr_ids_dist_with_iterator", ids, tracks, stime, etime, .emr_filter(filter), new.env(parent = parent.frame()))
+                },
+                finally = {
+                    rm("..emr_tmp_filter", envir = .GlobalEnv)
+                }
+            )
+        }
+    }
+
+    res <- c(res, res_logical)
+
+    res <- res[orig_tracks]
+    res <- unlist(res)
+    return(res)
+}
 
 
 #' Returns ids coverage per value track
@@ -351,26 +381,59 @@ emr_ids_vals_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filte
     }
     .emr_checkroot()
 
-    if (is.null(filter)) {
-        filter <- "..emr_tmp_filter"
-    } else {
-        filter <- paste0("(", filter, ")", "& ..emr_tmp_filter")
+    logical_tracks <- tracks[purrr::map_lgl(tracks, emr_track.logical.exists)]
+    physical_tracks <- tracks[!(tracks %in% logical_tracks)]
+
+    res_logical <- data.frame(track = character(), val = numeric(), count = numeric())
+    res_physical <- data.frame(track = character(), val = numeric(), count = numeric())
+
+    if (length(logical_tracks) > 0) {
+        res_logical <- purrr::map_dfr(logical_tracks, function(track) {
+            ltrack <- emr_track.logical.info(track)
+            res <- emr_ids_vals_coverage(
+                ids,
+                ltrack$source,
+                filter = create_logical_track_filter(ltrack, filter), stime = stime,
+                etime = etime
+            )
+            res$track <- track
+            res <- res %>% dplyr::filter(val %in% ltrack$values)
+            return(res)
+        })
     }
 
-    if (is.character(ids)) { # ids is a name of the track
-        assign("..emr_tmp_filter", emr_track.ids(ids), envir = .GlobalEnv)
-    } else {
-        assign("..emr_tmp_filter", data.frame(id = unique(ids$id)), envir = .GlobalEnv)
-    }
-
-    tryCatch(
-        {
-            .emr_call("emr_ids_vals_dist", ids, tracks, stime, etime, .emr_filter(filter), new.env(parent = parent.frame()))
-        },
-        finally = {
-            rm("..emr_tmp_filter", envir = .GlobalEnv)
+    if (length(physical_tracks) > 0) {
+        if (is.null(filter)) {
+            filter <- "..emr_tmp_filter"
+        } else {
+            filter <- paste0("(", filter, ")", "& ..emr_tmp_filter")
         }
-    )
+
+        if (is.character(ids)) { # ids is a name of the track
+            track_ids <- emr_track.ids(ids)
+            assign("..emr_tmp_filter", track_ids, envir = .GlobalEnv)
+            if (emr_track.logical.exists(ids)) {
+                ids <- track_ids
+            }
+        } else {
+            assign("..emr_tmp_filter", data.frame(id = unique(ids$id)), envir = .GlobalEnv)
+        }
+
+        tryCatch(
+            {
+                res_physical <- .emr_call("emr_ids_vals_dist", ids, physical_tracks, stime, etime, .emr_filter(filter), new.env(parent = parent.frame()))
+            },
+            finally = {
+                rm("..emr_tmp_filter", envir = .GlobalEnv)
+            }
+        )
+    }
+
+    res <- rbind(res_physical, res_logical)
+    res <- res %>%
+        dplyr::mutate(track = factor(track, levels = tracks)) %>%
+        dplyr::arrange(track)
+    return(res)
 }
 
 
