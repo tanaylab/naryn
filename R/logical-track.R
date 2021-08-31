@@ -151,8 +151,10 @@ detect_expr_virtual_tracks <- function(expr) {
 #'
 #' @noRd
 expand_null_iterator <- function(exprs) {
+
     tracks <- c()
     vtracks <- c()
+    
     for (expr in exprs) {
         tracks <- c(tracks, detect_expr_logical_tracks(expr))
         tracks <- c(tracks, detect_expr_physical_tracks(expr))
@@ -162,6 +164,16 @@ expand_null_iterator <- function(exprs) {
     # naryn doesn't allow explicit vtrack iterator
     if (length(tracks) == 1 && length(vtracks) == 0) {
         return(tracks)
+    }
+
+    if (length(vtracks) == 1) {
+
+        vtrack_info <- emr_vtrack.info(vtracks)
+        src <- vtrack_info$src
+
+        if (is.character(src) && emr_track.logical.exists(src)) {
+            return(src)
+        }
     }
 
     if (length(c(tracks, vtracks)) > 1) {
@@ -205,4 +217,20 @@ create_logical_track_filter <- function(ltrack, filter = NULL, filter_name = NUL
     }
 
     return(res)
+}
+
+#' Create an empty filter
+#'
+#' @return a string with an empty filter, necessary for vtrack creation when params are out of the logical track's values scope.
+#'
+#' @noRd
+create_logical_vtrack_empty_filter <- function() {
+    filter_name <- random_filter_name("logical_filter_")
+
+    emr_filter.create(
+        filter=filter_name, 
+        src=data.frame(id = numeric(), time = numeric())
+    )
+
+    return(filter_name)
 }
