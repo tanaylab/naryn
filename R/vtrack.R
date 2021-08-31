@@ -9,6 +9,11 @@
         root <- get("EMR_UROOT", envir = .GlobalEnv)
         vtrack <- get("EMR_VTRACKS", envir = .GlobalEnv)[[root]][[vtrackstr]]
     }
+    if (!is.null(vtrack$logical)) {
+        vtrack$src <- vtrack$logical$src
+        vtrack$params <- vtrack$logical$params
+    }
+    vtrack$logical <- NULL
     vtrack
 }
 
@@ -180,7 +185,30 @@ emr_vtrack.create <- function(vtrack, src, func = NULL, params = NULL, keepref =
         root <- get("EMR_GROOT", envir = .GlobalEnv)
     }
 
-    var <- list(src = src, time_shift = time.shift, func = func, params = params, keepref = keepref, id_map = id.map, filter = .emr_filter(filter))
+    logical <- NULL
+
+    if (is.character(src) && emr_track.logical.exists(src)) {
+        
+        logical$params <- params
+        logical$src <- src
+        
+        ltrack_info <- emr_track.logical.info(src)
+        
+        src <- ltrack_info$source
+
+        if (is.null(params)){
+            params <- ltrack_info$values
+        } 
+
+        params <- params[params %in% ltrack_info$values]
+
+        if (length(params) == 0) {
+            filter <- create_logical_vtrack_empty_filter()
+        }
+        
+    }
+
+    var <- list(src = src, time_shift = time.shift, func = func, params = params, keepref = keepref, id_map = id.map, filter = .emr_filter(filter), logical=logical)
     .emr_call("emr_check_vtrack", vtrack, var, new.env(parent = parent.frame()))
     emr_vtrack.rm(vtrack)
     EMR_VTRACKS[[root]][[vtrack]] <<- var

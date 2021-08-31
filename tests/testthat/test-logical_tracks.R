@@ -195,7 +195,9 @@ test_that("logical track returns a valid vtrack R object without values", {
     emr_track.create_logical("logical_track1", "ph1")
     res <- .emr_call("logical_track_vtrack", "logical_track1", new.env(parent = parent.frame()), silent = TRUE)
     emr_vtrack.create("vt", "ph1", keepref = TRUE)
-    vt <- EMR_VTRACKS[[1]]$vt
+    # commented because logical field was added to local R object
+    # vt <- EMR_VTRACKS[[1]]$vt
+    vt <- emr_vtrack.info("vt")
     expect_equal(vt, res)
     withr::defer(emr_vtrack.rm("vt"))
 })
@@ -205,7 +207,9 @@ test_that("logical track returns a valid vtrack R object with values", {
     emr_track.create_logical("logical_track1", "ph1", c(15, 16))
     res <- .emr_call("logical_track_vtrack", "logical_track1", new.env(parent = parent.frame()), silent = TRUE)
     emr_vtrack.create("vt", "ph1", params = c(15, 16), keepref = TRUE)
-    vt <- EMR_VTRACKS[[1]]$vt
+    # commented because logical field was added to local R object
+    # vt <- EMR_VTRACKS[[1]]$vt
+    vt <- emr_vtrack.info("vt")
     expect_equal(vt, res)
     withr::defer(emr_vtrack.rm("vt"))
 })
@@ -879,4 +883,193 @@ test_that("emr_filter.attr.val changes work on logical track", {
     t2 <- emr_extract("l1", names = c("vals"), keepref = TRUE) %>% dplyr::filter(vals == 10 | vals == 15 | vals == 20)
 
     expect_equal(t1, t2)
+})
+
+# emr_vtrack.create
+
+test_that("empty emr_vtrack.create works on logical track with all keepref combinations", {
+
+    EMR_VTRACKS <<- list()
+    withr::defer(clean_logical_tracks())
+
+    emr_filter.create("f1", src="ph1", val=c(15, 16), keepref=TRUE)
+    df <- emr_extract("ph1", names=c("value"), keepref=TRUE, filter="f1")
+    emr_track.import("l1_ph", space="global", categorical=TRUE, src=df)
+    emr_track.create_logical("l1", "ph1", c(15, 16))
+
+    emr_vtrack.create("vt_p", src="l1_ph")
+    emr_vtrack.create("vt_l", src="l1")
+
+    t1 <- emr_extract("vt_p", names=c("val"))
+    t2 <- emr_extract("vt_l", names=c("val"))
+
+    expect_equal(t1, t2)
+
+    withr::defer(emr_vtrack.rm("vt_p"))
+    withr::defer(emr_vtrack.rm("vt_l"))
+
+    emr_vtrack.create("vt_p", src="l1_ph", keepref=TRUE)
+    emr_vtrack.create("vt_l", src="l1", keepref=TRUE)
+
+    t1 <- emr_extract("vt_p", names=c("val"), keepref=TRUE)
+    t2 <- emr_extract("vt_l", names=c("val"), keepref=TRUE)
+
+    expect_equal(t1, t2)
+
+    withr::defer(emr_vtrack.rm("vt_p"))
+    withr::defer(emr_vtrack.rm("vt_l"))
+
+    emr_vtrack.create("vt_p", src="l1_ph", keepref=FALSE)
+    emr_vtrack.create("vt_l", src="l1", keepref=FALSE)
+
+    t1 <- emr_extract("vt_p", names=c("val"), keepref=TRUE)
+    t2 <- emr_extract("vt_l", names=c("val"), keepref=TRUE)
+
+    expect_equal(t1, t2)
+
+    withr::defer(emr_vtrack.rm("vt_p"))
+    withr::defer(emr_vtrack.rm("vt_l"))
+
+    emr_vtrack.create("vt_p", src="l1_ph", keepref=TRUE)
+    emr_vtrack.create("vt_l", src="l1", keepref=TRUE)
+
+    t1 <- emr_extract("vt_p", names=c("val"), keepref=FALSE)
+    t2 <- emr_extract("vt_l", names=c("val"), keepref=FALSE)
+
+    expect_equal(t1, t2)
+
+    withr::defer(emr_track.rm("l1_ph", force = TRUE))
+  
+})
+
+test_that("emr_vtrack functions work on logical tracks as expected", {
+    EMR_VTRACKS <<- list()
+    withr::defer(clean_logical_tracks())
+
+    emr_filter.create("f1", src="ph1", val=c(15, 16), keepref=TRUE)
+    df <- emr_extract("ph1", names=c("value"), keepref=TRUE, filter="f1")
+    emr_track.import("l1_ph", space="global", categorical=TRUE, src=df)
+    emr_track.create_logical("l1", "ph1", c(15, 16))
+
+    emr_vtrack.create("vt_p", src="l1_ph", params=c(15))
+    emr_vtrack.create("vt_l", src="l1", params=c(15))
+
+    t1 <- emr_extract("vt_p", names=c("val"))
+    t2 <- emr_extract("vt_l", names=c("val"))
+
+    expect_equal(t1, t2)
+
+    withr::defer(emr_vtrack.rm("vt_p"))
+    withr::defer(emr_vtrack.rm("vt_l"))
+
+    emr_vtrack.create("vt_p", src="l1_ph", func='closest.earlier.time', params=c(15))
+    emr_vtrack.create("vt_l", src="l1", func='closest.earlier.time', params=c(15))
+
+    t1 <- emr_extract("vt_p", names=c("val"))
+    t2 <- emr_extract("vt_l", names=c("val"))
+
+    expect_equal(t1, t2)
+
+    withr::defer(emr_vtrack.rm("vt_p"))
+    withr::defer(emr_vtrack.rm("vt_l"))
+    # will not work with 'exists'!!!
+    emr_vtrack.create("vt_p", src="l1_ph", func='size', params=c(19))
+    emr_vtrack.create("vt_l", src="l1", func='size', params=c(19))
+
+    t1 <- emr_extract("vt_p", names=c("val"))
+    t2 <- emr_extract("vt_l", names=c("val"))
+
+    expect_equal(t1, t2)
+
+    withr::defer(emr_vtrack.rm("vt_p"))
+    withr::defer(emr_vtrack.rm("vt_l"))
+
+    emr_vtrack.create("vt_p", src="l1_ph", func='earliest.time', time.shift=c(-100, 50))
+    emr_vtrack.create("vt_l", src="l1", func='earliest.time', time.shift=c(-100, 50))
+
+    t1 <- emr_extract("vt_p", names=c("val"))
+    t2 <- emr_extract("vt_l", names=c("val"))
+
+    expect_equal(t1, t2)
+
+    withr::defer(emr_track.rm("l1_ph", force = TRUE))
+})
+
+
+test_that("emr_vtrack functions work on logical tracks with keepref combinations", {
+    EMR_VTRACKS <<- list()
+    withr::defer(clean_logical_tracks())
+
+    emr_filter.create("f1", src="ph1", val=c(15, 16), keepref=TRUE)
+    df <- emr_extract("ph1", names=c("value"), keepref=TRUE, filter="f1")
+    emr_track.import("l1_ph", space="global", categorical=TRUE, src=df)
+    emr_track.create_logical("l1", "ph1", c(15, 16))
+
+    withr::defer(emr_vtrack.rm("vt_p"))
+    withr::defer(emr_vtrack.rm("vt_l"))
+
+    emr_vtrack.create("vt_p", src="l1_ph", func='closest.earlier.time', params=c(15), keepref=TRUE)
+    emr_vtrack.create("vt_l", src="l1", func='closest.earlier.time', params=c(15), keepref=TRUE)
+
+    t1 <- emr_extract("vt_p", names=c("val"), keepref=FALSE)
+    t2 <- emr_extract("vt_l", names=c("val"), keepref=FALSE)
+
+    expect_equal(t1, t2)
+
+    withr::defer(emr_vtrack.rm("vt_p"))
+    withr::defer(emr_vtrack.rm("vt_l"))
+
+    emr_vtrack.create("vt_p", src="l1_ph", func='frequent', time.shift=c(-100, 200), keepref=FALSE)
+    emr_vtrack.create("vt_l", src="l1", func='frequent', time.shift=c(-100, 200), keepref=FALSE)
+
+    t1 <- emr_extract("vt_p", names=c("val"), keepref=TRUE)
+    t2 <- emr_extract("vt_l", names=c("val"), keepref=TRUE)
+
+    expect_equal(t1, t2)
+
+    withr::defer(emr_vtrack.rm("vt_p"))
+    withr::defer(emr_vtrack.rm("vt_l"))
+
+    emr_vtrack.create("vt_p", src="l1_ph", func='value', params=16, keepref=TRUE)
+    emr_vtrack.create("vt_l", src="l1", func='value', params=16, keepref=TRUE)
+
+    t1 <- emr_extract("vt_p", names=c("val"), keepref=TRUE)
+    t2 <- emr_extract("vt_l", names=c("val"), keepref=TRUE)
+
+    expect_equal(t1, t2)
+
+    withr::defer(emr_track.rm("l1_ph", force = TRUE))
+})
+
+test_that("emr_vtrack.create with filer works on logical tracks", {
+    EMR_VTRACKS <<- list()
+    EMR_FILTERS <<- list()
+    withr::defer(clean_logical_tracks())
+
+    emr_filter.create("f1", src="ph1", val=seq(4, 16, 1), keepref=TRUE)
+    df <- emr_extract("ph1", names=c("value"), keepref=TRUE, filter="f1")
+    emr_track.import("l1_ph", space="global", categorical=TRUE, src=df)
+    emr_track.create_logical("l1", "ph1", seq(4, 16, 1))
+
+    emr_filter.create("f1", src="ph1", val=c(15, 16))
+
+    emr_vtrack.create("vt_p", src="l1_ph", filter="f1")
+    emr_vtrack.create("vt_l", src="l1", filter="f1")
+
+    t1 <- emr_extract("vt_p", names=c("val"))
+    t2 <- emr_extract("vt_l", names=c("val"))
+
+    expect_equal(t1, t2)
+
+    withr::defer(emr_vtrack.rm("vt_p"))
+    withr::defer(emr_vtrack.rm("vt_l"))
+
+    emr_filter.create("f1", src="l1_ph", val=c(4))
+    emr_filter.create("f2", src="l1", val=c(4))
+
+    t1 <- emr_extract("vt_p", names=c("val"))
+    t2 <- emr_extract("vt_l", names=c("val"))
+
+    expect_equal(t1, t2)
+
 })
