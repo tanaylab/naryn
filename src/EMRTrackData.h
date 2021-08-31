@@ -23,7 +23,10 @@ struct EMRTrackData {
         EMRTimeStamp timestamp;
         T val;
 
+        DataRec() {}
         DataRec(unsigned _id, const EMRTimeStamp &_timestamp, T _val);
+        DataRec(const DataRec &rec)
+            : id(rec.id), timestamp(rec.timestamp), val(rec.val) {}
         bool operator==(const DataRec &obj) const {
             return id == obj.id && timestamp == obj.timestamp && val == obj.val;
         }
@@ -71,16 +74,16 @@ void EMRTrackData<T>::finalize() {
 
     if (!finalized) {
         sort(data.begin(), data.end());
+        // unify same data records (same id,time,ref and value)
+        data.resize(distance(data.begin(), unique(data.begin(), data.end())));
 
+        // make sure there is no record with same id,time,ref and different
+        // value
         for (auto idata = data.begin() + 1; idata < data.end(); ++idata) {
             if (idata->id == (idata - 1)->id &&
                 idata->timestamp == (idata - 1)->timestamp) {
-                if (idata->val == (idata - 1)->val) {
-                    data.erase(idata - 1);
-                } else {
-                    TGLError("Id %d at time %s already exists", idata->id,
-                             idata->timestamp.tostr().c_str());
-                }
+                TGLError("Id %d at time %s already exists", idata->id,
+                         idata->timestamp.tostr().c_str());
             }
         }
     }
