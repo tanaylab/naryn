@@ -8,8 +8,8 @@
 #include <byteswap.h>
 #endif
 
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
 #include "EMRTimeStamp.h"
 #include "TGLException.h"
@@ -19,13 +19,20 @@ using namespace std;
 template <class T>
 struct EMRTrackData {
     struct DataRec {
-        unsigned     id;
+        unsigned id;
         EMRTimeStamp timestamp;
-        T            val;
+        T val;
 
+        DataRec() {}
         DataRec(unsigned _id, const EMRTimeStamp &_timestamp, T _val);
-        bool operator==(const DataRec &obj) const { return id == obj.id && timestamp == obj.timestamp && val == obj.val; }
-        bool operator<(const DataRec &obj) const { return id < obj.id || (id == obj.id && timestamp < obj.timestamp); }
+        DataRec(const DataRec &rec)
+            : id(rec.id), timestamp(rec.timestamp), val(rec.val) {}
+        bool operator==(const DataRec &obj) const {
+            return id == obj.id && timestamp == obj.timestamp && val == obj.val;
+        }
+        bool operator<(const DataRec &obj) const {
+            return id < obj.id || (id == obj.id && timestamp < obj.timestamp);
+        }
     };
 
     typedef vector<DataRec> DataRecs;
@@ -33,31 +40,29 @@ struct EMRTrackData {
     EMRTrackData() {}
 
     void add(unsigned id, EMRTimeStamp timestamp, T val);
-    void finalize();
+    void finalize(const bool& unify = false);
 
     DataRecs data;
 };
 
-
-//------------------------------ IMPLEMENTATION ----------------------------------------
+//------------------------------ IMPLEMENTATION
+//----------------------------------------
 
 template <class T>
-EMRTrackData<T>::DataRec::DataRec(unsigned _id, const EMRTimeStamp &_timestamp, T _val)
-{
+EMRTrackData<T>::DataRec::DataRec(unsigned _id, const EMRTimeStamp &_timestamp,
+                                  T _val) {
     id = _id;
     timestamp = _timestamp;
     val = _val;
 }
 
 template <class T>
-void EMRTrackData<T>::add(unsigned id, EMRTimeStamp timestamp, T val)
-{
+void EMRTrackData<T>::add(unsigned id, EMRTimeStamp timestamp, T val) {
     data.emplace_back(id, timestamp, val);
 }
 
 template <class T>
-void EMRTrackData<T>::finalize()
-{
+void EMRTrackData<T>::finalize(const bool& unify) {
     bool finalized = true;
 
     for (auto idata = data.begin() + 1; idata < data.end(); ++idata) {
@@ -69,13 +74,21 @@ void EMRTrackData<T>::finalize()
 
     if (!finalized) {
         sort(data.begin(), data.end());
+        if (unify){
+            // unify same data records (same id,time,ref and value)
+            data.resize(distance(data.begin(), unique(data.begin(), data.end())));
+        }
 
+        // make sure there is no record with same id,time,ref and different
+        // value
         for (auto idata = data.begin() + 1; idata < data.end(); ++idata) {
-            if (idata->id == (idata - 1)->id && idata->timestamp == (idata - 1)->timestamp)
-                TGLError("Id %d at time %s already exists", idata->id, idata->timestamp.tostr().c_str());
+            if (idata->id == (idata - 1)->id &&
+                idata->timestamp == (idata - 1)->timestamp) {
+                TGLError("Id %d at time %s already exists", idata->id,
+                         idata->timestamp.tostr().c_str());
+            }
         }
     }
 }
 
 #endif
-
