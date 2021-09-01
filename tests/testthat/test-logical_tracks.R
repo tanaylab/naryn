@@ -216,10 +216,6 @@ test_that("logical track returns a valid vtrack R object with values", {
 
 # create
 
-
-# ids
-
-
 # emr_extract
 
 test_that("emr_extract works with logical track as expression and implicit iterator", {
@@ -616,6 +612,160 @@ test_that("emr_track.unique works on logical tracks", {
     expect_equal(emr_track.unique("logical_track2"), emr_track.unique("ph1"))
 })
 
+# ids_coverage
+test_that("emr_ids_coverage works", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("l15", "ph1", 15)
+    emr_track.create_logical("l18", "ph1", 18)
+
+    df <- emr_extract("ph1", keepref = TRUE)
+    emr_track.import("p15", space = "global", categorical = TRUE, src = df %>% dplyr::filter(ph1 == 15) %>% dplyr::select(id, time, ref, value = ph1))
+    emr_track.import("p18", space = "global", categorical = TRUE, src = df %>% dplyr::filter(ph1 == 18) %>% dplyr::select(id, time, ref, value = ph1))
+    withr::defer(emr_track.rm("p15", force = TRUE))
+    withr::defer(emr_track.rm("p18", force = TRUE))
+
+    set.seed(60427)
+    ids <- data.frame(id = sample(df$id, 300))
+
+    a <- emr_ids_coverage(ids, c("l15", "track4"))
+    expect_equal(names(a), c("l15", "track4"))
+    names(a) <- c("p15", "track4")
+    b <- emr_ids_coverage(ids, c("p15", "track4"))
+    expect_equal(a, b)
+
+    a <- emr_ids_coverage(ids, c("l15"))
+    expect_equal(names(a), c("l15"))
+    names(a) <- c("p15")
+    b <- emr_ids_coverage(ids, c("p15"))
+    expect_equal(a, b)
+
+    a <- emr_ids_coverage(ids, c("l15", "track4"), filter = "track2")
+    expect_equal(names(a), c("l15", "track4"))
+    names(a) <- c("p15", "track4")
+    b <- emr_ids_coverage(ids, c("p15", "track4"), filter = "track2")
+    expect_equal(a, b)
+
+    a <- emr_ids_coverage(ids, c("l15", "track4"), filter = "l15")
+    expect_equal(names(a), c("l15", "track4"))
+    names(a) <- c("p15", "track4")
+    b <- emr_ids_coverage(ids, c("p15", "track4"), filter = "l15")
+    expect_equal(a, b)
+
+    a <- emr_ids_coverage(ids, c("l15", "track4"), filter = "l15")
+    expect_equal(names(a), c("l15", "track4"))
+    names(a) <- c("p15", "track4")
+    b <- emr_ids_coverage(ids, c("p15", "track4"), filter = "p15")
+    expect_equal(a, b)
+
+    a <- emr_ids_coverage(ids, c("l15", "l18", "track4"), filter = "l15")
+    expect_equal(names(a), c("l15", "l18", "track4"))
+    names(a) <- c("p15", "p18", "track4")
+    b <- emr_ids_coverage(ids, c("p15", "p18", "track4"), filter = "p15")
+    expect_equal(a, b)
+
+    # test when ids is a name of a (logical) track
+    a <- emr_ids_coverage("l15", c("l15", "l18", "track4"), filter = "l15")
+    expect_equal(names(a), c("l15", "l18", "track4"))
+    names(a) <- c("p15", "p18", "track4")
+    b <- emr_ids_coverage("p15", c("p15", "p18", "track4"), filter = "p15")
+    expect_equal(a, b)
+
+    a <- emr_ids_coverage("l15", c("l15", "l18", "track4"), filter = "l15")
+    expect_equal(names(a), c("l15", "l18", "track4"))
+    names(a) <- c("p15", "p18", "track4")
+    b <- emr_ids_coverage("l15", c("p15", "p18", "track4"), filter = "p15")
+    expect_equal(a, b)
+
+    a <- emr_ids_coverage("p18", c("l15", "l18", "track4"), filter = "l15")
+    expect_equal(names(a), c("l15", "l18", "track4"))
+    names(a) <- c("p15", "p18", "track4")
+    b <- emr_ids_coverage("p18", c("p15", "p18", "track4"), filter = "p15")
+    expect_equal(a, b)
+})
+
+test_that("emr_ids_vals_coverage works", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("l15", "ph1", 15)
+    emr_track.create_logical("l18", "ph1", 18)
+
+    df <- emr_extract("ph1", keepref = TRUE)
+    emr_track.import("p15", space = "global", categorical = TRUE, src = df %>% dplyr::filter(ph1 == 15) %>% dplyr::select(id, time, ref, value = ph1))
+    emr_track.import("p18", space = "global", categorical = TRUE, src = df %>% dplyr::filter(ph1 == 18) %>% dplyr::select(id, time, ref, value = ph1))
+    withr::defer(emr_track.rm("p15", force = TRUE))
+    withr::defer(emr_track.rm("p18", force = TRUE))
+
+    set.seed(60427)
+    ids <- data.frame(id = sample(df$id, 300))
+
+    a <- emr_ids_vals_coverage(ids, c("l15", "track7"))
+    b <- emr_ids_vals_coverage(ids, c("p15", "track7")) %>%
+        mutate(track = forcats::fct_recode(track, l15 = "p15"))
+    expect_equal(a, b)
+
+    a <- emr_ids_vals_coverage(ids, c("l15"))
+    b <- emr_ids_vals_coverage(ids, c("p15")) %>%
+        mutate(track = forcats::fct_recode(track, l15 = "p15"))
+    expect_equal(a, b)
+
+    a <- emr_ids_vals_coverage(ids, c("l15", "track7"), filter = "track2")
+    b <- emr_ids_vals_coverage(ids, c("p15", "track7"), filter = "track2") %>%
+        mutate(track = forcats::fct_recode(track, l15 = "p15"))
+    expect_equal(a, b)
+
+    a <- emr_ids_vals_coverage(ids, c("l15", "track7"), filter = "l15")
+    b <- emr_ids_vals_coverage(ids, c("p15", "track7"), filter = "l15") %>%
+        mutate(track = forcats::fct_recode(track, l15 = "p15"))
+    expect_equal(a, b)
+
+    a <- emr_ids_vals_coverage(ids, c("l15", "track7"), filter = "l15")
+    b <- emr_ids_vals_coverage(ids, c("p15", "track7"), filter = "p15") %>%
+        mutate(track = forcats::fct_recode(track, l15 = "p15"))
+    expect_equal(a, b)
+
+    a <- emr_ids_vals_coverage(ids, c("l15", "l18", "track7"), filter = "l15")
+    b <- emr_ids_vals_coverage(ids, c("p15", "p18", "track7"), filter = "p15") %>%
+        mutate(track = forcats::fct_recode(track, l15 = "p15", l18 = "p18"))
+    expect_equal(a, b)
+
+
+    # test when ids is a name of a (logical) track
+    a <- emr_ids_vals_coverage("l15", c("l15", "l18", "track7"), filter = "l15")
+    b <- emr_ids_vals_coverage("p15", c("p15", "p18", "track7"), filter = "p15") %>%
+        mutate(track = forcats::fct_recode(track, l15 = "p15", l18 = "p18"))
+    expect_equal(a, b)
+
+    a <- emr_ids_vals_coverage("l15", c("l15", "l18", "track7"), filter = "l15")
+    b <- emr_ids_vals_coverage("l15", c("p15", "p18", "track7"), filter = "p15") %>%
+        mutate(track = forcats::fct_recode(track, l15 = "p15", l18 = "p18"))
+    expect_equal(a, b)
+
+    a <- emr_ids_vals_coverage("p18", c("l15", "l18", "track7"), filter = "l15")
+    b <- emr_ids_vals_coverage("p18", c("p15", "p18", "track7"), filter = "p15") %>%
+        mutate(track = forcats::fct_recode(track, l15 = "p15", l18 = "p18"))
+    expect_equal(a, b)
+})
+
+# track_ids
+test_that("emr_track.ids works on logical tracks", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("l15", "ph1", 15)
+    emr_track.create_logical("l18", "ph1", 18)
+
+    df <- emr_extract("ph1", keepref = TRUE)
+    emr_track.import("p15", space = "global", categorical = TRUE, src = df %>% dplyr::filter(ph1 == 15) %>% dplyr::select(id, time, ref, value = ph1))
+    emr_track.import("p18", space = "global", categorical = TRUE, src = df %>% dplyr::filter(ph1 == 18) %>% dplyr::select(id, time, ref, value = ph1))
+    withr::defer(emr_track.rm("p15", force = TRUE))
+    withr::defer(emr_track.rm("p18", force = TRUE))
+
+    a <- emr_track.ids("p15")
+    b <- emr_track.ids("l15")
+    expect_equal(a, b)
+
+    a1 <- emr_track.ids("p18")
+    b1 <- emr_track.ids("l18")
+    expect_equal(a1, b1)
+})
+
 # filters
 
 test_that("logical track can be used as filter", {
@@ -668,7 +818,6 @@ test_that("logical track can be used as filter", {
     a <- emr_extract("l15", filter = "l15 & l16", keepref = TRUE)
     b <- emr_extract("p15", filter = "l15 & l16", keepref = TRUE, names = "l15")
     expect_equal(a, b)
-
 })
 
 # emr_filter.create
@@ -709,9 +858,11 @@ test_that("emr_filter.create works on logical track", {
     expect_equal(t1, t2)
 
     # currently fails until cpp fix
-    emr_filter.create("f3", src="ltrack", val=c(17), keepref=TRUE)
-    t1 <- emr_extract("ltrack", names=c("vals"), keepref=TRUE) %>% dplyr::filter(vals == 17) %>% dplyr::select(-ref)
-    t2 <- emr_extract("ltrack", names=c("vals"), filter="f3", keepref=TRUE) %>% dplyr::select(-ref)
+    emr_filter.create("f3", src = "ltrack", val = c(17), keepref = TRUE)
+    t1 <- emr_extract("ltrack", names = c("vals"), keepref = TRUE) %>%
+        dplyr::filter(vals == 17) %>%
+        dplyr::select(-ref)
+    t2 <- emr_extract("ltrack", names = c("vals"), filter = "f3", keepref = TRUE) %>% dplyr::select(-ref)
     expect_equal(t1, t2)
 })
 
