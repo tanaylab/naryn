@@ -33,9 +33,6 @@ test_that("empty emr_vtrack.create works on logical track with all keepref combi
 
     expect_equal(t1, t2)
 
-    withr::defer(emr_vtrack.rm("vt_p"))
-    withr::defer(emr_vtrack.rm("vt_l"))
-
     emr_vtrack.create("vt_p", src="l1_ph", keepref=TRUE)
     emr_vtrack.create("vt_l", src="l1", keepref=TRUE)
 
@@ -43,9 +40,6 @@ test_that("empty emr_vtrack.create works on logical track with all keepref combi
     t2 <- emr_extract("vt_l", names=c("val"), keepref=TRUE)
 
     expect_equal(t1, t2)
-
-    withr::defer(emr_vtrack.rm("vt_p"))
-    withr::defer(emr_vtrack.rm("vt_l"))
 
     emr_vtrack.create("vt_p", src="l1_ph", keepref=FALSE)
     emr_vtrack.create("vt_l", src="l1", keepref=FALSE)
@@ -55,9 +49,6 @@ test_that("empty emr_vtrack.create works on logical track with all keepref combi
 
     expect_equal(t1, t2)
 
-    withr::defer(emr_vtrack.rm("vt_p"))
-    withr::defer(emr_vtrack.rm("vt_l"))
-
     emr_vtrack.create("vt_p", src="l1_ph", keepref=TRUE)
     emr_vtrack.create("vt_l", src="l1", keepref=TRUE)
 
@@ -66,6 +57,8 @@ test_that("empty emr_vtrack.create works on logical track with all keepref combi
 
     expect_equal(t1, t2)
 
+    withr::defer(emr_vtrack.rm("vt_p"))
+    withr::defer(emr_vtrack.rm("vt_l"))
     withr::defer(emr_track.rm("l1_ph", force = TRUE))
   
 })
@@ -87,9 +80,6 @@ test_that("emr_vtrack functions work on logical tracks as expected", {
 
     expect_equal(t1, t2)
 
-    withr::defer(emr_vtrack.rm("vt_p"))
-    withr::defer(emr_vtrack.rm("vt_l"))
-
     emr_vtrack.create("vt_p", src="l1_ph", func='closest.earlier.time', params=c(15))
     emr_vtrack.create("vt_l", src="l1", func='closest.earlier.time', params=c(15))
 
@@ -98,8 +88,6 @@ test_that("emr_vtrack functions work on logical tracks as expected", {
 
     expect_equal(t1, t2)
 
-    withr::defer(emr_vtrack.rm("vt_p"))
-    withr::defer(emr_vtrack.rm("vt_l"))
     # will not work with 'exists'!!!
     emr_vtrack.create("vt_p", src="l1_ph", func='size', params=c(19))
     emr_vtrack.create("vt_l", src="l1", func='size', params=c(19))
@@ -109,9 +97,6 @@ test_that("emr_vtrack functions work on logical tracks as expected", {
 
     expect_equal(t1, t2)
 
-    withr::defer(emr_vtrack.rm("vt_p"))
-    withr::defer(emr_vtrack.rm("vt_l"))
-
     emr_vtrack.create("vt_p", src="l1_ph", func='earliest.time', time.shift=c(-100, 50))
     emr_vtrack.create("vt_l", src="l1", func='earliest.time', time.shift=c(-100, 50))
 
@@ -120,6 +105,8 @@ test_that("emr_vtrack functions work on logical tracks as expected", {
 
     expect_equal(t1, t2)
 
+    withr::defer(emr_vtrack.rm("vt_p"))
+    withr::defer(emr_vtrack.rm("vt_l"))
     withr::defer(emr_track.rm("l1_ph", force = TRUE))
 })
 
@@ -133,9 +120,6 @@ test_that("emr_vtrack functions work on logical tracks with keepref combinations
     emr_track.import("l1_ph", space="global", categorical=TRUE, src=df)
     emr_track.create_logical("l1", "ph1", c(15, 16))
 
-    withr::defer(emr_vtrack.rm("vt_p"))
-    withr::defer(emr_vtrack.rm("vt_l"))
-
     emr_vtrack.create("vt_p", src="l1_ph", func='closest.earlier.time', params=c(15), keepref=TRUE)
     emr_vtrack.create("vt_l", src="l1", func='closest.earlier.time', params=c(15), keepref=TRUE)
 
@@ -143,9 +127,6 @@ test_that("emr_vtrack functions work on logical tracks with keepref combinations
     t2 <- emr_extract("vt_l", names=c("val"), keepref=FALSE)
 
     expect_equal(t1, t2)
-
-    withr::defer(emr_vtrack.rm("vt_p"))
-    withr::defer(emr_vtrack.rm("vt_l"))
 
     emr_vtrack.create("vt_p", src="l1_ph", func='frequent', time.shift=c(-100, 200), keepref=FALSE)
     emr_vtrack.create("vt_l", src="l1", func='frequent', time.shift=c(-100, 200), keepref=FALSE)
@@ -155,9 +136,6 @@ test_that("emr_vtrack functions work on logical tracks with keepref combinations
 
     expect_equal(t1, t2)
 
-    withr::defer(emr_vtrack.rm("vt_p"))
-    withr::defer(emr_vtrack.rm("vt_l"))
-
     emr_vtrack.create("vt_p", src="l1_ph", func='value', params=16, keepref=TRUE)
     emr_vtrack.create("vt_l", src="l1", func='value', params=16, keepref=TRUE)
 
@@ -166,6 +144,8 @@ test_that("emr_vtrack functions work on logical tracks with keepref combinations
 
     expect_equal(t1, t2)
 
+    withr::defer(emr_vtrack.rm("vt_p"))
+    withr::defer(emr_vtrack.rm("vt_l"))
     withr::defer(emr_track.rm("l1_ph", force = TRUE))
 })
 
@@ -189,9 +169,6 @@ test_that("emr_vtrack.create with filter works on logical tracks", {
 
     expect_equal(t1, t2)
 
-    withr::defer(emr_vtrack.rm("vt_p"))
-    withr::defer(emr_vtrack.rm("vt_l"))
-
     emr_filter.create("f1", src="l1_ph", val=c(4))
     emr_filter.create("f2", src="l1", val=c(4))
 
@@ -202,9 +179,6 @@ test_that("emr_vtrack.create with filter works on logical tracks", {
     t2 <- emr_extract("vt_l", names=c("val"))
 
     expect_equal(t1, t2)
-
-    withr::defer(emr_vtrack.rm("vt_p"))
-    withr::defer(emr_vtrack.rm("vt_l"))
 
     emr_filter.create("f1", src="l1_ph", val=c(4, 5))
     emr_filter.create("f2", src="l1", val=c(4, 5))
@@ -217,9 +191,6 @@ test_that("emr_vtrack.create with filter works on logical tracks", {
 
     expect_equal(t1, t2)
 
-    withr::defer(emr_vtrack.rm("vt_p"))
-    withr::defer(emr_vtrack.rm("vt_l"))
-
     emr_filter.create("f1", src="l1_ph", val=c(4, 5))
     emr_filter.create("f2", src="l1", val=c(4, 5))
 
@@ -230,9 +201,6 @@ test_that("emr_vtrack.create with filter works on logical tracks", {
     t2 <- emr_extract("vt_l", names=c("val"), keepref=TRUE)
 
     expect_equal(t1, t2)
-
-    withr::defer(emr_vtrack.rm("vt_p"))
-    withr::defer(emr_vtrack.rm("vt_l"))
 
     emr_filter.create("f1", src="l1_ph", val=c(19))
     emr_filter.create("f2", src="l1", val=c(19))
@@ -245,11 +213,13 @@ test_that("emr_vtrack.create with filter works on logical tracks", {
 
     expect_equal(t1, t2)
 
+    withr::defer(emr_vtrack.rm("vt_p"))
+    withr::defer(emr_vtrack.rm("vt_l"))
     withr::defer(emr_track.rm("l1_ph", force = TRUE))
 
 })
 
-test_that("emr_vtrack works on logical tracks with filter on extrac", {
+test_that("emr_vtrack works on logical tracks with filter on extract", {
     EMR_VTRACKS <<- list()
     EMR_FILTERS <<- list()
     withr::defer(clean_logical_tracks())
@@ -270,9 +240,6 @@ test_that("emr_vtrack works on logical tracks with filter on extrac", {
 
     expect_equal(t1, t2)
 
-    withr::defer(emr_vtrack.rm("vt_p"))
-    withr::defer(emr_vtrack.rm("vt_l"))
-
     emr_filter.create("f1", src="l1_ph", val=c(5, 10, 30))
     emr_filter.create("f2", src="l1", val=c(5, 10, 30))
     emr_filter.create("f3", src="ph1", val=c(16))
@@ -284,9 +251,6 @@ test_that("emr_vtrack works on logical tracks with filter on extrac", {
     t2 <- emr_extract("vt_l", names=c("val"), filter='f3')
 
     expect_equal(t1, t2)
-
-    withr::defer(emr_vtrack.rm("vt_p"))
-    withr::defer(emr_vtrack.rm("vt_l"))
 
     emr_filter.create("f1", src="l1_ph", val=c(5, 10, 30))
     emr_filter.create("f2", src="l1", val=c(5, 10, 30))
@@ -300,6 +264,8 @@ test_that("emr_vtrack works on logical tracks with filter on extrac", {
 
     expect_equal(t1, t2)
 
+    withr::defer(emr_vtrack.rm("vt_p"))
+    withr::defer(emr_vtrack.rm("vt_l"))
     withr::defer(emr_track.rm("l1_ph", force = TRUE))
 })
 
@@ -326,8 +292,6 @@ test_that("emr_vtrack.attr.src works with vtracks on logical tracks", {
 
     expect_equal(src, "l2")
 
-    withr::defer(emr_vtrack.rm("vt_1"))
-
     emr_vtrack.create("vt1", src="l1", func='value', params=16, keepref=TRUE)
 
     emr_vtrack.attr.src("vt1", "l2")
@@ -338,6 +302,7 @@ test_that("emr_vtrack.attr.src works with vtracks on logical tracks", {
 
     expect_equal(t1, t2)
 
+    withr::defer(emr_vtrack.rm("vt_1"))
     withr::defer(emr_track.rm("l1_ph", force = TRUE))
     withr::defer(emr_track.rm("l2_ph", force = TRUE))
 })

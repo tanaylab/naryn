@@ -218,19 +218,3 @@ create_logical_track_filter <- function(ltrack, filter = NULL, filter_name = NUL
 
     return(res)
 }
-
-#' Create an empty filter
-#'
-#' @return a string with an empty filter, necessary for vtrack creation when params are out of the logical track's values scope.
-#'
-#' @noRd
-create_logical_vtrack_empty_filter <- function() {
-    filter_name <- random_filter_name("logical_filter_")
-
-    emr_filter.create(
-        filter=filter_name, 
-        src=data.frame(id = numeric(), time = numeric())
-    )
-
-    return(filter_name)
-}
