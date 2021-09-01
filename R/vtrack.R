@@ -87,6 +87,8 @@
 #'
 #' * 'vals' is a vector of values. If not 'NULL' it serves as a filter: the
 #' function is applied only to the data source values that appear among 'vals'.
+#' 'vals' can be a single NA value, in which case all the values of the track
+#' would be filtered out.
 #'
 #' QUANTITATIVE DATA SOURCE
 #'
@@ -185,6 +187,10 @@ emr_vtrack.create <- function(vtrack, src, func = NULL, params = NULL, keepref =
         root <- get("EMR_GROOT", envir = .GlobalEnv)
     }
 
+    if (!length(params) == 1 && any(is.na(params))) {
+        stop("Invalid params used for vtrack. NA cannot be used as params together with other values")
+    }   
+
     logical <- NULL
 
     if (is.character(src) && emr_track.logical.exists(src)) {
@@ -203,12 +209,13 @@ emr_vtrack.create <- function(vtrack, src, func = NULL, params = NULL, keepref =
         params <- params[params %in% ltrack_info$values]
 
         if (length(params) == 0) {
-            filter <- create_logical_vtrack_empty_filter()
+            params <- NA
         }
         
     }
 
     var <- list(src = src, time_shift = time.shift, func = func, params = params, keepref = keepref, id_map = id.map, filter = .emr_filter(filter), logical=logical)
+
     .emr_call("emr_check_vtrack", vtrack, var, new.env(parent = parent.frame()))
     emr_vtrack.rm(vtrack)
     EMR_VTRACKS[[root]][[vtrack]] <<- var

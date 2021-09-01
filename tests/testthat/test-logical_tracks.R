@@ -672,7 +672,6 @@ test_that("logical track can be used as filter", {
     a <- emr_extract("l15", filter = "l15 & l16", keepref = TRUE)
     b <- emr_extract("p15", filter = "l15 & l16", keepref = TRUE, names = "l15")
     expect_equal(a, b)
-
 })
 
 # emr_filter.create
@@ -713,9 +712,11 @@ test_that("emr_filter.create works on logical track", {
     expect_equal(t1, t2)
 
     # currently fails until cpp fix
-    emr_filter.create("f3", src="ltrack", val=c(17), keepref=TRUE)
-    t1 <- emr_extract("ltrack", names=c("vals"), keepref=TRUE) %>% dplyr::filter(vals == 17) %>% dplyr::select(-ref)
-    t2 <- emr_extract("ltrack", names=c("vals"), filter="f3", keepref=TRUE) %>% dplyr::select(-ref)
+    emr_filter.create("f3", src = "ltrack", val = c(17), keepref = TRUE)
+    t1 <- emr_extract("ltrack", names = c("vals"), keepref = TRUE) %>%
+        dplyr::filter(vals == 17) %>%
+        dplyr::select(-ref)
+    t2 <- emr_extract("ltrack", names = c("vals"), filter = "f3", keepref = TRUE) %>% dplyr::select(-ref)
     expect_equal(t1, t2)
 })
 
