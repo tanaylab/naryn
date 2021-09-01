@@ -151,10 +151,9 @@ detect_expr_virtual_tracks <- function(expr) {
 #'
 #' @noRd
 expand_null_iterator <- function(exprs) {
-
     tracks <- c()
     vtracks <- c()
-    
+
     for (expr in exprs) {
         tracks <- c(tracks, detect_expr_logical_tracks(expr))
         tracks <- c(tracks, detect_expr_physical_tracks(expr))
@@ -167,7 +166,6 @@ expand_null_iterator <- function(exprs) {
     }
 
     if (length(vtracks) == 1) {
-
         vtrack_info <- emr_vtrack.info(vtracks)
         src <- vtrack_info$src
 

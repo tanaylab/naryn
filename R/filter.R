@@ -117,8 +117,8 @@ emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val =
 
         ltrack_info <- emr_track.logical.info(src)
         # the values for a filter on a logical track
-        # are the intersection between the logical 
-        # track's values, and the values requested 
+        # are the intersection between the logical
+        # track's values, and the values requested
         # to be filtered. which are then applied on
         # the source track.
         val <- .emr_filter_calc_val_logical(src, val)
@@ -127,7 +127,7 @@ emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val =
 
         # when the user requests a filter with values
         # outside the scope of the logical track, we
-        # need to simulate a filter which excludes 
+        # need to simulate a filter which excludes
         # all the data points in the track.
         if (length(val) == 0) {
             src <- data.frame(id = numeric(), time = numeric())

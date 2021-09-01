@@ -274,8 +274,6 @@ test_that("emr_track.addto works with logical tracks", {
 
     expect_error(emr_track.addto("logical_track1", a2))
 
-    expect_null(emr_track.addto("logical_track1", a2 %>% dplyr::filter(value == 15)))
-
     emr_track.addto("logical_track1", a2 %>% dplyr::filter(value == 15), force = TRUE)
 
 
@@ -1138,4 +1136,3 @@ test_that("emr_filter.attr.val changes work on logical track", {
 
     expect_equal(t1, t2)
 })
-

@@ -18,17 +18,16 @@
 }
 
 .emr_vtrack_calc_logical_params <- function(src, params) {
-
     ltrack_info <- emr_track.logical.info(src)
 
-    if (is.null(params)){
+    if (is.null(params)) {
         params <- ltrack_info$values
-    } 
+    }
 
     params <- params[params %in% ltrack_info$values]
 
     if (length(params) == 0) {
-            params <- NA
+        params <- NA
     }
 
     return(params)
@@ -206,26 +205,26 @@ emr_vtrack.create <- function(vtrack, src, func = NULL, params = NULL, keepref =
 
     if (!length(params) == 1 && any(is.na(params))) {
         stop("Invalid params used for vtrack. NA cannot be used as params together with other values")
-    }   
+    }
 
     logical <- NULL
 
     if (is.character(src) && emr_track.logical.exists(src)) {
         logical$params <- params
         logical$src <- src
-        
+
         ltrack_info <- emr_track.logical.info(src)
 
         # The params for a vtrack on a logical track
         # are the intersection between the params
-        # requested and the values of the logical 
+        # requested and the values of the logical
         # track, we choose the intersection in order
         # to eliminate params which are not included
         # in the logical track values but might be
         # in included in the source of the logical track.
-        # This may cause the return of unwanted data in 
-        # some keepref related situations. 
-        # When the intersection is empty, we set the 
+        # This may cause the return of unwanted data in
+        # some keepref related situations.
+        # When the intersection is empty, we set the
         # params to NA in order to immitate a case where
         # the param chosen is outside the scope of the
         # track's values.
@@ -234,7 +233,7 @@ emr_vtrack.create <- function(vtrack, src, func = NULL, params = NULL, keepref =
         src <- ltrack_info$source
     }
 
-    var <- list(src = src, time_shift = time.shift, func = func, params = params, keepref = keepref, id_map = id.map, filter = .emr_filter(filter), logical=logical)
+    var <- list(src = src, time_shift = time.shift, func = func, params = params, keepref = keepref, id_map = id.map, filter = .emr_filter(filter), logical = logical)
 
     .emr_call("emr_check_vtrack", vtrack, var, new.env(parent = parent.frame()))
     emr_vtrack.rm(vtrack)
@@ -299,10 +298,10 @@ emr_vtrack.attr.src <- function(vtrack, src) {
     if (missing(src)) {
         if (is_logical_vtrack) {
             return(vtrack.var$logical$src)
-        } else{
+        } else {
             return(vtrack.var$src)
         }
-    } else if (is.character(src) && emr_track.logical.exists(src)){
+    } else if (is.character(src) && emr_track.logical.exists(src)) {
         emr_vtrack.rm(vtrack)
         vtrack.var$logical$src <- src
 
@@ -310,7 +309,7 @@ emr_vtrack.attr.src <- function(vtrack, src) {
             vtrack.var$logical$params <- vtrack.var$params
         }
 
-        vtrack.var$params <- .emr_vtrack_calc_logical_params(src ,vtrack.var$logical$params)
+        vtrack.var$params <- .emr_vtrack_calc_logical_params(src, vtrack.var$logical$params)
         ltrack_info <- emr_track.logical.info(src)
         vtrack.var$src <- ltrack_info$source
     } else {
@@ -318,7 +317,7 @@ emr_vtrack.attr.src <- function(vtrack, src) {
         emr_vtrack.rm(vtrack)
         vtrack.var$src <- src
     }
-    if (is.character(src) && length(src) == 1 && !is.na(match(src, .emr_call         
+    if (is.character(src) && length(src) == 1 && !is.na(match(src, .emr_call
     ("emr_user_track_names", new.env(parent = parent.frame()), silent = TRUE)))) {
         root <- get("EMR_UROOT", envir = .GlobalEnv)
     } else {
@@ -378,8 +377,8 @@ emr_vtrack.attr.params <- function(vtrack, params) {
             return(vtrack.var$logical$params)
         } else {
             return(vtrack.var$params)
-        }        
-    } else if(is_logical_vtrack) {
+        }
+    } else if (is_logical_vtrack) {
         vtrack.var$logical$params <- params
         params <- .emr_vtrack_calc_logical_params(vtrack.var$logical$src, params)
     }
