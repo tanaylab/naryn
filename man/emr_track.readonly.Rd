@@ -22,6 +22,9 @@ Gets or sets "readonly" property of a track.
 This function gets or sets "read-onlyness" of the track. If 'readonly' is
 'NULL' the functions retuns whether the track is R/O. Otherwise it sets
 "read-onlyness" to the value indicated by 'readonly'.
+
+Logical tracks inherit their "read-onlyness" from their source 
+physical tracks.
 }
 \seealso{
 \code{\link{emr_track.create}}, \code{\link{emr_track.mv}},

@@ -231,7 +231,7 @@ test_that("logical track is read-only when the physical track is read only", {
         emr_track.rm("test_track1_ro", TRUE)
     }
 
-    emr_track.create("test_track1_ro", "user", FALSE, "ph1", keepref = FALSE)    
+    emr_track.create("test_track1_ro", "user", TRUE, "ph1", keepref = FALSE)    
     withr::defer({        
         emr_track.rm("test_track1_ro", TRUE)
     })
