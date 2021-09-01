@@ -17,6 +17,23 @@
     vtrack
 }
 
+.emr_vtrack_calc_logical_params <- function(src, params) {
+
+    ltrack_info <- emr_track.logical.info(src)
+
+    if (is.null(params)){
+        params <- ltrack_info$values
+    } 
+
+    params <- params[params %in% ltrack_info$values]
+
+    if (length(params) == 0) {
+            params <- NA
+    }
+
+    return(params)
+}
+
 
 
 #' Creates a new virtual track
@@ -194,24 +211,12 @@ emr_vtrack.create <- function(vtrack, src, func = NULL, params = NULL, keepref =
     logical <- NULL
 
     if (is.character(src) && emr_track.logical.exists(src)) {
-        
         logical$params <- params
         logical$src <- src
         
         ltrack_info <- emr_track.logical.info(src)
-        
+        params <- .emr_vtrack_calc_logical_params(src, params)
         src <- ltrack_info$source
-
-        if (is.null(params)){
-            params <- ltrack_info$values
-        } 
-
-        params <- params[params %in% ltrack_info$values]
-
-        if (length(params) == 0) {
-            params <- NA
-        }
-        
     }
 
     var <- list(src = src, time_shift = time.shift, func = func, params = params, keepref = keepref, id_map = id.map, filter = .emr_filter(filter), logical=logical)
@@ -274,20 +279,38 @@ emr_vtrack.attr.src <- function(vtrack, src) {
         stop(sprintf("Virtual track \"%s\" does not exist", vtrack), call. = F)
     }
 
+    is_logical_vtrack <- !is.null(vtrack.var$logical)
+
     if (missing(src)) {
-        vtrack.var$src
+        if (is_logical_vtrack) {
+            return(vtrack.var$logical$src)
+        } else{
+            return(vtrack.var$src)
+        }
+    } else if (is.character(src) && emr_track.logical.exists(src)){
+        emr_vtrack.rm(vtrack)
+        vtrack.var$logical$src <- src
+
+        if (!is_logical_vtrack) {
+            vtrack.var$logical$params <- vtrack.var$params
+        }
+
+        vtrack.var$params <- .emr_vtrack_calc_logical_params(src ,vtrack.var$logical$params)
+        ltrack_info <- emr_track.logical.info(src)
+        vtrack.var$src <- ltrack_info$source
     } else {
         .emr_call("emr_check_vtrack_attr_src", src, new.env(parent = parent.frame()))
         emr_vtrack.rm(vtrack)
         vtrack.var$src <- src
-        if (is.character(src) && length(src) == 1 && !is.na(match(src, .emr_call("emr_user_track_names", new.env(parent = parent.frame()), silent = TRUE)))) {
-            root <- get("EMR_UROOT", envir = .GlobalEnv)
-        } else {
-            root <- get("EMR_GROOT", envir = .GlobalEnv)
-        }
-        EMR_VTRACKS[[root]][[vtrack]] <<- vtrack.var
-        retv <- NULL
     }
+    if (is.character(src) && length(src) == 1 && !is.na(match(src, .emr_call         
+    ("emr_user_track_names", new.env(parent = parent.frame()), silent = TRUE)))) {
+        root <- get("EMR_UROOT", envir = .GlobalEnv)
+    } else {
+        root <- get("EMR_GROOT", envir = .GlobalEnv)
+    }
+    EMR_VTRACKS[[root]][[vtrack]] <<- vtrack.var
+    retv <- NULL
 }
 
 emr_vtrack.attr.func <- function(vtrack, func) {
@@ -333,12 +356,21 @@ emr_vtrack.attr.params <- function(vtrack, params) {
         stop(sprintf("Virtual track \"%s\" does not exist", vtrack), call. = F)
     }
 
+    is_logical_vtrack <- !is.null(vtrack.var$logical)
+
     if (missing(params)) {
-        vtrack.var$params
-    } else {
-        EMR_VTRACKS[[root]][[vtrack]]["params"] <<- list(params)
-        retv <- NULL
+        if (is_logical_vtrack) {
+            return(vtrack.var$logical$params)
+        } else {
+            return(vtrack.var$params)
+        }        
+    } else if(is_logical_vtrack) {
+        vtrack.var$logical$params <- params
+        params <- .emr_vtrack_calc_logical_params(vtrack.var$logical$src, params)
     }
+
+    EMR_VTRACKS[[root]][[vtrack]]["params"] <<- list(params)
+    retv <- NULL
 }
 
 emr_vtrack.attr.keepref <- function(vtrack, keepref) {

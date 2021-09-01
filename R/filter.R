@@ -316,19 +316,15 @@ emr_filter.attr.val <- function(filter, val) {
 
     if (is_logical_filter) {
         filter.var$logical$val <- val
-        ltrack_info <- emr_track.logical.info(filter.var$logical$src)
+        val <- .emr_filter_calc_val_logical(filter.var$logical$src, val)
 
-        filter.var$val <- .emr_filter_calc_val_logical(filter.var$logical$src, val)
-
-        if (length(filter.var$val) == 0) {
+        if (length(val) == 0) {
             filter.var$src <- data.frame(id = numeric(), time = numeric())
-            filter.var$val <- NULL
+            val <- NULL
         }
-
-        EMR_FILTERS[[root]][[filter]] <<- filter.var
-    } else {
-        EMR_FILTERS[[root]][[filter]]["val"] <<- unique(list(val))
-    }
+        
+    } 
+    EMR_FILTERS[[root]][[filter]]["val"] <<- unique(list(val))
     retv <- NULL
 }
 
