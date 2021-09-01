@@ -273,7 +273,9 @@ test_that("emr_track.addto works with logical tracks", {
 
     expect_error(emr_track.addto("logical_track1", a2))
 
-    emr_track.addto("logical_track1", a2 %>% dplyr::filter(value == 15))
+    expect_null(emr_track.addto("logical_track1", a2 %>% dplyr::filter(value == 15)))
+
+    emr_track.addto("logical_track1", a2 %>% dplyr::filter(value == 15), force = TRUE)
 
 
     b <- emr_extract("temp_track", keepref = TRUE, names = "value")

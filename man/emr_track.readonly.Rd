@@ -23,7 +23,7 @@ This function gets or sets "read-onlyness" of the track. If 'readonly' is
 'NULL' the functions retuns whether the track is R/O. Otherwise it sets
 "read-onlyness" to the value indicated by 'readonly'.
 
-Logical tracks inherit their "read-onlyness" from their source
+Logical tracks inherit their "read-onlyness" from the source
 physical tracks.
 }
 \seealso{

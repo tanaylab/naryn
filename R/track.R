@@ -83,15 +83,24 @@
 #' "id", "time", "ref" and "value". Note: "ref" column in the data frame is
 #' optional.
 #'
+#' Adding to a logical track adds the values to the underlying physical
+#' track, and is allowed only if all the values are within the logical
+#' track allowed values and only from a data frame \code{src}. Note that
+#' this might affect other logical tracks pointing to the same physical
+#' track and therefore requires confirmation from the user unless
+#' \code{force=TRUE}.
+#'
 #'
 #' @param track track name
 #' @param src file name or data-frame containing the track records
+#' @param force if 'TRUE', supresses user confirmation for addition to
+#' logical tracks
 #' @return None.
 #' @seealso \code{\link{emr_track.import}}, \code{\link{emr_track.create}},
 #' \code{\link{emr_db.init}}, \code{\link{emr_track.ls}}
 #' @keywords ~import
 #' @export emr_track.addto
-emr_track.addto <- function(track, src) {
+emr_track.addto <- function(track, src, force = FALSE) {
     if (missing(track) || missing(src)) {
         stop("Usage: emr_track.addto(track, src)", call. = F)
     }
@@ -116,7 +125,20 @@ emr_track.addto <- function(track, src) {
             stop(sprintf("src contains values which are not part of the logical track. You can add them directly to the physical track (\"%s\")", ltrack$source))
         }
 
-        track <- ltrack$source
+        answer <- "N"
+        if (force) {
+            answer <- "Y"
+        } else {
+            str <- sprintf("Adding to the logical track %s would update the physical track %s and might affect other logical tracks. Are you sure (Y/N)? ", track, ltrack$source)
+            cat(str)
+            answer <- toupper(readLines(n = 1))
+        }
+
+        if (answer == "Y" || answer == "YES") {
+            track <- ltrack$source
+        } else {
+            return(NULL)
+        }
     }
 
     .emr_call("emr_import", track, NULL, NULL, src, T, new.env(parent = parent.frame()))
@@ -536,8 +558,10 @@ emr_track.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE, 
 #' Moves (renames) a track
 #'
 #' This function moves (renames) 'src' track into 'tgt'. If 'space' equals
-#' 'NULL', the track remains in the same space. Otherwise it is moved to the
-#' specified space.
+#' 'NULL', the track remains in the same space. Otherwise it is moved
+#' to the specified space.
+#'
+#' Note that logical tracks cannot be moved to the user space.
 #'
 #' @param src source track name
 #' @param tgt target track name
@@ -659,7 +683,7 @@ emr_track.percentile <- function(track, val, lower = T) {
 #' 'NULL' the functions retuns whether the track is R/O. Otherwise it sets
 #' "read-onlyness" to the value indicated by 'readonly'.
 #'
-#' Logical tracks inherit their "read-onlyness" from their source
+#' Logical tracks inherit their "read-onlyness" from the source
 #' physical tracks.
 #'
 #' @param track track name
