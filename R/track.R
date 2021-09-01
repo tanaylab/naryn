@@ -101,19 +101,19 @@ emr_track.addto <- function(track, src) {
         stop(sprintf("Cannot add data to track %s: it is read-only.\n", track), call. = F)
     }
 
-    if (emr_track.logical.exists(track)){
-        if (is.character(src)){
+    if (emr_track.logical.exists(track)) {
+        if (is.character(src)) {
             stop("Cannot add to a logical track when src is a file name. Please load the file to a data frame and rerun emr_track.addto with src as the data frame.")
-        }        
+        }
 
-        if (!is.data.frame(src) || !all(c("id", "time", "value") %in% colnames(src))){
+        if (!is.data.frame(src) || !all(c("id", "time", "value") %in% colnames(src))) {
             stop("Invalid format of src. Please provide a data frame with 'id','time','ref' and 'value' columns.")
         }
 
         ltrack <- emr_track.logical.info(track)
 
-        if (!all(src$value %in% ltrack$value)){
-            stop(sprintf("src contains values which are not part of the logical track. You can add them directly to the physical track (%s)", ltrack$source))
+        if (!all(src$value %in% ltrack$value)) {
+            stop(sprintf("src contains values which are not part of the logical track. You can add them directly to the physical track (\"%s\")", ltrack$source))
         }
 
         track <- ltrack$source
@@ -643,8 +643,8 @@ emr_track.percentile <- function(track, val, lower = T) {
 #' This function gets or sets "read-onlyness" of the track. If 'readonly' is
 #' 'NULL' the functions retuns whether the track is R/O. Otherwise it sets
 #' "read-onlyness" to the value indicated by 'readonly'.
-#' 
-#' Logical tracks inherit their "read-onlyness" from their source 
+#'
+#' Logical tracks inherit their "read-onlyness" from their source
 #' physical tracks.
 #'
 #' @param track track name
@@ -666,7 +666,7 @@ emr_track.readonly <- function(track, readonly = NULL) {
     }
 
     orig_track <- track
-    if (emr_track.logical.exists(track)){
+    if (emr_track.logical.exists(track)) {
         track <- emr_track.logical.info(track)$source
     }
 
@@ -737,7 +737,7 @@ emr_track.rm <- function(track, force = F) {
         stop(sprintf("Cannot remove track %s: it is read-only.\n", track), call. = F)
     }
 
-    if (emr_track.logical.exists(track)){
+    if (emr_track.logical.exists(track)) {
         return(emr_track.logical.rm(track, force = force))
     }
 

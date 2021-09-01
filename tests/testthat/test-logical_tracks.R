@@ -226,13 +226,14 @@ test_that("emr_track.readonly works for logical tracks", {
 })
 
 test_that("logical track is read-only when the physical track is read only", {
+    withr::defer(clean_logical_tracks())
     if (emr_track.exists("test_track1_ro")) {
         emr_track.readonly("test_track1_ro", FALSE)
         emr_track.rm("test_track1_ro", TRUE)
     }
 
-    emr_track.create("test_track1_ro", "user", TRUE, "ph1", keepref = FALSE)    
-    withr::defer({        
+    emr_track.create("test_track1_ro", "user", TRUE, "ph1", keepref = FALSE)
+    withr::defer({
         emr_track.rm("test_track1_ro", TRUE)
     })
 
@@ -245,6 +246,33 @@ test_that("logical track is read-only when the physical track is read only", {
 })
 
 # addto
+test_that("emr_track.addtio works with logical tracks", {
+    withr::defer(clean_logical_tracks())
+    a <- emr_extract("ph1", keepref = TRUE, names = "value")
+    a1 <- a[1:250000, ]
+    a2 <- a[250001:500001, ]
+    emr_track.import("temp_track", "global", categorical = TRUE, src = a1)
+    withr::defer(emr_track.rm("temp_track", force = TRUE))
+    emr_track.create_logical("logical_track1", "temp_track", 15)
+
+    fn <- tempfile()
+    readr::write_tsv(a2, fn, col_names = FALSE)
+    expect_error(emr_track.addto("logical_track1", fn), "Cannot add to a logical track when src is a file name. Please load the file to a data frame and rerun emr_track.addto with src as the data frame.")
+
+    expect_error(emr_track.addto("logical_track1", a2))
+
+    emr_track.addto("logical_track1", a2 %>% dplyr::filter(value == 15))
+
+
+    b <- emr_extract("temp_track", keepref = TRUE, names = "value")
+    expect_equal(
+        b,
+        dplyr::bind_rows(
+            a1,
+            a2 %>% dplyr::filter(value == 15)
+        ) %>% dplyr::arrange(id, time, ref, value)
+    )
+})
 
 # attributes
 
