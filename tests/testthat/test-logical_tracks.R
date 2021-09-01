@@ -878,6 +878,46 @@ test_that("emr_track.ids works on logical tracks", {
     expect_equal(a1, b1)
 })
 
+test_that("emr_track.ids works on logical tracks with dense source", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("l9", "track8", 9)
+    emr_track.create_logical("l2", "track8", 2)
+
+    df <- emr_extract("track8", keepref = TRUE)
+    emr_track.import("p9", space = "global", categorical = TRUE, src = df %>% dplyr::filter(track8 == 9) %>% dplyr::select(id, time, ref, value = track8))
+    emr_track.import("p2", space = "global", categorical = TRUE, src = df %>% dplyr::filter(track8 == 2) %>% dplyr::select(id, time, ref, value = track8))
+    withr::defer(emr_track.rm("p9", force = TRUE))
+    withr::defer(emr_track.rm("p2", force = TRUE))
+
+    a <- emr_track.ids("p9")
+    b <- emr_track.ids("l9")
+    expect_equal(a, b)
+
+    a1 <- emr_track.ids("p2")
+    b1 <- emr_track.ids("l2")
+    expect_equal(a1, b1)
+})
+
+test_that("emr_track.ids works on logical tracks with sparse source", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("l9", "track8_sparse", 9)
+    emr_track.create_logical("l2", "track8_sparse", 2)
+
+    df <- emr_extract("track8_sparse", keepref = TRUE)
+    emr_track.import("p9", space = "global", categorical = TRUE, src = df %>% dplyr::filter(track8_sparse == 9) %>% dplyr::select(id, time, ref, value = track8_sparse))
+    emr_track.import("p2", space = "global", categorical = TRUE, src = df %>% dplyr::filter(track8_sparse == 2) %>% dplyr::select(id, time, ref, value = track8_sparse))
+    withr::defer(emr_track.rm("p9", force = TRUE))
+    withr::defer(emr_track.rm("p2", force = TRUE))
+
+    a <- emr_track.ids("p9")
+    b <- emr_track.ids("l9")
+    expect_equal(a, b)
+
+    a1 <- emr_track.ids("p2")
+    b1 <- emr_track.ids("l2")
+    expect_equal(a1, b1)
+})
+
 # filters
 
 test_that("logical track can be used as filter", {

@@ -404,12 +404,6 @@ emr_track.ids <- function(track) {
     }
     .emr_checkroot()
 
-    if (emr_track.logical.exists(track)) {
-        res <- emr_extract(track, iterator = track) %>%
-            dplyr::distinct(id)
-        return(res)
-    }
-
     .emr_call("emr_track_ids", track, new.env(parent = parent.frame()))
 }
 
@@ -671,7 +665,7 @@ emr_track.percentile <- function(track, val, lower = TRUE) {
     }
     .emr_checkroot()
 
-    if (emr_track.logical.exists(track)){
+    if (emr_track.logical.exists(track)) {
         stop(sprintf("Track %s is categorical: percentile queries are not supported", track))
     }
 
