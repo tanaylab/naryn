@@ -287,6 +287,13 @@ test_that("emr_track.addto works with logical tracks", {
     )
 })
 
+# percentile
+test_that("emr_track.percentile fails on logical tracks", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("logical_track1", "ph1", c(15, 16))
+    expect_error(emr_track.percentile("logical_track1"))
+})
+
 # attributes
 
 # track.mv
@@ -393,7 +400,7 @@ test_that("emr_extract with keepref=FALSE works", {
         dplyr::filter(ref != 0, ph1 == 15) %>%
         dplyr::select(id, time)
     susp_values <- a %>%
-        dplyr::inner_join(ptd_with_multiple_values) %>%
+        dplyr::inner_join(ptd_with_multiple_values, by = c("id", "time")) %>%
         dplyr::pull(l15)
     expect_true(all(susp_values == 15))
 })

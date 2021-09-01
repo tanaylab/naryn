@@ -38,3 +38,7 @@ test_that("emr_track.percentile works lower=F", {
         )
     )
 })
+
+test_that("emr_track.percentile fails on categorical tracks", {
+    expect_error(emr_track.percentile("ph1", 15))
+})
