@@ -428,6 +428,32 @@ test_that("emr_vtrack works", {
     expect_regression(emr_extract("v1", keepref = T), "vtrack.60")
 })
 
+test_that("emr_vtrack works with a single NA value as params", {
+    EMR_VTRACKS <<- list()
+    test_with_func <- function(func) {
+        emr_vtrack.create("v1", "ph1", func = func, time.shift = c(-10, 20), params = NA)
+        emr_vtrack.create("v2", "ph1", func = func, time.shift = c(-10, 20), params = 800)
+        expect_equal(
+            emr_extract("v1", names = "value"),
+            emr_extract("v2", names = "value")
+        )
+    }
+
+    categorical_funcs <- c("exists", "value", "sample", "sample.time", "frequent", "size", "earliest", "latest", "earliest.time", "latest.time", "closest.earlier.time", "closest.later.time", "dt1.earliest", "dt1.latest", "dt2.earliest", "dt2.latest")
+
+    for (f in categorical_funcs) {
+        test_with_func(f)
+    }
+})
+
+test_that("emr_vtrack fails when params are invalid", {
+    EMR_VTRACKS <<- list()
+    expect_error(emr_vtrack.create("v1", "ph1", func = "exists", time.shift = c(-10, 20), params = c(NA, NA)))
+    expect_error(emr_vtrack.create("v1", "ph1", func = "exists", time.shift = c(-10, 20), params = c(TRUE)))
+    expect_error(emr_vtrack.create("v1", "ph1", func = "exists", time.shift = c(-10, 20), params = c("savta")))
+    expect_error(emr_vtrack.create("v1", "ph1", func = "exists", time.shift = c(-10, 20), params = c(15, NA)))
+})
+
 test_that("filter cannot be used when 'src' is a data frame", {
     EMR_VTRACKS <<- list()
     r <- emr_extract("track0", keepref = F, names = "value")

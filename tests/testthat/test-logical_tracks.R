@@ -1,7 +1,4 @@
 
-clean_logical_tracks <- function() {
-    purrr::walk(emr_track.logical.ls(), emr_track.logical.rm, force = TRUE)
-}
 clean_logical_tracks()
 
 logical_track_ok <- function(track, source, values = NULL) {
@@ -207,7 +204,9 @@ test_that("logical track returns a valid vtrack R object without values", {
     emr_track.create_logical("logical_track1", "ph1")
     res <- .emr_call("logical_track_vtrack", "logical_track1", new.env(parent = parent.frame()), silent = TRUE)
     emr_vtrack.create("vt", "ph1", keepref = TRUE)
-    vt <- EMR_VTRACKS[[1]]$vt
+    # commented because logical field was added to local R object
+    # vt <- EMR_VTRACKS[[1]]$vt
+    vt <- emr_vtrack.info("vt")
     expect_equal(vt, res)
     withr::defer(emr_vtrack.rm("vt"))
 })
@@ -217,7 +216,9 @@ test_that("logical track returns a valid vtrack R object with values", {
     emr_track.create_logical("logical_track1", "ph1", c(15, 16))
     res <- .emr_call("logical_track_vtrack", "logical_track1", new.env(parent = parent.frame()), silent = TRUE)
     emr_vtrack.create("vt", "ph1", params = c(15, 16), keepref = TRUE)
-    vt <- EMR_VTRACKS[[1]]$vt
+    # commented because logical field was added to local R object
+    # vt <- EMR_VTRACKS[[1]]$vt
+    vt <- emr_vtrack.info("vt")
     expect_equal(vt, res)
     withr::defer(emr_vtrack.rm("vt"))
 })
@@ -1137,3 +1138,4 @@ test_that("emr_filter.attr.val changes work on logical track", {
 
     expect_equal(t1, t2)
 })
+

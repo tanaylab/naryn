@@ -101,6 +101,8 @@ value \cr }
 
 * 'vals' is a vector of values. If not 'NULL' it serves as a filter: the
 function is applied only to the data source values that appear among 'vals'.
+'vals' can be a single NA value, in which case all the values of the track
+would be filtered out.
 
 QUANTITATIVE DATA SOURCE
 

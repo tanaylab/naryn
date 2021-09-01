@@ -249,13 +249,24 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
                     verror("Virtual track %s: function %s requires an additional parameter", vtrack.c_str(), func.c_str());
 
                 if (is_categorical) {
-                    if (!isNull(rparams)) {
-                        if (!isReal(rparams) && !isInteger(rparams))
+                    if (!isNull(rparams)) {       
+                        // params are a single NA value   
+                        if (isLogical(rparams) && 
+                            Rf_length(rparams) == 1 && 
+                            LOGICAL(rparams)[0] == NA_LOGICAL){
+                            vals.insert(NAN);                            
+                        } else if (!isReal(rparams) && !isInteger(rparams)) {
                             verror("Virtual track %s: invalid parameters used for function %s", vtrack.c_str(), func.c_str());
-                        for (int i = 0; i < Rf_length(rparams); ++i)
-                            // The track might contain its data as float and not double. In this case a track value might not be equal to its double representation,
-                            // like (float)0.3 != (double)0.3. So let's "downgrade" all our values to the least precise type.
-                            vals.insert(isReal(rparams) ? (float)REAL(rparams)[i] : (float)INTEGER(rparams)[i]);
+                        } else {
+                            for (int i = 0; i < Rf_length(rparams); ++i){ 
+                                // The track might contain its data as float and not double. In this case a track value might not be equal to its double representation,
+                                // like (float)0.3 != (double)0.3. So let's "downgrade" all our values to the least precise type.
+                                vals.insert(isReal(rparams)
+                                                ? (float)REAL(rparams)[i]
+                                                : (float)INTEGER(rparams)[i]);
+                                
+                            }
+                        }
                     }
                 } else if (!isNull(rparams)) {
                     if (EMRTrack::FUNC_INFOS[ifunc].categorical)
