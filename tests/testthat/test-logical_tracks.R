@@ -26,10 +26,22 @@ test_that("emr_track.create_logical tracks works", {
     expect_false(emr_track.logical.exists("track1"))
 })
 
+test_that("emr_track.create_logical tracks works with integer values", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("logical_track", "ph1", as.integer(c(15, 16)))
+    logical_track_ok("logical_track", "ph1", c(15, 16))
+    expect_false(emr_track.logical.exists("track1"))
+})
+
 test_that("emr_track.create_logical tracks works without values", {
     withr::defer(clean_logical_tracks())
     emr_track.create_logical("logical_track1", "ph1")
     logical_track_ok("logical_track1", "ph1")
+})
+
+test_that("emr_track.create_logical tracks fails with illegal values", {
+    withr::defer(clean_logical_tracks())
+    expect_error(emr_track.create_logical("logical_track", "ph1", "savta"))
 })
 
 test_that("emr_track.create_logical tracks fails with existing tracks", {
@@ -276,11 +288,40 @@ test_that("emr_track.addto works with logical tracks", {
 
 # attributes
 
-# move
+# track.mv
+test_that("emr_track.mv works with logical tracks", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("logical_track1", "ph1", c(15, 16))
+    emr_track.mv("logical_track1", "logical_track2")
+    expect_false(emr_track.exists("logical_track1"))
+    expect_true(emr_track.exists("logical_track2"))
+    expect_false("logical_track1" %in% emr_track.ls())
+    expect_true("logical_track2" %in% emr_track.ls())
+})
+
+test_that("emr_track.mv fails when trying to move to user space", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("logical_track1", "ph1", c(15, 16))
+    expect_error(emr_track.mv("logical_track1", "logical_track2", "user"))
+})
+
+test_that("emr_track.mv fails when track exists", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("logical_track1", "ph1", c(15, 16))
+    emr_track.create_logical("logical_track2", "ph1", c(15, 16))
+    expect_error(emr_track.mv("logical_track1", "logical_track2"))
+    expect_error(emr_track.mv("logical_track1", "track1"))
+    emr_filter.create("f1", "ph1")
+    withr::defer(emr_filter.rm("f1"))
+    expect_error(emr_track.mv("logical_track1", "f1"))
+
+    emr_vtrack.create("vt1", "ph1")
+    withr::defer(emr_vtrack.rm("vt1"))
+    expect_error(emr_track.mv("logical_track1", "vt1"))
+})
 
 
 # emr_extract
-
 test_that("emr_extract works with logical track as expression and implicit iterator", {
     withr::defer(clean_logical_tracks())
     emr_track.create_logical("logical_track", "ph1")

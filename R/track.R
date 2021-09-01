@@ -555,6 +555,10 @@ emr_track.mv <- function(src, tgt, space = NULL) {
 
     if (!is.null(space)) {
         space <- tolower(space)
+        if (emr_track.logical.exists(src) && space == "user") {
+            stop("cannot move logical tracks to user space")
+        }
+
         if (space == "user" && (!exists("EMR_UROOT", envir = .GlobalEnv) || is.null(get("EMR_UROOT", envir = .GlobalEnv)))) {
             stop("User space root directory is not set. Please call emr_db.init(user.dir=...)", call. = F)
         }
@@ -570,6 +574,17 @@ emr_track.mv <- function(src, tgt, space = NULL) {
 
     if (emr_filter.exists(tgt)) {
         stop(sprintf("Filter %s already exists", tgt), call. = F)
+    }
+
+    if (emr_track.exists(tgt)) {
+        stop(sprintf("Track %s already exists", tgt), call. = F)
+    }
+
+    if (emr_track.logical.exists(src)) {
+        ltrack <- emr_track.logical.info(src)
+        emr_track.logical.rm(src, force = TRUE)
+        emr_track.create_logical(tgt, ltrack$source, ltrack$values)
+        return(NULL)
     }
 
     dirname1 <- .emr_track.var.dir(src)
