@@ -12,6 +12,7 @@
 #endif
 
 struct LogicalTrackInfo {
+    set<int> unique_vals;
     double num_vals;
 	double minval;
 	double maxval;
@@ -28,11 +29,11 @@ struct LogicalTrackInfo {
     }
 
     void _update_val_info(double v) {
+        unique_vals.insert(v);
         num_vals++;
         minval = min(minval, v);
 	    maxval = max(maxval, v);
     }
-
 
 	LogicalTrackInfo() :
 	 	minval(numeric_limits<double>::max()),
@@ -68,20 +69,17 @@ SEXP emr_logical_track_user_info(SEXP _expr, SEXP _stime, SEXP _etime, SEXP _ite
             summary._update_val_info(scanner.real());
         }
             
-
 		SEXP answer;
-        // SEXP names, rtype, rdata_type, rcategorical, rnum_vals, rnum_unique_vals, rmin_val, rmax_val, rmin_id, rmax_id, rmin_time, rmax_time;
-        SEXP names, rtype, rdata_type, rcategorical, rnum_vals, rmin_id, rmax_id, rmin_time, rmax_time,  rmin_val, rmax_val;
-
+        SEXP names, rtype, rdata_type, rcategorical, rnum_vals, rmin_id, rmax_id, rmin_time, rmax_time,  rmin_val, rmax_val, rnum_unique_vals, rpath;
 
 		rprotect(answer = RSaneAllocVector(VECSXP, NUM_COLS));
         rprotect(names = RSaneAllocVector(STRSXP, NUM_COLS));
-        // // rprotect(rpath = RSaneAllocVector(STRSXP, 1));
+        rprotect(rpath = RSaneAllocVector(STRSXP, 1));
         rprotect(rtype = RSaneAllocVector(STRSXP, 1));
         rprotect(rdata_type = RSaneAllocVector(STRSXP, 1));
         rprotect(rcategorical = RSaneAllocVector(LGLSXP, 1));
         rprotect(rnum_vals = RSaneAllocVector(INTSXP, 1));
-        // rprotect(rnum_unique_vals = RSaneAllocVector(INTSXP, 1));
+        rprotect(rnum_unique_vals = RSaneAllocVector(INTSXP, 1));
         rprotect(rmin_val = RSaneAllocVector(REALSXP, 1));
         rprotect(rmax_val = RSaneAllocVector(REALSXP, 1));
         rprotect(rmin_id = RSaneAllocVector(INTSXP, 1));
@@ -89,18 +87,18 @@ SEXP emr_logical_track_user_info(SEXP _expr, SEXP _stime, SEXP _etime, SEXP _ite
         rprotect(rmin_time = RSaneAllocVector(INTSXP, 1));
         rprotect(rmax_time = RSaneAllocVector(INTSXP, 1));
 
-		// // SET_STRING_ELT(rpath, 0, mkChar(track_info->filename.c_str()));
+		SET_STRING_ELT(rpath, 0, NA_STRING);
         SET_STRING_ELT(rtype, 0, mkChar(EMRTrack::TRACK_TYPE_NAMES[track->track_type()]));
         SET_STRING_ELT(rdata_type, 0, mkChar(EMRTrack::DATA_TYPE_NAMES[track->data_type()]));
         LOGICAL(rcategorical)[0] = track->is_categorical();
         INTEGER(rnum_vals)[0] = summary.num_vals;
-        // INTEGER(rnum_unique_vals)[0] = track->unique_size();
+        INTEGER(rnum_unique_vals)[0] = summary.unique_vals.size();
         REAL(rmin_val)[0] = summary.minval ? summary.minval : numeric_limits<double>::quiet_NaN();
         REAL(rmax_val)[0] = summary.maxval ? summary.maxval : numeric_limits<double>::quiet_NaN();
-        INTEGER(rmin_id)[0] = summary.minid ? summary.minid : NA_INTEGER;
-        INTEGER(rmax_id)[0] = summary.maxid ? summary.maxid : NA_INTEGER;
-        INTEGER(rmin_time)[0] = summary.mintime ? summary.mintime : NA_INTEGER;
-        INTEGER(rmax_time)[0] = summary.maxtime ? summary.maxtime : NA_INTEGER;
+        INTEGER(rmin_id)[0] = summary.minid;
+        INTEGER(rmax_id)[0] = summary.maxid;
+        INTEGER(rmin_time)[0] = summary.mintime;
+        INTEGER(rmax_time)[0] = summary.maxtime;
 
 
         for (int i = 0; i < NUM_COLS; i++)
@@ -111,7 +109,7 @@ SEXP emr_logical_track_user_info(SEXP _expr, SEXP _stime, SEXP _etime, SEXP _ite
         SET_VECTOR_ELT(answer, TYPE, rtype);
         SET_VECTOR_ELT(answer, DATA_TYPE, rdata_type);
         SET_VECTOR_ELT(answer, NUM_VALS, rnum_vals);
-        // SET_VECTOR_ELT(answer, NUM_UNIQUE_VALS, rnum_unique_vals);
+        SET_VECTOR_ELT(answer, NUM_UNIQUE_VALS, rnum_unique_vals);
         SET_VECTOR_ELT(answer, MIN_VAL, rmin_val);
         SET_VECTOR_ELT(answer, MAX_VAL, rmax_val);
         SET_VECTOR_ELT(answer, MIN_ID, rmin_id);
