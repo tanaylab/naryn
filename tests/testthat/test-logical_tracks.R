@@ -210,6 +210,40 @@ test_that("logical track returns a valid vtrack R object with values", {
     withr::defer(emr_vtrack.rm("vt"))
 })
 
+# track.readonly
+test_that("emr_track.readonly works for logical tracks", {
+    emr_track.create_logical("logical_track1", "ph1", c(15, 16))
+    expect_false(emr_track.readonly("logical_track1"))
+
+    emr_track.readonly("logical_track1", TRUE)
+    expect_true(emr_track.readonly("logical_track1"))
+    expect_error(emr_track.rm("logical_track1"), "Cannot remove track logical_track1: it is read-only.")
+    expect_true(emr_track.exists("logical_track1"))
+
+    emr_track.readonly("logical_track1", FALSE)
+    emr_track.rm("logical_track1", TRUE)
+    expect_false(emr_track.exists("logical_track1"))
+})
+
+test_that("logical track is read-only when the physical track is read only", {
+    if (emr_track.exists("test_track1_ro")) {
+        emr_track.readonly("test_track1_ro", FALSE)
+        emr_track.rm("test_track1_ro", TRUE)
+    }
+
+    emr_track.create("test_track1_ro", "user", FALSE, "ph1", keepref = FALSE)    
+    withr::defer({        
+        emr_track.rm("test_track1_ro", TRUE)
+    })
+
+    emr_track.create_logical("logical_track1", "test_track1_ro", c(15, 16))
+    emr_track.readonly("test_track1_ro", TRUE)
+    expect_true(emr_track.readonly("logical_track1"))
+
+    emr_track.readonly("test_track1_ro", FALSE)
+    expect_false(emr_track.readonly("logical_track1"))
+})
+
 # addto
 
 # attributes
