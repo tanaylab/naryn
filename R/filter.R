@@ -125,7 +125,7 @@ emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val =
 
         src <- ltrack_info$source
 
-        # when the user requestes a filter with values
+        # when the user requests a filter with values
         # outside the scope of the logical track, we
         # need to simulate a filter which excludes 
         # all the data points in the track.
