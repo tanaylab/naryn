@@ -1,6 +1,3 @@
-clean_logical_tracks <- function() {
-    purrr::walk(emr_track.logical.ls(), emr_track.logical.rm, force = TRUE)
-}
 clean_logical_tracks()
 
 # emr_vtrack.info
@@ -172,7 +169,7 @@ test_that("emr_vtrack functions work on logical tracks with keepref combinations
     withr::defer(emr_track.rm("l1_ph", force = TRUE))
 })
 
-test_that("emr_vtrack.create with filer works on logical tracks", {
+test_that("emr_vtrack.create with filter works on logical tracks", {
     EMR_VTRACKS <<- list()
     EMR_FILTERS <<- list()
     withr::defer(clean_logical_tracks())
@@ -342,7 +339,7 @@ test_that("emr_vtrack.attr.src works with vtracks on logical tracks", {
     expect_equal(t1, t2)
 
     withr::defer(emr_track.rm("l1_ph", force = TRUE))
-
+    withr::defer(emr_track.rm("l2_ph", force = TRUE))
 })
 
 # emr_vtrack.attr.params
