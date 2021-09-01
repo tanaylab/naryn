@@ -77,20 +77,30 @@
 #' If 'src' is a file name, the latter must be constituted of four columns
 #' separated by spaces or 'TAB' characters: ID, time, reference and value. The
 #' file might contain lines of comments which should start with a '#'
-#' character.
+#' character. Note that the file should not contain a header line.
 #'
 #' Alternatively 'src' can be a data frame consisting of the columns named
 #' "id", "time", "ref" and "value". Note: "ref" column in the data frame is
 #' optional.
 #'
+#' Adding to a logical track adds the values to the underlying physical
+#' track, and is allowed only if all the values are within the logical
+#' track allowed values and only from a data frame \code{src}. Note that
+#' this might affect other logical tracks pointing to the same physical
+#' track and therefore requires confirmation from the user unless
+#' \code{force=TRUE}.
+#'
+#'
 #' @param track track name
 #' @param src file name or data-frame containing the track records
+#' @param force if 'TRUE', supresses user confirmation for addition to
+#' logical tracks
 #' @return None.
 #' @seealso \code{\link{emr_track.import}}, \code{\link{emr_track.create}},
 #' \code{\link{emr_db.init}}, \code{\link{emr_track.ls}}
 #' @keywords ~import
 #' @export emr_track.addto
-emr_track.addto <- function(track, src) {
+emr_track.addto <- function(track, src, force = FALSE) {
     if (missing(track) || missing(src)) {
         stop("Usage: emr_track.addto(track, src)", call. = F)
     }
@@ -98,6 +108,37 @@ emr_track.addto <- function(track, src) {
 
     if (emr_track.readonly(track)) {
         stop(sprintf("Cannot add data to track %s: it is read-only.\n", track), call. = F)
+    }
+
+    if (emr_track.logical.exists(track)) {
+        if (is.character(src)) {
+            stop("Cannot add to a logical track when src is a file name. Please load the file to a data frame and rerun emr_track.addto with src as the data frame.")
+        }
+
+        if (!is.data.frame(src) || !all(c("id", "time", "value") %in% colnames(src))) {
+            stop("Invalid format of src. Please provide a data frame with 'id','time','ref' and 'value' columns.")
+        }
+
+        ltrack <- emr_track.logical.info(track)
+
+        if (!all(src$value %in% ltrack$value)) {
+            stop(sprintf("src contains values which are not part of the logical track. You can add them directly to the physical track (\"%s\")", ltrack$source))
+        }
+
+        answer <- "N"
+        if (force) {
+            answer <- "Y"
+        } else {
+            str <- sprintf("Adding to the logical track %s would update the physical track %s and might affect other logical tracks. Are you sure (Y/N)? ", track, ltrack$source)
+            cat(str)
+            answer <- toupper(readLines(n = 1))
+        }
+
+        if (answer == "Y" || answer == "YES") {
+            track <- ltrack$source
+        } else {
+            return(NULL)
+        }
     }
 
     .emr_call("emr_import", track, NULL, NULL, src, T, new.env(parent = parent.frame()))
@@ -388,7 +429,8 @@ emr_track.ids <- function(track) {
 #' character.
 #'
 #' Alternatively 'src' can be an ID-Time Values table, which is a data frame with
-#' the following columns: "id" "time" "ref" and "value".
+#' the following columns: "id" "time" "ref" and "value". Note that the
+#' file should not contain a header.
 #'
 #' (see "User Manual" for more info).
 #'
@@ -516,8 +558,10 @@ emr_track.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE, 
 #' Moves (renames) a track
 #'
 #' This function moves (renames) 'src' track into 'tgt'. If 'space' equals
-#' 'NULL', the track remains in the same space. Otherwise it is moved to the
-#' specified space.
+#' 'NULL', the track remains in the same space. Otherwise it is moved
+#' to the specified space.
+#'
+#' Note that logical tracks cannot be moved to the user space.
 #'
 #' @param src source track name
 #' @param tgt target track name
@@ -535,6 +579,10 @@ emr_track.mv <- function(src, tgt, space = NULL) {
 
     if (!is.null(space)) {
         space <- tolower(space)
+        if (emr_track.logical.exists(src) && space == "user") {
+            stop("cannot move logical tracks to user space")
+        }
+
         if (space == "user" && (!exists("EMR_UROOT", envir = .GlobalEnv) || is.null(get("EMR_UROOT", envir = .GlobalEnv)))) {
             stop("User space root directory is not set. Please call emr_db.init(user.dir=...)", call. = F)
         }
@@ -550,6 +598,17 @@ emr_track.mv <- function(src, tgt, space = NULL) {
 
     if (emr_filter.exists(tgt)) {
         stop(sprintf("Filter %s already exists", tgt), call. = F)
+    }
+
+    if (emr_track.exists(tgt)) {
+        stop(sprintf("Track %s already exists", tgt), call. = F)
+    }
+
+    if (emr_track.logical.exists(src)) {
+        ltrack <- emr_track.logical.info(src)
+        emr_track.logical.rm(src, force = TRUE)
+        emr_track.create_logical(tgt, ltrack$source, ltrack$values)
+        return(NULL)
     }
 
     dirname1 <- .emr_track.var.dir(src)
@@ -624,6 +683,9 @@ emr_track.percentile <- function(track, val, lower = T) {
 #' 'NULL' the functions retuns whether the track is R/O. Otherwise it sets
 #' "read-onlyness" to the value indicated by 'readonly'.
 #'
+#' Logical tracks inherit their "read-onlyness" from the source
+#' physical tracks.
+#'
 #' @param track track name
 #' @param readonly if 'NULL', return "readonlyness" of the track, otherwise
 #' sets it
@@ -640,6 +702,11 @@ emr_track.readonly <- function(track, readonly = NULL) {
 
     if (!emr_track.exists(track)) {
         stop(sprintf("Track %s does not exist", track), call. = F)
+    }
+
+    orig_track <- track
+    if (emr_track.logical.exists(track)) {
+        track <- emr_track.logical.info(track)$source
     }
 
     file <- .emr_track.filename(track)
@@ -662,11 +729,10 @@ emr_track.readonly <- function(track, readonly = NULL) {
     }
 
     if (Sys.chmod(file, mode, use_umask = F) == FALSE) {
-        stop(sprintf("Failed to set read-only attribute for track %s", track), call. = F)
+        stop(sprintf("Failed to set read-only attribute for track %s", orig_track), call. = F)
     }
     retv <- NULL
 }
-
 
 
 #' Deletes a track
@@ -708,6 +774,10 @@ emr_track.rm <- function(track, force = F) {
 
     if (readonly) {
         stop(sprintf("Cannot remove track %s: it is read-only.\n", track), call. = F)
+    }
+
+    if (emr_track.logical.exists(track)) {
+        return(emr_track.logical.rm(track, force = force))
     }
 
     answer <- "N"

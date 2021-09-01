@@ -26,10 +26,22 @@ test_that("emr_track.create_logical tracks works", {
     expect_false(emr_track.logical.exists("track1"))
 })
 
+test_that("emr_track.create_logical tracks works with integer values", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("logical_track", "ph1", as.integer(c(15, 16)))
+    logical_track_ok("logical_track", "ph1", c(15, 16))
+    expect_false(emr_track.logical.exists("track1"))
+})
+
 test_that("emr_track.create_logical tracks works without values", {
     withr::defer(clean_logical_tracks())
     emr_track.create_logical("logical_track1", "ph1")
     logical_track_ok("logical_track1", "ph1")
+})
+
+test_that("emr_track.create_logical tracks fails with illegal values", {
+    withr::defer(clean_logical_tracks())
+    expect_error(emr_track.create_logical("logical_track", "ph1", "savta"))
 })
 
 test_that("emr_track.create_logical tracks fails with existing tracks", {
@@ -210,14 +222,108 @@ test_that("logical track returns a valid vtrack R object with values", {
     withr::defer(emr_vtrack.rm("vt"))
 })
 
+# track.readonly
+test_that("emr_track.readonly works for logical tracks", {
+    emr_track.create_logical("logical_track1", "ph1", c(15, 16))
+    expect_false(emr_track.readonly("logical_track1"))
+
+    emr_track.readonly("logical_track1", TRUE)
+    expect_true(emr_track.readonly("logical_track1"))
+    expect_error(emr_track.rm("logical_track1"), "Cannot remove track logical_track1: it is read-only.")
+    expect_true(emr_track.exists("logical_track1"))
+
+    emr_track.readonly("logical_track1", FALSE)
+    emr_track.rm("logical_track1", TRUE)
+    expect_false(emr_track.exists("logical_track1"))
+})
+
+test_that("logical track is read-only when the physical track is read only", {
+    withr::defer(clean_logical_tracks())
+    if (emr_track.exists("test_track1_ro")) {
+        emr_track.readonly("test_track1_ro", FALSE)
+        emr_track.rm("test_track1_ro", TRUE)
+    }
+
+    emr_track.create("test_track1_ro", "user", TRUE, "ph1", keepref = FALSE)
+    withr::defer({
+        emr_track.rm("test_track1_ro", TRUE)
+    })
+
+    emr_track.create_logical("logical_track1", "test_track1_ro", c(15, 16))
+    emr_track.readonly("test_track1_ro", TRUE)
+    expect_true(emr_track.readonly("logical_track1"))
+
+    emr_track.readonly("test_track1_ro", FALSE)
+    expect_false(emr_track.readonly("logical_track1"))
+})
+
 # addto
+test_that("emr_track.addto works with logical tracks", {
+    withr::defer(clean_logical_tracks())
+    a <- emr_extract("ph1", keepref = TRUE, names = "value")
+    a1 <- a[1:250000, ]
+    a2 <- a[250001:500001, ]
+    emr_track.import("temp_track", "global", categorical = TRUE, src = a1)
+    withr::defer(emr_track.rm("temp_track", force = TRUE))
+    emr_track.create_logical("logical_track1", "temp_track", 15)
+
+    fn <- tempfile()
+    readr::write_tsv(a2, fn, col_names = FALSE)
+    expect_error(emr_track.addto("logical_track1", fn), "Cannot add to a logical track when src is a file name. Please load the file to a data frame and rerun emr_track.addto with src as the data frame.")
+
+    expect_error(emr_track.addto("logical_track1", a2))
+
+    expect_null(emr_track.addto("logical_track1", a2 %>% dplyr::filter(value == 15)))
+
+    emr_track.addto("logical_track1", a2 %>% dplyr::filter(value == 15), force = TRUE)
+
+
+    b <- emr_extract("temp_track", keepref = TRUE, names = "value")
+    expect_equal(
+        b,
+        dplyr::bind_rows(
+            a1,
+            a2 %>% dplyr::filter(value == 15)
+        ) %>% dplyr::arrange(id, time, ref, value)
+    )
+})
 
 # attributes
 
-# create
+# track.mv
+test_that("emr_track.mv works with logical tracks", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("logical_track1", "ph1", c(15, 16))
+    emr_track.mv("logical_track1", "logical_track2")
+    expect_false(emr_track.exists("logical_track1"))
+    expect_true(emr_track.exists("logical_track2"))
+    expect_false("logical_track1" %in% emr_track.ls())
+    expect_true("logical_track2" %in% emr_track.ls())
+})
+
+test_that("emr_track.mv fails when trying to move to user space", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("logical_track1", "ph1", c(15, 16))
+    expect_error(emr_track.mv("logical_track1", "logical_track2", "user"))
+})
+
+test_that("emr_track.mv fails when track exists", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("logical_track1", "ph1", c(15, 16))
+    emr_track.create_logical("logical_track2", "ph1", c(15, 16))
+    expect_error(emr_track.mv("logical_track1", "logical_track2"))
+    expect_error(emr_track.mv("logical_track1", "track1"))
+    emr_filter.create("f1", "ph1")
+    withr::defer(emr_filter.rm("f1"))
+    expect_error(emr_track.mv("logical_track1", "f1"))
+
+    emr_vtrack.create("vt1", "ph1")
+    withr::defer(emr_vtrack.rm("vt1"))
+    expect_error(emr_track.mv("logical_track1", "vt1"))
+})
+
 
 # emr_extract
-
 test_that("emr_extract works with logical track as expression and implicit iterator", {
     withr::defer(clean_logical_tracks())
     emr_track.create_logical("logical_track", "ph1")

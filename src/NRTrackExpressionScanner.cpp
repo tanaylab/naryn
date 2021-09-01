@@ -514,7 +514,7 @@ void NRTrackExprScanner::create_expr_iterator(IteratorWithFilter *itr, SEXP rite
                 track_name = vars.get_track_name(ivar);
 
                 // Normally the iterator goes by the vtrack src, even if vtrack has a filter (in this case vars.get_track(ivar) will contain an intermediate, filtered track).
-                // If however vtrack src is a data frame, iterator must be taken from vars.get_track(ivar) which will contain an intermadiate track based on the data frame data.
+                // If however vtrack src is a data frame, iterator must be taken from vars.get_track(ivar) which will contain an intermediate track based on the data frame data.
                 // The intermediate tracks are not added to the database, so g_db->track(tmp_track) will return NULL.
                 track = g_db->track(track_name.c_str());
                 if (!track)   // src == data.frame

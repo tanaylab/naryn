@@ -9,7 +9,7 @@ test_that("create readonly tracks", {
         emr_track.rm("test_track1_ro", TRUE)
     }
 
-    emr_track.create("test_track1_ro", "user", FALSE, "track0+2", keepref = F)
+    emr_track.create("test_track1_ro", "user", FALSE, "track0+2", keepref = FALSE)
     emr_track.readonly("test_track1_ro", TRUE)
     expect_true(emr_track.readonly("test_track1_ro"))
 
