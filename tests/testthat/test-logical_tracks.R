@@ -246,7 +246,7 @@ test_that("logical track is read-only when the physical track is read only", {
 })
 
 # addto
-test_that("emr_track.addtio works with logical tracks", {
+test_that("emr_track.addto works with logical tracks", {
     withr::defer(clean_logical_tracks())
     a <- emr_extract("ph1", keepref = TRUE, names = "value")
     a1 <- a[1:250000, ]
@@ -276,7 +276,8 @@ test_that("emr_track.addtio works with logical tracks", {
 
 # attributes
 
-# create
+# move
+
 
 # emr_extract
 
