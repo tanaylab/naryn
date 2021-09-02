@@ -918,6 +918,66 @@ test_that("emr_track.ids works on logical tracks with sparse source", {
     expect_equal(a1, b1)
 })
 
+# db_subset
+test_that("emr_db.subset works with logical track", {
+    set.seed(60427)
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("l9", "track8_sparse", 9)
+    emr_track.create_logical("l2", "track8_sparse", 2)
+
+    df <- emr_extract("track8_sparse", keepref = TRUE)
+    emr_track.import("p9", space = "global", categorical = TRUE, src = df %>% dplyr::filter(track8_sparse == 9) %>% dplyr::select(id, time, ref, value = track8_sparse))
+    emr_track.import("p2", space = "global", categorical = TRUE, src = df %>% dplyr::filter(track8_sparse == 2) %>% dplyr::select(id, time, ref, value = track8_sparse))
+    withr::defer(emr_track.rm("p9", force = TRUE))
+    withr::defer(emr_track.rm("p2", force = TRUE))
+
+    emr_db.subset("l9", fraction = 0.8, complementary = FALSE)
+    withr::defer(emr_db.subset(NULL))
+    ids <- emr_db.subset.ids()
+    expect_equal(nrow(ids), 800)
+    a <- emr_extract("l9")
+    expect_true(all(a$id %in% ids$id))
+    a <- emr_extract("track8_sparse")
+    expect_true(all(a$id %in% ids$id))
+
+    expect_equal(
+        emr_db.subset.info(),
+        list(src = "l9", fraction = 0.8, complementary = FALSE)
+    )
+})
+
+test_that("emr_track.unique ignores current subset with logical tracks", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("l9", "track8_sparse", 9)
+    a <- emr_track.unique("l9")
+    emr_db.subset(data.frame(id = 2510), fraction = 1, complementary = FALSE)
+    withr::defer(emr_db.subset(NULL))
+    b <- emr_track.unique("l9")
+    expect_equal(a, b)
+})
+
+test_that("emr_track.ids ignores current subset with logical tracks", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("l9", "track8_sparse", 9)
+    a <- emr_track.ids("l9")
+    emr_db.subset(data.frame(id = 2510), fraction = 1, complementary = FALSE)
+    withr::defer(emr_db.subset(NULL))
+    b <- emr_track.ids("l9")
+    expect_equal(a, b)
+})
+
+# # uncomment after emr_track.info implementation
+# test_that("emr_track.info ignores current subset with logical tracks", {
+#     withr::defer(clean_logical_tracks())
+#     emr_track.create_logical("l9", "track8_sparse", 9)
+#     a <- emr_track.info("l9")
+#     emr_db.subset(data.frame(id = 2510), fraction = 1, complementary = FALSE)
+#     withr::defer(emr_db.subset(NULL))
+#     b <- emr_track.info("l9")
+#     expect_equal(a, b)
+# })
+
+
 # filters
 
 test_that("logical track can be used as filter", {

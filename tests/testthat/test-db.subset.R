@@ -54,3 +54,36 @@ test_that("emr_db.subset works with track and complementary=TRUE", {
         list(src = "track1", fraction = 0.8, complementary = TRUE)
     )
 })
+
+test_that("emr_db.subset changes subset with a warning", {
+    emr_db.subset(data.frame(id = 2510), fraction = 1, complementary = FALSE)
+    withr::defer(emr_db.subset(NULL))
+    expect_true(all(emr_extract("ph1")$id == 2510))
+    expect_warning(emr_db.subset(data.frame(id = 9), fraction = 1, complementary = FALSE))
+    expect_true(all(emr_extract("ph1")$id == 9))
+})
+
+# test functions that ignore the current subset
+test_that("emr_track.unique ignores current subset", {
+    a <- emr_track.unique("ph1")
+    emr_db.subset(data.frame(id = 2510), fraction = 1, complementary = FALSE)
+    withr::defer(emr_db.subset(NULL))
+    b <- emr_track.unique("ph1")
+    expect_equal(a, b)
+})
+
+test_that("emr_track.ids ignores current subset", {
+    a <- emr_track.ids("ph1")
+    emr_db.subset(data.frame(id = 2510), fraction = 1, complementary = FALSE)
+    withr::defer(emr_db.subset(NULL))
+    b <- emr_track.ids("ph1")
+    expect_equal(a, b)
+})
+
+test_that("emr_track.info ignores current subset", {
+    a <- emr_track.info("ph1")
+    emr_db.subset(data.frame(id = 2510), fraction = 1, complementary = FALSE)
+    withr::defer(emr_db.subset(NULL))
+    b <- emr_track.info("ph1")
+    expect_equal(a, b)
+})

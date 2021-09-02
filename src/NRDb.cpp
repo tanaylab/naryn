@@ -100,10 +100,20 @@ SEXP emr_db_subset(SEXP _src, SEXP _fraction, SEXP _complementary,
             if (isString(_src) && Rf_length(_src) == 1) {
                 src = CHAR(STRING_ELT(_src, 0));
                 EMRTrack *track = g_db->track(src.c_str());
+                const EMRLogicalTrack *logical_track =
+                    g_db->logical_track(src.c_str());
 
-                if (!track) verror("Track %s does not exist.", src.c_str());
+                if (!track && !logical_track)
+                    verror("Track %s does not exist", src.c_str());
 
-                track->ids(ids);
+                if (logical_track) {
+                    track = g_db->track(logical_track->source.c_str());
+                    unordered_set<double> vals(logical_track->values.begin(),
+                                               logical_track->values.end());
+                    track->ids(ids, vals);
+                } else {
+                    track->ids(ids);
+                }
             } else {
                 src = "<Ids Table>";
                 try {
