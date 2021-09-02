@@ -58,6 +58,11 @@ public:
 
     static void check_track_name(const string &track);
 
+    string logical_track_filename(const string &track_name) const {
+        return logical_tracks_dir() + string("/") + track_name +
+               LOGICAL_TRACK_FILE_EXT;
+    }
+
     // Sets groot/uroot.
     // Loads track list files and tracks (if load_on_demand==false).
     // If track list file is missing => builds it.
@@ -153,11 +158,7 @@ protected:
 
     string track_filename(bool is_global, const string &track_name) const { return m_rootdirs[is_global] + string("/") + track_name + TRACK_FILE_EXT; }
     string track_attrs_filename(bool is_global, const string &track_name) const { return m_rootdirs[is_global] + string("/.") + track_name + TRACK_ATTRS_FILE_EXT; }
-    string logical_tracks_dir() const { return m_rootdirs[1] + string("/logical"); }
-    string logical_track_filename(const string &track_name) const {
-        return logical_tracks_dir() + string("/") + track_name +
-               LOGICAL_TRACK_FILE_EXT;
-    }
+    string logical_tracks_dir() const { return m_rootdirs[1] + string("/logical"); }    
     string track_list_filename(bool is_global) const { return m_rootdirs[is_global] + "/" + TRACK_LIST_FILENAME; }
     string tracks_attrs_filename(bool is_global) const { return m_rootdirs[is_global] + "/" + TRACKS_ATTRS_FILENAME; }    
     string logical_tracks_filename() const {
