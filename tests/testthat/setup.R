@@ -8,6 +8,7 @@ load_test_db()
 withr::defer(
     {
         emr_db.init_examples()
+        testdb_dir <- test_path("../testdb")
         system(glue("rm -rf {testdb_dir}"))
     },
     teardown_env()
