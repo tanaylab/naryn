@@ -4,7 +4,7 @@
 \alias{emr_track.percentile}
 \title{Returns track percentile of the values}
 \usage{
-emr_track.percentile(track, val, lower = T)
+emr_track.percentile(track, val, lower = TRUE)
 }
 \arguments{
 \item{track}{track name}
@@ -41,9 +41,9 @@ emr_vtrack.create("v1",
 )
 emr_extract(c(
     "dense_track",
-    "emr_track.percentile(\"dense_track\", v1, F)"
+    "emr_track.percentile(\"dense_track\", v1, FALSE)"
 ),
-keepref = T, names = c("col1", "col2")
+keepref = TRUE, names = c("col1", "col2")
 )
 }
 \seealso{

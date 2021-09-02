@@ -21,7 +21,9 @@ public:
     virtual double   maxval() const { return m_base_track ? m_base_track->maxval() : (double)m_sorted_unique_vals[m_num_percentiles - 1]; }
 
     virtual void ids(vector<unsigned> &ids);
-	virtual void data_recs(EMRTrackData<double> &data_recs);
+    virtual void ids(vector<unsigned> &ids,
+                     unordered_set<double> &vals2compare);
+    virtual void data_recs(EMRTrackData<double> &data_recs);
     virtual void data_recs(EMRTrackData<float> &data_recs);
 
     virtual size_t count_ids(const vector<unsigned> &ids) const;
@@ -326,6 +328,31 @@ void EMRTrackDense<T>::ids(vector<unsigned> &ids)
     for (unsigned dataidx = 0; dataidx < idrange; ++dataidx) {
         if (!data_empty(dataidx))
             ids.push_back(dataidx + m_min_id);
+    }
+}
+
+template <class T>
+void EMRTrackDense<T>::ids(vector<unsigned> &ids,
+                           unordered_set<double> &vals2compare) {
+    unsigned idrange = data_size();
+
+    ids.clear();
+    ids.reserve(idrange);
+    for (unsigned dataidx = 0; dataidx < idrange; ++dataidx) {
+        if (!data_empty(dataidx)) {
+            bool add_id = false;
+            unsigned n = num_recs(dataidx);
+            for (unsigned irec = m_data[dataidx]; irec < m_data[dataidx] + n;
+                 ++irec) {
+                if (vals2compare.find(m_recs[irec].val) != vals2compare.end()){
+                    add_id = true;
+                    break;
+                }
+            }
+            if (add_id){
+                ids.push_back(dataidx + m_min_id);
+            }            
+        }
     }
 }
 

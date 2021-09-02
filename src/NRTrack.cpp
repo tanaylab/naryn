@@ -197,11 +197,21 @@ SEXP emr_track_ids(SEXP _track, SEXP _envir)
         SEXP answer;
         vector<unsigned> ids;
         EMRTrack *track = g_db->track(trackname);
+        const EMRLogicalTrack *logical_track  =
+            g_db->logical_track(trackname);
 
-        if (!track)
+        if (!track && !logical_track)
             verror("Track %s does not exist", trackname);
 
-        track->ids(ids);
+        if (logical_track){
+            track = g_db->track(logical_track->source.c_str());
+            unordered_set<double> vals(logical_track->values.begin(),
+                                       logical_track->values.end());            
+            track->ids(ids, vals);
+        } else {
+            track->ids(ids);
+        }
+        
         g_naryn->verify_max_data_size(ids.size(), "IDs");
         return NRPoint::convert_ids(ids, 1, false);
 	} catch (TGLException &e) {

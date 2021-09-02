@@ -20,7 +20,9 @@ public:
     virtual double   maxval() const { return m_base_track ? m_base_track->maxval() : (double)m_sorted_unique_vals[m_num_percentiles - 1]; }
 
     virtual void ids(vector<unsigned> &ids);
-	virtual void data_recs(EMRTrackData<double> &data_recs);
+    virtual void ids(vector<unsigned> &ids,
+                     unordered_set<double> &vals2compare);
+    virtual void data_recs(EMRTrackData<double> &data_recs);
     virtual void data_recs(EMRTrackData<float> &data_recs);
 
     virtual size_t count_ids(const vector<unsigned> &ids) const;
@@ -283,6 +285,27 @@ void EMRTrackSparse<T>::ids(vector<unsigned> &ids)
     ids.reserve(m_data_size);
     for (unsigned idata = 0; idata < m_data_size; ++idata)
         ids.push_back(m_data[idata].id);
+}
+
+template <class T>
+void EMRTrackSparse<T>::ids(vector<unsigned> &ids, unordered_set<double> &vals2compare) {
+    ids.clear();
+    ids.reserve(m_data_size);
+    for (unsigned idata = 0; idata < m_data_size; ++idata){
+        unsigned n = num_recs(m_data + idata);
+        bool add_id = false;
+        for (unsigned irec = m_data[idata].rec_idx;
+             irec < m_data[idata].rec_idx + n; ++irec){
+            if (vals2compare.find((double)m_recs[irec].val) !=
+                vals2compare.end()) {
+                add_id = true;
+                break;
+            }
+        }
+        if (add_id){
+            ids.push_back(m_data[idata].id);
+        }            
+    }
 }
 
 template <class T>
