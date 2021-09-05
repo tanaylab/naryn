@@ -1169,7 +1169,6 @@ test_that("emr_filter.attr.val changes work on logical track", {
 })
 
 # emr_track.info
-
 test_that("emr_track.info works for logical tracks", {
     emr_filter.create("f1", src = "ph1", val = seq(4, 16, 1), keepref = TRUE)
     df <- emr_extract("ph1", names = c("value"), keepref = TRUE, filter = "f1")
@@ -1185,6 +1184,7 @@ test_that("emr_track.info works for logical tracks", {
     expect_equal(info_l$path, logical_track_path("l1"))
     info_p$path <- NULL
     info_l$path <- NULL
+
 
     expect_equal(info_p, info_l)
 

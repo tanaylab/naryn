@@ -112,11 +112,10 @@ SEXP emr_logical_track_user_info(SEXP _track, SEXP _expr, SEXP _stime, SEXP _eti
         INTEGER(rmin_time)[0] = summary.mintime;
         INTEGER(rmax_time)[0] = summary.maxtime;
 
-
         for (int i = 0; i < NUM_COLS; i++)
             SET_STRING_ELT(names, i, mkChar(COL_NAMES[i]));
 
-		SET_VECTOR_ELT(answer, CATEGORICAL, rcategorical);        
+		    SET_VECTOR_ELT(answer, CATEGORICAL, rcategorical);        
         SET_VECTOR_ELT(answer, PATH, rpath);
         SET_VECTOR_ELT(answer, TYPE, rtype);
         SET_VECTOR_ELT(answer, DATA_TYPE, rdata_type);
