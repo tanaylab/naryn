@@ -629,7 +629,7 @@ emr_track.mv <- function(src, tgt, space = NULL) {
         dirname2 <- .emr_track.logical.pyvar.dir(src)
     } else {
         # when moving a physical track we need
-        # to move all the ltracks which dependt
+        # to move all the ltracks which depend
         # on it
         dependent_ltracks <- get_dependent_ltracks(src)
         .emr_call("emr_track_mv", src, tgt, space, new.env(parent = parent.frame()))
