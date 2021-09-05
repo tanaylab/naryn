@@ -998,15 +998,15 @@ test_that("emr_track.ids ignores current subset with logical tracks", {
 })
 
 # uncomment when emr_track.info with subest works
-# test_that("emr_track.info ignores current subset with logical tracks", {
-#     withr::defer(clean_logical_tracks())
-#     emr_track.create_logical("l9", "track8_sparse", 9)
-#     a <- emr_track.info("l9")
-#     emr_db.subset(data.frame(id = 2510), fraction = 1, complementary = FALSE)
-#     withr::defer(emr_db.subset(NULL))
-#     b <- emr_track.info("l9")
-#     expect_equal(a, b)
-# })
+test_that("emr_track.info ignores current subset with logical tracks", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("l9", "track8_sparse", 9)
+    a <- emr_track.info("l9")
+    emr_db.subset(data.frame(id = 2510), fraction = 1, complementary = FALSE)
+    withr::defer(emr_db.subset(NULL))
+    b <- emr_track.info("l9")
+    expect_equal(a, b)
+})
 
 
 # filters
