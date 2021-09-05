@@ -1031,3 +1031,30 @@ test_that("emr_filter.attr.val changes work on logical track", {
 
     expect_equal(t1, t2)
 })
+
+# emr_track.info
+
+test_that("emr_track.info works for logical tracks",{
+    emr_filter.create("f1", src = "ph1", val = seq(4, 16, 1), keepref = TRUE)
+    df <- emr_extract("ph1", names = c("value"), keepref = TRUE, filter = "f1")
+    emr_track.import("l1_ph", space = "global", categorical = TRUE, src = df)
+    
+    emr_track.create_logical("l1", "ph1", seq(4, 16, 1))
+
+    info_p <- emr_track.info("l1_ph")
+    info_l <- emr_track.info("l1")
+
+    # path is irrelevant for ltracks
+    info_l$path = NULL
+    info_p$path = NULL
+
+    # ltrack inherits src's type, physical
+    # type is calculated on creation, we 
+    # can not expect equality in this case
+    info_l$type = NULL
+    info_p$type = NULL
+
+    expect_equal(info_p, info_l)
+
+    withr::defer(emr_track.rm("l1_ph", force = TRUE))
+})
