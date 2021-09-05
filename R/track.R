@@ -404,12 +404,6 @@ emr_track.ids <- function(track) {
     }
     .emr_checkroot()
 
-    if (emr_track.logical.exists(track)) {
-        res <- emr_extract(track, iterator = track) %>%
-            dplyr::distinct(id)
-        return(res)
-    }
-
     .emr_call("emr_track_ids", track, new.env(parent = parent.frame()))
 }
 
@@ -665,16 +659,21 @@ emr_track.mv <- function(src, tgt, space = NULL) {
 #' )
 #' emr_extract(c(
 #'     "dense_track",
-#'     "emr_track.percentile(\"dense_track\", v1, F)"
+#'     "emr_track.percentile(\"dense_track\", v1, FALSE)"
 #' ),
-#' keepref = T, names = c("col1", "col2")
+#' keepref = TRUE, names = c("col1", "col2")
 #' )
 #' @export emr_track.percentile
-emr_track.percentile <- function(track, val, lower = T) {
+emr_track.percentile <- function(track, val, lower = TRUE) {
     if (missing(track) || missing(val)) {
-        stop("Usage: emr_track.percentile(track, val, lower)", call. = F)
+        stop("Usage: emr_track.percentile(track, val, lower)", call. = FALSE)
     }
     .emr_checkroot()
+
+    if (emr_track.logical.exists(track)) {
+        stop(sprintf("Track %s is categorical: percentile queries are not supported", track))
+    }
+
     .emr_call("emr_track_percentile", track, val, lower, new.env(parent = parent.frame()))
 }
 

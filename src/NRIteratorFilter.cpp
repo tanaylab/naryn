@@ -175,10 +175,8 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(vector<SEXP> &filter
 
         if (logical_track) {
             track = g_db->track(logical_track->source.c_str());
-            unordered_set<double> vals;
-            for (auto v : logical_track->values){                
-                vals.insert(v);
-            }
+            unordered_set<double> vals(logical_track->values.begin(),
+                                       logical_track->values.end());
             filter->m_itr = new EMRTrackIterator(track, filter->m_keepref,
                                                  stime, etime, move(vals));
             return filter;

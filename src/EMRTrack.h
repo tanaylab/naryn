@@ -82,7 +82,8 @@ public:
     virtual float    percentile_lower(double val) const = 0;
 
     virtual void ids(vector<unsigned> &ids) = 0;
-	virtual void data_recs(EMRTrackData<double> &data_recs) = 0;
+    virtual void ids(vector<unsigned> &ids, unordered_set<double> &vals2compare) = 0;
+    virtual void data_recs(EMRTrackData<double> &data_recs) = 0;
     virtual void data_recs(EMRTrackData<float> &data_recs) = 0;
 
     virtual size_t count_ids(const vector<unsigned> &ids) const = 0;
