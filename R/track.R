@@ -121,6 +121,10 @@ emr_track.addto <- function(track, src, force = FALSE) {
 
         ltrack <- emr_track.logical.info(track)
 
+        if (emr_track.readonly(ltrack$source)) {
+            stop(sprintf("Cannot add data to track %s: it's source track (\"%s\") is read-only.\n", ltrack$source, track), call. = F)
+        }
+
         if (!all(src$value %in% ltrack$value)) {
             stop(sprintf("src contains values which are not part of the logical track. You can add them directly to the physical track (\"%s\")", ltrack$source))
         }
@@ -137,6 +141,21 @@ emr_track.addto <- function(track, src, force = FALSE) {
         if (answer == "Y" || answer == "YES") {
             track <- ltrack$source
         } else {
+            return(NULL)
+        }
+    } else {
+        dependent_ltracks <- get_dependent_ltracks(track)
+        answer <- "N"
+        if (force || length(dependent_ltracks) == 0) {
+            answer <- "Y"
+        } else {
+            str <- sprintf(
+            "We found other tracks which depend on the track you are about to update.\nupdating the track will update the following tracks as well.\n%s\nAre you sure you want to update track %s (Y/N)? ", 
+            paste0(dependent_ltracks, sep="", collapse=", "), track)
+            cat(str)
+            answer <- toupper(readLines(n = 1))
+        }
+        if (!(answer == "Y" || answer == "YES")) {
             return(NULL)
         }
     }
@@ -372,7 +391,6 @@ emr_track.exists <- function(track) {
     .emr_checkroot()
     track_exists <- !is.na(match(track, .emr_call("emr_track_names", new.env(parent = parent.frame()), silent = TRUE)))
 
-
     track_exists <- track_exists || !is.na(match(track, .emr_call("emr_logical_track_names", new.env(parent = parent.frame()), silent = TRUE)))
 
     return(track_exists)
@@ -607,13 +625,24 @@ emr_track.mv <- function(src, tgt, space = NULL) {
         ltrack <- emr_track.logical.info(src)
         emr_track.logical.rm(src, force = TRUE)
         emr_track.create_logical(tgt, ltrack$source, ltrack$values)
-        return(NULL)
+        dirname1 <- .emr_track.logical.var.dir(src)
+        dirname2 <- .emr_track.logical.pyvar.dir(src)
+    } else {
+        # when moving a physical track we need
+        # to move all the ltracks which dependt
+        # on it
+        dependent_ltracks <- get_dependent_ltracks(src)
+        .emr_call("emr_track_mv", src, tgt, space, new.env(parent = parent.frame()))
+        
+        for (ltrack in dependent_ltracks) {
+            ltrack_info <- emr_track.logical.info(ltrack)
+            emr_track.logical.rm(ltrack, force = TRUE, rm_vars = FALSE)
+            emr_track.create_logical(ltrack, tgt, ltrack_info$values)
+        }
+
+        dirname1 <- .emr_track.var.dir(src)
+        dirname2 <- .emr_track.pyvar.dir(src)
     }
-
-    dirname1 <- .emr_track.var.dir(src)
-    dirname2 <- .emr_track.pyvar.dir(src)
-
-    .emr_call("emr_track_mv", src, tgt, space, new.env(parent = parent.frame()))
 
     if (file.exists(dirname1)) {
         .emr_dir.mv(dirname1, .emr_track.var.dir(tgt))
@@ -709,11 +738,13 @@ emr_track.readonly <- function(track, readonly = NULL) {
     }
 
     orig_track <- track
+
     if (emr_track.logical.exists(track)) {
-        track <- emr_track.logical.info(track)$source
+        file <- .emr_track.logical.filename(track)
+    } else {
+        file <- .emr_track.filename(track)
     }
 
-    file <- .emr_track.filename(track)
     if (file.access(file, 0) == -1) {
         stop(sprintf("File %s does not exist", file), call. = F)
     }
@@ -785,17 +816,31 @@ emr_track.rm <- function(track, force = F) {
     }
 
     answer <- "N"
+    dependent_ltracks <- get_dependent_ltracks(track)
+
     if (force) {
         answer <- "Y"
-    } else {
-        str <- sprintf("Are you sure you want to delete track %s (Y/N)? ", track)
+    } else {    
+        if (length(dependent_ltracks) == 0){
+            str <- sprintf("Are you sure you want to delete track %s (Y/N)? ", track)
+        } else {
+            str <- sprintf(
+            "We found other tracks which depend on the track you are about to remove.\nremoving the track will remove the following tracks as well.\n%s\nAre you sure you want to delete track %s (Y/N)? ", 
+            paste0(dependent_ltracks, sep="", collapse=", "), track)
+        }
         cat(str)
         answer <- toupper(readLines(n = 1))
     }
 
     if (answer == "Y" || answer == "YES") {
+
         dirname1 <- .emr_track.var.dir(track)
         dirname2 <- .emr_track.pyvar.dir(track)
+
+        for (ltrack in dependent_ltracks) {
+            emr_track.logical.rm(ltrack, force = TRUE)
+        }
+
         .emr_call("emr_track_rm", track, new.env(parent = parent.frame()))
 
         if (file.exists(dirname1)) {
@@ -913,7 +958,14 @@ emr_track.var.get <- function(track, var) {
         stop(sprintf("Track %s does not exist", track), call. = F)
     }
 
-    filename <- paste(.emr_track.var.dir(track), var, sep = "/")
+    if (emr_track.logical.exists(track)) {
+        dirname <- .emr_track.logical.var.dir(track)
+    } else {
+        dirname <- .emr_track.var.dir(track)
+    }
+
+    filename <- paste(dirname, var, sep = "/")
+
     if (!file.exists(filename)) {
         stop(sprintf("Track variable %s does not exist", var), call. = F)
     }
@@ -961,7 +1013,11 @@ emr_track.var.ls <- function(track, pattern = "", ignore.case = FALSE, perl = FA
         stop(sprintf("Track %s does not exist", track), call. = F)
     }
 
-    dirname <- .emr_track.var.dir(track)
+    if (emr_track.logical.exists(track)) {
+        dirname <- .emr_track.logical.var.dir(track)
+    } else {
+        dirname <- .emr_track.var.dir(track)
+    }
 
     options(warn = -1) # disable warnings since dir() on non dir or non existing dir produces warnings
     invisible(files <- dir(dirname))
@@ -1010,8 +1066,12 @@ emr_track.var.rm <- function(track, var) {
     if (emr_track.readonly(track)) {
         stop(sprintf("Cannot remove vars from track %s: it is read-only.\n", track), call. = F)
     }
-
-    dirname <- .emr_track.var.dir(track)
+    if (emr_track.logical.exists(track)) {
+        dirname <- .emr_track.logical.var.dir(track)
+    } else {
+        dirname <- .emr_track.var.dir(track)
+    }
+    
     filename <- paste(dirname, var, sep = "/")
     if (!file.exists(filename)) {
         stop(sprintf("Track variable %s does not exist", var), call. = F)
@@ -1063,7 +1123,11 @@ emr_track.var.set <- function(track, var, value) {
         stop(sprintf("Cannot set vars for track %s: it is read-only.\n", track), call. = F)
     }
 
-    dirname <- .emr_track.var.dir(track)
+    if (emr_track.logical.exists(track)) {
+        dirname <- .emr_track.logical.var.dir(track)
+    } else {
+        dirname <- .emr_track.var.dir(track)
+    }
 
     if (!file.exists(dirname)) {
         dir.create(dirname, mode = "0777")

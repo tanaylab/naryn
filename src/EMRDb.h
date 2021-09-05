@@ -56,6 +56,17 @@ public:
         return ltrack_names;
     }
 
+    const vector<string> dependent_logical_tracks(const string &src) {
+        vector<string> dependent_ltracks;
+        dependent_ltracks.reserve(m_logical_tracks.size());
+        for (auto ltrack : m_logical_tracks) {
+            if((string)ltrack.second.get_source() == src) {
+                dependent_ltracks.push_back(ltrack.first);
+            }
+        }
+        return dependent_ltracks;
+    }
+
     static void check_track_name(const string &track);
 
     string logical_track_filename(const string &track_name) const {

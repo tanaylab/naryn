@@ -369,4 +369,38 @@ SEXP emr_expr_virtual_tracks(SEXP _expr, SEXP _envir) {
     }
     return R_NilValue;
 }
+
+
+SEXP emr_ltrack_dependencies(SEXP _track, SEXP _envir) {
+    try {
+        Naryn naryn(_envir);
+        vector<string> logical_dependent_tracks;
+
+        if (!isString(_track) || Rf_length(_track) != 1)
+            verror("'track' argument must be a string");
+
+        string trackname = {CHAR(asChar(_track))};
+        logical_dependent_tracks = g_db->dependent_logical_tracks(trackname);
+
+        SEXP answer;
+
+        rprotect(answer = RSaneAllocVector(STRSXP, logical_dependent_tracks.size()));
+        for (auto itrack_name = logical_dependent_tracks.begin(); itrack_name < logical_dependent_tracks.end();
+             ++itrack_name)
+            SET_STRING_ELT(answer, itrack_name - logical_dependent_tracks.begin(),
+                           mkChar(itrack_name->c_str()));
+
+        return answer;
+
+    } catch (TGLException &e) {
+        rerror("%s", e.msg());
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
+
+    rreturn(R_NilValue);
 }
+
+
+}
+
