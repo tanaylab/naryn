@@ -58,19 +58,20 @@ SEXP emr_logical_track_user_info(SEXP _track, SEXP _expr, SEXP _stime, SEXP _eti
         enum { PATH, TYPE, DATA_TYPE, CATEGORICAL, NUM_VALS, NUM_UNIQUE_VALS, MIN_VAL, MAX_VAL, MIN_ID, MAX_ID, MIN_TIME, MAX_TIME, NUM_COLS };
         const char *COL_NAMES[NUM_COLS] = { "path", "type", "data.type", "categorical", "num.vals", "num.unique.vals", "min.val", "max.val", "min.id", "max.id", "min.time", "max.time" };
 
-        // we create a clean EMRDb instance in order to ignore the current ids subset
-        new_g_db = new EMRDb;
+        // we create a clean EMRDb instance in order to ignore the current ids subset        
+        new_g_db = new EMRDb;        
         const char *gdirname = CHAR(STRING_ELT(_gdir, 0));
         const char *udirname =
             isNull(_udir) ? NULL : CHAR(STRING_ELT(_udir, 0));
         new_g_db->init(gdirname, udirname, true, true, false);
+        swap(g_db, new_g_db);
 
         LogicalTrackInfo summary;
         NRTrackExprScanner scanner;
         const char *logical_trackname = CHAR(STRING_ELT(_track, 0));
         const char *trackname = CHAR(STRING_ELT(_expr, 0));
-        EMRTrack *track = new_g_db->track(trackname);
-        const EMRDb::TrackInfo *track_info = new_g_db->track_info(trackname);
+        EMRTrack *track = g_db->track(trackname);
+        const EMRDb::TrackInfo *track_info = g_db->track_info(trackname);
 
         for (scanner.begin(_expr, NRTrackExprScanner::REAL_T, _stime, _etime,
                            _iterator_policy, _keepref, _filter);
@@ -115,7 +116,7 @@ SEXP emr_logical_track_user_info(SEXP _track, SEXP _expr, SEXP _stime, SEXP _eti
         for (int i = 0; i < NUM_COLS; i++)
             SET_STRING_ELT(names, i, mkChar(COL_NAMES[i]));
 
-		    SET_VECTOR_ELT(answer, CATEGORICAL, rcategorical);        
+		SET_VECTOR_ELT(answer, CATEGORICAL, rcategorical);        
         SET_VECTOR_ELT(answer, PATH, rpath);
         SET_VECTOR_ELT(answer, TYPE, rtype);
         SET_VECTOR_ELT(answer, DATA_TYPE, rdata_type);
@@ -130,13 +131,16 @@ SEXP emr_logical_track_user_info(SEXP _track, SEXP _expr, SEXP _stime, SEXP _eti
 
         setAttrib(answer, R_NamesSymbol, names);
 
+        swap(g_db, new_g_db);
         delete new_g_db;
         rreturn(answer);
 
         } catch (TGLException &e) {
-        delete new_g_db;
-		rerror("%s", e.msg());
+            swap(g_db, new_g_db);
+            delete new_g_db;
+		    rerror("%s", e.msg());
     } catch (const bad_alloc &e) {
+        swap(g_db, new_g_db);
         delete new_g_db;
         rerror("Out of memory");
     }

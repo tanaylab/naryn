@@ -106,7 +106,7 @@ test_that("emr_track.addto works when time points already exist with the same va
 
     old <- brio::read_file_raw(file.path(EMR_GROOT, "track1.nrtrack"))
     new <- brio::read_file_raw(file.path(EMR_GROOT, "temp_track.nrtrack"))
-  
+
     expect_identical(
         old,
         new

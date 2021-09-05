@@ -1,6 +1,6 @@
 .emr_track.logical.dir <- function() {
     dirname <- get("EMR_GROOT", envir = .GlobalEnv)
-    paste0(dirname,"/logical")
+    paste0(dirname, "/logical")
 }
 
 .emr_track.logical.filename <- function(track) {
@@ -43,7 +43,7 @@ emr_track.create_logical <- function(track, src, values = NULL) {
 #'
 #' @keywords ~track ~create_logical
 #' @export emr_track.create_logical
-emr_track.logical.rm <- function(track, force = FALSE, rm_vars=TRUE) {
+emr_track.logical.rm <- function(track, force = FALSE, rm_vars = TRUE) {
     .emr_checkroot()
     if (!emr_track.exists(track)) {
         if (force) {
@@ -69,7 +69,7 @@ emr_track.logical.rm <- function(track, force = FALSE, rm_vars=TRUE) {
         dirname1 <- .emr_track.logical.var.dir(track)
         dirname2 <- .emr_track.logical.pyvar.dir(track)
         .emr_call("emr_remove_logical", track, new.env(parent = parent.frame()), silent = TRUE)
-        
+
         if (rm_vars && file.exists(dirname1)) {
             unlink(dirname1, recursive = TRUE)
         }
@@ -254,11 +254,10 @@ create_logical_track_filter <- function(ltrack, filter = NULL, filter_name = NUL
 #' @examples
 #' get_dependent_ltracks("ph1")
 #' @noRd
-get_dependent_ltracks <- function(src){
-        if (!emr_track.exists(src)){
-            stop("Source track does not exist or is not a physical track")
-        }
-        .emr_checkroot()
-        .emr_call("emr_ltrack_dependencies", src, new.env(parent = parent.frame()))
+get_dependent_ltracks <- function(src) {
+    if (!emr_track.exists(src)) {
+        stop("Source track does not exist or is not a physical track")
+    }
+    .emr_checkroot()
+    .emr_call("emr_ltrack_dependencies", src, new.env(parent = parent.frame()))
 }
-

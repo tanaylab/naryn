@@ -150,8 +150,9 @@ emr_track.addto <- function(track, src, force = FALSE) {
             answer <- "Y"
         } else {
             str <- sprintf(
-            "We found other tracks which depend on the track you are about to update.\nupdating the track will update the following tracks as well.\n%s\nAre you sure you want to update track %s (Y/N)? ", 
-            paste0(dependent_ltracks, sep="", collapse=", "), track)
+                "We found other tracks which depend on the track you are about to update.\nupdating the track will update the following tracks as well.\n%s\nAre you sure you want to update track %s (Y/N)? ",
+                paste0(dependent_ltracks, sep = "", collapse = ", "), track
+            )
             cat(str)
             answer <- toupper(readLines(n = 1))
         }
@@ -633,7 +634,7 @@ emr_track.mv <- function(src, tgt, space = NULL) {
         # on it
         dependent_ltracks <- get_dependent_ltracks(src)
         .emr_call("emr_track_mv", src, tgt, space, new.env(parent = parent.frame()))
-        
+
         for (ltrack in dependent_ltracks) {
             ltrack_info <- emr_track.logical.info(ltrack)
             emr_track.logical.rm(ltrack, force = TRUE, rm_vars = FALSE)
@@ -820,20 +821,20 @@ emr_track.rm <- function(track, force = F) {
 
     if (force) {
         answer <- "Y"
-    } else {    
-        if (length(dependent_ltracks) == 0){
+    } else {
+        if (length(dependent_ltracks) == 0) {
             str <- sprintf("Are you sure you want to delete track %s (Y/N)? ", track)
         } else {
             str <- sprintf(
-            "We found other tracks which depend on the track you are about to remove.\nremoving the track will remove the following tracks as well.\n%s\nAre you sure you want to delete track %s (Y/N)? ", 
-            paste0(dependent_ltracks, sep="", collapse=", "), track)
+                "We found other tracks which depend on the track you are about to remove.\nremoving the track will remove the following tracks as well.\n%s\nAre you sure you want to delete track %s (Y/N)? ",
+                paste0(dependent_ltracks, sep = "", collapse = ", "), track
+            )
         }
         cat(str)
         answer <- toupper(readLines(n = 1))
     }
 
     if (answer == "Y" || answer == "YES") {
-
         dirname1 <- .emr_track.var.dir(track)
         dirname2 <- .emr_track.pyvar.dir(track)
 
@@ -1071,7 +1072,7 @@ emr_track.var.rm <- function(track, var) {
     } else {
         dirname <- .emr_track.var.dir(track)
     }
-    
+
     filename <- paste(dirname, var, sep = "/")
     if (!file.exists(filename)) {
         stop(sprintf("Track variable %s does not exist", var), call. = F)
