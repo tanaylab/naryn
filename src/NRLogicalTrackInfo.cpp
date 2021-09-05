@@ -52,7 +52,6 @@ extern "C" {
 SEXP emr_logical_track_user_info(SEXP _track, SEXP _expr, SEXP _stime, SEXP _etime, SEXP _iterator_policy, SEXP _keepref, SEXP _filter, SEXP _gdir, SEXP _udir, SEXP _envir)
 {
     EMRDb *new_g_db = NULL;
-    EMRDb *old_g_db = NULL;
 	try {
         Naryn naryn(_envir);
         
