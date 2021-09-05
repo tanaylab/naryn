@@ -18,6 +18,7 @@
 
 const string EMRDb::TRACK_FILE_EXT(".nrtrack");
 const string EMRDb::TRACK_ATTRS_FILE_EXT(".attrs");
+const string EMRDb::LOGICAL_TRACK_FILE_EXT(".ltrack");
 const char *EMRDb::TRACK_LIST_FILENAME = ".naryn";
 const char *EMRDb::TRACKS_ATTRS_FILENAME = ".attrs";
 const char *EMRDb::LOGICAL_TRACKS_FILENAME = ".logical_tracks";
@@ -150,8 +151,8 @@ void EMRDb::reload() {
 
     vdebug("EMRDb::reload()\n");
     create_track_list_file(true, NULL);
-    create_tracks_attrs_file(true, false);
-    update_logical_tracks_file();
+    create_tracks_attrs_file(true, false);    
+    load_logical_tracks_from_disk();
     if (!m_rootdirs[0].empty()) {
         create_track_list_file(false, NULL);
         create_tracks_attrs_file(false, false);
@@ -471,6 +472,74 @@ void EMRDb::create_track_list_file(bool is_global, BufferedFile *_pbf) {
     }
 }
 
+void EMRDb::load_logical_tracks_from_disk() {
+    DIR *dir = NULL;
+
+    clear_logical_tracks();
+
+    // scan directory structure
+    struct dirent *dirp;    
+    char filename[PATH_MAX + 100];    
+
+    try {
+        dir = opendir(logical_tracks_dir().c_str());        
+        if (!dir){            
+            if (ENOENT == errno){
+                mkdir(logical_tracks_dir().c_str(),
+                      S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IWGRP);
+                dir = opendir(logical_tracks_dir().c_str());
+            } else {
+                verror("Failed to open directory %s: %s",
+                       logical_tracks_dir().c_str(), strerror(errno));
+            }
+        }        
+
+        while ((dirp = readdir(dir))) {            
+            struct stat fs;
+            int len = strlen(dirp->d_name);
+
+            sprintf(filename, "%s/%s", logical_tracks_dir().c_str(),
+                    dirp->d_name);
+            if (stat(filename, &fs))
+                verror("Failed to stat file %s: %s", filename, strerror(errno));
+
+            // is it a normal file having file extension of a track?
+            if (S_ISREG(fs.st_mode) &&
+                (size_t)len > LOGICAL_TRACK_FILE_EXT.size() &&
+                !strncmp(dirp->d_name + len - LOGICAL_TRACK_FILE_EXT.size(),
+                         LOGICAL_TRACK_FILE_EXT.c_str(),
+                         LOGICAL_TRACK_FILE_EXT.size())) {
+                string ltrack_name(
+                    dirp->d_name, 0, len - LOGICAL_TRACK_FILE_EXT.size());
+
+                EMRLogicalTrack ltrack = EMRLogicalTrack::unserialize(filename);
+
+                if (ltrack.source.length() > 0){
+                    m_logical_tracks.emplace(ltrack_name, move(ltrack));
+                } else {
+                    vwarning(
+                        "Invalid format of file %s. Please recreate the track and run emr_db.reload().",
+                        filename);
+                }                
+            }            
+
+            check_interrupt();
+        }        
+
+        closedir(dir);
+        dir = NULL;
+
+        // write the results into logical track list file
+        update_logical_tracks_file();
+
+    } catch (...) {
+        if (dir) closedir(dir);
+        throw;
+    }    
+
+
+}
+
 void EMRDb::update_track_list_file(const Name2Track &tracks, bool is_global,
                                    BufferedFile &bf) {
     vdebug("Writing %ld %s tracks to track list file", tracks.size(),
@@ -495,27 +564,45 @@ void EMRDb::update_track_list_file(const Name2Track &tracks, bool is_global,
 }
 
 void EMRDb::add_logical_track(const char *track_name, const char *source_name,
-                              const vector<int> &values, bool update) {    
+                              const vector<int> &values, bool update) {
+    EMRLogicalTrack ltrack(source_name, values);    
 
-    m_logical_tracks.emplace(track_name, EMRLogicalTrack(source_name, values));
+    m_logical_tracks.emplace(track_name, ltrack);
 
     if (update) {
+        string filename = logical_track_filename(string(track_name));
+        if (!ltrack.serialize(filename.c_str())) {
+           verror("failed to write logical track %s", track_name);
+        }
         update_logical_tracks_file();
     }
 }
 
 void EMRDb::add_logical_track(const char *track_name, const char *source_name,
-                              bool update) {    
+                              bool update) {   
 
-    m_logical_tracks.emplace(track_name, EMRLogicalTrack(source_name));   
+    EMRLogicalTrack ltrack(source_name);    
+
+    m_logical_tracks.emplace(track_name, ltrack);     
 
     if (update) {
+        string filename = logical_track_filename(string(track_name));
+        if (!ltrack.serialize(filename.c_str())) {
+           verror("failed to write logical track %s", track_name);
+        }
         update_logical_tracks_file();
     }
 }
 
 void EMRDb::remove_logical_track(const char *track_name, bool update) {
-    m_logical_tracks.erase(track_name);    
+    m_logical_tracks.erase(track_name);  
+    string filename = logical_track_filename(string(track_name));
+    if (unlink(filename.c_str()) == -1) {    
+        if (errno != ENOENT){
+            verror("Failed to remove file %s: %s", filename.c_str(),
+                       strerror(errno));
+        }
+    }
 
     if (update) {
         update_logical_tracks_file();

@@ -20,3 +20,8 @@ create_mock_logical_track <- function() {
 clean_logical_tracks <- function() {
     purrr::walk(emr_track.logical.ls(), emr_track.logical.rm, force = TRUE)
 }
+
+logical_track_path <- function(track) {
+    root <- get("EMR_GROOT", envir = .GlobalEnv)
+    file.path(root, "logical", glue::glue("{track}.ltrack"))
+}

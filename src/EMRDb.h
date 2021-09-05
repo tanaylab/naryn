@@ -34,12 +34,13 @@ public:
     };
 
 
-    static const string TRACK_FILE_EXT;
+    static const string TRACK_FILE_EXT;    
     static const string TRACK_ATTRS_FILE_EXT;
+    static const string LOGICAL_TRACK_FILE_EXT;
 
-	~EMRDb();
+    ~EMRDb();
 
-	const string &grootdir() const { return m_rootdirs[1]; }
+    const string &grootdir() const { return m_rootdirs[1]; }
     const string &urootdir() const { return m_rootdirs[0]; }
 
 	EMRTrack *track(const string &track);
@@ -55,61 +56,66 @@ public:
         return ltrack_names;
     }
 
-        static void check_track_name(const string &track);
+    static void check_track_name(const string &track);
 
-        // Sets groot/uroot.
-        // Loads track list files and tracks (if load_on_demand==false).
-        // If track list file is missing => builds it.
-        // Removes outdated tracks from the memory.
-        void init(const char *grootdir, const char *urootdir,
-                  bool gload_on_demand, bool uload_on_demand, bool do_reload);
+    string logical_track_filename(const string &track_name) const {
+        return logical_tracks_dir() + string("/") + track_name +
+               LOGICAL_TRACK_FILE_EXT;
+    }
 
-        // Same as init, but groot/uroot must be set already.
-        // Intended to be called at the beginning of each transaction.
-        void refresh();
+    // Sets groot/uroot.
+    // Loads track list files and tracks (if load_on_demand==false).
+    // If track list file is missing => builds it.
+    // Removes outdated tracks from the memory.
+    void init(const char *grootdir, const char *urootdir,
+                bool gload_on_demand, bool uload_on_demand, bool do_reload);
 
-        // Rescans file directory and rebuilds track list file.
-        // Loads tracks, if load_on_demand==false.
-        // Removes outdated tracks from the memory.
-        // Should be called when track list file is suspected to be out of sync
-        // with the tracks.
-        void reload();
+    // Same as init, but groot/uroot must be set already.
+    // Intended to be called at the beginning of each transaction.
+    void refresh();
 
-        void load_track(const char *track_name, bool is_global);
-        void unload_track(const char *track_name);
+    // Rescans file directory and rebuilds track list file.
+    // Loads tracks, if load_on_demand==false.
+    // Removes outdated tracks from the memory.
+    // Should be called when track list file is suspected to be out of sync
+    // with the tracks.
+    void reload();
 
-        // Add a logical track to the database
-        void add_logical_track(const char *track_name, const char *source_name,
-                               const vector<int> &values, bool update);
-        void add_logical_track(const char *track_name, const char *source_name,
-                               bool update);
+    void load_track(const char *track_name, bool is_global);
+    void unload_track(const char *track_name);
 
-        void remove_logical_track(const char *track_name, bool update);
+    // Add a logical track to the database
+    void add_logical_track(const char *track_name, const char *source_name,
+                            const vector<int> &values, bool update);
+    void add_logical_track(const char *track_name, const char *source_name,
+                            bool update);
 
-        // clear loaded logical tracks
-        void clear_logical_tracks();
+    void remove_logical_track(const char *track_name, bool update);
 
-        // Returns tracks attributes.
-        // Prefer this method over EMRTrack::load_attrs as the current method
-        // might return cached attributes thus eliminating the need for a file
-        // access.
-        Track2Attrs get_tracks_attrs(const vector<string> &tracks,
-                                     vector<string> &attrs);
+    // clear loaded logical tracks
+    void clear_logical_tracks();
 
-        // sets track attribute; if val == NULL, the attribute is removed
-        void set_track_attr(const char *track_name, const char *attr,
-                            const char *val);
+    // Returns tracks attributes.
+    // Prefer this method over EMRTrack::load_attrs as the current method
+    // might return cached attributes thus eliminating the need for a file
+    // access.
+    Track2Attrs get_tracks_attrs(const vector<string> &tracks,
+                                    vector<string> &attrs);
 
-        unsigned id(size_t idx);
-        size_t id2idx(unsigned id);  // returns id index given id
-        bool id_exists(unsigned id);
-        unsigned num_ids();
+    // sets track attribute; if val == NULL, the attribute is removed
+    void set_track_attr(const char *track_name, const char *attr,
+                        const char *val);
 
-        const IdsSubset &ids_subset() const { return m_ids_subset; }
-        const string &ids_subset_src() const { return m_ids_subset_src; }
-        double ids_subset_fraction() const { return m_ids_subset_fraction; }
-        bool ids_subset_complementary() const {
-            return m_ids_subset_complementary; }
+    unsigned id(size_t idx);
+    size_t id2idx(unsigned id);  // returns id index given id
+    bool id_exists(unsigned id);
+    unsigned num_ids();
+
+    const IdsSubset &ids_subset() const { return m_ids_subset; }
+    const string &ids_subset_src() const { return m_ids_subset_src; }
+    double ids_subset_fraction() const { return m_ids_subset_fraction; }
+    bool ids_subset_complementary() const {
+        return m_ids_subset_complementary; }
 
     void ids_subset(vector<unsigned> &ids, const char *src, double fraction, bool complementary);
     bool is_in_subset(unsigned id) const { return m_ids_subset.empty() || m_ids_subset.find(id) != m_ids_subset.end(); }
@@ -152,9 +158,12 @@ protected:
 
     string track_filename(bool is_global, const string &track_name) const { return m_rootdirs[is_global] + string("/") + track_name + TRACK_FILE_EXT; }
     string track_attrs_filename(bool is_global, const string &track_name) const { return m_rootdirs[is_global] + string("/.") + track_name + TRACK_ATTRS_FILE_EXT; }
+    string logical_tracks_dir() const { return m_rootdirs[1] + string("/logical"); }    
     string track_list_filename(bool is_global) const { return m_rootdirs[is_global] + "/" + TRACK_LIST_FILENAME; }
-    string tracks_attrs_filename(bool is_global) const { return m_rootdirs[is_global] + "/" + TRACKS_ATTRS_FILENAME; }
-    string logical_tracks_filename() const { return m_rootdirs[1] + "/" + LOGICAL_TRACKS_FILENAME; }
+    string tracks_attrs_filename(bool is_global) const { return m_rootdirs[is_global] + "/" + TRACKS_ATTRS_FILENAME; }    
+    string logical_tracks_filename() const {
+        return m_rootdirs[1] + "/" + LOGICAL_TRACKS_FILENAME;
+    }
     string ids_filename() const { return m_rootdirs[1] + "/" + IDS_FILENAME; }
 
     void clear(bool is_global);
@@ -176,6 +185,9 @@ protected:
 
     // Writes data into track list file.
     void update_track_list_file(const Name2Track &tracks, bool is_global, BufferedFile &pbf);
+
+    // Scans logical tracks directory for logical tracks, updates track list file with the gathered data.
+    void load_logical_tracks_from_disk();
 
     // Writes the logical track list file. If the file doesn't exist - recreates it. 
     void update_logical_tracks_file();

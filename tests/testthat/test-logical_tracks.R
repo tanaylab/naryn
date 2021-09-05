@@ -14,6 +14,7 @@ logical_track_ok <- function(track, source, values = NULL) {
     }
 
     expect_true(emr_track.exists(track))
+    expect_true(file.exists(logical_track_path(track)))
 }
 
 test_that("emr_track.create_logical tracks works", {
@@ -75,6 +76,7 @@ test_that("emr_track.logical.rm works ", {
     expect_false("logical_track_test" %in% emr_track.logical.ls())
     expect_false("logical_track_test" %in% emr_track.ls())
     expect_false("logical_track_test" %in% emr_track.global.ls())
+    expect_false(file.exists(logical_track_path("logical_track_test")))
     expect_false(emr_track.exists("logical_track_test"))
     expect_error(emr_extract("logical_track_test"))
     expect_error(emr_track.logical.info("logical_track_test"))
@@ -150,6 +152,35 @@ test_that("logical tracks deletion persists between R sessions for existing sess
         args = list(root = EMR_GROOT)
     )
     expect_equal(emr_track.logical.ls(), "logical_track_test2")
+})
+
+test_that("removing a logical tracks file and running emr_db.reload() updates the db", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("logical_track_test1", "ph1", c(15, 16))
+    file.remove(logical_track_path("logical_track_test1"))
+    expect_false(file.exists(logical_track_path("logical_track_test1")))
+    emr_db.reload()
+    expect_false(file.exists(logical_track_path("logical_track_test1")))
+    expect_false("logical_track_test1" %in% emr_track.logical.ls())
+    expect_false("logical_track_test1" %in% emr_track.ls())
+    expect_false("logical_track_test1" %in% emr_track.global.ls())
+    expect_false(file.exists(logical_track_path("logical_track_test1")))
+    expect_false(emr_track.exists("logical_track_test1"))
+    expect_error(emr_extract("logical_track_test1"))
+    expect_error(emr_track.logical.info("logical_track_test1"))
+})
+
+test_that("adding a logical tracks file and running emr_db.reload() updates the db", {
+    withr::defer(clean_logical_tracks())
+    emr_track.create_logical("logical_track_test1", "ph1", c(15, 16))
+    temp_file <- tempfile()
+    file.copy(from = logical_track_path("logical_track_test1"), to = temp_file)
+    emr_track.rm("logical_track_test1", force = TRUE)
+    expect_false(emr_track.exists("logical_track_test1"))
+    expect_false(file.exists(logical_track_path("logical_track_test1")))
+    file.copy(temp_file, logical_track_path("logical_track_test1"))
+    emr_db.reload()
+    logical_track_ok("logical_track_test1", "ph1", c(15, 16))
 })
 
 test_that("emr_track.logical.ls works", {
@@ -1242,4 +1273,27 @@ test_that("emr_filter.attr.val changes work on logical track", {
     t2 <- emr_extract("l1", names = c("vals"), keepref = TRUE) %>% dplyr::filter(vals == 10 | vals == 15 | vals == 20)
 
     expect_equal(t1, t2)
+})
+
+# emr_track.info
+test_that("emr_track.info works for logical tracks", {
+    emr_filter.create("f1", src = "ph1", val = seq(4, 16, 1), keepref = TRUE)
+    df <- emr_extract("ph1", names = c("value"), keepref = TRUE, filter = "f1")
+    emr_track.import("l1_ph", space = "global", categorical = TRUE, src = df)
+
+    emr_track.create_logical("l1", "ph1", seq(4, 16, 1))
+
+    info_p <- emr_track.info("l1_ph")
+    info_l <- emr_track.info("l1")
+    expect_true(info_l$type %in% c("sparse", "dense"))
+    info_p$type <- NULL
+    info_l$type <- NULL
+    expect_equal(info_l$path, logical_track_path("l1"))
+    info_p$path <- NULL
+    info_l$path <- NULL
+
+
+    expect_equal(info_p, info_l)
+
+    withr::defer(emr_track.rm("l1_ph", force = TRUE))
 })
