@@ -269,24 +269,24 @@ test_that("emr_track.readonly works for logical tracks", {
     expect_false(emr_track.exists("logical_track1"))
 })
 
-test_that("logical track is read-only when the physical track is read only", {
+test_that("emr_track.readonly works on logical tracks", {
     withr::defer(clean_logical_tracks())
-    if (emr_track.exists("test_track1_ro")) {
-        emr_track.readonly("test_track1_ro", FALSE)
-        emr_track.rm("test_track1_ro", TRUE)
-    }
 
-    emr_track.create("test_track1_ro", "user", TRUE, "ph1", keepref = FALSE)
-    withr::defer({
-        emr_track.rm("test_track1_ro", TRUE)
-    })
+    emr_filter.create("f1", src = "ph1", val = seq(4, 16, 1), keepref = TRUE)
+    df <- emr_extract("ph1", names = c("value"), keepref = TRUE, filter = "f1")
+    emr_track.import("l1_ph", space = "global", categorical = TRUE, src = df)
 
-    emr_track.create_logical("logical_track1", "test_track1_ro", c(15, 16))
-    emr_track.readonly("test_track1_ro", TRUE)
-    expect_true(emr_track.readonly("logical_track1"))
+    emr_track.create_logical("l1", "l1_ph", seq(4, 16, 1))
+    emr_track.readonly("l1", TRUE)
 
-    emr_track.readonly("test_track1_ro", FALSE)
-    expect_false(emr_track.readonly("logical_track1"))
+    expect_true(emr_track.readonly("l1"))
+    expect_false(emr_track.readonly("l1_ph"))
+
+    expect_error(emr_track.var.set("l1", "a", TRUE))
+    expect_error(emr_track.rm("l1", force=TRUE))
+    expect_error(emr_track.addto(data.frame(id=6, time=6, value=6) ,"l1", force=TRUE))
+
+    withr::defer(emr_track.rm("l1_ph", force = TRUE))
 })
 
 # addto
@@ -997,7 +997,7 @@ test_that("emr_track.ids ignores current subset with logical tracks", {
     expect_equal(a, b)
 })
 
-# # uncomment after emr_track.info implementation
+# uncomment when emr_track.info with subest works
 # test_that("emr_track.info ignores current subset with logical tracks", {
 #     withr::defer(clean_logical_tracks())
 #     emr_track.create_logical("l9", "track8_sparse", 9)
@@ -1277,6 +1277,7 @@ test_that("emr_filter.attr.val changes work on logical track", {
 
 # emr_track.info
 test_that("emr_track.info works for logical tracks", {
+    withr::defer(clean_logical_tracks())
     emr_filter.create("f1", src = "ph1", val = seq(4, 16, 1), keepref = TRUE)
     df <- emr_extract("ph1", names = c("value"), keepref = TRUE, filter = "f1")
     emr_track.import("l1_ph", space = "global", categorical = TRUE, src = df)
@@ -1294,6 +1295,88 @@ test_that("emr_track.info works for logical tracks", {
 
 
     expect_equal(info_p, info_l)
+
+    withr::defer(emr_track.rm("l1_ph", force = TRUE))
+})
+
+# emr_track.var
+
+test_that("emr_track.var set and get works on logical tracks", {
+    withr::defer(clean_logical_tracks())
+
+    emr_track.create_logical("l1", "ph1", seq(4, 16, 1))
+    emr_track.var.set("l1", "var", 1:10)
+
+    var <- emr_track.var.get("l1", "var")
+
+    expect_equal(1:10, var)
+    expect_true("var" %in% emr_track.var.ls("l1"))
+})
+
+test_that("emr_track.var rm works on logical tracks", {
+    withr::defer(clean_logical_tracks())
+
+    emr_track.create_logical("l1", "ph1", seq(4, 16, 1))
+    emr_track.var.set("l1", "var", 1:10)
+
+    var <- emr_track.var.get("l1", "var")
+
+    expect_equal(1:10, var)
+
+    emr_track.var.rm("l1", "var")
+
+    expect_error(emr_track.var.get("l1", "var"))
+    expect_false("var" %in% emr_track.var.ls("l1"))
+})
+
+test_that("emr_track.var ls works on logical tracks", {
+    withr::defer(clean_logical_tracks())
+
+    emr_track.create_logical("l1", "ph1", seq(4, 16, 1))
+
+    emr_track.var.set("l1", "var", 1:10)
+    expect_true("var" %in% emr_track.var.ls("l1"))
+
+    emr_track.var.rm("l1", "var")
+    expect_false("var" %in% emr_track.var.ls("l1"))
+})
+
+
+test_that("emr_track.mv when physical track is moved, all dependent logical are moved with vars", {
+    withr::defer(clean_logical_tracks())
+
+    emr_filter.create("f1", src = "ph1", val = seq(4, 16, 1), keepref = TRUE)
+    df <- emr_extract("ph1", names = c("value"), keepref = TRUE, filter = "f1")
+    emr_track.import("l1_ph", space = "global", categorical = TRUE, src = df)
+
+    emr_track.create_logical("l1", "l1_ph", seq(4, 16, 1))
+    emr_track.var.set("l1", "var", 1:10)
+
+    emr_track.mv("l1_ph", "ph_l1")
+
+    ltrack_info <- emr_track.logical.info("l1")
+    var <- emr_track.var.get("l1", "var")
+
+    expect_equal("ph_l1", ltrack_info$source)
+    expect_equal(1:10, var)
+
+    withr::defer(emr_track.rm("ph_l1", force = TRUE))
+})
+
+test_that("emr_track.rm when physical track is removed, all dependent logical are removed", {
+    withr::defer(clean_logical_tracks())
+
+    emr_filter.create("f1", src = "ph1", val = seq(4, 16, 1), keepref = TRUE)
+    df <- emr_extract("ph1", names = c("value"), keepref = TRUE, filter = "f1")
+    emr_track.import("l1_ph", space = "global", categorical = TRUE, src = df)
+
+    emr_track.create_logical("l1", "l1_ph", seq(4, 16, 1))
+    emr_track.var.set("l1", "var", 1:10)
+
+    emr_track.rm("l1_ph", force=TRUE)
+
+    expect_error(emr_track.var.get("l1", "var"))
+    expect_false(emr_track.exists("l1"))
 
     withr::defer(emr_track.rm("l1_ph", force = TRUE))
 })
