@@ -283,8 +283,8 @@ test_that("emr_track.readonly works on logical tracks", {
     expect_false(emr_track.readonly("l1_ph"))
 
     expect_error(emr_track.var.set("l1", "a", TRUE))
-    expect_error(emr_track.rm("l1", force=TRUE))
-    expect_error(emr_track.addto(data.frame(id=6, time=6, value=6) ,"l1", force=TRUE))
+    expect_error(emr_track.rm("l1", force = TRUE))
+    expect_error(emr_track.addto(data.frame(id = 6, time = 6, value = 6), "l1", force = TRUE))
 
     withr::defer(emr_track.rm("l1_ph", force = TRUE))
 })
@@ -1373,7 +1373,7 @@ test_that("emr_track.rm when physical track is removed, all dependent logical ar
     emr_track.create_logical("l1", "l1_ph", seq(4, 16, 1))
     emr_track.var.set("l1", "var", 1:10)
 
-    emr_track.rm("l1_ph", force=TRUE)
+    emr_track.rm("l1_ph", force = TRUE)
 
     expect_error(emr_track.var.get("l1", "var"))
     expect_false(emr_track.exists("l1"))
