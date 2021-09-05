@@ -51,11 +51,20 @@ SEXP emr_create_logical(SEXP _track, SEXP _src, SEXP _values, SEXP _envir) {
         } else {
             int num_values = Rf_length(_values);
             vector<int> values(num_values);
-            values.assign(REAL(_values), REAL(_values) + num_values);
+            
+            if (isReal(_values)){
+                values.assign(REAL(_values), REAL(_values) + num_values);
+            } else if (isInteger(_values)){
+                values.assign(INTEGER(_values), INTEGER(_values) + num_values);
+            } else {
+                verror("invalid values parameter (it is not numeric)");
+            }
 
-            vdebug("values: ");
-            for (auto i = values.begin(); i != values.end(); ++i)
-                vdebug("%d ", *i);
+            if (g_naryn->debug()) {
+                vdebug("values: ");
+                for (auto i = values.begin(); i != values.end(); ++i)
+                    vdebug("%d ", *i);
+            }
 
             g_db->add_logical_track(trackname.c_str(), sourcename.c_str(), values, true);
         }

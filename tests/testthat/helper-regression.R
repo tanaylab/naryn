@@ -7,11 +7,11 @@
 #' @param id unique test id.
 #' @param snapshot_dir directory with rds file containing snapshot of previous versions
 expect_regression <- function(obj, id, snapshot_dir = "/net/mraid14/export/tgdata/db/tgdb/emr/naryn_snapshot") {
-    regression_file <- file.path(snapshot_dir, glue("{id}.rds"))
+    regression_file <- file.path(snapshot_dir, glue::glue("{id}.rds"))
 
     if (!file.exists(regression_file)) {
         readr::write_rds(obj, regression_file)
-        system(glue("chmod a-w {regression_file}"))
+        system(glue::glue("chmod a-w {regression_file}"))
     }
 
     # We need testthat to always find the `expect` statement (otherwise - the test would be skipped)

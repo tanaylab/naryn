@@ -29,7 +29,7 @@ void FileUtils::copy_file(const char *src, const char *tgt)
     if (fstat(srcfd.fd, &srcstat) == -1)
         TGLError(errno, "Error trying to stat file %s: %s", src, strerror(errno));
     if ((tgtfd.fd = creat(tgt, srcstat.st_mode)) == -1)
-        TGLError(errno, "Error opeining file %s for writing: %s", tgt, strerror(errno));
+        TGLError(errno, "Error opening file %s for writing: %s", tgt, strerror(errno));
     if (sendfile(tgtfd.fd, srcfd.fd, NULL, srcstat.st_size) == -1)
         TGLError(errno, "Error copying file %s to %s: %s\n", src, tgt, strerror(errno));
 }

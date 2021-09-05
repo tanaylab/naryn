@@ -21,8 +21,10 @@ Moves (renames) a track
 }
 \details{
 This function moves (renames) 'src' track into 'tgt'. If 'space' equals
-'NULL', the track remains in the same space. Otherwise it is moved to the
-specified space.
+'NULL', the track remains in the same space. Otherwise it is moved
+to the specified space.
+
+Note that logical tracks cannot be moved to the user space.
 }
 \seealso{
 \code{\link{emr_track.create}}, \code{\link{emr_track.rm}},
