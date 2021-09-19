@@ -128,8 +128,10 @@ emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val =
         # when the user requests a filter with values
         # outside the scope of the logical track, we
         # need to simulate a filter which excludes
-        # all the data points in the track.
-        if (length(val) == 0) {
+        # all the data points in the track. This does
+        # not  apply to  logical tracks  for  numeric 
+        # physical tracks which only serve as an alias
+        if (length(val) == 0 && emr_track.info(logical$src)$categorical) {
             src <- data.frame(id = numeric(), time = numeric())
             val <- NULL
         }

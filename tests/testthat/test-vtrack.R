@@ -469,7 +469,7 @@ test_that("Unable to implicitly set iterator policy with vtracks", {
 
 test_that("Unable to implicitly set iterator policy with logical tracks", {
     EMR_VTRACKS <<- list()
-    emr_track.create_logical("logical_track1", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track1", "ph1", c(15, 16))
     withr::defer(emr_track.logical.rm("logical_track1", force = TRUE))
     expect_error(emr_extract(c("logical_track1", "track1"), keepref = T))
 })
