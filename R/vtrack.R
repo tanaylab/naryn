@@ -18,8 +18,8 @@
 }
 
 #' Adjusts the params for a vtrack on a logical track
-#' 
-#' Explanation: 
+#'
+#' Explanation:
 #' The params for a vtrack on a logical track
 #' are the intersection between the params
 #' requested and the values of the logical
@@ -32,12 +32,11 @@
 #' When the intersection is empty, we set the
 #' params to NA in order to immitate a case where
 #' the param chosen is outside the scope of the
-#' track's values. When the source is numeric, 
+#' track's values. When the source is numeric,
 #' the logical track serves as an alias, and params
 #' should be set to NULL.
 #' @noRd
 .emr_vtrack_calc_logical_params <- function(src, params) {
-    
     ltrack_info <- emr_track.logical.info(src)
     is_categorical <- emr_track.info(src)$categorical
 
@@ -239,7 +238,7 @@ emr_vtrack.create <- function(vtrack, src, func = NULL, params = NULL, keepref =
         logical$src <- src
 
         ltrack_info <- emr_track.logical.info(src)
-        
+
         params <- .emr_vtrack_calc_logical_params(src, params)
         src <- ltrack_info$source
     }

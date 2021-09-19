@@ -161,8 +161,8 @@ test_that("logical tracks creation persists between R sessions for existing sess
     expect_equal(emr_track.logical.ls(), c("logical_track_test1", "logical_track_test2", "logical_track_test_numeric"))
     a <- emr_extract("logical_track_test2", keepref = TRUE)
     b <- emr_extract("ph1", names = c("logical_track_test2"), keepref = TRUE)
-    c <- emr_extract("logical_track_test_numeric", names=c("val"), keepref = TRUE)
-    d <- emr_extract("track0", names=c("val"), keepref=TRUE)
+    c <- emr_extract("logical_track_test_numeric", names = c("val"), keepref = TRUE)
+    d <- emr_extract("track0", names = c("val"), keepref = TRUE)
     expect_equal(a, b, ignore_attr = TRUE)
 })
 
@@ -182,7 +182,7 @@ test_that("logical tracks creation persists between R sessions", {
         },
         args = list(root = EMR_GROOT)
     )
-    expect_equal(res, c("logical_track_test_numeric2","logical_track_test2"))
+    expect_equal(res, c("logical_track_test_numeric2", "logical_track_test2"))
 })
 
 test_that("logical tracks deletion persists between R sessions for existing sessions", {
@@ -265,7 +265,7 @@ test_that("detect_expr_logical_tracks works", {
     emr_track.logical.create("logical_track6", "ph1", c(15, 16))
     emr_track.logical.create("logical_track", "ph1", c(15, 16))
     emr_track.logical.create("savta", "ph1", c(15, 16))
-    emr_track.logical.create("savta_numeric",  "track0")
+    emr_track.logical.create("savta_numeric", "track0")
     expect_setequal(detect_expr_logical_tracks("logical_track+logical_track6/log(savta*savta_numeric)"), c("logical_track", "logical_track6", "savta", "savta_numeric"))
     expect_equal(detect_expr_logical_tracks("logical_track*2"), "logical_track")
     expect_equal(detect_expr_logical_tracks("blah/blah+logical"), character(0))
@@ -326,7 +326,7 @@ test_that("logical track returns a valid vtrack R object with values", {
     emr_vtrack.create("vt", "track0", keepref = TRUE)
     vt <- emr_vtrack.info("vt")
     expect_equal(vt, res)
-    
+
     withr::defer(emr_vtrack.rm("vt"))
 })
 
@@ -512,7 +512,7 @@ test_that("emr_extract works with numeric logical track and multiple expressions
     withr::defer(clean_logical_tracks())
 
     emr_track.logical.create("logical_track1", "track0")
-    
+
     a <- emr_extract(c("logical_track1", "track0"), iterator = "logical_track1", keepref = TRUE)
     b <- emr_extract(c("track0", "track0"), iterator = "track0", names = c("logical_track1", "track0"), keepref = TRUE)
 

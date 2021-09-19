@@ -115,8 +115,8 @@ test_that("emr_vtrack functions work on numeric logical tracks as expected", {
     emr_track.import("l1_ph", space = "global", categorical = FALSE, src = df)
     emr_track.logical.create("l1", "track0")
 
-    emr_vtrack.create("vt_p", src = "l1_ph", func='quantile', params = 0.5)
-    emr_vtrack.create("vt_l", src = "l1", func='quantile', params = 0.5)
+    emr_vtrack.create("vt_p", src = "l1_ph", func = "quantile", params = 0.5)
+    emr_vtrack.create("vt_l", src = "l1", func = "quantile", params = 0.5)
 
     t1 <- emr_extract("vt_p", names = c("val"))
     t2 <- emr_extract("vt_l", names = c("val"))
