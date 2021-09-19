@@ -19,14 +19,14 @@
 
 #' Adjusts the params for a vtrack on a logical track
 #' 
-#' Esplanation: 
+#' Explanation: 
 #' The params for a vtrack on a logical track
 #' are the intersection between the params
 #' requested and the values of the logical
 #' track, we choose the intersection in order
 #' to eliminate params which are not included
 #' in the logical track values but might be
-#' in included in the source of the logical track.
+#' included in the source of the logical track.
 #' This may cause the return of unwanted data in
 #' some keepref related situations.
 #' When the intersection is empty, we set the
@@ -35,7 +35,7 @@
 #' track's values. When the source is numeric, 
 #' the logical track serves as an alias, and params
 #' should be set to NULL.
-
+#' @noRd
 .emr_vtrack_calc_logical_params <- function(src, params) {
     
     ltrack_info <- emr_track.logical.info(src)
