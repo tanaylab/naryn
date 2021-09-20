@@ -17,8 +17,32 @@
     vtrack
 }
 
+#' Adjusts the params for a vtrack on a logical track
+#'
+#' Explanation:
+#' The params for a vtrack on a logical track
+#' are the intersection between the params
+#' requested and the values of the logical
+#' track, we choose the intersection in order
+#' to eliminate params which are not included
+#' in the logical track values but might be
+#' included in the source of the logical track.
+#' This may cause the return of unwanted data in
+#' some keepref related situations.
+#' When the intersection is empty, we set the
+#' params to NA in order to immitate a case where
+#' the param chosen is outside the scope of the
+#' track's values. When the source is numeric,
+#' the logical track serves as an alias, and params
+#' should be set to NULL.
+#' @noRd
 .emr_vtrack_calc_logical_params <- function(src, params) {
     ltrack_info <- emr_track.logical.info(src)
+    is_categorical <- emr_track.info(src)$categorical
+
+    if (!is_categorical) {
+        return(params)
+    }
 
     if (is.null(params)) {
         params <- ltrack_info$values
@@ -214,20 +238,6 @@ emr_vtrack.create <- function(vtrack, src, func = NULL, params = NULL, keepref =
         logical$src <- src
 
         ltrack_info <- emr_track.logical.info(src)
-
-        # The params for a vtrack on a logical track
-        # are the intersection between the params
-        # requested and the values of the logical
-        # track, we choose the intersection in order
-        # to eliminate params which are not included
-        # in the logical track values but might be
-        # in included in the source of the logical track.
-        # This may cause the return of unwanted data in
-        # some keepref related situations.
-        # When the intersection is empty, we set the
-        # params to NA in order to immitate a case where
-        # the param chosen is outside the scope of the
-        # track's values.
 
         params <- .emr_vtrack_calc_logical_params(src, params)
         src <- ltrack_info$source

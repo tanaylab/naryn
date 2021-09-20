@@ -625,7 +625,7 @@ emr_track.mv <- function(src, tgt, space = NULL) {
     if (emr_track.logical.exists(src)) {
         ltrack <- emr_track.logical.info(src)
         emr_track.logical.rm(src, force = TRUE)
-        emr_track.create_logical(tgt, ltrack$source, ltrack$values)
+        emr_track.logical.create(tgt, ltrack$source, ltrack$values)
         dirname1 <- .emr_track.logical.var.dir(src)
         dirname2 <- .emr_track.logical.pyvar.dir(src)
     } else {
@@ -638,7 +638,7 @@ emr_track.mv <- function(src, tgt, space = NULL) {
         for (ltrack in dependent_ltracks) {
             ltrack_info <- emr_track.logical.info(ltrack)
             emr_track.logical.rm(ltrack, force = TRUE, rm_vars = FALSE)
-            emr_track.create_logical(ltrack, tgt, ltrack_info$values)
+            emr_track.logical.create(ltrack, tgt, ltrack_info$values)
         }
 
         dirname1 <- .emr_track.var.dir(src)

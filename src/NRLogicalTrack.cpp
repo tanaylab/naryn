@@ -30,8 +30,8 @@ SEXP emr_create_logical(SEXP _track, SEXP _src, SEXP _values, SEXP _envir) {
         if (!source_track)
             verror("Source track %s not found", sourcename.c_str());
 
-        if (!source_track->is_categorical()) {
-            verror("Source track is not categorical");
+        if (!source_track->is_categorical() && !isNull(_values)) {
+            verror("Source track is not categorical and values were passed");
         }
 
         string trackname = {CHAR(asChar(_track))};

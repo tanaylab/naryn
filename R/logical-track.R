@@ -29,8 +29,8 @@
 #' @return None.
 #'
 #' @keywords ~track ~create_logical
-#' @export emr_track.create_logical
-emr_track.create_logical <- function(track, src, values = NULL) {
+#' @export emr_track.logical.create
+emr_track.logical.create <- function(track, src, values = NULL) {
     .emr_checkroot()
     .emr_call("emr_create_logical", track, src, values, new.env(parent = parent.frame()), silent = TRUE)
 }
@@ -42,7 +42,7 @@ emr_track.create_logical <- function(track, src, values = NULL) {
 #' @return None.
 #'
 #' @keywords ~track ~create_logical
-#' @export emr_track.create_logical
+#' @export emr_track.logical.create
 emr_track.logical.rm <- function(track, force = FALSE, rm_vars = TRUE) {
     .emr_checkroot()
     if (!emr_track.exists(track)) {

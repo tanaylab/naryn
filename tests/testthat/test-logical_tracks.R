@@ -17,69 +17,108 @@ logical_track_ok <- function(track, source, values = NULL) {
     expect_true(file.exists(logical_track_path(track)))
 }
 
-test_that("emr_track.create_logical tracks works", {
+test_that("emr_track.logical.create tracks works", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track", "ph1", c(15, 16))
+
+    emr_track.logical.create("logical_track", "ph1", c(15, 16))
     logical_track_ok("logical_track", "ph1", c(15, 16))
+
+    emr_track.logical.create("logical_track_numeric", "track0")
+    logical_track_ok("logical_track_numeric", "track0")
+
     expect_false(emr_track.logical.exists("track1"))
 })
 
-test_that("emr_track.create_logical tracks works with integer values", {
+test_that("emr_track.logical.create tracks works with integer values", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track", "ph1", as.integer(c(15, 16)))
+
+    emr_track.logical.create("logical_track", "ph1", as.integer(c(15, 16)))
     logical_track_ok("logical_track", "ph1", c(15, 16))
+
     expect_false(emr_track.logical.exists("track1"))
 })
 
-test_that("emr_track.create_logical tracks works without values", {
+test_that("emr_track.logical.create tracks works without values", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track1", "ph1")
+    emr_track.logical.create("logical_track1", "ph1")
     logical_track_ok("logical_track1", "ph1")
 })
 
-test_that("emr_track.create_logical tracks fails with illegal values", {
+test_that("emr_track.logical.create tracks fails with illegal values", {
     withr::defer(clean_logical_tracks())
-    expect_error(emr_track.create_logical("logical_track", "ph1", "savta"))
+    expect_error(emr_track.logical.create("logical_track", "ph1", "savta"))
 })
 
-test_that("emr_track.create_logical tracks fails with existing tracks", {
+test_that("emr_track.logical.create tracks fails with existing tracks", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track", "ph1", c(15, 16))
-    expect_error(emr_track.create_logical("logical_track", "ph1", c(15, 16)))
-    expect_error(emr_track.create_logical("track1", "ph1", c(15, 16)))
+    emr_track.logical.create("logical_track", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track_numeric", "track0")
+
+    expect_error(emr_track.logical.create("logical_track", "ph1", c(15, 16)))
+    expect_error(emr_track.logical.create("logical_track", "track0"))
+    expect_error(emr_track.logical.create("logical_track_numeric", "ph1", c(15, 16)))
+    expect_error(emr_track.logical.create("track1", "ph1", c(15, 16)))
 })
 
-test_that("emr_track.create_logical tracks fails with non-categorical tracks", {
-    expect_error(emr_track.create_logical("logical_track", "track2", c(15, 16)))
+test_that("emr_track.logical.create tracks fails with non-categorical tracks and values", {
+    expect_error(emr_track.logical.create("logical_track", "track2", c(15, 16)))
 })
 
-test_that("emr_track.create_logical tracks fails with illegal track names", {
-    expect_error(emr_track.create_logical(".logical_track", "ph1", c(15, 16)))
+test_that("emr_track.logical.create tracks fails with illegal track names", {
+    expect_error(emr_track.logical.create(".logical_track", "ph1", c(15, 16)))
+    expect_error(emr_track.logical.create(".logical_track", "track0"))
 })
 
 test_that("emr_track.logical.info returns correct value", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track", "ph1", c(15, 16))
+
+    emr_track.logical.create("logical_track", "ph1", c(15, 16))
     res <- emr_track.logical.info("logical_track")
+
     expect_equal(names(res), c("source", "values"))
     expect_equal(res$source, "ph1")
     expect_equal(res$values, c(15, 16))
+
+    emr_track.logical.create("logical_track_numeric", "track0")
+    res <- emr_track.logical.info("logical_track_numeric")
+
+    expect_equal(names(res), c("source", "values"))
+    expect_equal(res$source, "track0")
+    expect_equal(res$values, NULL)
+
     expect_error(emr_track.logical.info("track1"))
     expect_error(emr_track.logical.info("blahblah"))
 })
 
 test_that("emr_track.logical.rm works ", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track_test", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track_test", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track_test_numeric", "track0")
+
     logical_track_ok("logical_track_test", "ph1", c(15, 16))
+    logical_track_ok("logical_track_test_numeric", "track0")
+
     emr_track.logical.rm("logical_track_test", force = TRUE)
+    emr_track.logical.rm("logical_track_test_numeric", force = TRUE)
+
     expect_false("logical_track_test" %in% emr_track.logical.ls())
+    expect_false("logical_track_test_numeric" %in% emr_track.logical.ls())
     expect_false("logical_track_test" %in% emr_track.ls())
+    expect_false("logical_track_test_numeric" %in% emr_track.ls())
     expect_false("logical_track_test" %in% emr_track.global.ls())
+    expect_false("logical_track_test_numeric" %in% emr_track.global.ls())
+
     expect_false(file.exists(logical_track_path("logical_track_test")))
+    expect_false(file.exists(logical_track_path("logical_track_test_numeric")))
+
     expect_false(emr_track.exists("logical_track_test"))
+    expect_false(emr_track.exists("logical_track_test_numeric"))
+
     expect_error(emr_extract("logical_track_test"))
+    expect_error(emr_extract("logical_track_test_numeric"))
+
     expect_error(emr_track.logical.info("logical_track_test"))
+    expect_error(emr_track.logical.info("logical_track_test_numeric"))
 })
 
 test_that("emr_track.logical.rm fails when track doesn't exist ", {
@@ -93,8 +132,9 @@ test_that("emr_track.logical.rm fails when track is physical", {
 # test multiple processes
 test_that("logical tracks creation persists between R sessions", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track_test1", "ph1", c(15, 16))
-    emr_track.create_logical("logical_track_test2", "ph1")
+    emr_track.logical.create("logical_track_test1", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track_test2", "ph1")
+    emr_track.logical.create("logical_track_test_numeric", "track0")
     res <- callr::r(
         function(root) {
             devtools::load_all()
@@ -103,7 +143,7 @@ test_that("logical tracks creation persists between R sessions", {
         },
         args = list(root = EMR_GROOT)
     )
-    expect_equal(res, c("logical_track_test1", "logical_track_test2"))
+    expect_equal(res, c("logical_track_test_numeric", "logical_track_test1", "logical_track_test2"))
 })
 
 test_that("logical tracks creation persists between R sessions for existing sessions", {
@@ -112,22 +152,28 @@ test_that("logical tracks creation persists between R sessions for existing sess
         function(root) {
             devtools::load_all()
             emr_db.init(global.dir = root)
-            emr_track.create_logical("logical_track_test1", "ph1", c(15, 16))
-            emr_track.create_logical("logical_track_test2", "ph1")
+            emr_track.logical.create("logical_track_test1", "ph1", c(15, 16))
+            emr_track.logical.create("logical_track_test2", "ph1")
+            emr_track.logical.create("logical_track_test_numeric", "track0")
         },
         args = list(root = EMR_GROOT)
     )
-    expect_equal(emr_track.logical.ls(), c("logical_track_test1", "logical_track_test2"))
+    expect_equal(emr_track.logical.ls(), c("logical_track_test1", "logical_track_test2", "logical_track_test_numeric"))
     a <- emr_extract("logical_track_test2", keepref = TRUE)
     b <- emr_extract("ph1", names = c("logical_track_test2"), keepref = TRUE)
+    c <- emr_extract("logical_track_test_numeric", names = c("val"), keepref = TRUE)
+    d <- emr_extract("track0", names = c("val"), keepref = TRUE)
     expect_equal(a, b, ignore_attr = TRUE)
 })
 
 test_that("logical tracks creation persists between R sessions", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track_test1", "ph1", c(15, 16))
-    emr_track.create_logical("logical_track_test2", "ph1")
+    emr_track.logical.create("logical_track_test1", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track_test_numeric1", "track0")
+    emr_track.logical.create("logical_track_test2", "ph1")
+    emr_track.logical.create("logical_track_test_numeric2", "track0")
     emr_track.logical.rm("logical_track_test1", force = TRUE)
+    emr_track.logical.rm("logical_track_test_numeric1", force = TRUE)
     res <- callr::r(
         function(root) {
             devtools::load_all()
@@ -136,13 +182,13 @@ test_that("logical tracks creation persists between R sessions", {
         },
         args = list(root = EMR_GROOT)
     )
-    expect_equal(res, "logical_track_test2")
+    expect_equal(res, c("logical_track_test_numeric2", "logical_track_test2"))
 })
 
 test_that("logical tracks deletion persists between R sessions for existing sessions", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track_test1", "ph1", c(15, 16))
-    emr_track.create_logical("logical_track_test2", "ph1")
+    emr_track.logical.create("logical_track_test1", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track_test2", "ph1")
     res <- callr::r(
         function(root) {
             devtools::load_all()
@@ -156,23 +202,34 @@ test_that("logical tracks deletion persists between R sessions for existing sess
 
 test_that("removing a logical tracks file and running emr_db.reload() updates the db", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track_test1", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track_test1", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track_test_numeric", "track0")
     file.remove(logical_track_path("logical_track_test1"))
+    file.remove(logical_track_path("logical_track_test_numeric"))
     expect_false(file.exists(logical_track_path("logical_track_test1")))
+    expect_false(file.exists(logical_track_path("logical_track_test_numeric")))
     emr_db.reload()
     expect_false(file.exists(logical_track_path("logical_track_test1")))
+    expect_false(file.exists(logical_track_path("logical_track_test_numeric")))
     expect_false("logical_track_test1" %in% emr_track.logical.ls())
+    expect_false("logical_track_test_numeric" %in% emr_track.logical.ls())
     expect_false("logical_track_test1" %in% emr_track.ls())
+    expect_false("logical_track_test_numeric" %in% emr_track.ls())
     expect_false("logical_track_test1" %in% emr_track.global.ls())
+    expect_false("logical_track_test_numeric" %in% emr_track.global.ls())
     expect_false(file.exists(logical_track_path("logical_track_test1")))
+    expect_false(file.exists(logical_track_path("logical_track_test_numeric")))
     expect_false(emr_track.exists("logical_track_test1"))
+    expect_false(emr_track.exists("logical_track_test_numeric"))
     expect_error(emr_extract("logical_track_test1"))
+    expect_error(emr_extract("logical_track_test_numeric"))
     expect_error(emr_track.logical.info("logical_track_test1"))
+    expect_error(emr_track.logical.info("logical_track_test_numeric"))
 })
 
 test_that("adding a logical tracks file and running emr_db.reload() updates the db", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track_test1", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track_test1", "ph1", c(15, 16))
     temp_file <- tempfile()
     file.copy(from = logical_track_path("logical_track_test1"), to = temp_file)
     emr_track.rm("logical_track_test1", force = TRUE)
@@ -186,24 +243,30 @@ test_that("adding a logical tracks file and running emr_db.reload() updates the 
 test_that("emr_track.logical.ls works", {
     withr::defer(clean_logical_tracks())
     for (i in 1:10) {
-        emr_track.create_logical(paste0("logical_track", i), "ph1", c(15, 16))
+        emr_track.logical.create(paste0("logical_track", i), "ph1", c(15, 16))
     }
     for (i in 11:20) {
-        emr_track.create_logical(paste0("logical_track", i), "ph1")
+        emr_track.logical.create(paste0("logical_track", i), "ph1")
+    }
+    for (i in 1:10) {
+        emr_track.logical.create(paste0("logical_track_numeric", i), "track0")
     }
 
-    expect_setequal(emr_track.logical.ls(), paste0("logical_track", 1:20))
+    expect_setequal(emr_track.logical.ls(), c(paste0("logical_track", 1:20), paste0("logical_track_numeric", 1:10)))
     expect_true(all(paste0("logical_track", 1:20) %in% emr_track.ls()))
+    expect_true(all(paste0("logical_track_numeric", 1:10) %in% emr_track.ls()))
     expect_true(all(paste0("logical_track", 1:20) %in% emr_track.global.ls()))
+    expect_true(all(paste0("logical_track_numeric", 1:10) %in% emr_track.global.ls()))
 })
 
 # detect logical tracks in expression
 test_that("detect_expr_logical_tracks works", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track6", "ph1", c(15, 16))
-    emr_track.create_logical("logical_track", "ph1", c(15, 16))
-    emr_track.create_logical("savta", "ph1", c(15, 16))
-    expect_setequal(detect_expr_logical_tracks("logical_track+logical_track6/log(savta)"), c("logical_track", "logical_track6", "savta"))
+    emr_track.logical.create("logical_track6", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track", "ph1", c(15, 16))
+    emr_track.logical.create("savta", "ph1", c(15, 16))
+    emr_track.logical.create("savta_numeric", "track0")
+    expect_setequal(detect_expr_logical_tracks("logical_track+logical_track6/log(savta*savta_numeric)"), c("logical_track", "logical_track6", "savta", "savta_numeric"))
     expect_equal(detect_expr_logical_tracks("logical_track*2"), "logical_track")
     expect_equal(detect_expr_logical_tracks("blah/blah+logical"), character(0))
     expect_equal(detect_expr_logical_tracks("logical_track-sababa"), "logical_track")
@@ -232,31 +295,44 @@ test_that("detect_expr_virtual_tracks works", {
 # test implicit vtrack creation
 test_that("logical track returns a valid vtrack R object without values", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track1", "ph1")
+    emr_track.logical.create("logical_track1", "ph1")
+    emr_track.logical.create("logical_track_numeric", "track0")
     res <- .emr_call("logical_track_vtrack", "logical_track1", new.env(parent = parent.frame()), silent = TRUE)
+    res_numeric <- .emr_call("logical_track_vtrack", "logical_track_numeric", new.env(parent = parent.frame()), silent = TRUE)
     emr_vtrack.create("vt", "ph1", keepref = TRUE)
+    emr_vtrack.create("vt_numeric", "track0", keepref = TRUE)
     # commented because logical field was added to local R object
     # vt <- EMR_VTRACKS[[1]]$vt
     vt <- emr_vtrack.info("vt")
+    vt_numeric <- emr_vtrack.info("vt_numeric")
     expect_equal(vt, res)
+    expect_equal(vt_numeric, res_numeric)
     withr::defer(emr_vtrack.rm("vt"))
+    withr::defer(emr_vtrack.rm("vt_numeric"))
 })
 
 test_that("logical track returns a valid vtrack R object with values", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track1", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track1", "ph1", c(15, 16))
     res <- .emr_call("logical_track_vtrack", "logical_track1", new.env(parent = parent.frame()), silent = TRUE)
     emr_vtrack.create("vt", "ph1", params = c(15, 16), keepref = TRUE)
     # commented because logical field was added to local R object
     # vt <- EMR_VTRACKS[[1]]$vt
     vt <- emr_vtrack.info("vt")
     expect_equal(vt, res)
+
+    emr_track.logical.create("logical_track_numeric", "track0")
+    res <- .emr_call("logical_track_vtrack", "logical_track_numeric", new.env(parent = parent.frame()), silent = TRUE)
+    emr_vtrack.create("vt", "track0", keepref = TRUE)
+    vt <- emr_vtrack.info("vt")
+    expect_equal(vt, res)
+
     withr::defer(emr_vtrack.rm("vt"))
 })
 
 # track.readonly
 test_that("emr_track.readonly works for logical tracks", {
-    emr_track.create_logical("logical_track1", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track1", "ph1", c(15, 16))
     expect_false(emr_track.readonly("logical_track1"))
 
     emr_track.readonly("logical_track1", TRUE)
@@ -276,7 +352,7 @@ test_that("emr_track.readonly works on logical tracks", {
     df <- emr_extract("ph1", names = c("value"), keepref = TRUE, filter = "f1")
     emr_track.import("l1_ph", space = "global", categorical = TRUE, src = df)
 
-    emr_track.create_logical("l1", "l1_ph", seq(4, 16, 1))
+    emr_track.logical.create("l1", "l1_ph", seq(4, 16, 1))
     emr_track.readonly("l1", TRUE)
 
     expect_true(emr_track.readonly("l1"))
@@ -297,7 +373,7 @@ test_that("emr_track.addto works with logical tracks", {
     a2 <- a[250001:500001, ]
     emr_track.import("temp_track", "global", categorical = TRUE, src = a1)
     withr::defer(emr_track.rm("temp_track", force = TRUE))
-    emr_track.create_logical("logical_track1", "temp_track", 15)
+    emr_track.logical.create("logical_track1", "temp_track", 15)
 
     fn <- tempfile()
     readr::write_tsv(a2, fn, col_names = FALSE)
@@ -321,7 +397,7 @@ test_that("emr_track.addto works with logical tracks", {
 # percentile
 test_that("emr_track.percentile fails on logical tracks", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track1", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track1", "ph1", c(15, 16))
     expect_error(emr_track.percentile("logical_track1"))
 })
 
@@ -330,7 +406,7 @@ test_that("emr_track.percentile fails on logical tracks", {
 # track.mv
 test_that("emr_track.mv works with logical tracks", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track1", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track1", "ph1", c(15, 16))
     emr_track.mv("logical_track1", "logical_track2")
     expect_false(emr_track.exists("logical_track1"))
     expect_true(emr_track.exists("logical_track2"))
@@ -340,14 +416,14 @@ test_that("emr_track.mv works with logical tracks", {
 
 test_that("emr_track.mv fails when trying to move to user space", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track1", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track1", "ph1", c(15, 16))
     expect_error(emr_track.mv("logical_track1", "logical_track2", "user"))
 })
 
 test_that("emr_track.mv fails when track exists", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track1", "ph1", c(15, 16))
-    emr_track.create_logical("logical_track2", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track1", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track2", "ph1", c(15, 16))
     expect_error(emr_track.mv("logical_track1", "logical_track2"))
     expect_error(emr_track.mv("logical_track1", "track1"))
     emr_filter.create("f1", "ph1")
@@ -363,7 +439,9 @@ test_that("emr_track.mv fails when track exists", {
 # emr_extract
 test_that("emr_extract works with logical track as expression and implicit iterator", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track", "ph1")
+    emr_track.logical.create("logical_track", "ph1")
+    emr_track.logical.create("logical_track_numeric", "track0")
+
     a <- emr_extract("logical_track", keepref = TRUE)
     b <- emr_extract("ph1", names = "logical_track", keepref = TRUE)
     expect_equal(a, b, ignore_attr = TRUE)
@@ -371,11 +449,15 @@ test_that("emr_extract works with logical track as expression and implicit itera
     a <- emr_extract("logical_track*2", names = "logical_track", keepref = TRUE)
     b <- emr_extract("ph1*2", names = "logical_track", keepref = TRUE)
     expect_equal(a, b, ignore_attr = TRUE)
+
+    a <- emr_extract("logical_track_numeric*2", names = "logical_track", keepref = TRUE)
+    b <- emr_extract("track0*2", names = "logical_track", keepref = TRUE)
+    expect_equal(a, b, ignore_attr = TRUE)
 })
 
 test_that("emr_extract works with logical track with values as expression and implicit iterator", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track", "ph1", c(15, 16))
     a <- emr_extract("logical_track", keepref = TRUE)
     emr_filter.create("ltrack_filter", src = "ph1", val = c(15, 16), keepref = TRUE)
     withr::defer(emr_filter.rm("ltrack_filter"))
@@ -389,7 +471,9 @@ test_that("emr_extract works with logical track with values as expression and im
 
 test_that("emr_extract works with logical track as expression and explicit iterator", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track", "ph1")
+    emr_track.logical.create("logical_track", "ph1")
+    emr_track.logical.create("logical_track_numeric", "track0")
+
     a <- emr_extract("logical_track", iterator = "logical_track", keepref = TRUE)
     b <- emr_extract("ph1", iterator = "logical_track", names = "logical_track", keepref = TRUE)
     expect_equal(a, b, ignore_attr = TRUE)
@@ -397,11 +481,15 @@ test_that("emr_extract works with logical track as expression and explicit itera
     a <- emr_extract("logical_track*2", iterator = "logical_track", names = "logical_track", keepref = TRUE)
     b <- emr_extract("ph1*2", iterator = "ph1", , names = "logical_track", keepref = TRUE)
     expect_equal(a, b, ignore_attr = TRUE)
+
+    a <- emr_extract("logical_track_numeric*2", iterator = "logical_track_numeric", names = "logical_track_numeric", keepref = TRUE)
+    b <- emr_extract("track0*2", iterator = "track0", , names = "logical_track_numeric", keepref = TRUE)
+    expect_equal(a, b, ignore_attr = TRUE)
 })
 
 test_that("emr_extract works with logical track with values as expression and explicit iterator", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track", "ph1", c(15, 16))
     a <- emr_extract("logical_track", iterator = "logical_track", keepref = TRUE)
     emr_filter.create("ltrack_filter", src = "ph1", val = c(15, 16), keepref = TRUE)
     withr::defer(emr_filter.rm("ltrack_filter"))
@@ -411,8 +499,8 @@ test_that("emr_extract works with logical track with values as expression and ex
 
 test_that("emr_extract works with logical track and multiple expressions", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track1", "ph1", c(15, 16))
-    emr_track.create_logical("logical_track2", "ph1", c(13, 14))
+    emr_track.logical.create("logical_track1", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track2", "ph1", c(13, 14))
     a <- emr_extract(c("logical_track1", "track1"), iterator = "logical_track1", keepref = TRUE)
     emr_filter.create("ltrack_filter", src = "ph1", val = c(15, 16), keepref = TRUE)
     withr::defer(emr_filter.rm("ltrack_filter"))
@@ -420,10 +508,21 @@ test_that("emr_extract works with logical track and multiple expressions", {
     expect_equal(a, b, ignore_attr = TRUE)
 })
 
+test_that("emr_extract works with numeric logical track and multiple expressions", {
+    withr::defer(clean_logical_tracks())
+
+    emr_track.logical.create("logical_track1", "track0")
+
+    a <- emr_extract(c("logical_track1", "track0"), iterator = "logical_track1", keepref = TRUE)
+    b <- emr_extract(c("track0", "track0"), iterator = "track0", names = c("logical_track1", "track0"), keepref = TRUE)
+
+    expect_equal(a, b, ignore_attr = TRUE)
+})
+
 
 test_that("emr_extract with keepref=FALSE works", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("l15", "ph1", 15)
+    emr_track.logical.create("l15", "ph1", 15)
     a <- emr_extract("l15", keepref = FALSE)
     expect_true(!any(a$l15 == -1))
     all_data <- emr_extract("ph1", keepref = TRUE, names = "ph1")
@@ -439,8 +538,8 @@ test_that("emr_extract with keepref=FALSE works", {
 # emr_cor
 test_that("emr_cor works with logical track as expression", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track1", "ph1", c(15, 16))
-    emr_track.create_logical("logical_track2", "ph1")
+    emr_track.logical.create("logical_track1", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track2", "ph1")
     emr_filter.create("ltrack_filter", src = "ph1", val = c(15, 16), keepref = TRUE)
     withr::defer(emr_filter.rm("ltrack_filter"))
 
@@ -479,7 +578,7 @@ test_that("emr_cor works with logical track as expression", {
 
 test_that("emr_cor works with logical track as iterator", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track1", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track1", "ph1", c(15, 16))
     emr_filter.create("ltrack_filter", src = "ph1", val = c(15, 16), keepref = TRUE)
     withr::defer(emr_filter.rm("ltrack_filter"))
 
@@ -487,7 +586,7 @@ test_that("emr_cor works with logical track as iterator", {
     b <- emr_cor("ph1", c(14, 15, 16), filter = "ltrack_filter", cor.exprs = c("track0", "track1", "track2"), dataframe = TRUE, keepref = TRUE, names = "logical_track")
     expect_equal(a, b, ignore_attr = TRUE)
 
-    emr_track.create_logical("logical_track2", "ph1")
+    emr_track.logical.create("logical_track2", "ph1")
     a <- emr_cor("ph1", c(14, 15, 16), cor.exprs = c("track0", "track1", "track2"), iterator = "logical_track1", dataframe = TRUE, keepref = TRUE)
     b <- emr_cor("ph1", c(14, 15, 16), cor.exprs = c("track0", "track1", "track2"), dataframe = TRUE, keepref = TRUE)
     expect_equal(a, b, ignore_attr = TRUE)
@@ -495,7 +594,7 @@ test_that("emr_cor works with logical track as iterator", {
 
 test_that("emr_cor works with logical track as expression and iterator", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track1", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track1", "ph1", c(15, 16))
     emr_filter.create("ltrack_filter", src = "ph1", val = c(15, 16), keepref = TRUE)
     withr::defer(emr_filter.rm("ltrack_filter"))
 
@@ -503,7 +602,7 @@ test_that("emr_cor works with logical track as expression and iterator", {
     b <- emr_cor("ph1", c(14, 15, 16), cor.exprs = c("track0", "track1", "track2"), filter = "ltrack_filter", dataframe = TRUE, keepref = TRUE, names = "logical_track")
     expect_equal(a, b, ignore_attr = TRUE)
 
-    emr_track.create_logical("logical_track2", "ph1")
+    emr_track.logical.create("logical_track2", "ph1")
     a <- emr_cor("logical_track2", c(14, 15, 16), cor.exprs = c("track0", "track1", "track2"), iterator = "logical_track1", dataframe = TRUE, keepref = TRUE)
     b <- emr_cor("ph1", c(14, 15, 16), cor.exprs = c("track0", "track1", "track2"), dataframe = TRUE, keepref = TRUE, names = "logical_track")
     expect_equal(a, b, ignore_attr = TRUE)
@@ -511,8 +610,8 @@ test_that("emr_cor works with logical track as expression and iterator", {
 
 test_that("emr_cor works with logical track as cor.expr", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track1", "ph1", c(15, 16))
-    emr_track.create_logical("logical_track2", "ph1")
+    emr_track.logical.create("logical_track1", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track2", "ph1")
     emr_filter.create("ltrack_filter", src = "ph1", val = c(15, 16), keepref = TRUE)
     withr::defer(emr_filter.rm("ltrack_filter"))
     a <- emr_cor("track0", c(0, 10, 500, 1000), cor.exprs = c("logical_track1"), dataframe = TRUE, keepref = TRUE)
@@ -524,12 +623,12 @@ test_that("emr_cor works with logical track as cor.expr", {
 
 test_that("emr_dist works with logical track as expression", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track1", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track1", "ph1", c(15, 16))
     a <- emr_dist("logical_track1", c(14, 15, 16), dataframe = TRUE, keepref = TRUE)
     b <- emr_dist("ph1", c(14, 15, 16), dataframe = TRUE, keepref = TRUE, names = "logical_track")
     expect_equal(a, b, ignore_attr = TRUE)
 
-    emr_track.create_logical("logical_track2", "ph1")
+    emr_track.logical.create("logical_track2", "ph1")
     a <- emr_dist("logical_track2", c(14, 15, 16), dataframe = TRUE, keepref = TRUE)
     b <- emr_dist("ph1", c(14, 15, 16), dataframe = TRUE, keepref = TRUE, names = "logical_track")
     expect_equal(a, b, ignore_attr = TRUE)
@@ -557,12 +656,12 @@ test_that("emr_dist works with logical track as expression", {
 
 test_that("emr_dist works with logical track as iterator", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track1", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track1", "ph1", c(15, 16))
     a <- emr_dist("ph1", c(14, 15, 16), iterator = "logical_track1", dataframe = TRUE, keepref = TRUE)
     b <- emr_dist("ph1", c(14, 15, 16), dataframe = TRUE, keepref = TRUE, names = "logical_track")
     expect_equal(a, b, ignore_attr = TRUE)
 
-    emr_track.create_logical("logical_track2", "ph1")
+    emr_track.logical.create("logical_track2", "ph1")
     a <- emr_dist("ph1", c(14, 15, 16), iterator = "logical_track1", dataframe = TRUE, keepref = TRUE)
     b <- emr_dist("ph1", c(14, 15, 16), dataframe = TRUE, keepref = TRUE)
     expect_equal(a, b, ignore_attr = TRUE)
@@ -570,21 +669,29 @@ test_that("emr_dist works with logical track as iterator", {
 
 test_that("emr_dist works with logical track as expression and iterator", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track1", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track1", "ph1", c(15, 16))
     a <- emr_dist("logical_track1", c(14, 15, 16), iterator = "logical_track1", dataframe = TRUE, keepref = TRUE)
     b <- emr_dist("ph1", c(14, 15, 16), dataframe = TRUE, keepref = TRUE, names = "logical_track")
     expect_equal(a, b, ignore_attr = TRUE)
 
-    emr_track.create_logical("logical_track2", "ph1")
+    emr_track.logical.create("logical_track2", "ph1")
     a <- emr_dist("logical_track2", c(14, 15, 16), iterator = "logical_track1", dataframe = TRUE, keepref = TRUE)
     b <- emr_dist("ph1", c(14, 15, 16), dataframe = TRUE, keepref = TRUE, names = "logical_track")
     expect_equal(a, b, ignore_attr = TRUE)
 })
 
+test_that("emr_dist works with numeric logical track", {
+    withr::defer(clean_logical_tracks())
+    emr_track.logical.create("logical_track1", "track0")
+    a <- emr_dist("logical_track1", c(300, 605, 825), iterator = "logical_track1", dataframe = TRUE, keepref = TRUE)
+    b <- emr_dist("track0", c(300, 605, 825), dataframe = TRUE, keepref = TRUE, names = "logical_track1")
+    expect_equal(a, b)
+})
+
 # emr_screen
 test_that("emr_screen works with logical track as expression", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track1", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track1", "ph1", c(15, 16))
     a <- emr_screen("logical_track1 == 15", keepref = TRUE)
     b <- emr_screen("ph1 == 15", keepref = TRUE)
     expect_equal(a, b, ignore_attr = TRUE)
@@ -595,7 +702,7 @@ test_that("emr_screen works with logical track as expression", {
     expect_equal(a1, a, ignore_attr = TRUE)
     expect_equal(b1, b, ignore_attr = TRUE)
 
-    emr_track.create_logical("logical_track2", "ph1")
+    emr_track.logical.create("logical_track2", "ph1")
     a <- emr_screen("logical_track2 == 13", keepref = TRUE)
     b <- emr_screen("ph1 == 13", keepref = TRUE)
     expect_equal(a, b, ignore_attr = TRUE)
@@ -615,12 +722,12 @@ test_that("emr_screen works with logical track as expression", {
 
 test_that("emr_screen works with logical track as iterator", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track1", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track1", "ph1", c(15, 16))
     a <- emr_screen("ph1 == 15", iterator = "logical_track1", keepref = TRUE)
     b <- emr_screen("ph1 == 15", keepref = TRUE)
     expect_equal(a, b, ignore_attr = TRUE)
 
-    emr_track.create_logical("logical_track2", "ph1")
+    emr_track.logical.create("logical_track2", "ph1")
     a <- emr_screen("ph1 == 13", iterator = "logical_track2", keepref = TRUE)
     b <- emr_screen("ph1 == 13", keepref = TRUE)
     expect_equal(a, b, ignore_attr = TRUE)
@@ -632,12 +739,12 @@ test_that("emr_screen works with logical track as iterator", {
 
 test_that("emr_screen works with logical track as expression and iterator", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track1", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track1", "ph1", c(15, 16))
     a <- emr_screen("logical_track1 == 15", iterator = "logical_track1", keepref = TRUE)
     b <- emr_screen("ph1 == 15", keepref = TRUE)
     expect_equal(a, b, ignore_attr = TRUE)
 
-    emr_track.create_logical("logical_track2", "ph1")
+    emr_track.logical.create("logical_track2", "ph1")
     a <- emr_screen("logical_track2 == 13", iterator = "logical_track2", keepref = TRUE)
     b <- emr_screen("ph1 == 13", keepref = TRUE)
     expect_equal(a, b, ignore_attr = TRUE)
@@ -647,9 +754,21 @@ test_that("emr_screen works with logical track as expression and iterator", {
     expect_equal(a, b, ignore_attr = TRUE)
 })
 
+test_that("emr_screen works with numeric logical track as expression and iterator", {
+    withr::defer(clean_logical_tracks())
+    emr_track.logical.create("logical_track1", "track0")
+    a <- emr_screen("logical_track1 == 300", iterator = "logical_track1", keepref = TRUE)
+    b <- emr_screen("track0 == 300", keepref = TRUE)
+    expect_equal(a, b, ignore_attr = TRUE)
+
+    a <- emr_screen("logical_track1 == 300 & track0 == 630", iterator = "logical_track1", keepref = TRUE)
+    b <- emr_screen("track0 == 300 & track0 == 630", keepref = TRUE)
+    expect_equal(a, b, ignore_attr = TRUE)
+})
+
 test_that("emr_screen works with logical tracks when expr doesn't return data", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track1", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track1", "ph1", c(15, 16))
     expect_equal(
         emr_screen("logical_track1 == 11"),
         structure(list(id = integer(0), time = integer(0), ref = integer(0)), class = "data.frame", row.names = integer(0))
@@ -659,8 +778,8 @@ test_that("emr_screen works with logical tracks when expr doesn't return data", 
 # emr_quantiles
 test_that("emr_quantiles works with logical track", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track1", "ph1", c(15, 16))
-    emr_track.create_logical("logical_track2", "ph1")
+    emr_track.logical.create("logical_track1", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track2", "ph1")
 
     a <- emr_quantiles("logical_track1", c(0.1, 0.2, 0.5, 0.9), keepref = TRUE)
     emr_filter.create("ltrack_filter", src = "ph1", val = c(15, 16), keepref = TRUE)
@@ -703,8 +822,8 @@ test_that("emr_quantiles works with logical track", {
 # emr_summary
 test_that("emr_summary works with logical track", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track1", "ph1", c(15, 16))
-    emr_track.create_logical("logical_track2", "ph1")
+    emr_track.logical.create("logical_track1", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track2", "ph1")
 
     a <- emr_summary("logical_track1", keepref = TRUE)
     emr_filter.create("ltrack_filter", src = "ph1", val = c(15, 16), keepref = TRUE)
@@ -748,18 +867,18 @@ test_that("emr_summary works with logical track", {
 # emr_track.unique
 test_that("emr_track.unique works on logical tracks", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("logical_track1", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track1", "ph1", c(15, 16))
     expect_equal(emr_track.unique("logical_track1"), c(15, 16))
 
-    emr_track.create_logical("logical_track2", "ph1")
+    emr_track.logical.create("logical_track2", "ph1")
     expect_equal(emr_track.unique("logical_track2"), emr_track.unique("ph1"))
 })
 
 # ids_coverage
 test_that("emr_ids_coverage works", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("l15", "ph1", 15)
-    emr_track.create_logical("l18", "ph1", 18)
+    emr_track.logical.create("l15", "ph1", 15)
+    emr_track.logical.create("l18", "ph1", 18)
 
     df <- emr_extract("ph1", keepref = TRUE)
     emr_track.import("p15", space = "global", categorical = TRUE, src = df %>% dplyr::filter(ph1 == 15) %>% dplyr::select(id, time, ref, value = ph1))
@@ -828,8 +947,8 @@ test_that("emr_ids_coverage works", {
 
 test_that("emr_ids_vals_coverage works", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("l15", "ph1", 15)
-    emr_track.create_logical("l18", "ph1", 18)
+    emr_track.logical.create("l15", "ph1", 15)
+    emr_track.logical.create("l18", "ph1", 18)
 
     df <- emr_extract("ph1", keepref = TRUE)
     emr_track.import("p15", space = "global", categorical = TRUE, src = df %>% dplyr::filter(ph1 == 15) %>% dplyr::select(id, time, ref, value = ph1))
@@ -891,8 +1010,8 @@ test_that("emr_ids_vals_coverage works", {
 # track_ids
 test_that("emr_track.ids works on logical tracks", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("l15", "ph1", 15)
-    emr_track.create_logical("l18", "ph1", 18)
+    emr_track.logical.create("l15", "ph1", 15)
+    emr_track.logical.create("l18", "ph1", 18)
 
     df <- emr_extract("ph1", keepref = TRUE)
     emr_track.import("p15", space = "global", categorical = TRUE, src = df %>% dplyr::filter(ph1 == 15) %>% dplyr::select(id, time, ref, value = ph1))
@@ -911,8 +1030,8 @@ test_that("emr_track.ids works on logical tracks", {
 
 test_that("emr_track.ids works on logical tracks with dense source", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("l9", "track8", 9)
-    emr_track.create_logical("l2", "track8", 2)
+    emr_track.logical.create("l9", "track8", 9)
+    emr_track.logical.create("l2", "track8", 2)
 
     df <- emr_extract("track8", keepref = TRUE)
     emr_track.import("p9", space = "global", categorical = TRUE, src = df %>% dplyr::filter(track8 == 9) %>% dplyr::select(id, time, ref, value = track8))
@@ -931,8 +1050,8 @@ test_that("emr_track.ids works on logical tracks with dense source", {
 
 test_that("emr_track.ids works on logical tracks with sparse source", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("l9", "track8_sparse", 9)
-    emr_track.create_logical("l2", "track8_sparse", 2)
+    emr_track.logical.create("l9", "track8_sparse", 9)
+    emr_track.logical.create("l2", "track8_sparse", 2)
 
     df <- emr_extract("track8_sparse", keepref = TRUE)
     emr_track.import("p9", space = "global", categorical = TRUE, src = df %>% dplyr::filter(track8_sparse == 9) %>% dplyr::select(id, time, ref, value = track8_sparse))
@@ -953,8 +1072,8 @@ test_that("emr_track.ids works on logical tracks with sparse source", {
 test_that("emr_db.subset works with logical track", {
     set.seed(60427)
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("l9", "track8_sparse", 9)
-    emr_track.create_logical("l2", "track8_sparse", 2)
+    emr_track.logical.create("l9", "track8_sparse", 9)
+    emr_track.logical.create("l2", "track8_sparse", 2)
 
     df <- emr_extract("track8_sparse", keepref = TRUE)
     emr_track.import("p9", space = "global", categorical = TRUE, src = df %>% dplyr::filter(track8_sparse == 9) %>% dplyr::select(id, time, ref, value = track8_sparse))
@@ -979,7 +1098,7 @@ test_that("emr_db.subset works with logical track", {
 
 test_that("emr_track.unique ignores current subset with logical tracks", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("l9", "track8_sparse", 9)
+    emr_track.logical.create("l9", "track8_sparse", 9)
     a <- emr_track.unique("l9")
     emr_db.subset(data.frame(id = 2510), fraction = 1, complementary = FALSE)
     withr::defer(emr_db.subset(NULL))
@@ -989,7 +1108,7 @@ test_that("emr_track.unique ignores current subset with logical tracks", {
 
 test_that("emr_track.ids ignores current subset with logical tracks", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("l9", "track8_sparse", 9)
+    emr_track.logical.create("l9", "track8_sparse", 9)
     a <- emr_track.ids("l9")
     emr_db.subset(data.frame(id = 2510), fraction = 1, complementary = FALSE)
     withr::defer(emr_db.subset(NULL))
@@ -997,10 +1116,9 @@ test_that("emr_track.ids ignores current subset with logical tracks", {
     expect_equal(a, b)
 })
 
-# uncomment when emr_track.info with subest works
 test_that("emr_track.info ignores current subset with logical tracks", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("l9", "track8_sparse", 9)
+    emr_track.logical.create("l9", "track8_sparse", 9)
     a <- emr_track.info("l9")
     emr_db.subset(data.frame(id = 2510), fraction = 1, complementary = FALSE)
     withr::defer(emr_db.subset(NULL))
@@ -1013,8 +1131,8 @@ test_that("emr_track.info ignores current subset with logical tracks", {
 
 test_that("logical track can be used as filter", {
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("l15", "ph1", 15)
-    emr_track.create_logical("l16", "ph1", 16)
+    emr_track.logical.create("l15", "ph1", 15)
+    emr_track.logical.create("l16", "ph1", 16)
 
     df <- emr_extract("ph1", keepref = TRUE)
     emr_track.import("p15", space = "global", categorical = TRUE, src = df %>% dplyr::filter(ph1 == 15) %>% dplyr::select(id, time, ref, value = ph1))
@@ -1063,11 +1181,22 @@ test_that("logical track can be used as filter", {
     expect_equal(a, b)
 })
 
+test_that("numeric logical track can be used as filter", {
+    withr::defer(clean_logical_tracks())
+
+    emr_track.logical.create("ltrack", "track0")
+    withr::defer(emr_track.rm("ltrack", force = TRUE))
+
+    a <- emr_extract("track0", filter = "ltrack", keepref = TRUE)
+    b <- emr_extract("track0", keepref = TRUE)
+    expect_equal(a, b)
+})
+
 # emr_filter.create
 test_that("emr_filter.create works as expected", {
     EMR_FILTERS <<- list()
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("ltrack", "ph1", c(15, 16))
+    emr_track.logical.create("ltrack", "ph1", c(15, 16))
 
     emr_filter.create("f1", src = "ltrack", val = c(14, 15), keepref = TRUE)
     filter_info <- emr_filter.info("f1")
@@ -1086,7 +1215,7 @@ test_that("emr_filter.create works on logical track", {
     EMR_FILTERS <<- list()
     withr::defer(clean_logical_tracks())
 
-    emr_track.create_logical("ltrack", "ph1", c(15, 16))
+    emr_track.logical.create("ltrack", "ph1", c(15, 16))
 
     emr_filter.create("f1", src = "ltrack", val = c(15), keepref = TRUE)
     t1 <- emr_extract("ltrack", names = c("vals"), keepref = TRUE) %>%
@@ -1113,7 +1242,7 @@ test_that("empty emr_filter.create works on logical track", {
     EMR_FILTERS <<- list()
     withr::defer(clean_logical_tracks())
 
-    emr_track.create_logical("ltrack", "ph1", c(15, 16))
+    emr_track.logical.create("ltrack", "ph1", c(15, 16))
 
     emr_filter.create("f_ltrack", src = "ltrack")
 
@@ -1126,7 +1255,7 @@ test_that("empty emr_filter.create works on logical track", {
 test_that("multiple emr_filter.create works on logical track", {
     EMR_FILTERS <<- list()
     withr::defer(clean_logical_tracks())
-    emr_track.create_logical("ltrack", "ph1", seq(1, 16, 1))
+    emr_track.logical.create("ltrack", "ph1", seq(1, 16, 1))
 
     emr_filter.create("f1", src = "ltrack", val = c(14), keepref = TRUE)
     emr_filter.create("f2", src = "ltrack", val = c(15, 16), keepref = TRUE)
@@ -1141,13 +1270,32 @@ test_that("multiple emr_filter.create works on logical track", {
     expect_equal(t1 %>% nrow(), 0)
 })
 
+test_that("emr_filter works on numeric logical tracks", {
+    EMR_FILTERS <<- list()
+    withr::defer(clean_logical_tracks())
+
+    emr_track.logical.create("ltrack", "track0")
+
+    emr_filter.create("f_ltrack", src = "ltrack")
+
+    t1 <- emr_extract("ltrack", names = c("vals"), filter = "f_ltrack", keepref = TRUE) %>% dplyr::select(-ref)
+    t2 <- emr_extract("ltrack", names = c("vals"), keepref = TRUE) %>% dplyr::select(-ref)
+
+    expect_equal(t1, t2)
+
+    t1 <- emr_extract("ltrack", names = c("vals"), filter = "f_ltrack", keepref = TRUE) %>% dplyr::select(-ref)
+    t2 <- emr_extract("track0", names = c("vals"), keepref = TRUE) %>% dplyr::select(-ref)
+
+    expect_equal(t1, t2)
+})
+
 # emr_filter.info
 
 test_that("emr_filter.info works with filters on logical tracks", {
     EMR_FILTERS <<- list()
     withr::defer(clean_logical_tracks())
 
-    emr_track.create_logical("ltrack", "ph1", c(15, 16))
+    emr_track.logical.create("ltrack", "ph1", c(15, 16))
 
     emr_filter.create("f1", src = "ltrack", val = c(14, 15), keepref = TRUE)
     info <- emr_filter.info("f1")
@@ -1168,13 +1316,27 @@ test_that("emr_filter.info works with filters on logical tracks", {
     expect_equal(info$keepref, TRUE)
 })
 
+test_that("emr_filter.info works with filters on numeric logical tracks", {
+    EMR_FILTERS <<- list()
+    withr::defer(clean_logical_tracks())
+
+    emr_track.logical.create("ltrack", "track0")
+    emr_filter.create("f1", src = "ltrack", time.shift = c(14, 15), keepref = FALSE)
+
+    info <- emr_filter.info("f1")
+    expect_null(info$val)
+    expect_equal(info$src, "ltrack")
+    expect_equal(info$time_shift, c(14, 15))
+    expect_equal(info$keepref, FALSE)
+})
+
 # emr_filter.attr.src
 
 test_that("emr_filter.attr.src works no input", {
     EMR_FILTERS <<- list()
     withr::defer(clean_logical_tracks())
 
-    emr_track.create_logical("ltrack", "ph1", c(15, 16))
+    emr_track.logical.create("ltrack", "ph1", c(15, 16))
 
     emr_filter.create("f1", src = "ltrack", val = c(14, 15), keepref = TRUE)
     src <- emr_filter.attr.src("f1")
@@ -1185,8 +1347,8 @@ test_that("emr_filter.attr.src works change from logical to logical", {
     EMR_FILTERS <<- list()
     withr::defer(clean_logical_tracks())
 
-    emr_track.create_logical("l1", "ph1", c(15, 16))
-    emr_track.create_logical("l2", "ph1", c(14, 15, 16))
+    emr_track.logical.create("l1", "ph1", c(15, 16))
+    emr_track.logical.create("l2", "ph1", c(14, 15, 16))
 
     emr_filter.create("f1", src = "l1", val = c(14, 15), keepref = TRUE)
     emr_filter.attr.src("f1", src = "l2")
@@ -1206,7 +1368,7 @@ test_that("emr_filter.attr.src works change from logical to physical", {
     EMR_FILTERS <<- list()
     withr::defer(clean_logical_tracks())
 
-    emr_track.create_logical("l1", "ph1", c(15, 16))
+    emr_track.logical.create("l1", "ph1", c(15, 16))
 
     emr_filter.create("f1", src = "l1", val = c(14, 15), keepref = TRUE)
     emr_filter.attr.src("f1", src = "ph1")
@@ -1226,7 +1388,7 @@ test_that("emr_filter.attr.src works when changed from physical to logical", {
     EMR_FILTERS <<- list()
     withr::defer(clean_logical_tracks())
 
-    emr_track.create_logical("l1", "ph1", c(15, 16))
+    emr_track.logical.create("l1", "ph1", c(15, 16))
 
     emr_filter.create("f1", src = "ph1", val = c(14, 15), keepref = TRUE)
     emr_filter.attr.src("f1", src = "l1")
@@ -1248,7 +1410,7 @@ test_that("emr_filter.attr.val works no input", {
     EMR_FILTERS <<- list()
     withr::defer(clean_logical_tracks())
 
-    emr_track.create_logical("ltrack", "ph1", c(15, 16))
+    emr_track.logical.create("ltrack", "ph1", c(15, 16))
 
     emr_filter.create("f1", src = "ltrack", val = c(14, 15), keepref = TRUE)
     val <- emr_filter.attr.val("f1")
@@ -1259,7 +1421,7 @@ test_that("emr_filter.attr.val changes work on logical track", {
     EMR_FILTERS <<- list()
     withr::defer(clean_logical_tracks())
 
-    emr_track.create_logical("l1", "ph1", c(15, 16))
+    emr_track.logical.create("l1", "ph1", c(15, 16))
     emr_filter.create("f1", src = "l1", val = c(14, 15), keepref = TRUE)
 
     emr_filter.attr.val("f1", val = c(10, 15, 20))
@@ -1282,7 +1444,7 @@ test_that("emr_track.info works for logical tracks", {
     df <- emr_extract("ph1", names = c("value"), keepref = TRUE, filter = "f1")
     emr_track.import("l1_ph", space = "global", categorical = TRUE, src = df)
 
-    emr_track.create_logical("l1", "ph1", seq(4, 16, 1))
+    emr_track.logical.create("l1", "ph1", seq(4, 16, 1))
 
     info_p <- emr_track.info("l1_ph")
     info_l <- emr_track.info("l1")
@@ -1304,7 +1466,7 @@ test_that("emr_track.info works for logical tracks", {
 test_that("emr_track.var set and get works on logical tracks", {
     withr::defer(clean_logical_tracks())
 
-    emr_track.create_logical("l1", "ph1", seq(4, 16, 1))
+    emr_track.logical.create("l1", "ph1", seq(4, 16, 1))
     emr_track.var.set("l1", "var", 1:10)
 
     var <- emr_track.var.get("l1", "var")
@@ -1316,7 +1478,7 @@ test_that("emr_track.var set and get works on logical tracks", {
 test_that("emr_track.var rm works on logical tracks", {
     withr::defer(clean_logical_tracks())
 
-    emr_track.create_logical("l1", "ph1", seq(4, 16, 1))
+    emr_track.logical.create("l1", "ph1", seq(4, 16, 1))
     emr_track.var.set("l1", "var", 1:10)
 
     var <- emr_track.var.get("l1", "var")
@@ -1332,7 +1494,7 @@ test_that("emr_track.var rm works on logical tracks", {
 test_that("emr_track.var ls works on logical tracks", {
     withr::defer(clean_logical_tracks())
 
-    emr_track.create_logical("l1", "ph1", seq(4, 16, 1))
+    emr_track.logical.create("l1", "ph1", seq(4, 16, 1))
 
     emr_track.var.set("l1", "var", 1:10)
     expect_true("var" %in% emr_track.var.ls("l1"))
@@ -1349,7 +1511,7 @@ test_that("emr_track.mv when physical track is moved, all dependent logical are 
     df <- emr_extract("ph1", names = c("value"), keepref = TRUE, filter = "f1")
     emr_track.import("l1_ph", space = "global", categorical = TRUE, src = df)
 
-    emr_track.create_logical("l1", "l1_ph", seq(4, 16, 1))
+    emr_track.logical.create("l1", "l1_ph", seq(4, 16, 1))
     emr_track.var.set("l1", "var", 1:10)
 
     emr_track.mv("l1_ph", "ph_l1")
@@ -1370,7 +1532,7 @@ test_that("emr_track.rm when physical track is removed, all dependent logical ar
     df <- emr_extract("ph1", names = c("value"), keepref = TRUE, filter = "f1")
     emr_track.import("l1_ph", space = "global", categorical = TRUE, src = df)
 
-    emr_track.create_logical("l1", "l1_ph", seq(4, 16, 1))
+    emr_track.logical.create("l1", "l1_ph", seq(4, 16, 1))
     emr_track.var.set("l1", "var", 1:10)
 
     emr_track.rm("l1_ph", force = TRUE)
