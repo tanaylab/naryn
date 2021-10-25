@@ -21,6 +21,44 @@ typedef unordered_map<int, EMRTrackData<float> *> Datasets;
 
 extern "C" {
 
+SEXP test_new_init(SEXP _dbdirs, SEXP _load_on_demand, SEXP _do_load, SEXP envir) {
+
+    try {
+        Naryn naryn(envir, false);
+
+        vector<string> dbdirs; 
+        vector<bool> load_on_demand; 
+
+        if (!isNull(_dbdirs)) {
+            for (int i = 0; i < Rf_length(_dbdirs); i++){
+                dbdirs.push_back(CHAR(STRING_ELT(_dbdirs, i)));
+            }     
+        }
+
+        if (!isNull(_load_on_demand)) {
+            for (int i = 0; i < Rf_length(_load_on_demand); i++){
+                load_on_demand.push_back(asLogical(STRING_ELT(_dbdirs, i)));
+            }
+        }
+
+        if (!isLogical(_do_load) || Rf_length(_do_load) != 1)
+            verror("'do.reload' argument must be a logical value");
+
+        if (!g_db) g_db = new EMRDb;
+
+        g_db->init_alt(dbdirs, load_on_demand, asLogical(_do_load));
+
+    } catch (TGLException &e) {
+        delete g_db;
+        g_db = NULL;
+        rerror("%s", e.msg());
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
+
+    return R_NilValue;
+}
+
 SEXP logical_track_vtrack(SEXP _track, SEXP envir){
     try {
         Naryn naryn(envir);        

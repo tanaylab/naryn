@@ -28,9 +28,10 @@ public:
         string           filename;
         struct timespec  timestamp;
         bool             is_global;
+        string              db_id;
 
         TrackInfo(EMRTrack *_track, const string &_filename, const struct timespec &_timestamp, bool _is_global) :
-            track(_track), filename(_filename), timestamp(_timestamp), is_global(_is_global) {}
+            track(_track), filename(_filename), timestamp(_timestamp), is_global(_is_global), db_id("") {}
     };
 
 
@@ -80,6 +81,8 @@ public:
     // Removes outdated tracks from the memory.
     void init(const char *grootdir, const char *urootdir,
                 bool gload_on_demand, bool uload_on_demand, bool do_reload);
+
+    void init_alt(vector<string> rootdirs, vector<bool> dirs_load_on_demand, bool do_reload);
 
     // Same as init, but groot/uroot must be set already.
     // Intended to be called at the beginning of each transaction.
@@ -152,8 +155,21 @@ protected:
     struct timespec  m_track_list_ts[2]{{0, 0}, {0, 0}};
     struct timespec  m_tracks_attrs_ts[2]{{0, 0}, {0, 0}};
     struct timespec  m_logical_tracks_ts{0, 0};
-    vector<string> m_track_names[2];    
+    vector<string>   m_track_names[2];
     Track2Attrs      m_track2attrs[2];
+
+    // ------------------------------------
+    // New code for multi - db
+    vector<string>                              m_rootdirs_alt;
+    vector<bool>                                m_load_on_demand_alt;
+    unordered_map<string, struct timespec>      m_track_list_ts_alt;
+    unordered_map<string, struct timespec>      m_tracks_attrs_ts_alt;
+    unordered_map<string, vector<string>>       m_track_names_alt;
+    unordered_map<string, Track2Attrs>          m_track2attrs_alt;
+    
+    
+    // ------------------------------------
+
     IdsSubset        m_ids_subset;
     string           m_ids_subset_src;
     double           m_ids_subset_fraction;
@@ -171,13 +187,21 @@ protected:
     string track_attrs_filename(bool is_global, const string &track_name) const { return m_rootdirs[is_global] + string("/.") + track_name + TRACK_ATTRS_FILE_EXT; }
     string logical_tracks_dir() const { return m_rootdirs[1] + string("/logical"); }    
     string track_list_filename(bool is_global) const { return m_rootdirs[is_global] + "/" + TRACK_LIST_FILENAME; }
+    string track_list_filename_alt(string db_id) const { db_id + "/" + TRACK_LIST_FILENAME; }
     string tracks_attrs_filename(bool is_global) const { return m_rootdirs[is_global] + "/" + TRACKS_ATTRS_FILENAME; }    
     string logical_tracks_filename() const {
         return m_rootdirs[1] + "/" + LOGICAL_TRACKS_FILENAME;
     }
     string ids_filename() const { return m_rootdirs[1] + "/" + IDS_FILENAME; }
 
+    
     void clear(bool is_global);
+
+    // New code for multi - db
+    // clear tracks from irrelevant resources by resource idx
+    void clear_alt(string db_id);
+    // -----------
+
     void clear_ids();
 
     void cache_tracks();
@@ -187,6 +211,9 @@ protected:
 
     // opens and locks track list files (both global and user) according to the mode: "r", "r+", "w"
     void lock_track_lists(BufferedFile *locks, const char *mode);
+
+    // alt
+    void lock_track_lists_alt(unordered_map<string, BufferedFile> &locks, const char *mode);
 
     // opens and locks logical track list file according to the mode: "r", "r+", "w"
     void lock_logical_track_list(BufferedFile &lock, const char *mode);
@@ -207,8 +234,14 @@ protected:
     // Removes outdated tracks from memory.
     void load_track_list(bool is_global, BufferedFile *pbf);
 
+    // alt
+    void load_track_list_alt(string db_id, BufferedFile *pbf);
+
     // Loads track list before update (opens the file for r+w and locks it).
     void load_track_list(bool is_global, BufferedFile &bf);
+
+    // alt
+    void load_track_list_alt(string db_id, BufferedFile &bf);
 
     // Loads logical track list
     void load_logical_tracks();

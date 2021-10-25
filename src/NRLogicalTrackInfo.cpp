@@ -49,7 +49,7 @@ struct LogicalTrackInfo {
 
 extern "C" {
 
-SEXP emr_logical_track_user_info(SEXP _track, SEXP _expr, SEXP _stime, SEXP _etime, SEXP _iterator_policy, SEXP _keepref, SEXP _filter, SEXP _gdir, SEXP _udir, SEXP _envir)
+SEXP emr_logical_track_user_info(SEXP _track, SEXP _expr, SEXP _stime, SEXP _etime, SEXP _iterator_policy, SEXP _keepref, SEXP _filter, SEXP _gdir, SEXP _udir, SEXP _dbdirs, SEXP _envir)
 {
     EMRDb *new_g_db = NULL;
 	try {
@@ -58,11 +58,13 @@ SEXP emr_logical_track_user_info(SEXP _track, SEXP _expr, SEXP _stime, SEXP _eti
         enum { PATH, TYPE, DATA_TYPE, CATEGORICAL, NUM_VALS, NUM_UNIQUE_VALS, MIN_VAL, MAX_VAL, MIN_ID, MAX_ID, MIN_TIME, MAX_TIME, NUM_COLS };
         const char *COL_NAMES[NUM_COLS] = { "path", "type", "data.type", "categorical", "num.vals", "num.unique.vals", "min.val", "max.val", "min.id", "max.id", "min.time", "max.time" };
 
-        // we create a clean EMRDb instance in order to ignore the current ids subset        
-        new_g_db = new EMRDb;        
+        // we create a clean EMRDb instance in order to ignore the current ids subset
+        new_g_db = new EMRDb;
+
         const char *gdirname = CHAR(STRING_ELT(_gdir, 0));
-        const char *udirname =
-            isNull(_udir) ? NULL : CHAR(STRING_ELT(_udir, 0));
+        const char *udirname = isNull(_udir) ? NULL : CHAR(STRING_ELT(_udir, 0));
+        vector<string> dbdirs;
+
         new_g_db->init(gdirname, udirname, true, true, false);
         swap(g_db, new_g_db);
 

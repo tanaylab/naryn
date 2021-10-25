@@ -3,6 +3,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <iostream>
 
 #include "EMRDb.h"
 #include "EMRProgressReporter.h"
@@ -33,8 +34,10 @@ SEXP emr_dbinit(SEXP _gdir, SEXP _udir, SEXP _gload_on_demand,
             isNull(_udir) ? NULL : CHAR(STRING_ELT(_udir, 0));
 
         if (!g_db) g_db = new EMRDb;
+
         g_db->init(gdirname, udirname, asLogical(_gload_on_demand),
                    asLogical(_uload_on_demand), asLogical(_do_load));
+
     } catch (TGLException &e) {
         delete g_db;
         g_db = NULL;

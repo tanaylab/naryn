@@ -480,9 +480,6 @@ emr_track.import <- function(track, space, categorical, src) {
 }
 
 
-
-#' Returns information about the track
-#'
 #' Returns information about the track.
 #'
 #' This function returns information about the track: type, data type, number
@@ -509,7 +506,7 @@ emr_track.info <- function(track) {
 
     if (is.character(track) && emr_track.logical.exists(track)) {
         ltrack <- emr_track.logical.info(track)
-        .emr_call("emr_logical_track_user_info", track, ltrack$source, NULL, NULL, ltrack$source, TRUE, .emr_filter(create_logical_track_filter(ltrack)), EMR_GROOT, EMR_UROOT, new.env(parent = parent.frame()))
+        .emr_call("emr_logical_track_user_info", track, ltrack$source, NULL, NULL, ltrack$source, TRUE, .emr_filter(create_logical_track_filter(ltrack)), EMR_GROOT, EMR_UROOT, c("/home/gilatb"),  new.env(parent = parent.frame()))
     } else {
         .emr_call("emr_track_info", track, new.env(parent = parent.frame()))
     }
