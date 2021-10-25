@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">naryn</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.5.11</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.6.0</span>
       </span>
     </div>
 
@@ -94,7 +94,7 @@
       <ul class="nav navbar-nav navbar-right">
         <li>
   <a href="https://github.com/tanaylab/naryn/">
-    <span class="fab fa fab fa-github fa-lg"></span>
+    <span class="fab fa-github fa-lg"></span>
      
   </a>
 </li>
@@ -112,7 +112,7 @@
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Returns a list of virtual track names</h1>
-    
+    <small class="dont-index">Source: <a href='https://github.com/tanaylab/naryn/blob/master/R/vtrack.R'><code>R/vtrack.R</code></a></small>
     <div class="hidden name"><code>emr_vtrack.ls.Rd</code></div>
     </div>
 
@@ -120,8 +120,13 @@
     <p>Returns a list of virtual track names.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>emr_vtrack.ls</span>(<span class='kw'>pattern</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>ignore.case</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>perl</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-              <span class='kw'>fixed</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>useBytes</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
+    <pre class="usage"><span class='fu'>emr_vtrack.ls</span><span class='op'>(</span>
+  pattern <span class='op'>=</span> <span class='st'>""</span>,
+  ignore.case <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  perl <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  fixed <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  useBytes <span class='op'>=</span> <span class='cn'>FALSE</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -132,22 +137,27 @@
     </tr>
     </table>
 
-    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
-
-    <p>This function returns a list of virtual tracks that exist in current R environment that match the pattern (see 'grep'). If called without any arguments all virtual tracks are returned.</p>
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
     <p>An array that contains the names of virtual tracks.</p>
+    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
+
+    <p>This function returns a list of virtual tracks that exist in current R
+environment that match the pattern (see 'grep'). If called without any
+arguments all virtual tracks are returned.</p>
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
-    <div class='dont-index'><p><code><a href='https://rdrr.io/r/base/grep.html'>grep</a></code>, <code><a href='emr_vtrack.exists.html'>emr_vtrack.exists</a></code>, <code><a href='emr_vtrack.create.html'>emr_vtrack.create</a></code>, <code><a href='emr_vtrack.rm.html'>emr_vtrack.rm</a></code></p></div>
+    <div class='dont-index'><p><code><a href='https://rdrr.io/r/base/grep.html'>grep</a></code>, <code><a href='emr_vtrack.exists.html'>emr_vtrack.exists</a></code>,
+<code><a href='emr_vtrack.create.html'>emr_vtrack.create</a></code>, <code><a href='emr_vtrack.rm.html'>emr_vtrack.rm</a></code></p></div>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><span class='fu'><a href='emr_db.init.html'>emr_db.init_examples</a></span>()
-<span class='fu'><a href='emr_vtrack.create.html'>emr_vtrack.create</a></span>(<span class='st'>"vtrack1"</span>, <span class='st'>"dense_track"</span>, <span class='kw'>func</span> <span class='kw'>=</span> <span class='st'>"max"</span>)
-<span class='fu'><a href='emr_vtrack.create.html'>emr_vtrack.create</a></span>(<span class='st'>"vtrack2"</span>, <span class='st'>"dense_track"</span>, <span class='kw'>func</span> <span class='kw'>=</span> <span class='st'>"min"</span>)
-<span class='fu'>emr_vtrack.ls</span>()
-<span class='fu'>emr_vtrack.ls</span>(<span class='st'>"*2"</span>)</pre>
+    <pre class="examples"><div class='input'>
+<span class='fu'><a href='emr_db.init.html'>emr_db.init_examples</a></span><span class='op'>(</span><span class='op'>)</span>
+<span class='fu'><a href='emr_vtrack.create.html'>emr_vtrack.create</a></span><span class='op'>(</span><span class='st'>"vtrack1"</span>, <span class='st'>"dense_track"</span>, func <span class='op'>=</span> <span class='st'>"max"</span><span class='op'>)</span>
+<span class='fu'><a href='emr_vtrack.create.html'>emr_vtrack.create</a></span><span class='op'>(</span><span class='st'>"vtrack2"</span>, <span class='st'>"dense_track"</span>, func <span class='op'>=</span> <span class='st'>"min"</span><span class='op'>)</span>
+<span class='fu'>emr_vtrack.ls</span><span class='op'>(</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; [1] "v1"      "vtrack1" "vtrack2" "vtrack3"</div><div class='input'><span class='fu'>emr_vtrack.ls</span><span class='op'>(</span><span class='st'>"*2"</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; [1] "vtrack2"</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
@@ -163,7 +173,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

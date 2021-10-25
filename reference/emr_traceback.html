@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">naryn</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.5.11</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.6.0</span>
       </span>
     </div>
 
@@ -94,7 +94,7 @@
       <ul class="nav navbar-nav navbar-right">
         <li>
   <a href="https://github.com/tanaylab/naryn/">
-    <span class="fab fa fab fa-github fa-lg"></span>
+    <span class="fab fa-github fa-lg"></span>
      
   </a>
 </li>
@@ -112,7 +112,7 @@
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Prints call stack of the last uncaught error</h1>
-    
+    <small class="dont-index">Source: <a href='https://github.com/tanaylab/naryn/blob/master/R/debug.R'><code>R/debug.R</code></a></small>
     <div class="hidden name"><code>emr_traceback.Rd</code></div>
     </div>
 
@@ -120,7 +120,7 @@
     <p>Prints call stack of the last uncaught error in a friendly way.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>emr_traceback</span>(<span class='kw'>x</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>max.lines</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/options.html'>getOption</a></span>(<span class='st'>"deparse.max.lines"</span>))</pre>
+    <pre class="usage"><span class='fu'>emr_traceback</span><span class='op'>(</span>x <span class='op'>=</span> <span class='cn'>NULL</span>, max.lines <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/options.html'>getOption</a></span><span class='op'>(</span><span class='st'>"deparse.max.lines"</span><span class='op'>)</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -135,21 +135,27 @@
     </tr>
     </table>
 
-    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
-
-    <p>Similarly to 'traceback' this function prints the call stack of the last uncaught error. Yet 'emr_traceback' does it in a more friendly way by omitting the calls that occurred inside the library.</p>
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
     <p>See 'traceback'.</p>
+    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
+
+    <p>Similarly to 'traceback' this function prints the call stack of the last
+uncaught error. Yet 'emr_traceback' does it in a more friendly way by
+omitting the calls that occurred inside the library.</p>
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
     <div class='dont-index'><p><code><a href='https://rdrr.io/r/base/traceback.html'>traceback</a></code></p></div>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><span class='fu'><a href='emr_db.init.html'>emr_db.init_examples</a></span>()
-<span class='no'>f</span> <span class='kw'>&lt;-</span> <span class='kw'>function</span>() { <span class='fu'><a href='emr_screen.html'>emr_screen</a></span>(<span class='st'>"blablabla"</span>) }
-<span class='fu'>f</span>()
-<span class='fu'>emr_traceback</span>()</pre>
+    <pre class="examples"><div class='input'>
+<span class='fu'><a href='emr_db.init.html'>emr_db.init_examples</a></span><span class='op'>(</span><span class='op'>)</span>
+<span class='va'>f</span> <span class='op'>&lt;-</span> <span class='kw'>function</span><span class='op'>(</span><span class='op'>)</span> <span class='op'>{</span>
+    <span class='fu'><a href='emr_screen.html'>emr_screen</a></span><span class='op'>(</span><span class='st'>"blablabla"</span><span class='op'>)</span>
+<span class='op'>}</span>
+<span class='fu'>f</span><span class='op'>(</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; <span class='error'>Error: Unable to implicitly set iterator policy: track expression (blablabla) does not contain any tracks</span></div><div class='input'><span class='fu'>emr_traceback</span><span class='op'>(</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; No traceback available </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
@@ -165,7 +171,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

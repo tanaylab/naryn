@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">naryn</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.5.11</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.6.0</span>
       </span>
     </div>
 
@@ -94,7 +94,7 @@
       <ul class="nav navbar-nav navbar-right">
         <li>
   <a href="https://github.com/tanaylab/naryn/">
-    <span class="fab fa fab fa-github fa-lg"></span>
+    <span class="fab fa-github fa-lg"></span>
      
   </a>
 </li>
@@ -112,7 +112,7 @@
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Returns track percentile of the values</h1>
-    
+    <small class="dont-index">Source: <a href='https://github.com/tanaylab/naryn/blob/master/R/track.R'><code>R/track.R</code></a></small>
     <div class="hidden name"><code>emr_track.percentile.Rd</code></div>
     </div>
 
@@ -120,7 +120,7 @@
     <p>Returns track percentile of the values.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>emr_track.percentile</span>(<span class='no'>track</span>, <span class='no'>val</span>, <span class='kw'>lower</span> <span class='kw'>=</span> <span class='no'>T</span>)</pre>
+    <pre class="usage"><span class='fu'>emr_track.percentile</span><span class='op'>(</span><span class='va'>track</span>, <span class='va'>val</span>, lower <span class='op'>=</span> <span class='cn'>TRUE</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -139,30 +139,59 @@
     </tr>
     </table>
 
-    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
-
-    <p>This function returns the percentiles of the values given in 'val' based on track data.</p>
-<p>If 'lower' is 'TRUE' percentile indicates the relative number of track values lower than 'val'.
-If 'lower' is 'FALSE' percentile reflects the relative number of track values lower or equal than 'val'.</p>
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
     <p>A vector of percentile values</p>
+    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
+
+    <p>This function returns the percentiles of the values given in 'val' based on
+track data.</p>
+<p>If 'lower' is 'TRUE' percentile indicates the relative number of track
+values lower than 'val'. If 'lower' is 'FALSE' percentile reflects the
+relative number of track values lower or equal than 'val'.</p>
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
     <div class='dont-index'><p><code><a href='emr_track.unique.html'>emr_track.unique</a></code></p></div>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><span class='fu'><a href='emr_db.init.html'>emr_db.init_examples</a></span>()
+    <pre class="examples"><div class='input'>
+<span class='fu'><a href='emr_db.init.html'>emr_db.init_examples</a></span><span class='op'>(</span><span class='op'>)</span>
 
 <span class='co'># percentiles of 30, 50</span>
-<span class='fu'>emr_track.percentile</span>(<span class='st'>"dense_track"</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>30</span>, <span class='fl'>50</span>))
-
+<span class='fu'>emr_track.percentile</span><span class='op'>(</span><span class='st'>"dense_track"</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>30</span>, <span class='fl'>50</span><span class='op'>)</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; [1] 0.45 0.50</div><div class='input'>
 <span class='co'># calculate percentiles of track's earliest values in time window</span>
-<span class='fu'><a href='emr_vtrack.create.html'>emr_vtrack.create</a></span>(<span class='st'>"v1"</span>, <span class='kw'>src</span> <span class='kw'>=</span> <span class='st'>"dense_track"</span>, <span class='kw'>func</span> <span class='kw'>=</span> <span class='st'>"earliest"</span>,
-                  <span class='kw'>time.shift</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(-<span class='fl'>5</span>, <span class='fl'>5</span>))
-<span class='fu'><a href='emr_extract.html'>emr_extract</a></span>(<span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"dense_track"</span>,
-              <span class='st'>"emr_track.percentile(\"dense_track\", v1, F)"</span>),
-              <span class='kw'>keepref</span> <span class='kw'>=</span> <span class='no'>T</span>, <span class='kw'>names</span> <span class='kw'>=</span>  <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"col1"</span>, <span class='st'>"col2"</span>))</pre>
+<span class='fu'><a href='emr_vtrack.create.html'>emr_vtrack.create</a></span><span class='op'>(</span><span class='st'>"v1"</span>,
+    src <span class='op'>=</span> <span class='st'>"dense_track"</span>, func <span class='op'>=</span> <span class='st'>"earliest"</span>,
+    time.shift <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='op'>-</span><span class='fl'>5</span>, <span class='fl'>5</span><span class='op'>)</span>
+<span class='op'>)</span>
+<span class='fu'><a href='emr_extract.html'>emr_extract</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span>
+    <span class='st'>"dense_track"</span>,
+    <span class='st'>"emr_track.percentile(\"dense_track\", v1, FALSE)"</span>
+<span class='op'>)</span>,
+keepref <span class='op'>=</span> <span class='cn'>TRUE</span>, names <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"col1"</span>, <span class='st'>"col2"</span><span class='op'>)</span>
+<span class='op'>)</span>
+</div><div class='output co'>#&gt;    id time ref col1 col2
+#&gt; 1  22    1   3   13 0.20
+#&gt; 2  24    1   3   13 0.20
+#&gt; 3  25    1   0   10 0.05
+#&gt; 4  25    2   0   20 0.05
+#&gt; 5  25    2   2   22 0.05
+#&gt; 6  25    2   5   24 0.05
+#&gt; 7  25    2   6   26 0.05
+#&gt; 8  25    2   8   28 0.05
+#&gt; 9  25    3   4   34 0.05
+#&gt; 10 25    6   0   60 0.05
+#&gt; 11 25    6   2   62 0.05
+#&gt; 12 25    8   1   80 0.50
+#&gt; 13 25    8   4   84 0.50
+#&gt; 14 25    9   2   92 0.60
+#&gt; 15 25    9   4   94 0.60
+#&gt; 16 25   10   4  104 0.60
+#&gt; 17 25   12   4  124 0.70
+#&gt; 18 27   23   4  234 0.95
+#&gt; 19 27   50   0  500 1.00
+#&gt; 20 28    1   3   13 0.20</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
@@ -178,7 +207,7 @@ If 'lower' is 'FALSE' percentile reflects the relative number of track values lo
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

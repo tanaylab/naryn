@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">naryn</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.5.11</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.6.0</span>
       </span>
     </div>
 
@@ -94,7 +94,7 @@
       <ul class="nav navbar-nav navbar-right">
         <li>
   <a href="https://github.com/tanaylab/naryn/">
-    <span class="fab fa fab fa-github fa-lg"></span>
+    <span class="fab fa-github fa-lg"></span>
      
   </a>
 </li>
@@ -112,7 +112,7 @@
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Reloads database</h1>
-    
+    <small class="dont-index">Source: <a href='https://github.com/tanaylab/naryn/blob/master/R/db.R'><code>R/db.R</code></a></small>
     <div class="hidden name"><code>emr_db.reload.Rd</code></div>
     </div>
 
@@ -120,15 +120,20 @@
     <p>Reloads database</p>
     </div>
 
-    <pre class="usage"><span class='fu'>emr_db.reload</span>()</pre>
+    <pre class="usage"><span class='fu'>emr_db.reload</span><span class='op'>(</span><span class='op'>)</span></pre>
 
 
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>Rebuilds Naryn database index files. Use this function if you manually add/delete/move/modify track files or if you suspect that the database is corrupted: existing tracks cannot be found, deleted ones continue to appear or a warning message is issued by Naryn itself recommending to run 'emr_db.reload'.</p>
+    <p>Rebuilds Naryn database index files. Use this function if you manually
+add/delete/move/modify track files or if you suspect that the database is
+corrupted: existing tracks cannot be found, deleted ones continue to appear
+or a warning message is issued by Naryn itself recommending to run
+'emr_db.reload'.</p>
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
-    <div class='dont-index'><p><code><a href='emr_db.init.html'>emr_db.init</a></code>, <code><a href='emr_track.ls.html'>emr_track.ls</a></code>, <code><a href='emr_vtrack.ls.html'>emr_vtrack.ls</a></code></p></div>
+    <div class='dont-index'><p><code><a href='emr_db.init.html'>emr_db.init</a></code>, <code><a href='emr_track.ls.html'>emr_track.ls</a></code>,
+<code><a href='emr_vtrack.ls.html'>emr_vtrack.ls</a></code></p></div>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
@@ -145,7 +150,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

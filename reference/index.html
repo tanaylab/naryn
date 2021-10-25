@@ -71,7 +71,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">naryn</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.5.11</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.6.0</span>
       </span>
     </div>
 
@@ -93,7 +93,7 @@
       <ul class="nav navbar-nav navbar-right">
         <li>
   <a href="https://github.com/tanaylab/naryn/">
-    <span class="fab fa fab fa-github fa-lg"></span>
+    <span class="fab fa-github fa-lg"></span>
      
   </a>
 </li>
@@ -142,7 +142,7 @@
       </tr><tr>
         
         <td>
-          <p><code><a href="emr_cor.html">emr_cor</a></code> </p>
+          <p><code><a href="emr_cor.html">emr_cor()</a></code> </p>
         </td>
         <td><p>Calculates correlation statistics for pairs of track expressions</p></td>
       </tr><tr>
@@ -154,7 +154,7 @@
       </tr><tr>
         
         <td>
-          <p><code><a href="emr_db.init.html">emr_db.init()</a></code> <code><a href="emr_db.init.html">emr_db.init_examples()</a></code> </p>
+          <p><code><a href="emr_db.init.html">emr_db.init()</a></code> </p>
         </td>
         <td><p>Initializes connection with Naryn Database</p></td>
       </tr><tr>
@@ -184,7 +184,7 @@
       </tr><tr>
         
         <td>
-          <p><code><a href="emr_dist.html">emr_dist</a></code> </p>
+          <p><code><a href="emr_dist.html">emr_dist()</a></code> </p>
         </td>
         <td><p>Calculates distribution of track expressions</p></td>
       </tr><tr>
@@ -196,7 +196,7 @@
       </tr><tr>
         
         <td>
-          <p><code><a href="emr_filter.attr.src.html">emr_filter.attr.src()</a></code> <code><a href="emr_filter.attr.src.html">emr_filter.attr.keepref()</a></code> <code><a href="emr_filter.attr.src.html">emr_filter.attr.time.shift()</a></code> <code><a href="emr_filter.attr.src.html">emr_filter.attr.val()</a></code> <code><a href="emr_filter.attr.src.html">emr_filter.attr.expiration()</a></code> </p>
+          <p><code><a href="emr_filter.attr.src.html">emr_filter.attr.src()</a></code> </p>
         </td>
         <td><p>Get or set attributes of a named filter</p></td>
       </tr><tr>
@@ -298,21 +298,45 @@
       </tr><tr>
         
         <td>
+          <p><code><a href="emr_track.attr.export.html">emr_track.attr.export()</a></code> </p>
+        </td>
+        <td><p>Returns attributes values of tracks</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="emr_track.attr.get.html">emr_track.attr.get()</a></code> </p>
+        </td>
+        <td><p>Returns the value of the track attribute</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="emr_track.attr.rm.html">emr_track.attr.rm()</a></code> </p>
+        </td>
+        <td><p>Deletes a track attribute</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="emr_track.attr.set.html">emr_track.attr.set()</a></code> </p>
+        </td>
+        <td><p>Assigns a value to the track attribute</p></td>
+      </tr><tr>
+        
+        <td>
           <p><code><a href="emr_track.create.html">emr_track.create()</a></code> </p>
         </td>
         <td><p>Creates a track from a track expression</p></td>
       </tr><tr>
         
         <td>
-          <p><code><a href="emr_track.exists.html">emr_track.exists()</a></code> </p>
+          <p><code><a href="emr_track.create_logical.html">emr_track.logical.create()</a></code> </p>
         </td>
-        <td><p>Checks whether the track exists</p></td>
+        <td><p>Creates a logical track</p></td>
       </tr><tr>
         
         <td>
-          <p><code><a href="emr_track.global.ls.html">emr_track.global.ls()</a></code> </p>
+          <p><code><a href="emr_track.exists.html">emr_track.exists()</a></code> </p>
         </td>
-        <td><p>Returns a list of global track names</p></td>
+        <td><p>Checks whether the track exists</p></td>
       </tr><tr>
         
         <td>
@@ -334,7 +358,13 @@
       </tr><tr>
         
         <td>
-          <p><code><a href="emr_track.ls.html">emr_track.ls()</a></code> </p>
+          <p><code><a href="emr_track.logical.rm.html">emr_track.logical.rm()</a></code> </p>
+        </td>
+        <td><p>Deletes a logical track</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="emr_track.ls.html">emr_track.ls()</a></code> <code><a href="emr_track.ls.html">emr_track.global.ls()</a></code> <code><a href="emr_track.ls.html">emr_track.user.ls()</a></code> </p>
         </td>
         <td><p>Returns a list of track names</p></td>
       </tr><tr>
@@ -342,7 +372,7 @@
         <td>
           <p><code><a href="emr_track.mv.html">emr_track.mv()</a></code> </p>
         </td>
-        <td><p>Deletes a track</p></td>
+        <td><p>Moves (renames) a track</p></td>
       </tr><tr>
         
         <td>
@@ -370,12 +400,6 @@
       </tr><tr>
         
         <td>
-          <p><code><a href="emr_track.user.ls.html">emr_track.user.ls</a></code> </p>
-        </td>
-        <td><p>Returns a list of user track names</p></td>
-      </tr><tr>
-        
-        <td>
           <p><code><a href="emr_track.var.get.html">emr_track.var.get()</a></code> </p>
         </td>
         <td><p>Returns value of a track variable</p></td>
@@ -400,7 +424,7 @@
       </tr><tr>
         
         <td>
-          <p><code><a href="emr_vtrack.attr.src.html">emr_vtrack.attr.src()</a></code> <code><a href="emr_vtrack.attr.src.html">emr_vtrack.attr.func()</a></code> <code><a href="emr_vtrack.attr.src.html">emr_vtrack.attr.params()</a></code> <code><a href="emr_vtrack.attr.src.html">emr_vtrack.attr.keepref()</a></code> <code><a href="emr_vtrack.attr.src.html">emr_vtrack.attr.time.shift()</a></code> <code><a href="emr_vtrack.attr.src.html">emr_vtrack.attr.id.map()</a></code> <code><a href="emr_vtrack.attr.src.html">emr_vtrack.attr.filter()</a></code> </p>
+          <p><code><a href="emr_vtrack.attr.src.html">emr_vtrack.attr.src()</a></code> </p>
         </td>
         <td><p>Get or set attributes of a virtual track</p></td>
       </tr><tr>
@@ -439,6 +463,12 @@
           <p><code><a href="naryn-package.html">naryn-package</a></code> </p>
         </td>
         <td><p>Toolkit for medical records data analysis</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="op-null-default.html">`%||%`</a></code> </p>
+        </td>
+        <td><p>Default value for `NULL`</p></td>
       </tr>
     </tbody>
     </table>
@@ -458,7 +488,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

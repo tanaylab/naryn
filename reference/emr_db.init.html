@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">naryn</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.5.11</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.6.0</span>
       </span>
     </div>
 
@@ -94,7 +94,7 @@
       <ul class="nav navbar-nav navbar-right">
         <li>
   <a href="https://github.com/tanaylab/naryn/">
-    <span class="fab fa fab fa-github fa-lg"></span>
+    <span class="fab fa-github fa-lg"></span>
      
   </a>
 </li>
@@ -112,7 +112,7 @@
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Initializes connection with Naryn Database</h1>
-    
+    <small class="dont-index">Source: <a href='https://github.com/tanaylab/naryn/blob/master/R/db.R'><code>R/db.R</code></a></small>
     <div class="hidden name"><code>emr_db.init.Rd</code></div>
     </div>
 
@@ -120,9 +120,13 @@
     <p>Initializes connection with Naryn Database.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>emr_db.init</span>(<span class='no'>global.dir</span>, <span class='kw'>user.dir</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>global.load.on.demand</span> <span class='kw'>=</span> <span class='no'>T</span>,
-            <span class='kw'>user.load.on.demand</span> <span class='kw'>=</span> <span class='no'>T</span>, <span class='kw'>do.reload</span> <span class='kw'>=</span> <span class='no'>F</span>)
-<span class='fu'>emr_db.init_examples</span>()</pre>
+    <pre class="usage"><span class='fu'>emr_db.init</span><span class='op'>(</span>
+  global.dir <span class='op'>=</span> <span class='cn'>NULL</span>,
+  user.dir <span class='op'>=</span> <span class='cn'>NULL</span>,
+  global.load.on.demand <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  user.load.on.demand <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  do.reload <span class='op'>=</span> <span class='cn'>F</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -149,27 +153,58 @@
     </tr>
     </table>
 
+    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
+
+    <p>None.</p>
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>'emr_db.init' initializes the connection with Naryn Database facilitating tracks access. 'global.dir' marks the root directory of the global tracks. 'user.dir' parameter specifies the directory of the user tracks. Unlike global tracks user tracks may be deleted ('emr_track.rm') or new ones can be created ('emr_track.create'). 'user.dir' can be 'NULL', in which case operations on user tracks will be disabled.</p>
-<p>When the package is attached it internally calls 'emr_db.init_examples' which sets 'global.dir' to 'PKGDIR/naryndb/test' and 'user.dir' to NULL ('PKGDIR' is the directory where the package is installed).</p>
-<p>Physical files in the database are supposed to be managed exclusively by Naryn itself. Manual modification, addition or deletion of track files may be done, yet it must be ratified via running 'emr_db.reload'. Some of these manual changes however (like moving a track from global space to user or vice versa) might cause 'emr_db.init' to fail. 'emr_db.reload' cannot be invoked then as it requires first the connection to the DB be established. To break the deadlock use 'do.reload=True' parameter within 'emr_db.init'. This will connect to the DB and rebuild the DB index files in one step.</p>
-<p>If 'load.on.demand' is 'TRUE' a track is loaded into memory only when it is accessed and it is unloaded from memory as R sessions ends or the package is unloaded.</p>
-<p>If 'load.on.demand' parameter is 'FALSE', all the tracks from the specified space (global / user) are pre-loaded into memory making subsequent track access significantly faster. As loaded tracks reside in shared memory, other R sessions running on the same machine, may also enjoy significant run-time boost. On the flip side, pre-loading all the tracks prolongs the execution of 'emr_db.init' and requires enough memory to accommodate all the data.</p>
-<p>Choosing between the two modes depends on the specific needs. While 'load.on.demand=TRUE' seems to be a solid default choice, in an enviroment where there are frequent short-living R sessions, each accessing a track one might opt for running a "daemon" - an additional permanent R session. The daemon would pre-load all the tracks in advance and stay alive thus boosting the run-time of the later emerging sessions.</p>
-<p>Upon completion the connection is established with the database and a few global variables are added to the environment. These variables should not be modified by the user!</p>
+    <p>'emr_db.init' initializes the connection with Naryn Database facilitating
+tracks access. 'global.dir' marks the root directory of the global tracks.
+'user.dir' parameter specifies the directory of the user tracks. Unlike
+global tracks user tracks may be deleted ('emr_track.rm') or new ones can be
+created ('emr_track.create'). 'user.dir' can be 'NULL', in which case
+operations on user tracks will be disabled.</p>
+<p>When the package is attached it internally calls 'emr_db.init_examples'
+which sets 'global.dir' to 'PKGDIR/naryndb/test' and 'user.dir' to NULL
+('PKGDIR' is the directory where the package is installed).</p>
+<p>Physical files in the database are supposed to be managed exclusively by
+Naryn itself. Manual modification, addition or deletion of track files may
+be done, yet it must be ratified via running 'emr_db.reload'. Some of these
+manual changes however (like moving a track from global space to user or
+vice versa) might cause 'emr_db.init' to fail. 'emr_db.reload' cannot be
+invoked then as it requires first the connection to the DB be established.
+To break the deadlock use 'do.reload=True' parameter within 'emr_db.init'.
+This will connect to the DB and rebuild the DB index files in one step.</p>
+<p>If 'load.on.demand' is 'TRUE' a track is loaded into memory only when it is
+accessed and it is unloaded from memory as R sessions ends or the package is
+unloaded.</p>
+<p>If 'load.on.demand' parameter is 'FALSE', all the tracks from the specified
+space (global / user) are pre-loaded into memory making subsequent track
+access significantly faster. As loaded tracks reside in shared memory, other
+R sessions running on the same machine, may also enjoy significant run-time
+boost. On the flip side, pre-loading all the tracks prolongs the execution
+of 'emr_db.init' and requires enough memory to accommodate all the data.</p>
+<p>Choosing between the two modes depends on the specific needs. While
+'load.on.demand=TRUE' seems to be a solid default choice, in an enviroment
+where there are frequent short-living R sessions, each accessing a track one
+might opt for running a "daemon" - an additional permanent R session. The
+daemon would pre-load all the tracks in advance and stay alive thus boosting
+the run-time of the later emerging sessions.</p>
+<p>Upon completion the connection is established with the database and a few
+global variables are added to the environment. These variables should not be
+modified by the user!</p>
 <table class='table'>
 <tr><td>EMR_GROOT</td><td>Root directory of global tracks</td></tr>
 <tr><td>EMR_UROOT</td><td>Root directory of user tracks</td></tr>
 </table>
 
 
-    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
-
-    <p>None.</p>
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
-    <div class='dont-index'><p><code><a href='emr_db.reload.html'>emr_db.reload</a></code>, <code><a href='emr_track.import.html'>emr_track.import</a></code>, <code><a href='emr_track.create.html'>emr_track.create</a></code>, <code><a href='emr_track.rm.html'>emr_track.rm</a></code>, <code><a href='emr_track.ls.html'>emr_track.ls</a></code>, <code><a href='emr_vtrack.ls.html'>emr_vtrack.ls</a></code>, <code><a href='emr_filter.ls.html'>emr_filter.ls</a></code></p></div>
+    <div class='dont-index'><p><code><a href='emr_db.reload.html'>emr_db.reload</a></code>, <code><a href='emr_track.import.html'>emr_track.import</a></code>,
+<code><a href='emr_track.create.html'>emr_track.create</a></code>, <code><a href='emr_track.rm.html'>emr_track.rm</a></code>,
+<code><a href='emr_track.ls.html'>emr_track.ls</a></code>, <code><a href='emr_vtrack.ls.html'>emr_vtrack.ls</a></code>,
+<code><a href='emr_filter.ls.html'>emr_filter.ls</a></code></p></div>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
@@ -186,7 +221,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

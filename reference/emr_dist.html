@@ -40,7 +40,8 @@
 
 
 <meta property="og:title" content="Calculates distribution of track expressions — emr_dist" />
-<meta property="og:description" content="Calculates distribution of track expressions' values over the given set of bins." />
+<meta property="og:description" content="Calculates distribution of track expressions' values over the given set of
+bins." />
 
 
 
@@ -72,7 +73,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">naryn</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.5.11</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.6.0</span>
       </span>
     </div>
 
@@ -94,7 +95,7 @@
       <ul class="nav navbar-nav navbar-right">
         <li>
   <a href="https://github.com/tanaylab/naryn/">
-    <span class="fab fa fab fa-github fa-lg"></span>
+    <span class="fab fa-github fa-lg"></span>
      
   </a>
 </li>
@@ -112,36 +113,40 @@
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Calculates distribution of track expressions</h1>
-    
+    <small class="dont-index">Source: <a href='https://github.com/tanaylab/naryn/blob/master/R/extract.R'><code>R/extract.R</code></a></small>
     <div class="hidden name"><code>emr_dist.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Calculates distribution of track expressions' values over the given set of bins.</p>
+    <p>Calculates distribution of track expressions' values over the given set of
+bins.</p>
     </div>
 
-    <pre class="usage">emr_dist([expr, breaks]+, include.lowest = F, right = T,
-         stime = NULL, etime = NULL, iterator = NULL, keepref = F,
-         filter = NULL)</pre>
+    <pre class="usage"><span class='fu'>emr_dist</span><span class='op'>(</span>
+  <span class='va'>...</span>,
+  include.lowest <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  right <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  stime <span class='op'>=</span> <span class='cn'>NULL</span>,
+  etime <span class='op'>=</span> <span class='cn'>NULL</span>,
+  iterator <span class='op'>=</span> <span class='cn'>NULL</span>,
+  keepref <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  filter <span class='op'>=</span> <span class='cn'>NULL</span>,
+  dataframe <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  names <span class='op'>=</span> <span class='cn'>NULL</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>expr</th>
-      <td><p>track expression</p></td>
-    </tr>
-    <tr>
-      <th>breaks</th>
-      <td><p>breaks that determine the bin or 'NULL'</p></td>
-    </tr>
-    <tr>
       <th>include.lowest</th>
-      <td><p>if 'TRUE', the lowest (or highest, for ‘right = FALSE’) value of the range determined by breaks is included</p></td>
+      <td><p>if 'TRUE', the lowest (or highest, for ‘right =
+FALSE’) value of the range determined by breaks is included</p></td>
     </tr>
     <tr>
       <th>right</th>
-      <td><p>if 'TRUE' the intervals are closed on the right (and open on the left), otherwise vice versa.</p></td>
+      <td><p>if 'TRUE' the intervals are closed on the right (and open on
+the left), otherwise vice versa.</p></td>
     </tr>
     <tr>
       <th>stime</th>
@@ -153,7 +158,8 @@
     </tr>
     <tr>
       <th>iterator</th>
-      <td><p>track expression iterator. If 'NULL' iterator is determined implicitly based on track expressions.</p></td>
+      <td><p>track expression iterator. If 'NULL' iterator is determined
+implicitly based on track expressions.</p></td>
     </tr>
     <tr>
       <th>keepref</th>
@@ -163,24 +169,62 @@
       <th>filter</th>
       <td><p>Iterator filter.</p></td>
     </tr>
+    <tr>
+      <th>dataframe</th>
+      <td><p>return a data frame instead of an N-dimensional vector.</p></td>
+    </tr>
+    <tr>
+      <th>names</th>
+      <td><p>names for track expressions in the returned dataframe (only relevant when <code>dataframe == TRUE</code>)</p></td>
+    </tr>
+    <tr>
+      <th>expr</th>
+      <td><p>track expression</p></td>
+    </tr>
+    <tr>
+      <th>breaks</th>
+      <td><p>breaks that determine the bin or 'NULL'</p></td>
+    </tr>
     </table>
 
-    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
-
-    <p>This function calculates the distribution of values of the numeric track expressions over the given set of bins.</p>
-<p>The range of bins is determined by 'breaks' argument. For example: 'breaks=c(x1, x2, x3, x4)' represents three different intervals (bins): (x1, x2], (x2, x3], (x3, x4].</p>
-<p>If the track expression constitutes of a categorical track or a virtual track which source is a categorical track, the 'breaks' is allowed to be 'NULL' meaning that the breaks are derived implicitly from the unique values of the underlying track.</p>
-<p>'emr_dist' can work with any number of dimensions. If more than one 'expr'-'breaks' pair is passed, the result is a multidimensional vector, and an individual value can be accessed by [i1,i2,...,iN] notation, where 'i1' is the first track and 'iN' is the last track expression.</p>
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>N-dimensional vector where N is the number of 'expr'-'breaks' pairs.</p>
+    <p>N-dimensional vector where N is the number of 'expr'-'breaks' pairs. If <code>dataframe == TRUE</code> - a data frame with a column for each track expression and an additional column 'n' with counts.</p>
+    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
+
+    <p>This function calculates the distribution of values of the numeric track
+expressions over the given set of bins.</p>
+<p>The range of bins is determined by 'breaks' argument. For example:
+'breaks=c(x1, x2, x3, x4)' represents three different intervals (bins): (x1,
+x2], (x2, x3], (x3, x4].</p>
+<p>If the track expression constitutes of a categorical track or a virtual
+track which source is a categorical track, the 'breaks' is allowed to be
+'NULL' meaning that the breaks are derived implicitly from the unique values
+of the underlying track.</p>
+<p>'emr_dist' can work with any number of dimensions. If more than one
+'expr'-'breaks' pair is passed, the result is a multidimensional vector, and
+an individual value can be accessed by [i1,i2,...,iN] notation, where 'i1'
+is the first track and 'iN' is the last track expression.</p>
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
     <div class='dont-index'><p><code><a href='emr_cor.html'>emr_cor</a></code>, <code><a href='https://rdrr.io/r/base/cut.html'>cut</a></code></p></div>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><span class='fu'><a href='emr_db.init.html'>emr_db.init_examples</a></span>()
-<span class='fu'>emr_dist</span>(<span class='st'>"sparse_track"</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>0</span>, <span class='fl'>15</span>, <span class='fl'>20</span>, <span class='fl'>30</span>, <span class='fl'>40</span>, <span class='fl'>50</span>), <span class='kw'>keepref</span> <span class='kw'>=</span> <span class='no'>T</span>)</pre>
+    <pre class="examples"><div class='input'>
+<span class='fu'><a href='emr_db.init.html'>emr_db.init_examples</a></span><span class='op'>(</span><span class='op'>)</span>
+<span class='fu'>emr_dist</span><span class='op'>(</span><span class='st'>"sparse_track"</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0</span>, <span class='fl'>15</span>, <span class='fl'>20</span>, <span class='fl'>30</span>, <span class='fl'>40</span>, <span class='fl'>50</span><span class='op'>)</span>, keepref <span class='op'>=</span> <span class='cn'>T</span><span class='op'>)</span>
+</div><div class='output co'>#&gt;  (0,15] (15,20] (20,30] (30,40] (40,50] 
+#&gt;       4       1       4       1       0 
+#&gt; attr(,"breaks")
+#&gt; attr(,"breaks")[[1]]
+#&gt; [1]  0 15 20 30 40 50
+#&gt; </div><div class='input'><span class='fu'>emr_dist</span><span class='op'>(</span><span class='st'>"sparse_track"</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0</span>, <span class='fl'>15</span>, <span class='fl'>20</span>, <span class='fl'>30</span>, <span class='fl'>40</span>, <span class='fl'>50</span><span class='op'>)</span>, keepref <span class='op'>=</span> <span class='cn'>T</span>, dataframe <span class='op'>=</span> <span class='cn'>TRUE</span><span class='op'>)</span>
+</div><div class='output co'>#&gt;  (0,15] (15,20] (20,30] (30,40] (40,50] 
+#&gt;       4       1       4       1       0 
+#&gt; attr(,"breaks")
+#&gt; attr(,"breaks")[[1]]
+#&gt; [1]  0 15 20 30 40 50
+#&gt; </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
@@ -196,7 +240,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

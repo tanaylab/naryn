@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">naryn</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.5.11</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.6.0</span>
       </span>
     </div>
 
@@ -94,7 +94,7 @@
       <ul class="nav navbar-nav navbar-right">
         <li>
   <a href="https://github.com/tanaylab/naryn/">
-    <span class="fab fa fab fa-github fa-lg"></span>
+    <span class="fab fa-github fa-lg"></span>
      
   </a>
 </li>
@@ -112,7 +112,7 @@
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Creates a new named filter</h1>
-    
+    <small class="dont-index">Source: <a href='https://github.com/tanaylab/naryn/blob/master/R/filter.R'><code>R/filter.R</code></a></small>
     <div class="hidden name"><code>emr_filter.create.Rd</code></div>
     </div>
 
@@ -120,8 +120,14 @@
     <p>Creates a new named filter.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>emr_filter.create</span>(<span class='no'>filter</span>, <span class='no'>src</span>, <span class='kw'>keepref</span> <span class='kw'>=</span> <span class='no'>F</span>, <span class='kw'>time.shift</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-                  <span class='kw'>val</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>expiration</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
+    <pre class="usage"><span class='fu'>emr_filter.create</span><span class='op'>(</span>
+  <span class='va'>filter</span>,
+  <span class='va'>src</span>,
+  keepref <span class='op'>=</span> <span class='cn'>F</span>,
+  time.shift <span class='op'>=</span> <span class='cn'>NULL</span>,
+  val <span class='op'>=</span> <span class='cn'>NULL</span>,
+  expiration <span class='op'>=</span> <span class='cn'>NULL</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -152,28 +158,41 @@
     </tr>
     </table>
 
-    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
-
-    <p>This function creates a new named filter.</p>
-<p>'src' can be either a track name or an id-time table - data frame with the first columns named "id", "time" and an optional "ref".</p>
-<p>If 'val' is not 'NULL', the time window of the filter is required to contain at least one value from the vector of 'val'.</p>
-<p>'val' is allowed to be used only when 'src' is a name of a categorical track.</p>
-<p>If 'expiration' is not 'NULL' and the filter window contains a value at time 't', the existence of previous values in the time window of [t-expiration, t-1] (aka: "expiration window") is checked. If no such values are found in the expiration window, the filter returns 'TRUE', otherwise 'FALSE'.</p>
-<p>'expiration' is allowed to be used only when 'src' is a name of a categorical track and 'keepref' is 'FALSE'.</p>
-<p>If both 'val' and 'expiration' are not 'NULL' then only values from 'val' vector are checked both in time window and expiration window.</p>
-<p>Note: 'time.shift' can be used only when 'keepref' is 'FALSE'.</p>
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
     <p>None.</p>
+    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
+
+    <p>This function creates a new named filter.</p>
+<p>'src' can be either a track name or an id-time table - data frame with the
+first columns named "id", "time" and an optional "ref".</p>
+<p>If 'val' is not 'NULL', the time window of the filter is required to contain
+at least one value from the vector of 'val'.</p>
+<p>'val' is allowed to be used only when 'src' is a name of a categorical
+track.</p>
+<p>If 'expiration' is not 'NULL' and the filter window contains a value at time
+'t', the existence of previous values in the time window of [t-expiration,
+t-1] (aka: "expiration window") is checked. If no such values are found in
+the expiration window, the filter returns 'TRUE', otherwise 'FALSE'.</p>
+<p>'expiration' is allowed to be used only when 'src' is a name of a
+categorical track and 'keepref' is 'FALSE'.</p>
+<p>If both 'val' and 'expiration' are not 'NULL' then only values from 'val'
+vector are checked both in time window and expiration window.</p>
+<p>Note: 'time.shift' can be used only when 'keepref' is 'FALSE'.</p>
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
-    <div class='dont-index'><p><code><a href='emr_filter.attr.src.html'>emr_filter.attr.src</a></code>, <code><a href='emr_filter.ls.html'>emr_filter.ls</a></code>, <code><a href='emr_filter.exists.html'>emr_filter.exists</a></code>, <code><a href='emr_filter.rm.html'>emr_filter.rm</a></code></p></div>
+    <div class='dont-index'><p><code><a href='emr_filter.attr.src.html'>emr_filter.attr.src</a></code>, <code><a href='emr_filter.ls.html'>emr_filter.ls</a></code>,
+<code><a href='emr_filter.exists.html'>emr_filter.exists</a></code>, <code><a href='emr_filter.rm.html'>emr_filter.rm</a></code></p></div>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><span class='fu'><a href='emr_db.init.html'>emr_db.init_examples</a></span>()
-<span class='fu'>emr_filter.create</span>(<span class='st'>"f1"</span>, <span class='st'>"dense_track"</span>, <span class='kw'>time.shift</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>2</span>,<span class='fl'>4</span>))
-<span class='fu'>emr_filter.create</span>(<span class='st'>"f2"</span>, <span class='st'>"dense_track"</span>, <span class='kw'>keepref</span> <span class='kw'>=</span> <span class='no'>T</span>)
-<span class='fu'><a href='emr_extract.html'>emr_extract</a></span>(<span class='st'>"sparse_track"</span>, <span class='kw'>filter</span> <span class='kw'>=</span> <span class='st'>"!f1 &amp; f2"</span>)</pre>
+    <pre class="examples"><div class='input'>
+<span class='fu'><a href='emr_db.init.html'>emr_db.init_examples</a></span><span class='op'>(</span><span class='op'>)</span>
+<span class='fu'>emr_filter.create</span><span class='op'>(</span><span class='st'>"f1"</span>, <span class='st'>"dense_track"</span>, time.shift <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>2</span>, <span class='fl'>4</span><span class='op'>)</span><span class='op'>)</span>
+<span class='fu'>emr_filter.create</span><span class='op'>(</span><span class='st'>"f2"</span>, <span class='st'>"dense_track"</span>, keepref <span class='op'>=</span> <span class='cn'>T</span><span class='op'>)</span>
+<span class='fu'><a href='emr_extract.html'>emr_extract</a></span><span class='op'>(</span><span class='st'>"sparse_track"</span>, filter <span class='op'>=</span> <span class='st'>"!f1 &amp; f2"</span><span class='op'>)</span>
+</div><div class='output co'>#&gt;   id time ref sparse_track
+#&gt; 1 25   12  -1          124
+#&gt; 2 27   23  -1          234</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
@@ -189,7 +208,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

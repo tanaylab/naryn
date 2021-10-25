@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">naryn</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.5.11</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.6.0</span>
       </span>
     </div>
 
@@ -94,7 +94,7 @@
       <ul class="nav navbar-nav navbar-right">
         <li>
   <a href="https://github.com/tanaylab/naryn/">
-    <span class="fab fa fab fa-github fa-lg"></span>
+    <span class="fab fa-github fa-lg"></span>
      
   </a>
 </li>
@@ -112,7 +112,7 @@
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Creates a new virtual track</h1>
-    
+    <small class="dont-index">Source: <a href='https://github.com/tanaylab/naryn/blob/master/R/vtrack.R'><code>R/vtrack.R</code></a></small>
     <div class="hidden name"><code>emr_vtrack.create.Rd</code></div>
     </div>
 
@@ -120,9 +120,16 @@
     <p>Creates a new virtual track.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>emr_vtrack.create</span>(<span class='no'>vtrack</span>, <span class='no'>src</span>, <span class='kw'>func</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>params</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-                  <span class='kw'>keepref</span> <span class='kw'>=</span> <span class='no'>F</span>, <span class='kw'>time.shift</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>id.map</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-                  <span class='kw'>filter</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
+    <pre class="usage"><span class='fu'>emr_vtrack.create</span><span class='op'>(</span>
+  <span class='va'>vtrack</span>,
+  <span class='va'>src</span>,
+  func <span class='op'>=</span> <span class='cn'>NULL</span>,
+  params <span class='op'>=</span> <span class='cn'>NULL</span>,
+  keepref <span class='op'>=</span> <span class='cn'>F</span>,
+  time.shift <span class='op'>=</span> <span class='cn'>NULL</span>,
+  id.map <span class='op'>=</span> <span class='cn'>NULL</span>,
+  filter <span class='op'>=</span> <span class='cn'>NULL</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -157,96 +164,175 @@
     </tr>
     </table>
 
+    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
+
+    <p>None.</p>
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
     <p>This function creates a new virtual track named 'vtrack'.</p>
-<p>During the evaluation of track expression that contains a virtual track 'vtrack' the iterator point of id-time (ID1, Time, Ref) form is transformed first to an id-time interval: (ID2, Time1, Time2, Ref).</p>
-<p>If 'id.map' is 'NULL' then ID1 == ID2, otherwise ID2 is derived from the translation table provided in 'id.map'. This table is a data frame with two first columns named 'id1' and 'id2', where 'id1' is mapped to 'id2'. If 'id.map' contains also a third optional column named 'time.shift' the value V of this column is used to shift the time accordingly, i.e. Time1 = Time2 = Time + V.</p> 
-<p>'time.shift' parameter (not to be confused with 'time.shift' column of 'id.map') can be either a single number X, in which case Time1 = Time2 = Time + X. Alternatively  'time.shift' can be a vector of two numbers, i.e. 'c(X1, X2)', which would result in Time1 = Time + X1, Time2 = Time + X2.</p>
-<p>Both 'time.shift' parameter and 'time.shift' column within 'id.map' may be used simultaneously. In this case the time shifts are applied sequentially.</p>
-<p>At the next step values from the data source 'src' that fall into the new id-time interval and pass the 'filter' are collected. 'src' may be either a track name or a list of two members: ID-Time Values table (see "User Manual") and a logical. If the logical is 'TRUE', the data in the table is treated as categorical, otherwise as quantitative.</p>
-<p>If 'keepref' is 'TRUE' the reference of these values must match 'ref' unless either the reference or 'ref' are '-1'.</p>
-<p>Function 'func' (with 'params') is applied then on the collected values and produces a single value which is considered to be the value of 'vtrack' for the given iterator point. If 'NULL' is used as a value for 'func', 'func' is set then implicitly to 'value', if the data source is categorical, or 'avg', if the data source is quantitative.</p>
-<p>Use the following table for a reference of all valid functions and parameters combinations.</p>
+<p>During the evaluation of track expression that contains a virtual track
+'vtrack' the iterator point of id-time (ID1, Time, Ref) form is transformed
+first to an id-time interval: (ID2, Time1, Time2, Ref).</p>
+<p>If 'id.map' is 'NULL' then ID1 == ID2, otherwise ID2 is derived from the
+translation table provided in 'id.map'. This table is a data frame with two
+first columns named 'id1' and 'id2', where 'id1' is mapped to 'id2'. If
+'id.map' contains also a third optional column named 'time.shift' the value
+V of this column is used to shift the time accordingly, i.e. Time1 = Time2 =
+Time + V.</p>
+<p>'time.shift' parameter (not to be confused with 'time.shift' column of
+'id.map') can be either a single number X, in which case Time1 = Time2 =
+Time + X. Alternatively 'time.shift' can be a vector of two numbers, i.e.
+'c(X1, X2)', which would result in Time1 = Time + X1, Time2 = Time + X2.</p>
+<p>Both 'time.shift' parameter and 'time.shift' column within 'id.map' may be
+used simultaneously. In this case the time shifts are applied sequentially.</p>
+<p>At the next step values from the data source 'src' that fall into the new
+id-time interval and pass the 'filter' are collected. 'src' may be either a
+track name or a list of two members: ID-Time Values table (see "User
+Manual") and a logical. If the logical is 'TRUE', the data in the table is
+treated as categorical, otherwise as quantitative.</p>
+<p>If 'keepref' is 'TRUE' the reference of these values must match 'ref' unless
+either the reference or 'ref' are '-1'.</p>
+<p>Function 'func' (with 'params') is applied then on the collected values and
+produces a single value which is considered to be the value of 'vtrack' for
+the given iterator point. If 'NULL' is used as a value for 'func', 'func' is
+set then implicitly to 'value', if the data source is categorical, or 'avg',
+if the data source is quantitative.</p>
+<p>Use the following table for a reference of all valid functions and
+parameters combinations.</p>
 <p>CATEGORICAL DATA SOURCE</p>
 <table class='table'>
 <tr><td>FUNC</td><td>PARAM</td><td>DESCRIPTION</td></tr>
 <tr><td>value</td><td>vals/NULL</td><td>A source value or -1 if there is more than one.</td></tr>
 <tr><td>exists</td><td>vals</td><td>1 if any of the 'vals' exist otherwise 0.</td></tr>
 <tr><td>sample</td><td>NULL</td><td>Uniformly sampled source value.</td></tr>
-<tr><td>sample.time</td><td>NULL</td><td>Time of the uniformly sampled source value.</td></tr>
-<tr><td>frequent</td><td>vals/NULL</td><td>The most frequent source value or -1 if there is more than one value.</td></tr>
+<tr><td>sample.time</td><td>NULL</td><td>Time of the
+uniformly sampled source value.</td></tr>
+<tr><td>frequent</td><td>vals/NULL</td><td>The most
+frequent source value or -1 if there is more than one value.</td></tr>
 <tr><td>size</td><td>vals/NULL</td><td>Number of values.</td></tr>
-<tr><td>earliest</td><td>vals/NULL</td><td>Earliest value or -1 if there is more than one.</td></tr>
-<tr><td>latest</td><td>vals/NULL</td><td>Latest value or -1 if there is more than one.</td></tr>
-<tr><td>closest</td><td>vals/NULL</td><td>Values closest to the middle of the interval or -1 if there is more than one.</td></tr>
+<tr><td>earliest</td><td>vals/NULL</td><td>Earliest
+value or -1 if there is more than one.</td></tr>
+<tr><td>latest</td><td>vals/NULL</td><td>Latest
+value or -1 if there is more than one.</td></tr>
+<tr><td>closest</td><td>vals/NULL</td><td>Values closest to the middle of the interval or -1 if there is more than
+one.</td></tr>
 <tr><td>earliest.time</td><td>vals/NULL</td><td>Time of the earliest value.</td></tr>
 <tr><td>latest.time</td><td>vals/NULL</td><td>Time of the latest value.</td></tr>
-<tr><td>closest.earlier.time</td><td>vals/NULL</td><td>Time of the of the earlier of the closest values.</td></tr>
-<tr><td>closest.later.time</td><td>vals/NULL</td><td>Time of the of the later of the closest values.</td></tr>
-<tr><td>dt1.earliest</td><td>vals/NULL</td><td>Time difference between the earliest value and T1</td></tr>
+<tr><td>closest.earlier.time</td><td>vals/NULL</td><td>Time of the of the earlier of the
+closest values.</td></tr>
+<tr><td>closest.later.time</td><td>vals/NULL</td><td>Time of the of
+the later of the closest values.</td></tr>
+<tr><td>dt1.earliest</td><td>vals/NULL</td><td>Time
+difference between the earliest value and T1</td></tr>
 <tr><td>dt1.latest</td><td>vals/NULL</td><td>Time difference between the latest value and T1</td></tr>
 <tr><td>dt2.earliest</td><td>vals/NULL</td><td>Time difference between T2 and the earliest value</td></tr>
-<tr><td>dt2.latest</td><td>vals/NULL</td><td>Time difference between T2 and the latest value</td></tr>
+<tr><td>dt2.latest</td><td>vals/NULL</td><td>Time difference between T2 and the latest
+value</td></tr>
 </table>
 
 
-<p>* 'vals' is a vector of values. If not 'NULL' it serves as a filter: the function is applied only to the data source values that appear among 'vals'.</p>
+<p>* 'vals' is a vector of values. If not 'NULL' it serves as a filter: the
+function is applied only to the data source values that appear among 'vals'.
+'vals' can be a single NA value, in which case all the values of the track
+would be filtered out.</p>
 <p>QUANTITATIVE DATA SOURCE</p>
 <table class='table'>
 <tr><td>FUNC</td><td>PARAM</td><td>DESCRIPTION</td></tr>
 <tr><td>avg</td><td>NULL</td><td>Average of all values.</td></tr>
 <tr><td>min</td><td>NULL</td><td>Minimal value.</td></tr>
 <tr><td>max</td><td>NULL</td><td>Maximal value.</td></tr>
-<tr><td>sample</td><td>NULL</td><td>Uniformly sampled source value.</td></tr>
-<tr><td>sample.time</td><td>NULL</td><td>Time of the uniformly sampled source value.</td></tr>
+<tr><td>sample</td><td>NULL</td><td>Uniformly sampled source
+value.</td></tr>
+<tr><td>sample.time</td><td>NULL</td><td>Time of the uniformly sampled source
+value.</td></tr>
 <tr><td>size</td><td>NULL</td><td>Number of values.</td></tr>
 <tr><td>earliest</td><td>NULL</td><td>Average of the earliest values.</td></tr>
-<tr><td>latest</td><td>NULL</td><td>Average of the latest values.</td></tr>
-<tr><td>closest</td><td>NULL</td><td>Average of values closest to the middle of the interval.</td></tr>
-<tr><td>stddev</td><td>NULL</td><td>Unbiased standard deviation of the values.</td></tr>
+<tr><td>latest</td><td>NULL</td><td>Average of the
+latest values.</td></tr>
+<tr><td>closest</td><td>NULL</td><td>Average of values closest to the
+middle of the interval.</td></tr>
+<tr><td>stddev</td><td>NULL</td><td>Unbiased standard
+deviation of the values.</td></tr>
 <tr><td>sum</td><td>NULL</td><td>Sum of values.</td></tr>
 <tr><td>quantile</td><td>Percentile in the range of [0, 1]</td><td>Quantile of the values.</td></tr>
 <tr><td>percentile.upper</td><td>NULL</td><td>Average of upper-bound values percentiles.*</td></tr>
-<tr><td>percentile.upper.min</td><td>NULL</td><td>Minimum of upper-bound values percentiles.*</td></tr>
-<tr><td>percentile.upper.max</td><td>NULL</td><td>Maximum of upper-bound values percentiles.*</td></tr>
-<tr><td>percentile.lower</td><td>NULL</td><td>Average of lower-bound values percentiles.*</td></tr>
+<tr><td>percentile.upper.min</td><td>NULL</td><td>Minimum of upper-bound values
+percentiles.*</td></tr>
+<tr><td>percentile.upper.max</td><td>NULL</td><td>Maximum of upper-bound
+values percentiles.*</td></tr>
+<tr><td>percentile.lower</td><td>NULL</td><td>Average of
+lower-bound values percentiles.*</td></tr>
 <tr><td>percentile.lower.min</td><td>NULL</td><td>Minimum of lower-bound values percentiles.*</td></tr>
 <tr><td>percentile.lower.max</td><td>NULL</td><td>Maximum of lower-bound values percentiles.*</td></tr>
-<tr><td>lm.intercept</td><td>NULL</td><td>Intercept (aka "alpha") of the simple linear regression (X = time, Y = values)</td></tr>
-<tr><td>lm.slope</td><td>NULL</td><td>Slope (aka "beta") of the simple linear regression (X = time, Y = values)</td></tr>
+<tr><td>lm.intercept</td><td>NULL</td><td>Intercept (aka "alpha") of the simple linear regression (X = time,
+Y = values)</td></tr>
+<tr><td>lm.slope</td><td>NULL</td><td>Slope (aka "beta") of the simple
+linear regression (X = time, Y = values)</td></tr>
 <tr><td>earliest.time</td><td>NULL</td><td>Time of the earliest value.</td></tr>
-<tr><td>latest.time</td><td>NULL</td><td>Time of the latest value.</td></tr>
-<tr><td>closest.earlier.time</td><td>NULL</td><td>Time of the of the earlier of the closest values.</td></tr>
-<tr><td>closest.later.time</td><td>NULL</td><td>Time of the of the later of the closest values.</td></tr>
-<tr><td>dt1.earliest</td><td>NULL</td><td>Time difference between the earliest value and T1</td></tr>
+<tr><td>latest.time</td><td>NULL</td><td>Time of the
+latest value.</td></tr>
+<tr><td>closest.earlier.time</td><td>NULL</td><td>Time of the of the
+earlier of the closest values.</td></tr>
+<tr><td>closest.later.time</td><td>NULL</td><td>Time of
+the of the later of the closest values.</td></tr>
+<tr><td>dt1.earliest</td><td>NULL</td><td>Time
+difference between the earliest value and T1</td></tr>
 <tr><td>dt1.latest</td><td>NULL</td><td>Time difference between the latest value and T1</td></tr>
 <tr><td>dt2.earliest</td><td>NULL</td><td>Time difference between T2 and the earliest value</td></tr>
 <tr><td>dt2.latest</td><td>NULL</td><td>Time difference between T2 and the latest value</td></tr>
 </table>
 
 
-<p>* Percentile is calculated based on the values of the whole data source even if a subset or a filter are defined.</p>
-<p>Note: 'time.shift' can be used only when 'keepref' is 'FALSE'. Also when 'keepref' is 'TRUE' only 'avg', 'percentile.upper' and 'percentile.lower' can be used in 'func'.</p>
-    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
-
-    <p>None.</p>
+<p>* Percentile is calculated based on the values of the whole data source even
+if a subset or a filter are defined.</p>
+<p>Note: 'time.shift' can be used only when 'keepref' is 'FALSE'. Also when
+'keepref' is 'TRUE' only 'avg', 'percentile.upper' and 'percentile.lower'
+can be used in 'func'.</p>
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
-    <div class='dont-index'><p><code><a href='emr_vtrack.attr.src.html'>emr_vtrack.attr.src</a></code>, <code><a href='emr_vtrack.ls.html'>emr_vtrack.ls</a></code>, <code><a href='emr_vtrack.exists.html'>emr_vtrack.exists</a></code>, <code><a href='emr_vtrack.rm.html'>emr_vtrack.rm</a></code></p></div>
+    <div class='dont-index'><p><code><a href='emr_vtrack.attr.src.html'>emr_vtrack.attr.src</a></code>, <code><a href='emr_vtrack.ls.html'>emr_vtrack.ls</a></code>,
+<code><a href='emr_vtrack.exists.html'>emr_vtrack.exists</a></code>, <code><a href='emr_vtrack.rm.html'>emr_vtrack.rm</a></code></p></div>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><span class='fu'><a href='emr_db.init.html'>emr_db.init_examples</a></span>()
+    <pre class="examples"><div class='input'>
+<span class='fu'><a href='emr_db.init.html'>emr_db.init_examples</a></span><span class='op'>(</span><span class='op'>)</span>
 
-<span class='fu'>emr_vtrack.create</span>(<span class='st'>"vtrack1"</span>, <span class='st'>"dense_track"</span>, <span class='kw'>time.shift</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-                  <span class='kw'>func</span> <span class='kw'>=</span> <span class='st'>"max"</span>)
-<span class='fu'>emr_vtrack.create</span>(<span class='st'>"vtrack2"</span>, <span class='st'>"dense_track"</span>,
-                  <span class='kw'>time.shift</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(-<span class='fl'>5</span>, <span class='fl'>10</span>), <span class='kw'>func</span> <span class='kw'>=</span> <span class='st'>"min"</span>)
-<span class='no'>res</span> <span class='kw'>=</span> <span class='fu'><a href='emr_extract.html'>emr_extract</a></span>(<span class='st'>"dense_track"</span>, <span class='kw'>keepref</span><span class='kw'>=</span><span class='no'>T</span>, <span class='kw'>names</span><span class='kw'>=</span><span class='st'>"value"</span>)
-<span class='fu'>emr_vtrack.create</span>(<span class='st'>"vtrack3"</span>, <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='no'>res</span>, <span class='no'>F</span>), <span class='kw'>time.shift</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(-<span class='fl'>5</span>, <span class='fl'>10</span>),
-                  <span class='kw'>func</span> <span class='kw'>=</span> <span class='st'>"min"</span>)
-<span class='fu'><a href='emr_extract.html'>emr_extract</a></span>(<span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"dense_track"</span>, <span class='st'>"vtrack1"</span>, <span class='st'>"vtrack2"</span>, <span class='st'>"vtrack3"</span>),
-            <span class='kw'>keepref</span> <span class='kw'>=</span> <span class='no'>T</span>, <span class='kw'>iterator</span><span class='kw'>=</span><span class='st'>"dense_track"</span>)</pre>
+<span class='fu'>emr_vtrack.create</span><span class='op'>(</span><span class='st'>"vtrack1"</span>, <span class='st'>"dense_track"</span>,
+    time.shift <span class='op'>=</span> <span class='fl'>1</span>,
+    func <span class='op'>=</span> <span class='st'>"max"</span>
+<span class='op'>)</span>
+<span class='fu'>emr_vtrack.create</span><span class='op'>(</span><span class='st'>"vtrack2"</span>, <span class='st'>"dense_track"</span>,
+    time.shift <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='op'>-</span><span class='fl'>5</span>, <span class='fl'>10</span><span class='op'>)</span>, func <span class='op'>=</span> <span class='st'>"min"</span>
+<span class='op'>)</span>
+<span class='va'>res</span> <span class='op'>&lt;-</span> <span class='fu'><a href='emr_extract.html'>emr_extract</a></span><span class='op'>(</span><span class='st'>"dense_track"</span>, keepref <span class='op'>=</span> <span class='cn'>T</span>, names <span class='op'>=</span> <span class='st'>"value"</span><span class='op'>)</span>
+<span class='fu'>emr_vtrack.create</span><span class='op'>(</span><span class='st'>"vtrack3"</span>, <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span><span class='op'>(</span><span class='va'>res</span>, <span class='cn'>F</span><span class='op'>)</span>,
+    time.shift <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='op'>-</span><span class='fl'>5</span>, <span class='fl'>10</span><span class='op'>)</span>,
+    func <span class='op'>=</span> <span class='st'>"min"</span>
+<span class='op'>)</span>
+<span class='fu'><a href='emr_extract.html'>emr_extract</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"dense_track"</span>, <span class='st'>"vtrack1"</span>, <span class='st'>"vtrack2"</span>, <span class='st'>"vtrack3"</span><span class='op'>)</span>,
+    keepref <span class='op'>=</span> <span class='cn'>T</span>, iterator <span class='op'>=</span> <span class='st'>"dense_track"</span>
+<span class='op'>)</span>
+</div><div class='output co'>#&gt;    id time ref dense_track vtrack1 vtrack2 vtrack3
+#&gt; 1  22    1   3          13     NaN      13      13
+#&gt; 2  24    1   3          13     NaN      13      13
+#&gt; 3  25    1   0          10      28      10      10
+#&gt; 4  25    2   0          20      34      10      10
+#&gt; 5  25    2   2          22      34      10      10
+#&gt; 6  25    2   5          24      34      10      10
+#&gt; 7  25    2   6          26      34      10      10
+#&gt; 8  25    2   8          28      34      10      10
+#&gt; 9  25    3   4          34     NaN      10      10
+#&gt; 10 25    6   0          60     NaN      10      10
+#&gt; 11 25    6   2          62     NaN      10      10
+#&gt; 12 25    8   1          80      94      34      34
+#&gt; 13 25    8   4          84      94      34      34
+#&gt; 14 25    9   2          92     104      60      60
+#&gt; 15 25    9   4          94     104      60      60
+#&gt; 16 25   10   4         104     NaN      60      60
+#&gt; 17 25   12   4         124     NaN      80      80
+#&gt; 18 27   23   4         234     NaN     234     234
+#&gt; 19 27   50   0         500     NaN     500     500
+#&gt; 20 28    1   3          13     NaN      13      13</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
@@ -262,7 +348,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Defines an ids subset — emr_db.subset • naryn</title>
+<title>Deletes a logical track — emr_track.logical.rm • naryn</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Defines an ids subset — emr_db.subset" />
-<meta property="og:description" content="Defines an ids subset." />
+<meta property="og:title" content="Deletes a logical track — emr_track.logical.rm" />
+<meta property="og:description" content="Deletes a logical track" />
 
 
 
@@ -111,50 +111,33 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Defines an ids subset</h1>
-    <small class="dont-index">Source: <a href='https://github.com/tanaylab/naryn/blob/master/R/db.R'><code>R/db.R</code></a></small>
-    <div class="hidden name"><code>emr_db.subset.Rd</code></div>
+    <h1>Deletes a logical track</h1>
+    <small class="dont-index">Source: <a href='https://github.com/tanaylab/naryn/blob/master/R/logical-track.R'><code>R/logical-track.R</code></a></small>
+    <div class="hidden name"><code>emr_track.logical.rm.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Defines an ids subset.</p>
+    <p>Deletes a logical track</p>
     </div>
 
-    <pre class="usage"><span class='fu'>emr_db.subset</span><span class='op'>(</span>src <span class='op'>=</span> <span class='st'>""</span>, fraction <span class='op'>=</span> <span class='cn'>NULL</span>, complementary <span class='op'>=</span> <span class='cn'>NULL</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>emr_track.logical.rm</span><span class='op'>(</span><span class='va'>track</span>, force <span class='op'>=</span> <span class='cn'>FALSE</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>src</th>
-      <td><p>track name or ids table or 'NULL'</p></td>
+      <th>track</th>
+      <td><p>the name of the newly created logical track</p></td>
     </tr>
     <tr>
-      <th>fraction</th>
-      <td><p>fraction of data to be sampled from 'src' in [0,1] range</p></td>
-    </tr>
-    <tr>
-      <th>complementary</th>
-      <td><p>'TRUE' for a complementary subset, otherwise 'FALSE'</p></td>
+      <th>force</th>
+      <td><p>if 'TRUE', supresses user confirmation of a named track removal</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
     <p>None.</p>
-    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
-
-    <p>'emr_db.subset' creates an ids subset" ("viewport") of data of "fraction *
-sizeof('src')" size by sampling the ids from 'src'. Once the subset is
-defined only the ids that are in the subset are used by various functions
-and iterators. Other ids are ignored.</p>
-<p>'src' can be a track name or an ids table. If 'complementary' is 'TRUE' the
-complementary set of sampled ids is used as a subset.</p>
-<p>If 'src' is 'NULL' the current subset is annihilated.</p>
-    <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
-
-    <div class='dont-index'><p><code><a href='emr_db.init.html'>emr_db.init</a></code>, <code><a href='emr_db.subset.ids.html'>emr_db.subset.ids</a></code>,
-<code><a href='emr_db.subset.info.html'>emr_db.subset.info</a></code></p></div>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

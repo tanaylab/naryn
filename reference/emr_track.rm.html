@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">naryn</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.5.11</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.6.0</span>
       </span>
     </div>
 
@@ -94,7 +94,7 @@
       <ul class="nav navbar-nav navbar-right">
         <li>
   <a href="https://github.com/tanaylab/naryn/">
-    <span class="fab fa fab fa-github fa-lg"></span>
+    <span class="fab fa-github fa-lg"></span>
      
   </a>
 </li>
@@ -112,7 +112,7 @@
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Deletes a track</h1>
-    
+    <small class="dont-index">Source: <a href='https://github.com/tanaylab/naryn/blob/master/R/track.R'><code>R/track.R</code></a></small>
     <div class="hidden name"><code>emr_track.rm.Rd</code></div>
     </div>
 
@@ -120,7 +120,7 @@
     <p>Deletes a track.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>emr_track.rm</span>(<span class='no'>track</span>, <span class='kw'>force</span> <span class='kw'>=</span> <span class='no'>F</span>)</pre>
+    <pre class="usage"><span class='fu'>emr_track.rm</span><span class='op'>(</span><span class='va'>track</span>, force <span class='op'>=</span> <span class='cn'>F</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -135,15 +135,18 @@
     </tr>
     </table>
 
-    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
-
-    <p>This function deletes a user track from the database. By default 'emr_track.rm' requires the user to interactively confirm the deletion. Set 'force' to 'TRUE' to suppress the user prompt.</p>
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
     <p>None.</p>
+    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
+
+    <p>This function deletes a user track from the database. By default
+'emr_track.rm' requires the user to interactively confirm the deletion. Set
+'force' to 'TRUE' to suppress the user prompt.</p>
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
-    <div class='dont-index'><p><code><a href='emr_track.create.html'>emr_track.create</a></code>, <code><a href='emr_track.mv.html'>emr_track.mv</a></code>, <code><a href='emr_track.ls.html'>emr_track.ls</a></code>, <code><a href='emr_track.readonly.html'>emr_track.readonly</a></code></p></div>
+    <div class='dont-index'><p><code><a href='emr_track.create.html'>emr_track.create</a></code>, <code><a href='emr_track.mv.html'>emr_track.mv</a></code>,
+<code><a href='emr_track.ls.html'>emr_track.ls</a></code>, <code><a href='emr_track.readonly.html'>emr_track.readonly</a></code></p></div>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
@@ -160,7 +163,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>
