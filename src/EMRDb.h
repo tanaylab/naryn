@@ -87,6 +87,9 @@ public:
     // Same as init, but groot/uroot must be set already.
     // Intended to be called at the beginning of each transaction.
     void refresh();
+    // alt
+    void refresh_alt();
+
 
     // Rescans file directory and rebuilds track list file.
     // Loads tracks, if load_on_demand==false.
@@ -184,6 +187,7 @@ protected:
     Id2Idx           m_id2idx;
 
     string track_filename(bool is_global, const string &track_name) const { return m_rootdirs[is_global] + string("/") + track_name + TRACK_FILE_EXT; }
+    string track_filename_alt(string db_id, const string &track_name) const { return db_id + string("/") + track_name + TRACK_FILE_EXT; }
     string track_attrs_filename(bool is_global, const string &track_name) const { return m_rootdirs[is_global] + string("/.") + track_name + TRACK_ATTRS_FILE_EXT; }
     string logical_tracks_dir() const { return m_rootdirs[1] + string("/logical"); }    
     string track_list_filename(bool is_global) const { return m_rootdirs[is_global] + "/" + TRACK_LIST_FILENAME; }
@@ -209,6 +213,9 @@ protected:
     // opens and locks track list file according to the mode: "r", "r+", "w"
     void lock_track_list(bool is_global, BufferedFile &lock, const char *mode);
 
+    // alt
+    void lock_track_list_alt(string db_id, BufferedFile &lock, const char *mode);
+
     // opens and locks track list files (both global and user) according to the mode: "r", "r+", "w"
     void lock_track_lists(BufferedFile *locks, const char *mode);
 
@@ -221,8 +228,14 @@ protected:
     // Scans root directory for tracks, creates track list file with the gathered data.
     void create_track_list_file(bool is_global, BufferedFile *pbf);
 
+    // alt
+    void create_track_list_file_alt(string db_id, BufferedFile *pbf);
+
     // Writes data into track list file.
     void update_track_list_file(const Name2Track &tracks, bool is_global, BufferedFile &pbf);
+
+    // alt
+    void update_track_list_file_alt(const Name2Track &tracks, string db_id, BufferedFile &pbf);
 
     // Scans logical tracks directory for logical tracks, updates track list file with the gathered data.
     void load_logical_tracks_from_disk();

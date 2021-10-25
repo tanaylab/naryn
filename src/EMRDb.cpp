@@ -1363,7 +1363,7 @@ void EMRDb::refresh_alt() {
     ++m_transact_id;
 
     for(auto db_id = m_rootdirs_alt.begin(); db_id != m_rootdirs_alt.end(); db_id++){
-        load_track_list_alt(db_id, NULL);    
+        load_track_list_alt(*db_id, NULL);    
     }
 
     load_logical_tracks();
@@ -1375,8 +1375,8 @@ void EMRDb::refresh_alt() {
 void EMRDb::lock_track_lists_alt(unordered_map<string, BufferedFile> &locks, const char *mode) {
 
     // TODO Changed locks to be unordered_map, it used to be a list of 2, make sure everything that works with locks still wokrs
-    for (auto db_id = m_rootdirs.begin(); db_id != m_rootdirs.end(); db_id++) {
-        lock_track_list_alt(*db_id, locks[*db_id], mode)
+    for (auto db_id = m_rootdirs_alt.begin(); db_id != m_rootdirs_alt.end(); db_id++) {
+        lock_track_list_alt(*db_id, locks[*db_id], mode);
     }
 
 }
@@ -1406,52 +1406,53 @@ void EMRDb::lock_track_list_alt(string db_id, BufferedFile &lock,
 }
 
 
-void EMRDb::create_track_list_file_alt(bool is_global, BufferedFile *_pbf) {
+//not refactored
+//db_id currently rerisents the db path
+void EMRDb::create_track_list_file_alt(string db_id, BufferedFile *_pbf) {
     DIR *dir = NULL;
 
-    vdebug("Rescanning %s dir to acquire list of tracks",
-           is_global ? "global" : "local");
+    vdebug("Rescanning %s dir to acquire list of tracks", db_id.c_str());
+
     try {
         BufferedFile bf;
         BufferedFile *pbf = _pbf ? _pbf : &bf;
 
         if (!_pbf) {
-            vdebug("Opening %s track list for write",
-                   is_global ? "global" : "local");
+            vdebug("Opening %s track list for write", db_id.c_str());
             // Lock the file for writing before scan to prevent concurrent scan
             // at the same time. If not done, an earlier scan might write its
             // results to track list file after a later scan.
-            lock_track_list(is_global, bf, "w");
+            lock_track_list_alt(db_id, bf, "w");
         }
 
         // scan directory structure
         struct dirent *dirp;
         Name2Track track_list;
         char filename[PATH_MAX + 100];
+        
+        //db_id currently rerisents the db path
+        dir = opendir(db_id.c_str());
 
-        dir = opendir(m_rootdirs[is_global].c_str());
         if (!dir)
-            verror("Failed to open directory %s: %s",
-                   m_rootdirs[is_global].c_str(), strerror(errno));
+            verror("Failed to open directory %s: %s", db_id, strerror(errno));
 
         while ((dirp = readdir(dir))) {
             struct stat fs;
             int len = strlen(dirp->d_name);
 
-            sprintf(filename, "%s/%s", m_rootdirs[is_global].c_str(),
-                    dirp->d_name);
+            sprintf(filename, "%s/%s", db_id.c_str(), dirp->d_name);
+
             if (stat(filename, &fs))
                 verror("Failed to stat file %s: %s", filename, strerror(errno));
 
-            // is it a normal file having file extension of a track?
             if (S_ISREG(fs.st_mode) && (size_t)len > TRACK_FILE_EXT.size() &&
                 !strncmp(dirp->d_name + len - TRACK_FILE_EXT.size(),
                          TRACK_FILE_EXT.c_str(), TRACK_FILE_EXT.size())) {
                 string track_name(dirp->d_name, 0, len - TRACK_FILE_EXT.size());
                 track_list.emplace(
                     track_name,
-                    TrackInfo(NULL, track_filename(is_global, track_name),
-                              fs.st_mtim, is_global));
+                    TrackInfo(NULL, track_filename_alt(db_id, track_name),
+                              fs.st_mtim, 0));
             }
 
             check_interrupt();
@@ -1461,11 +1462,35 @@ void EMRDb::create_track_list_file_alt(bool is_global, BufferedFile *_pbf) {
         dir = NULL;
 
         // write the results into track list file
-        update_track_list_file(track_list, is_global, *pbf);
+        update_track_list_file_alt(track_list, db_id, *pbf);
     } catch (...) {
         if (dir) closedir(dir);
         throw;
     }
+}
+
+
+void EMRDb::update_track_list_file_alt(const Name2Track &tracks, string db_id, BufferedFile &bf) {
+
+    vdebug("Writing %ld %s tracks to track list file", tracks.size(), db_id.c_str());
+
+    bf.seek(0, SEEK_SET);  // rewind the file position
+
+    for (const auto &name2track : tracks) {
+        if (name2track.second.db_id == db_id &&
+            (bf.write(name2track.first.c_str(), name2track.first.size() + 1) !=
+                 name2track.first.size() + 1 ||
+             (bf.write(&name2track.second.timestamp.tv_sec,
+                       sizeof(name2track.second.timestamp.tv_sec)) !=
+              sizeof(name2track.second.timestamp.tv_sec)) ||
+             (bf.write(&name2track.second.timestamp.tv_nsec,
+                       sizeof(name2track.second.timestamp).tv_nsec) !=
+              sizeof(name2track.second.timestamp.tv_nsec))))
+            verror("Failed to write file %s: %s", bf.file_name().c_str(),
+                   strerror(errno));
+    }
+
+    bf.truncate();  // file might be open for update and not just for write
 }
 
 void EMRDb::load_track_list_alt(string db_id, BufferedFile &bf) {
@@ -1474,6 +1499,7 @@ void EMRDb::load_track_list_alt(string db_id, BufferedFile &bf) {
     load_track_list_alt(db_id, &bf);
 }
 
+//not refactored
 void EMRDb::load_track_list_alt(string db_id, BufferedFile *_pbf) {
 
     Name2Track track_list;
@@ -1504,12 +1530,11 @@ void EMRDb::load_track_list_alt(string db_id, BufferedFile *_pbf) {
                    strerror(errno));
 
         // track list in memory is synced with the track list on disk
-        if (m_track_list_ts[is_global] == fs.st_mtim) {
-            vdebug("Up-to-date %s track list is already in memory",
-                   is_global ? "global" : "local");
+        if (m_track_list_ts_alt[db_id] == fs.st_mtim) {
+            vdebug("Up-to-date %s track list is already in memory", db_id);
             if (g_naryn->debug()) {
                 int n = 0;
-                for (auto track : m_track_names[is_global]) {
+                for (auto track : m_track_names_alt[db_id]) {
                     vdebug("%d. %s\n", n + 1, track.c_str());
                     if (++n >= 5) {
                         vdebug("(Only the first %d tracks are listed)\n", n);
@@ -1519,7 +1544,7 @@ void EMRDb::load_track_list_alt(string db_id, BufferedFile *_pbf) {
             }
             return;
         }
-
+        
         int c;
         int pos = 0;
         char track_name[PATH_MAX];
@@ -1542,8 +1567,8 @@ void EMRDb::load_track_list_alt(string db_id, BufferedFile *_pbf) {
                          .emplace(
                              track_name,
                              TrackInfo(NULL,
-                                       track_filename(is_global, track_name),
-                                       timestamp, is_global))
+                                       track_filename_alt(db_id, track_name),
+                                       timestamp, 0)) //should add here the id_db to the track obj
                          .second)
                     break;
 
@@ -1559,12 +1584,12 @@ void EMRDb::load_track_list_alt(string db_id, BufferedFile *_pbf) {
             vwarning("Invalid format of file %s, rebuilding it",
                      pbf->file_name().c_str());
             pbf->close();  // release the read lock
-            create_track_list_file(is_global, _pbf);
+            create_track_list_file_alt(db_id, _pbf);
             track_list.clear();
             continue;
         }
 
-        m_track_list_ts[is_global] = fs.st_mtim;
+        m_track_list_ts_alt[db_id] = fs.st_mtim;
         vdebug("Read %lu tracks", track_list.size());
         if (g_naryn->debug()) {
             int n = 0;
@@ -1582,7 +1607,7 @@ void EMRDb::load_track_list_alt(string db_id, BufferedFile *_pbf) {
     for (const auto &fresh_track : track_list) {
         Name2Track::iterator itrack = m_tracks.find(fresh_track.first);
         if (itrack != m_tracks.end() &&
-            itrack->second.is_global != fresh_track.second.is_global)
+            itrack->second.db_id != fresh_track.second.db_id)
             verror("Track %s appears both in global and user directories",
                    itrack->first.c_str());
     }
@@ -1607,19 +1632,19 @@ void EMRDb::load_track_list_alt(string db_id, BufferedFile *_pbf) {
 
     // Clear the old tracks
     for (auto itrack = m_tracks.begin(); itrack != m_tracks.end();) {
-        if (itrack->second.is_global == is_global) {
+        if (itrack->second.db_id == db_id) {
             delete itrack->second.track;
             itrack = m_tracks.erase(itrack);
         } else
             ++itrack;
     }
-    m_track_names[is_global].clear();
+    m_track_names_alt[db_id].clear();
 
     // Copy the new list of tracks
-    m_track_names[is_global].reserve(track_list.size());
+    m_track_names_alt[db_id].reserve(track_list.size());
     for (const auto &track : track_list) {
         m_tracks.insert(track);
-        m_track_names[is_global].emplace_back(track.first);
+        m_track_names_alt[db_id].emplace_back(track.first);
     }
 }
 
