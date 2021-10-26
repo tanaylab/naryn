@@ -13,13 +13,11 @@ int64_t BufferedFile::file_size(const char *path)
 	return (int64_t)st.st_size;
 }
 
-int BufferedFile::open(const char *path, const char *mode, bool lock)
-{
-	
+int BufferedFile::open(const char *path, const char *mode, bool lock){
 	close();
 	m_filename = (string)path;
 	m_fp = fopen(path, mode);
-	
+
 	if (m_fp) {
         if (lock) {
             struct flock fl;

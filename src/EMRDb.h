@@ -191,7 +191,7 @@ protected:
     string track_attrs_filename(bool is_global, const string &track_name) const { return m_rootdirs[is_global] + string("/.") + track_name + TRACK_ATTRS_FILE_EXT; }
     string logical_tracks_dir() const { return m_rootdirs[1] + string("/logical"); }    
     string track_list_filename(bool is_global) const { return m_rootdirs[is_global] + "/" + TRACK_LIST_FILENAME; }
-    string track_list_filename_alt(string db_id) const { db_id + "/" + TRACK_LIST_FILENAME; }
+    string track_list_filename_alt(string db_id) const { return db_id + "/" + TRACK_LIST_FILENAME; }
     string tracks_attrs_filename(bool is_global) const { return m_rootdirs[is_global] + "/" + TRACKS_ATTRS_FILENAME; }    
     string logical_tracks_filename() const {
         return m_rootdirs[1] + "/" + LOGICAL_TRACKS_FILENAME;
