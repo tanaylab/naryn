@@ -27,13 +27,11 @@ public:
         EMRTrack        *track;
         string           filename;
         struct timespec  timestamp;
-        // bool             is_global;
         string              db_id;
 
         TrackInfo(EMRTrack *_track, const string &_filename, const struct timespec &_timestamp, string db_id) :
             track(_track), filename(_filename), timestamp(_timestamp), db_id(db_id) {}
     };
-
 
     static const string TRACK_FILE_EXT;    
     static const string TRACK_ATTRS_FILE_EXT;
@@ -47,7 +45,7 @@ public:
 	EMRTrack *track(const string &track);
     const EMRLogicalTrack *logical_track(const string &track);
     const TrackInfo *track_info(const string &track);
-    const vector<string> &track_names(bool is_global) { return m_track_names[is_global]; }
+    const vector<string> &track_names(string db_id) { return m_track_names[db_id]; }
     const vector<string> logical_track_names() { 
         vector<string> ltrack_names;
         ltrack_names.reserve(m_logical_tracks.size());
