@@ -27,11 +27,11 @@ public:
         EMRTrack        *track;
         string           filename;
         struct timespec  timestamp;
-        bool             is_global;
+        // bool             is_global;
         string              db_id;
 
-        TrackInfo(EMRTrack *_track, const string &_filename, const struct timespec &_timestamp, bool _is_global) :
-            track(_track), filename(_filename), timestamp(_timestamp), is_global(_is_global), db_id("") {}
+        TrackInfo(EMRTrack *_track, const string &_filename, const struct timespec &_timestamp, string db_id) :
+            track(_track), filename(_filename), timestamp(_timestamp), db_id(db_id) {}
     };
 
 
@@ -200,11 +200,11 @@ protected:
     string ids_filename() const { return m_rootdirs[0] + "/" + IDS_FILENAME; }
 
     
-    void clear(bool is_global);
+    // void clear(bool is_global);
 
     // New code for multi - db
     // clear tracks from irrelevant resources by resource idx
-    void clear_alt(string db_id);
+    void clear(string db_id);
     // -----------
 
     void clear_ids();
@@ -212,31 +212,31 @@ protected:
     void cache_tracks();
 
     // opens and locks track list file according to the mode: "r", "r+", "w"
-    void lock_track_list(bool is_global, BufferedFile &lock, const char *mode);
+    // void lock_track_list(bool is_global, BufferedFile &lock, const char *mode);
 
     // alt
-    void lock_track_list_alt(string db_id, BufferedFile &lock, const char *mode);
+    void lock_track_list(string db_id, BufferedFile &lock, const char *mode);
 
     // opens and locks track list files (both global and user) according to the mode: "r", "r+", "w"
-    void lock_track_lists(BufferedFile *locks, const char *mode);
+    // void lock_track_lists(BufferedFile *locks, const char *mode);
 
     // alt
-    void lock_track_lists_alt(unordered_map<string, BufferedFile> &locks, const char *mode);
+    void lock_track_lists(unordered_map<string, BufferedFile> &locks, const char *mode);
 
     // opens and locks logical track list file according to the mode: "r", "r+", "w"
     void lock_logical_track_list(BufferedFile &lock, const char *mode);
 
     // Scans root directory for tracks, creates track list file with the gathered data.
-    void create_track_list_file(bool is_global, BufferedFile *pbf);
+    // void create_track_list_file(bool is_global, BufferedFile *pbf);
 
     // alt
-    void create_track_list_file_alt(string db_id, BufferedFile *pbf);
+    void create_track_list_file(string db_id, BufferedFile *pbf);
 
     // Writes data into track list file.
-    void update_track_list_file(const Name2Track &tracks, bool is_global, BufferedFile &pbf);
+    // void update_track_list_file(const Name2Track &tracks, bool is_global, BufferedFile &pbf);
 
     // alt
-    void update_track_list_file_alt(const Name2Track &tracks, string db_id, BufferedFile &pbf);
+    void update_track_list_file(const Name2Track &tracks, string db_id, BufferedFile &pbf);
 
     // Scans logical tracks directory for logical tracks, updates track list file with the gathered data.
     void load_logical_tracks_from_disk();
@@ -246,16 +246,16 @@ protected:
 
     // Loads track list file. If corrupted or missing, recreates it.
     // Removes outdated tracks from memory.
-    void load_track_list(bool is_global, BufferedFile *pbf);
+    // void load_track_list(bool is_global, BufferedFile *pbf);
 
     // alt
-    void load_track_list_alt(string db_id, BufferedFile *pbf);
+    void load_track_list(string db_id, BufferedFile *pbf);
 
     // Loads track list before update (opens the file for r+w and locks it).
-    void load_track_list(bool is_global, BufferedFile &bf);
+    // void load_track_list(bool is_global, BufferedFile &bf);
 
     // alt
-    void load_track_list_alt(string db_id, BufferedFile &bf);
+    void load_track_list(string db_id, BufferedFile &bf);
 
     // Loads logical track list
     void load_logical_tracks();

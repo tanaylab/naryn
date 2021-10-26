@@ -99,11 +99,11 @@ void EMRDb::cache_tracks()
     vector<int> track_names_sizes;
     int progress_length;
 
-    for (auto db_id = m_rootdirs.begin(); db_id != m_rootdirs.end(); db_id++) {
-        track_names_sizes.push_back(m_track_names[*db_id].size());
+    for (int db_idx = 0; db_idx < m_rootdirs.size(); db_idx++) {
+        track_names_sizes.push_back((m_track_names[m_rootdirs[db_idx]].size() * (!m_load_on_demand[db_idx])));
     }
 
-    progress_length = std::accumulate(track_names_sizes.begin(), 
+    progress_length = std::accumulate(track_names_sizes.begin(),
                                       track_names_sizes.end(), 
                                       decltype(track_names_sizes)::value_type(0)
                         )
@@ -116,13 +116,14 @@ void EMRDb::cache_tracks()
             continue;
 
         vdebug("Caching %s tracks", m_rootdirs[db_idx].c_str());
+
         int n = 0;
+
         for (auto &track : m_tracks)
         {
-            if (!track.second.track &&
-                (!access(track.second.filename.c_str(), F_OK) ||
-                 errno != ENOENT))
-            {
+            if (!track.second.track && 
+                (!access(track.second.filename.c_str(), F_OK) || errno != ENOENT) &&
+                track.second.db_id == m_rootdirs[db_idx]) {
                 track.second.track = EMRTrack::unserialize(
                     track.first.c_str(), track.second.filename.c_str());
                 if (n++ < 5)
@@ -773,11 +774,11 @@ bool EMRDb::rebuild_ids_file_on_dob_change()
 void EMRDb::init(vector<string> rootdirs, vector<bool> dirs_load_on_demand, bool do_reload)
 {
 
-    vdebug("EMRDb::init_alt()\n");
+    vdebug("EMRDb::init()\n");
 
     ++m_transact_id;
 
-    vector<string> m_rootdirs_copy = m_rootdirs_alt;
+    vector<string> m_rootdirs_copy = m_rootdirs;
     vector<string> dirs_keep;
 
     sort(rootdirs.begin(), rootdirs.end());
@@ -805,8 +806,8 @@ void EMRDb::init(vector<string> rootdirs, vector<bool> dirs_load_on_demand, bool
         }
     }
 
-    m_rootdirs_alt = rootdirs;
-    m_load_on_demand_alt = dirs_load_on_demand;
+    m_rootdirs = rootdirs;
+    m_load_on_demand = dirs_load_on_demand;
 
     if (do_reload)
     {
@@ -836,8 +837,8 @@ void EMRDb::clear(string db_id)
         }
     }
 
-    m_track_list_ts_alt[db_id] = {0, 0};
-    m_track_names_alt[db_id].clear();
+    m_track_list_ts[db_id] = {0, 0};
+    m_track_names[db_id].clear();
 }
 
 void EMRDb::refresh()
@@ -851,8 +852,8 @@ void EMRDb::refresh()
     vdebug("EMRDb::refresh()\n");
     ++m_transact_id;
 
-    for (auto db_id = m_rootdirs_alt.begin(); db_id != m_rootdirs_alt.end(); db_id++){
-        load_track_list_alt(*db_id, NULL);
+    for (auto db_id = m_rootdirs.begin(); db_id != m_rootdirs.end(); db_id++){
+        load_track_list(*db_id, NULL);
     }
 
     load_logical_tracks();
@@ -872,7 +873,7 @@ void EMRDb::reload()
 
     vdebug("EMRDb::reload()\n");
 
-    for (auto db_id = m_rootdirs_alt.begin(); db_id != m_rootdirs_alt.end(); db_id++){
+    for (auto db_id = m_rootdirs.begin(); db_id != m_rootdirs.end(); db_id++){
         create_track_list_file(*db_id, NULL);
         create_tracks_attrs_file(*db_id, false);
     }
@@ -886,7 +887,7 @@ void EMRDb::lock_track_lists(unordered_map<string, BufferedFile> &locks, const c
 {
 
     // TODO Changed locks to be unordered_map, it used to be a list of 2, make sure everything that works with locks still wokrs
-    for (auto db_id = m_rootdirs_alt.begin(); db_id != m_rootdirs_alt.end(); db_id++)
+    for (auto db_id = m_rootdirs.begin(); db_id != m_rootdirs.end(); db_id++)
     {
         lock_track_list(*db_id, locks[*db_id], mode);
     }
@@ -900,7 +901,7 @@ void EMRDb::lock_track_list(string db_id, BufferedFile &lock,
     if (!lock.opened())
     {
 
-        string filename = track_list_filename_alt(db_id);
+        string filename = track_list_filename(db_id);
 
         if (lock.open(filename.c_str(), mode, true))
             verror("Failed to open file %s: %s", filename.c_str(),
@@ -968,7 +969,7 @@ void EMRDb::create_track_list_file(string db_id, BufferedFile *_pbf)
                 track_list.emplace(
                     track_name,
                     TrackInfo(NULL, track_filename(db_id, track_name),
-                              fs.st_mtim, 0));
+                              fs.st_mtim, db_id));
             }
 
             check_interrupt();
@@ -1020,7 +1021,6 @@ void EMRDb::load_track_list(string db_id, BufferedFile &bf)
     load_track_list(db_id, &bf);
 }
 
-//not refactored
 void EMRDb::load_track_list(string db_id, BufferedFile *_pbf)
 {
 
@@ -1102,7 +1102,7 @@ void EMRDb::load_track_list(string db_id, BufferedFile *_pbf)
                              track_name,
                              TrackInfo(NULL,
                                        track_filename(db_id, track_name),
-                                       timestamp, db_id)) //should add here the id_db to the track obj
+                                       timestamp, db_id))
                          .second)
                     break;
 
@@ -1195,14 +1195,15 @@ void EMRDb::load_track_list(string db_id, BufferedFile *_pbf)
 }
 
 
-void EMRDb::load_track(const char *track_name, bool is_global)
+void EMRDb::load_track(const char *track_name, string db_id)
 {
-    string filename = track_filename(is_global, track_name);
+    string filename = track_filename(db_id, track_name);
     Name2Track::iterator itrack = m_tracks.find(track_name);
 
     vdebug("Adding track %s to DB\n", track_name);
+
     if (itrack == m_tracks.end())
-        m_track_names[is_global].push_back(track_name);
+        m_track_names[db_id].push_back(track_name);
     else
     {
         delete itrack->second.track;
@@ -1210,20 +1211,21 @@ void EMRDb::load_track(const char *track_name, bool is_global)
     }
 
     BufferedFile bf;
-    load_track_list(is_global, bf); // lock track list for write
+    load_track_list(db_id, bf); // lock track list for write
 
     EMRTrack *track = EMRTrack::unserialize(track_name, filename.c_str());
     itrack = m_tracks.find(track_name); // search again, load_track_list might
                                         // have loaded this track already
     if (itrack == m_tracks.end())
         m_tracks.emplace(track_name, TrackInfo(track, filename.c_str(),
-                                               track->timestamp(), is_global));
+                                               track->timestamp(), db_id));
     else
         itrack->second =
-            TrackInfo(track, filename.c_str(), track->timestamp(), is_global);
+            TrackInfo(track, filename.c_str(), track->timestamp(), db_id);
 
-    update_track_list_file(m_tracks, is_global, bf);
+    update_track_list_file(m_tracks, db_id, bf);
 }
+
 
 void EMRDb::unload_track(const char *track_name)
 {
@@ -1232,14 +1234,14 @@ void EMRDb::unload_track(const char *track_name)
     if (itrack == m_tracks.end())
         return;
 
-    bool is_global = itrack->second.is_global;
+    string db_id = itrack->second.db_id;
 
     vector<string>::iterator itr =
-        find(m_track_names[is_global].begin(), m_track_names[is_global].end(),
+        find(m_track_names[db_id].begin(), m_track_names[db_id].end(),
              track_name);
-    if (itr != m_track_names[is_global].end())
+    if (itr != m_track_names[db_id].end())
     {
-        m_track_names[is_global].erase(itr);
+        m_track_names[db_id].erase(itr);
         vdebug("Unloaded track %s from memory", track_name);
     }
 
@@ -1247,9 +1249,9 @@ void EMRDb::unload_track(const char *track_name)
     itrack->second.track = NULL;
 
     BufferedFile bf;
-    load_track_list(is_global, bf); // lock track list for write
+    load_track_list(db_id, bf); // lock track list for write
     m_tracks.erase(track_name);
-    update_track_list_file(m_tracks, is_global, bf);
+    update_track_list_file(m_tracks, db_id, bf);
 }
 
 EMRDb::Track2Attrs EMRDb::get_tracks_attrs(const vector<string> &tracks,
