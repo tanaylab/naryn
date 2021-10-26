@@ -714,12 +714,13 @@ void EMRDb::create_ids_file()
 bool EMRDb::rebuild_ids_file_on_dob_change()
 {
     struct stat fs;
-    if (stat((m_rootdirs[1] + "/" + DOB_TRACKNAME + TRACK_FILE_EXT).c_str(),
+
+    if (stat((m_rootdirs[0] + "/" + DOB_TRACKNAME + TRACK_FILE_EXT).c_str(),
              &fs) == -1)
     {
         if (errno == ENOENT)
-            verror("Failed to retrieve ids: '%s' track is missing",
-                   DOB_TRACKNAME);
+            verror("Failed to retrieve ids: '%s' track is missing", DOB_TRACKNAME);
+
         verror("Failed to stat '%s' track: %s", DOB_TRACKNAME, strerror(errno));
     }
 
@@ -848,7 +849,7 @@ void EMRDb::clear(string db_id)
 
 void EMRDb::refresh()
 {
-    if (m_rootdirs[1].empty())
+    if (m_rootdirs[0].empty())
 #ifdef RNARYN
         verror("Database was not loaded. Please call emr_db.init.");
 #else
@@ -869,7 +870,7 @@ void EMRDb::refresh()
 
 void EMRDb::reload()
 {
-    if (m_rootdirs[1].empty())
+    if (m_rootdirs[0].empty())
 #ifdef RNARYN
         verror("Database was not loaded. Please call emr_db.init.");
 #else
