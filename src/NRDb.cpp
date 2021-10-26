@@ -211,12 +211,24 @@ SEXP emr_track_names(SEXP envir) {
 
         SEXP answer;
 
-        rprotect(answer = RSaneAllocVector(
-                     STRSXP, g_db->track_names(true).size() +
-                                 g_db->track_names(false).size()));
+        vector<int> track_names_sizes;
+        vector<string> rootdirs = g_db -> rootdirs();
+
+        for (int db_idx = 0; db_idx < rootdirs.size(); db_idx++) {
+            track_names_sizes.push_back(g_db -> track_names(rootdirs[db_idx]).size());
+        }
+
+        int tracks_size = std::accumulate(track_names_sizes.begin(),
+                                          track_names_sizes.end(), 
+                                          decltype(track_names_sizes)::value_type(0)
+                        )
+
+        rprotect(answer = RSaneAllocVector(STRSXP, tracks_size);
+
         size_t idx = 0;
-        for (int is_global = 0; is_global < 2; ++is_global) {
-            for (auto track_name : g_db->track_names(is_global))
+
+        for (int db_idx = 0; db_idx < rootdirs.size(); db_idx++) {
+            for ( auto track_name : g_db->track_names(rootdirs[db_idx]) )
                 SET_STRING_ELT(answer, idx++, mkChar(track_name.c_str()));
         }
 

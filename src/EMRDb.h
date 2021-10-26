@@ -39,13 +39,14 @@ public:
 
     ~EMRDb();
 
-    const string &grootdir() const { return m_rootdirs[1]; }
+    const string &grootdir() const { return m_rootdirs[0]; }
     const string &urootdir() const { return m_rootdirs[0]; }
 
 	EMRTrack *track(const string &track);
     const EMRLogicalTrack *logical_track(const string &track);
     const TrackInfo *track_info(const string &track);
     const vector<string> &track_names(string db_id) { return m_track_names[db_id]; }
+    const vector<string> &rootdirs() { return m_rootdirs }
     const vector<string> logical_track_names() { 
         vector<string> ltrack_names;
         ltrack_names.reserve(m_logical_tracks.size());
@@ -73,21 +74,16 @@ public:
                LOGICAL_TRACK_FILE_EXT;
     }
 
-    // Sets groot/uroot.
+    // Sets groot/uroot - TODO - not true any more.
     // Loads track list files and tracks (if load_on_demand==false).
     // If track list file is missing => builds it.
     // Removes outdated tracks from the memory.
-    void init(const char *grootdir, const char *urootdir,
-                bool gload_on_demand, bool uload_on_demand, bool do_reload);
 
-    void init_alt(vector<string> rootdirs, vector<bool> dirs_load_on_demand, bool do_reload);
+    void init(vector<string> rootdirs, vector<bool> dirs_load_on_demand, bool do_reload);
 
     // Same as init, but groot/uroot must be set already.
     // Intended to be called at the beginning of each transaction.
     void refresh();
-    // alt
-    void refresh_alt();
-
 
     // Rescans file directory and rebuilds track list file.
     // Loads tracks, if load_on_demand==false.
@@ -96,7 +92,7 @@ public:
     // with the tracks.
     void reload();
 
-    void load_track(const char *track_name, bool is_global);
+    void load_track(const char *track_name, string db_id);
     void unload_track(const char *track_name);
 
     // Add a logical track to the database
@@ -135,6 +131,7 @@ public:
     void ids_subset(vector<unsigned> &ids, const char *src, double fraction, bool complementary);
     bool is_in_subset(unsigned id) const { return m_ids_subset.empty() || m_ids_subset.find(id) != m_ids_subset.end(); }
     void clear_ids_subset(bool warn);
+    int get_db_idx(string db_id);
 
 protected:
 	typedef unordered_map<string, TrackInfo> Name2Track;
@@ -152,25 +149,12 @@ protected:
     Name2Track       m_tracks;
     Name2LogicalTrack m_logical_tracks;
 
-    string m_rootdirs[2]; // 0 - user, 1 - global
-    // bool             m_load_on_demand[2]{ false, false };
-    // struct timespec  m_track_list_ts[2]{{0, 0}, {0, 0}};
-    // struct timespec  m_tracks_attrs_ts[2]{{0, 0}, {0, 0}};
-    // struct timespec  m_logical_tracks_ts{0, 0};
-    // vector<string>   m_track_names[2];
-    // Track2Attrs      m_track2attrs[2];
-
-    // ------------------------------------
-    // New code for multi - db
     vector<string>                              m_rootdirs;
     vector<bool>                                m_load_on_demand;
     unordered_map<string, struct timespec>      m_track_list_ts;
     unordered_map<string, struct timespec>      m_tracks_attrs_ts;
     unordered_map<string, vector<string>>       m_track_names;
     unordered_map<string, Track2Attrs>          m_track2attrs;
-    
-    
-    // ------------------------------------
 
     IdsSubset        m_ids_subset;
     string           m_ids_subset_src;
@@ -195,42 +179,27 @@ protected:
     string ids_filename() const { return m_rootdirs[0] + "/" + IDS_FILENAME; }
 
     
-    // void clear(bool is_global);
 
-    // New code for multi - db
     // clear tracks from irrelevant resources by resource idx
     void clear(string db_id);
-    // -----------
 
     void clear_ids();
 
     void cache_tracks();
 
     // opens and locks track list file according to the mode: "r", "r+", "w"
-    // void lock_track_list(bool is_global, BufferedFile &lock, const char *mode);
-
-    // alt
     void lock_track_list(string db_id, BufferedFile &lock, const char *mode);
 
     // opens and locks track list files (both global and user) according to the mode: "r", "r+", "w"
-    // void lock_track_lists(BufferedFile *locks, const char *mode);
-
-    // alt
     void lock_track_lists(BufferedFile *locks, const char *mode);
 
     // opens and locks logical track list file according to the mode: "r", "r+", "w"
     void lock_logical_track_list(BufferedFile &lock, const char *mode);
 
     // Scans root directory for tracks, creates track list file with the gathered data.
-    // void create_track_list_file(bool is_global, BufferedFile *pbf);
-
-    // alt
     void create_track_list_file(string db_id, BufferedFile *pbf);
 
     // Writes data into track list file.
-    // void update_track_list_file(const Name2Track &tracks, bool is_global, BufferedFile &pbf);
-
-    // alt
     void update_track_list_file(const Name2Track &tracks, string db_id, BufferedFile &pbf);
 
     // Scans logical tracks directory for logical tracks, updates track list file with the gathered data.
@@ -241,36 +210,28 @@ protected:
 
     // Loads track list file. If corrupted or missing, recreates it.
     // Removes outdated tracks from memory.
-    // void load_track_list(bool is_global, BufferedFile *pbf);
-
-    // alt
     void load_track_list(string db_id, BufferedFile *pbf);
 
     // Loads track list before update (opens the file for r+w and locks it).
-    // void load_track_list(bool is_global, BufferedFile &bf);
-
-    // alt
     void load_track_list(string db_id, BufferedFile &bf);
 
     // Loads logical track list
     void load_logical_tracks();
 
     // Scans root directory for tracks attributes, creates tracks attributes file with the gathered data.
-    void create_tracks_attrs_file(bool is_global, bool locked);
+    void create_tracks_attrs_file(string db_id, bool locked);
 
     // Writes data into tracks attributes file.
-    void update_tracks_attrs_file(bool is_global, bool locked);
+    void update_tracks_attrs_file(string db_id, bool locked);
 
     // Loads track attributes file. If corrupted or missing, recreates it.
-    void load_tracks_attrs(bool is_global, bool locked);
+    void load_tracks_attrs(string db_id, bool locked);
 
     void create_ids_file();
     void load_ids();
 
     // Rebuilds ids file if dob track has changed. Returns true if file was rebuilt or false if ids file is up-to-date.
     bool rebuild_ids_file_on_dob_change();
-
-    int get_db_idx(string db_id);
 };
 
 extern EMRDb *g_db;

@@ -10,7 +10,7 @@
 
 extern "C" {
 
-SEXP emr_import(SEXP _track, SEXP _space, SEXP _categorical, SEXP _src, SEXP _add, SEXP _envir)
+SEXP emr_import(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _src, SEXP _add, SEXP _envir)
 {
     try {
         Naryn naryn(_envir);
@@ -22,7 +22,7 @@ SEXP emr_import(SEXP _track, SEXP _space, SEXP _categorical, SEXP _src, SEXP _ad
         string trackname = { CHAR(asChar(_track)) };
         string track_filename;
         bool categorical;
-        bool is_global;
+        string db_id; = { CHAR(asChar(_db_id)) };
         EMRTrackData<float> data;
 
         if (do_add) {
@@ -34,7 +34,7 @@ SEXP emr_import(SEXP _track, SEXP _space, SEXP _categorical, SEXP _src, SEXP _ad
 
             track_filename = track_info->filename;
             categorical = track->is_categorical();
-            is_global = track_info->is_global;
+            db_id = track_info->db_id;
             track->data_recs(data);
         } else {
             if (!isLogical(_categorical) || Rf_length(_categorical) != 1 || asLogical(_categorical) == NA_LOGICAL)
@@ -46,16 +46,9 @@ SEXP emr_import(SEXP _track, SEXP _space, SEXP _categorical, SEXP _src, SEXP _ad
                 verror("'space' argument must be a string");
 
             string space = { CHAR(asChar(_space)) };
-
-            if (space == "global")
-                is_global = true;
-            else {
-                if (space == "user") {
-                    if (g_db->urootdir().empty())
-                        verror("User space root directory is not set");
-                    is_global = false;
-                } else
-                    verror("Invalid value of 'space' argument");
+            
+            if (g_db->get_db_idx(_db_id) == -1) {
+                verror("%s directory is not set", db_id.c_str());
             }
 
             if (g_db->track(trackname))
@@ -63,7 +56,7 @@ SEXP emr_import(SEXP _track, SEXP _space, SEXP _categorical, SEXP _src, SEXP _ad
 
             EMRDb::check_track_name(trackname);
 
-            track_filename = (is_global ? g_db->grootdir() : g_db->urootdir()) + string("/") + trackname + EMRDb::TRACK_FILE_EXT;
+            track_filename = db_id + string("/") + trackname + EMRDb::TRACK_FILE_EXT;
 
             if (access(track_filename.c_str(), F_OK) != -1)
                 verror("File %s already exists", track_filename.c_str());
@@ -133,7 +126,7 @@ SEXP emr_import(SEXP _track, SEXP _space, SEXP _categorical, SEXP _src, SEXP _ad
             FileUtils::move_file(tmp_filename.c_str(), track_filename.c_str());
         } else
             EMRTrack::serialize(track_filename.c_str(), categorical, data);
-        g_db->load_track(trackname.c_str(), is_global);
+        g_db->load_track(trackname.c_str(), db_id);
     } catch (TGLException &e) {
         rerror("%s", e.msg());
     } catch (const bad_alloc &e) {

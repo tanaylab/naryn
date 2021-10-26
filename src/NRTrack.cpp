@@ -20,7 +20,7 @@
 
 extern "C" {
 
-SEXP emr_track_mv(SEXP _srctrack, SEXP _tgttrack, SEXP _space, SEXP _envir)
+SEXP emr_track_mv(SEXP _srctrack, SEXP _tgttrack, SEXP _db_id, SEXP _envir)
 {
 	try {
 		Naryn naryn(_envir);
@@ -38,33 +38,33 @@ SEXP emr_track_mv(SEXP _srctrack, SEXP _tgttrack, SEXP _space, SEXP _envir)
 		const char *src_trackname = CHAR(STRING_ELT(_srctrack, 0));
 		const char *tgt_trackname = CHAR(STRING_ELT(_tgttrack, 0));
         const EMRDb::TrackInfo *src_track_info = g_db->track_info(src_trackname);
-        string space;
+        string db_id;
+        int db_idx;
 
         if (!src_track_info)
             verror("Track %s does not exist", src_trackname);
 
         EMRDb::check_track_name(tgt_trackname);
 
-        if (isNull(_space))
-            space = src_track_info->is_global ? "global" : "user";
+        if (isNull(_db_id))
+            db_id = src_track_info->db_id;
+
         else {
-            space = CHAR(asChar(_space));
-            if (space != "global") {
-                if (space == "user") {
-                    if (g_db->urootdir().empty())
-                        verror("User space root directory is not set");
-                } else
-                    verror("Invalid value of 'space' argument");
+            db_id = CHAR(asChar(_db_id));
+            db_idx = g_db->get_db_idx(_db_id);
+
+            if (db_idx == -1) {
+               verror("%s directory is not set", db_id);
             }
         }
 
         if (strcmp(src_trackname, tgt_trackname)) {
             if (g_db->track_info(tgt_trackname))
-                verror("Track %s already exists", tgt_trackname);
-        } else if ((space == "user") ^ src_track_info->is_global)
+                verror("Track %s already exists", tgt_trackname);  
+        } else if (db_id == src_track_info->db_id)
             verror("Cannot move track '%s' into itself.", src_trackname);
 
-        string tgt_fname = (space == "global" ? g_db->grootdir() : g_db->urootdir()) + string("/") + tgt_trackname + EMRDb::TRACK_FILE_EXT;
+        string tgt_fname = db_id + string("/") + tgt_trackname + EMRDb::TRACK_FILE_EXT;
         vdebug("Moving track file %s to %s\n", src_track_info->filename.c_str(), tgt_fname.c_str());
         FileUtils::move_file(src_track_info->filename.c_str(), tgt_fname.c_str());
 

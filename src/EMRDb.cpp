@@ -745,22 +745,9 @@ bool EMRDb::rebuild_ids_file_on_dob_change()
     return false;
 }
 
-
-
-
-
-
-
-
-
-
-
 // --------------------------------------------------------- //
 //      Big refactor for allowing multiple db connections    //
 // --------------------------------------------------------- //
-
-
-
 
 int EMRDb::get_db_idx(string db_id) {
 
