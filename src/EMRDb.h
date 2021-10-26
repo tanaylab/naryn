@@ -153,22 +153,23 @@ protected:
     unsigned         m_transact_id{1};
     Name2Track       m_tracks;
     Name2LogicalTrack m_logical_tracks;
+
     string m_rootdirs[2]; // 0 - user, 1 - global
-    bool             m_load_on_demand[2]{ false, false };
-    struct timespec  m_track_list_ts[2]{{0, 0}, {0, 0}};
-    struct timespec  m_tracks_attrs_ts[2]{{0, 0}, {0, 0}};
-    struct timespec  m_logical_tracks_ts{0, 0};
-    vector<string>   m_track_names[2];
-    Track2Attrs      m_track2attrs[2];
+    // bool             m_load_on_demand[2]{ false, false };
+    // struct timespec  m_track_list_ts[2]{{0, 0}, {0, 0}};
+    // struct timespec  m_tracks_attrs_ts[2]{{0, 0}, {0, 0}};
+    // struct timespec  m_logical_tracks_ts{0, 0};
+    // vector<string>   m_track_names[2];
+    // Track2Attrs      m_track2attrs[2];
 
     // ------------------------------------
     // New code for multi - db
-    vector<string>                              m_rootdirs_alt;
-    vector<bool>                                m_load_on_demand_alt;
-    unordered_map<string, struct timespec>      m_track_list_ts_alt;
-    unordered_map<string, struct timespec>      m_tracks_attrs_ts_alt;
-    unordered_map<string, vector<string>>       m_track_names_alt;
-    unordered_map<string, Track2Attrs>          m_track2attrs_alt;
+    vector<string>                              m_rootdirs;
+    vector<bool>                                m_load_on_demand;
+    unordered_map<string, struct timespec>      m_track_list_ts;
+    unordered_map<string, struct timespec>      m_tracks_attrs_ts;
+    unordered_map<string, vector<string>>       m_track_names;
+    unordered_map<string, Track2Attrs>          m_track2attrs;
     
     
     // ------------------------------------
@@ -186,17 +187,17 @@ protected:
     size_t           m_num_ids{0};
     Id2Idx           m_id2idx;
 
-    string track_filename(bool is_global, const string &track_name) const { return m_rootdirs[is_global] + string("/") + track_name + TRACK_FILE_EXT; }
-    string track_filename_alt(string db_id, const string &track_name) const { return db_id + string("/") + track_name + TRACK_FILE_EXT; }
+    // string track_filename(bool is_global, const string &track_name) const { return m_rootdirs[is_global] + string("/") + track_name + TRACK_FILE_EXT; }
+    string track_filename(string db_id, const string &track_name) const { return db_id + string("/") + track_name + TRACK_FILE_EXT; }
     string track_attrs_filename(bool is_global, const string &track_name) const { return m_rootdirs[is_global] + string("/.") + track_name + TRACK_ATTRS_FILE_EXT; }
-    string logical_tracks_dir() const { return m_rootdirs[1] + string("/logical"); }    
-    string track_list_filename(bool is_global) const { return m_rootdirs[is_global] + "/" + TRACK_LIST_FILENAME; }
-    string track_list_filename_alt(string db_id) const { return db_id + "/" + TRACK_LIST_FILENAME; }
-    string tracks_attrs_filename(bool is_global) const { return m_rootdirs[is_global] + "/" + TRACKS_ATTRS_FILENAME; }    
+    string logical_tracks_dir() const { return m_rootdirs[0] + string("/logical"); }    
+    // string track_list_filename(bool is_global) const { return m_rootdirs[is_global] + "/" + TRACK_LIST_FILENAME; }
+    string track_list_filename(string db_id) const { return db_id + "/" + TRACK_LIST_FILENAME; }
+    string tracks_attrs_filename(string db_id) const { return db_id + "/" + TRACKS_ATTRS_FILENAME; }    
     string logical_tracks_filename() const {
-        return m_rootdirs[1] + "/" + LOGICAL_TRACKS_FILENAME;
+        return m_rootdirs[0] + "/" + LOGICAL_TRACKS_FILENAME;
     }
-    string ids_filename() const { return m_rootdirs[1] + "/" + IDS_FILENAME; }
+    string ids_filename() const { return m_rootdirs[0] + "/" + IDS_FILENAME; }
 
     
     void clear(bool is_global);
