@@ -767,7 +767,18 @@ bool EMRDb::rebuild_ids_file_on_dob_change()
 
 
 
+int EMRDb::get_db_idx(string db_id) {
 
+    int idx;
+    vector<int>::iterator itr = std::find(m_rootdirs.begin(), m_rootdirs.end(), db_id);
+
+    if (itr != m_rootdirs.cend()) {
+        return distance(m_rootdirs.begin(), itr);
+    }
+
+    return -1;
+    
+}
 
 
 
@@ -883,13 +894,12 @@ void EMRDb::reload()
     refresh();
 }
 
-void EMRDb::lock_track_lists(unordered_map<string, BufferedFile> &locks, const char *mode)
+void EMRDb::lock_track_lists(BufferedFile *locks, const char *mode)
 {
 
     // TODO Changed locks to be unordered_map, it used to be a list of 2, make sure everything that works with locks still wokrs
-    for (auto db_id = m_rootdirs.begin(); db_id != m_rootdirs.end(); db_id++)
-    {
-        lock_track_list(*db_id, locks[*db_id], mode);
+    for (int db_idx = 0; db_idx < m_rootdirs.size(); db_idx++) {
+        lock_track_list(m_rootdirs[db_idx], locks[db_idx], mode);
     }
 }
 
@@ -1258,8 +1268,10 @@ EMRDb::Track2Attrs EMRDb::get_tracks_attrs(const vector<string> &tracks,
                                            vector<string> &attrs)
 {
     Track2Attrs res;
-    bool tracks_attrs_loaded[2] = {false, false};
-    BufferedFile locks[2];
+    
+    vector<bool> tracks_attrs_loaded(m_rootdirs.size())
+    BufferedFile locks[m_rootdirs.size()];
+
     lock_track_lists(locks, "r+");
 
     for (const auto &trackname : tracks)
@@ -1279,15 +1291,17 @@ EMRDb::Track2Attrs EMRDb::get_tracks_attrs(const vector<string> &tracks,
             }
         }
 
-        bool is_global = itrack->second.is_global;
-        if (!tracks_attrs_loaded[is_global])
+        string db_id = itrack->second.db_id
+        bool db_idx = get_db_idx(db_id);
+
+        if (!tracks_attrs_loaded[db_idx])
         {
-            load_tracks_attrs(is_global, true);
-            tracks_attrs_loaded[is_global] = true;
+            load_tracks_attrs(db_id, true);
+            tracks_attrs_loaded[db_idx] = true;
         }
 
-        auto itrack2attrs = m_track2attrs[is_global].find(trackname);
-        if (itrack2attrs != m_track2attrs[is_global].end())
+        auto itrack2attrs = m_track2attrs[db_id].find(trackname);
+        if (itrack2attrs != m_track2attrs[db_id].end())
         {
             if (attrs.empty())
                 res.emplace(trackname, itrack2attrs->second);
@@ -1315,7 +1329,7 @@ EMRDb::Track2Attrs EMRDb::get_tracks_attrs(const vector<string> &tracks,
 void EMRDb::set_track_attr(const char *trackname, const char *attr,
                            const char *val)
 {
-    BufferedFile locks[2];
+    BufferedFile locks[m_rootdirs.size()];
     lock_track_lists(locks, "r+");
 
     Name2Track::iterator itrack = m_tracks.find(trackname);
@@ -1332,11 +1346,18 @@ void EMRDb::set_track_attr(const char *trackname, const char *attr,
             verror("Track %s is a logical track", trackname);
         }
     }
+    
+    string db_id = itrack->second.db_id;
+    int db_idx = get_db_idx(db_id);
+    
+    for (int i=0; i < m_rootdirs.size(); i++) {
+        if (i != db_idx) {
+            locks[i].close(); // release lock for the other spaces
+        }
+    }
 
-    bool is_global = itrack->second.is_global;
-    locks[!is_global].close(); // release lock for the other space
+    string track_attrs_fname(track_attrs_filename(db_id, trackname));
 
-    string track_attrs_fname(track_attrs_filename(is_global, trackname));
     TrackAttrs track_attrs =
         EMRTrack::load_attrs(trackname, track_attrs_fname.c_str());
 

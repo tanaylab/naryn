@@ -187,11 +187,10 @@ protected:
     size_t           m_num_ids{0};
     Id2Idx           m_id2idx;
 
-    // string track_filename(bool is_global, const string &track_name) const { return m_rootdirs[is_global] + string("/") + track_name + TRACK_FILE_EXT; }
+    
     string track_filename(string db_id, const string &track_name) const { return db_id + string("/") + track_name + TRACK_FILE_EXT; }
-    string track_attrs_filename(bool is_global, const string &track_name) const { return m_rootdirs[is_global] + string("/.") + track_name + TRACK_ATTRS_FILE_EXT; }
+    string track_attrs_filename(string db_id, const string &track_name) const { return db_id + string("/.") + track_name + TRACK_ATTRS_FILE_EXT; }
     string logical_tracks_dir() const { return m_rootdirs[0] + string("/logical"); }    
-    // string track_list_filename(bool is_global) const { return m_rootdirs[is_global] + "/" + TRACK_LIST_FILENAME; }
     string track_list_filename(string db_id) const { return db_id + "/" + TRACK_LIST_FILENAME; }
     string tracks_attrs_filename(string db_id) const { return db_id + "/" + TRACKS_ATTRS_FILENAME; }    
     string logical_tracks_filename() const {
@@ -221,7 +220,7 @@ protected:
     // void lock_track_lists(BufferedFile *locks, const char *mode);
 
     // alt
-    void lock_track_lists(unordered_map<string, BufferedFile> &locks, const char *mode);
+    void lock_track_lists(BufferedFile *locks, const char *mode);
 
     // opens and locks logical track list file according to the mode: "r", "r+", "w"
     void lock_logical_track_list(BufferedFile &lock, const char *mode);
@@ -274,6 +273,8 @@ protected:
 
     // Rebuilds ids file if dob track has changed. Returns true if file was rebuilt or false if ids file is up-to-date.
     bool rebuild_ids_file_on_dob_change();
+
+    int get_db_idx(string db_id);
 };
 
 extern EMRDb *g_db;
