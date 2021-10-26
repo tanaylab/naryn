@@ -666,26 +666,23 @@ void EMRDb::create_ids_file()
     {
         vdebug("Creating IDs file\n");
         string filename = ids_filename();
-        fd = creat(filename.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP |
-                                         S_IROTH | S_IWOTH); // rwrwrw
+        fd = creat(filename.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH); // rwrwrw
 
         struct flock fl;
         memset(&fl, 0, sizeof(fl));
         fl.l_type = F_WRLCK;
-        while (fcntl(fd, F_SETLKW, &fl) == -1)
-        {
+        while (fcntl(fd, F_SETLKW, &fl) == -1){
             if (errno != EINTR)
-                verror("Locking file %s: %s", filename.c_str(),
-                       strerror(errno));
+                verror("Locking file %s: %s", filename.c_str(), strerror(errno));
         }
 
         Name2Track::iterator itrack = m_tracks.find(DOB_TRACKNAME);
+
         if (itrack == m_tracks.end())
             verror("Cannot retrieve ids: '%s' track is missing", DOB_TRACKNAME);
 
-        if (!itrack->second.is_global)
-            verror("Cannot retrieve ids: '%s' track is not in the global space",
-                   DOB_TRACKNAME);
+        if (itrack->get_db_idx(second.db_id) != 0)
+            verror("Cannot retrieve ids: '%s' track is not in the global space", DOB_TRACKNAME);
 
         EMRTrack *dob = track(DOB_TRACKNAME);
         const struct timespec &timestamp = dob->timestamp();
@@ -1527,7 +1524,7 @@ void EMRDb::update_tracks_attrs_file(string db_id, bool locked)
         verror("Failed to open file %s: %s", filename.c_str(), strerror(errno));
 
     for (auto const &track2attr : m_track2attrs[db_id]) {
-        
+
         bf.write(track2attr.first.c_str(), track2attr.first.size() + 1); // track name
         
         uint32_t num_attrs = (uint32_t)track2attr.second.size(); // number of attributes

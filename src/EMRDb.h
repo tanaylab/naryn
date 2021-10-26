@@ -191,9 +191,7 @@ protected:
     string logical_tracks_dir() const { return m_rootdirs[0] + string("/logical"); }    
     string track_list_filename(string db_id) const { return db_id + "/" + TRACK_LIST_FILENAME; }
     string tracks_attrs_filename(string db_id) const { return db_id + "/" + TRACKS_ATTRS_FILENAME; }    
-    string logical_tracks_filename() const {
-        return m_rootdirs[0] + "/" + LOGICAL_TRACKS_FILENAME;
-    }
+    string logical_tracks_filename() const { return m_rootdirs[0] + "/" + LOGICAL_TRACKS_FILENAME;}
     string ids_filename() const { return m_rootdirs[0] + "/" + IDS_FILENAME; }
 
     
