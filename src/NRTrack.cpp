@@ -32,8 +32,8 @@ SEXP emr_track_mv(SEXP _srctrack, SEXP _tgttrack, SEXP _db_id, SEXP _envir)
 		if (!isString(_tgttrack) || Rf_length(_tgttrack) != 1)
 			verror("'tgt' argument is not a string");
 
-        if (!isNull(_space) && (!isString(_space) || Rf_length(_space) != 1))
-            verror("'space' must be a string");
+        if (!isNull(_db_id) && (!isString(_db_id) || Rf_length(_db_id) != 1))
+            verror("'db.dir' must be a string");
 
 		const char *src_trackname = CHAR(STRING_ELT(_srctrack, 0));
 		const char *tgt_trackname = CHAR(STRING_ELT(_tgttrack, 0));
@@ -51,7 +51,7 @@ SEXP emr_track_mv(SEXP _srctrack, SEXP _tgttrack, SEXP _db_id, SEXP _envir)
 
         else {
             db_id = CHAR(asChar(_db_id));
-            db_idx = g_db->get_db_idx(_db_id);
+            db_idx = g_db->get_db_idx(db_id);
 
             if (db_idx == -1) {
                verror("%s directory is not set", db_id);
@@ -69,7 +69,7 @@ SEXP emr_track_mv(SEXP _srctrack, SEXP _tgttrack, SEXP _db_id, SEXP _envir)
         FileUtils::move_file(src_track_info->filename.c_str(), tgt_fname.c_str());
 
         g_db->unload_track(src_trackname);
-        g_db->load_track(tgt_trackname, space == "global");
+        g_db->load_track(tgt_trackname, db_id);
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
     } catch (const bad_alloc &e) {

@@ -11,6 +11,7 @@
 #include <iomanip>
 #include <iostream>
 #include <numeric>
+#include <algorithm>
 
 #include "BufferedFile.h"
 #include "EMRProgressReporter.h"
@@ -106,7 +107,7 @@ void EMRDb::cache_tracks()
     progress_length = std::accumulate(track_names_sizes.begin(),
                                       track_names_sizes.end(), 
                                       decltype(track_names_sizes)::value_type(0)
-                        )
+                        );
 
     progress.init(progress_length, 1);
 
@@ -681,7 +682,7 @@ void EMRDb::create_ids_file()
         if (itrack == m_tracks.end())
             verror("Cannot retrieve ids: '%s' track is missing", DOB_TRACKNAME);
 
-        if (itrack->get_db_idx(second.db_id) != 0)
+        if (get_db_idx(itrack->second.db_id) != 0)
             verror("Cannot retrieve ids: '%s' track is not in the global space", DOB_TRACKNAME);
 
         EMRTrack *dob = track(DOB_TRACKNAME);
@@ -752,7 +753,7 @@ bool EMRDb::rebuild_ids_file_on_dob_change()
 int EMRDb::get_db_idx(string db_id) {
 
     int idx;
-    vector<int>::iterator itr = std::find(m_rootdirs.begin(), m_rootdirs.end(), db_id);
+    vector<string>::iterator itr = std::find(m_rootdirs.begin(), m_rootdirs.end(), db_id);
 
     if (itr != m_rootdirs.cend()) {
         return distance(m_rootdirs.begin(), itr);
@@ -1251,7 +1252,7 @@ EMRDb::Track2Attrs EMRDb::get_tracks_attrs(const vector<string> &tracks,
 {
     Track2Attrs res;
     
-    vector<bool> tracks_attrs_loaded(m_rootdirs.size())
+    vector<bool> tracks_attrs_loaded(m_rootdirs.size());
     BufferedFile locks[m_rootdirs.size()];
 
     lock_track_lists(locks, "r+");
@@ -1273,7 +1274,7 @@ EMRDb::Track2Attrs EMRDb::get_tracks_attrs(const vector<string> &tracks,
             }
         }
 
-        string db_id = itrack->second.db_id
+        string db_id = itrack->second.db_id;
         bool db_idx = get_db_idx(db_id);
 
         if (!tracks_attrs_loaded[db_idx])

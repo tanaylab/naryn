@@ -38,15 +38,15 @@ public:
     static const string LOGICAL_TRACK_FILE_EXT;
 
     ~EMRDb();
-
-    const string &grootdir() const { return m_rootdirs[0]; }
-    const string &urootdir() const { return m_rootdirs[0]; }
+    //Only called by NRTest - here for compilation, should be removed
+    const string &grootdir() { return m_rootdirs[0]; }
+    const string &urootdir() { return m_rootdirs[0]; }
 
 	EMRTrack *track(const string &track);
     const EMRLogicalTrack *logical_track(const string &track);
     const TrackInfo *track_info(const string &track);
     const vector<string> &track_names(string db_id) { return m_track_names[db_id]; }
-    const vector<string> &rootdirs() { return m_rootdirs }
+    const vector<string> &rootdirs() { return m_rootdirs; }
     const vector<string> logical_track_names() { 
         vector<string> ltrack_names;
         ltrack_names.reserve(m_logical_tracks.size());
@@ -145,8 +145,9 @@ protected:
     static const char *IDS_FILENAME;
     static const int   IDS_SIGNATURE;
 
-    unsigned         m_transact_id{1};
-    Name2Track       m_tracks;
+    unsigned          m_transact_id{1};
+    Name2Track        m_tracks;
+    struct timespec   m_logical_tracks_ts{0, 0};
     Name2LogicalTrack m_logical_tracks;
 
     vector<string>                              m_rootdirs;
@@ -155,6 +156,7 @@ protected:
     unordered_map<string, struct timespec>      m_tracks_attrs_ts;
     unordered_map<string, vector<string>>       m_track_names;
     unordered_map<string, Track2Attrs>          m_track2attrs;
+    
 
     IdsSubset        m_ids_subset;
     string           m_ids_subset_src;

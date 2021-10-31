@@ -31,7 +31,7 @@ void NRTrackExpressionVars::parse_exprs(const vector<string> &track_exprs, unsig
                    "To continue working with virtual tracks please remove this variable from the environment.");
 
         for (int i = 0; i < Rf_length(roots); ++i) {
-            if (g_db->grootdir() == CHAR(STRING_ELT(roots, i)) || g_db->urootdir() == CHAR(STRING_ELT(roots, i))) {
+            if(count(g_db->rootdirs().begin(), g_db->rootdirs().end(), CHAR(STRING_ELT(roots, i)))){
                 vtracks.push_back(VECTOR_ELT(emr_vtracks, i));
                 SEXP vtracknames = getAttrib(vtracks.back(), R_NamesSymbol);
 
@@ -46,8 +46,8 @@ void NRTrackExpressionVars::parse_exprs(const vector<string> &track_exprs, unsig
 
     for (vector<string>::const_iterator iexpr = track_exprs.begin(); iexpr != track_exprs.end(); ++iexpr) {
         // look for track names
-        for (int is_global = 0; is_global < 2; ++is_global) {
-            for (vector<string>::const_iterator itrack = g_db->track_names(is_global).begin(); itrack < g_db->track_names(is_global).end(); ++itrack) {
+        for (auto db_id = g_db->rootdirs().begin(); db_id != g_db->rootdirs().end(); db_id++) {
+            for (vector<string>::const_iterator itrack = g_db->track_names(*db_id).begin(); itrack < g_db->track_names(*db_id).end(); ++itrack) {
                 size_t pos = 0;
 
                 while ((pos = iexpr->find(*itrack, pos)) != string::npos) {

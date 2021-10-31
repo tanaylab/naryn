@@ -49,7 +49,7 @@ struct LogicalTrackInfo {
 
 extern "C" {
 
-SEXP emr_logical_track_user_info(SEXP _track, SEXP _expr, SEXP _stime, SEXP _etime, SEXP _iterator_policy, SEXP _keepref, SEXP _filter, SEXP _gdir, SEXP _udir, SEXP _dbdirs, SEXP _envir)
+SEXP emr_logical_track_user_info(SEXP _track, SEXP _expr, SEXP _stime, SEXP _etime, SEXP _iterator_policy, SEXP _keepref, SEXP _filter, SEXP _dbdirs, SEXP _envir)
 {
     EMRDb *new_g_db = NULL;
 	try {
@@ -61,11 +61,23 @@ SEXP emr_logical_track_user_info(SEXP _track, SEXP _expr, SEXP _stime, SEXP _eti
         // we create a clean EMRDb instance in order to ignore the current ids subset
         new_g_db = new EMRDb;
 
-        const char *gdirname = CHAR(STRING_ELT(_gdir, 0));
-        const char *udirname = isNull(_udir) ? NULL : CHAR(STRING_ELT(_udir, 0));
-        vector<string> dbdirs;
+        // const char *gdirname = CHAR(STRING_ELT(_gdir, 0));
+        // const char *udirname = isNull(_udir) ? NULL : CHAR(STRING_ELT(_udir, 0));
+        vector<string> dbdirs; 
+        vector<bool> load_on_demand; 
 
-        new_g_db->init(gdirname, udirname, true, true, false);
+        if (!isNull(_dbdirs)) {
+            for (int i = 0; i < Rf_length(_dbdirs); i++){
+                dbdirs.push_back(CHAR(STRING_ELT(_dbdirs, i)));
+            }
+        }
+
+        for (int i = 0; i < Rf_length(_dbdirs); i++){
+                load_on_demand.push_back(1);
+        }
+
+        new_g_db->init(dbdirs, load_on_demand, false);
+
         swap(g_db, new_g_db);
 
         LogicalTrackInfo summary;

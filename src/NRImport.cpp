@@ -18,11 +18,14 @@ SEXP emr_import(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _src, SEXP _ad
         if (!isString(_track) || Rf_length(_track) != 1)
             verror("'track' argument must be a string");
 
+        if (!isString(_db_id) || Rf_length(_db_id) != 1)
+            verror("'db.id' argument must be a string");
+
         bool do_add = asLogical(_add);
         string trackname = { CHAR(asChar(_track)) };
         string track_filename;
         bool categorical;
-        string db_id; = { CHAR(asChar(_db_id)) };
+        string db_id = { CHAR(asChar(_db_id)) };
         EMRTrackData<float> data;
 
         if (do_add) {
@@ -42,12 +45,7 @@ SEXP emr_import(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _src, SEXP _ad
 
             categorical = asLogical(_categorical);
 
-            if (!isString(_space) || Rf_length(_space) != 1)
-                verror("'space' argument must be a string");
-
-            string space = { CHAR(asChar(_space)) };
-            
-            if (g_db->get_db_idx(_db_id) == -1) {
+            if (g_db->get_db_idx(db_id) == -1) {
                 verror("%s directory is not set", db_id.c_str());
             }
 

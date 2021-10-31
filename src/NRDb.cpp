@@ -3,6 +3,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <numeric>
 #include <iostream>
 
 #include "EMRDb.h"
@@ -13,30 +14,36 @@
 
 extern "C" {
 
-SEXP emr_dbinit(SEXP _gdir, SEXP _udir, SEXP _gload_on_demand,
-                SEXP _uload_on_demand, SEXP _do_load, SEXP envir) {
+SEXP emr_dbinit(SEXP _dbdirs, SEXP _load_on_demand, SEXP _do_load, SEXP envir) {
     try {
         Naryn naryn(envir, false);
 
-        if (!isString(_gdir) || Rf_length(_gdir) != 1 ||
-            !isNull(_udir) && (!isString(_udir) || Rf_length(_udir) != 1))
-            verror("'dir' argument is not a string");
-
-        if (!isLogical(_gload_on_demand) || Rf_length(_gload_on_demand) != 1 ||
-            !isLogical(_uload_on_demand) || Rf_length(_uload_on_demand) != 1)
-            verror("'load.on.demand' argument must be a logical value");
-
+        //TODO check that load on demand for only logical values, and dbdirs is only strings
         if (!isLogical(_do_load) || Rf_length(_do_load) != 1)
             verror("'do.reload' argument must be a logical value");
 
-        const char *gdirname = CHAR(STRING_ELT(_gdir, 0));
-        const char *udirname =
-            isNull(_udir) ? NULL : CHAR(STRING_ELT(_udir, 0));
+        if (!(Rf_length(_dbdirs) == Rf_length(_load_on_demand))) {
+            verror("'db.dirs' and 'load.on.demand' arguments must have matching length");
+        }
+
+        vector<string> dbdirs; 
+        vector<bool> load_on_demand; 
+
+        if (!isNull(_dbdirs)) {
+            for (int i = 0; i < Rf_length(_dbdirs); i++){
+                dbdirs.push_back(CHAR(STRING_ELT(_dbdirs, i)));
+            }
+        }
+
+        if (!isNull(_load_on_demand)) {
+            for (int i = 0; i < Rf_length(_load_on_demand); i++){
+                load_on_demand.push_back(asLogical(STRING_ELT(_dbdirs, i)));
+            }
+        }
 
         if (!g_db) g_db = new EMRDb;
 
-        g_db->init(gdirname, udirname, asLogical(_gload_on_demand),
-                   asLogical(_uload_on_demand), asLogical(_do_load));
+        g_db->init(dbdirs, load_on_demand, asLogical(_do_load));
 
     } catch (TGLException &e) {
         delete g_db;
@@ -220,10 +227,9 @@ SEXP emr_track_names(SEXP envir) {
 
         int tracks_size = std::accumulate(track_names_sizes.begin(),
                                           track_names_sizes.end(), 
-                                          decltype(track_names_sizes)::value_type(0)
-                        )
+                                          decltype(track_names_sizes)::value_type(0));
 
-        rprotect(answer = RSaneAllocVector(STRSXP, tracks_size);
+        rprotect(answer = RSaneAllocVector(STRSXP, tracks_size));
 
         size_t idx = 0;
 
@@ -242,53 +248,54 @@ SEXP emr_track_names(SEXP envir) {
     return R_NilValue;
 }
 
-SEXP emr_global_track_names(SEXP envir) {
-    try {
-        Naryn naryn(envir);
+//might be deprecated tdb - maybe one by database id
 
-        SEXP answer;
+// SEXP emr_global_track_names(SEXP envir) {
+//     try {
+//         Naryn naryn(envir);
 
-        rprotect(answer =
-                     RSaneAllocVector(STRSXP, g_db->track_names(true).size()));
-        for (auto itrack_name = g_db->track_names(true).begin();
-             itrack_name < g_db->track_names(true).end(); ++itrack_name)
-            SET_STRING_ELT(answer,
-                           itrack_name - g_db->track_names(true).begin(),
-                           mkChar(itrack_name->c_str()));
+//         SEXP answer;
 
-        return answer;
-    } catch (TGLException &e) {
-        rerror("%s", e.msg());
-    } catch (const bad_alloc &e) {
-        rerror("Out of memory");
-    }
+//         rprotect(answer =
+//                      RSaneAllocVector(STRSXP, g_db->track_names(true).size()));
+//         for (auto itrack_name = g_db->track_names(true).begin();
+//              itrack_name < g_db->track_names(true).end(); ++itrack_name)
+//             SET_STRING_ELT(answer,
+//                            itrack_name - g_db->track_names(true).begin(),
+//                            mkChar(itrack_name->c_str()));
 
-    return R_NilValue;
-}
+//         return answer;
+//     } catch (TGLException &e) {
+//         rerror("%s", e.msg());
+//     } catch (const bad_alloc &e) {
+//         rerror("Out of memory");
+//     }
 
-SEXP emr_user_track_names(SEXP _from, SEXP envir) {
-    try {
-        Naryn naryn(envir);
+//     return R_NilValue;
+// }
 
-        SEXP answer;
+// SEXP emr_user_track_names(SEXP _from, SEXP envir) {
+//     try {
+//         Naryn naryn(envir);
 
-        rprotect(answer =
-                     RSaneAllocVector(STRSXP, g_db->track_names(false).size()));
-        for (auto itrack_name = g_db->track_names(false).begin();
-             itrack_name < g_db->track_names(false).end(); ++itrack_name)
-            SET_STRING_ELT(answer,
-                           itrack_name - g_db->track_names(false).begin(),
-                           mkChar(itrack_name->c_str()));
+//         SEXP answer;
 
-        return answer;
-    } catch (TGLException &e) {
-        rerror("%s", e.msg());
-    } catch (const bad_alloc &e) {
-        rerror("Out of memory");
-    }
+//         rprotect(answer = RSaneAllocVector(STRSXP, g_db->track_names(false).size()));
+//         for (auto itrack_name = g_db->track_names(false).begin();
+//              itrack_name < g_db->track_names(false).end(); ++itrack_name)
+//             SET_STRING_ELT(answer,
+//                            itrack_name - g_db->track_names(false).begin(),
+//                            mkChar(itrack_name->c_str()));
 
-    return R_NilValue;
-}
+//         return answer;
+//     } catch (TGLException &e) {
+//         rerror("%s", e.msg());
+//     } catch (const bad_alloc &e) {
+//         rerror("Out of memory");
+//     }
+
+//     return R_NilValue;
+// }
 
 SEXP emr_logical_track_names(SEXP envir) {
     try {

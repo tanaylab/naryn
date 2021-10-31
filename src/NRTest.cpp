@@ -46,7 +46,7 @@ SEXP test_new_init(SEXP _dbdirs, SEXP _load_on_demand, SEXP _do_load, SEXP envir
 
         if (!g_db) g_db = new EMRDb;
 
-        g_db->init_alt(dbdirs, load_on_demand, asLogical(_do_load));
+        g_db->init(dbdirs, load_on_demand, asLogical(_do_load));
 
     } catch (TGLException &e) {
         delete g_db;
