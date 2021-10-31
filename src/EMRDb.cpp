@@ -164,6 +164,21 @@ void EMRDb::cache_tracks()
 #endif
 }
 
+void EMRDb::lock_logical_track_list(BufferedFile &lock, const char *mode) {
+    vdebug("MODE: %s", mode);
+    if (!lock.opened()) {
+        string filename = logical_tracks_filename();
+        if (lock.open(filename.c_str(), mode, true))
+            verror("Failed to open file %s: %s", filename.c_str(),
+                   strerror(errno));
+        if (!strcmp(mode, "r"))
+            vdebug("R lock acquired for logical tracks file\n");
+        else if (!strcmp(mode, "w"))
+            vdebug("W lock acquired for logical tracks file\n");
+        else
+            vdebug("R/W lock acquired for logical tracks file\n");
+    }
+}
 
 void EMRDb::load_logical_tracks_from_disk()
 {

@@ -859,9 +859,9 @@ emr_track.rm <- function(track, force = F) {
 #' @rdname emr_track.ls
 emr_track.global.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
     .emr_checkroot()
-    tracks <- .emr_call("emr_global_track_names", new.env(parent = parent.frame()), silent = TRUE)
-    logical_tracks <- .emr_call("emr_logical_track_names", new.env(parent = parent.frame()), silent = TRUE)
-    .emr_tracks_filter(..., tracks = sort(c(tracks, logical_tracks)), ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes)
+    # tracks <- .emr_call("emr_global_track_names", new.env(parent = parent.frame()), silent = TRUE)
+    # logical_tracks <- .emr_call("emr_logical_track_names", new.env(parent = parent.frame()), silent = TRUE)
+    # .emr_tracks_filter(..., tracks = sort(c(tracks, logical_tracks)), ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes)
 }
 
 #' emr_track.ls for user db
@@ -869,9 +869,9 @@ emr_track.global.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = 
 #' @export
 #' @rdname emr_track.ls
 emr_track.user.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
-    .emr_checkroot()
-    tracks <- .emr_call("emr_user_track_names", new.env(parent = parent.frame()), silent = TRUE)
-    .emr_tracks_filter(..., tracks = tracks, ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes)
+    # .emr_checkroot()
+    # tracks <- .emr_call("emr_user_track_names", new.env(parent = parent.frame()), silent = TRUE)
+    # .emr_tracks_filter(..., tracks = tracks, ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes)
 }
 
 #' emr_track.ls for logical tracks

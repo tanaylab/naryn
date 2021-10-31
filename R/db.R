@@ -58,10 +58,8 @@ emr_db.connect <- function(db.dirs, load.on.demand=NULL, do.reload=FALSE) {
 #' \tab Root directory of user tracks\cr }
 #'
 #' @aliases emr_db.init emr_db.init_examples
-#' @param global.dir root directory of global tracks
-#' @param user.dir 'NULL' or root directory of user tracks
-#' @param global.load.on.demand see below
-#' @param user.load.on.demand see below
+#' @param db.dirs vector of db directories
+#' @param load.on.demand vector of booleans, same length as db.dirs, if load.on.demand[i] is FALSE, tracks from db.dirs[i] will be pre-loaded
 #' @param do.reload If 'TRUES', rebuilds DB index files
 #' @return None.
 #' @seealso \code{\link{emr_db.reload}}, \code{\link{emr_track.import}},
@@ -70,29 +68,36 @@ emr_db.connect <- function(db.dirs, load.on.demand=NULL, do.reload=FALSE) {
 #' \code{\link{emr_filter.ls}}
 #' @keywords ~db ~data ~database
 #' @export emr_db.init
-emr_db.init <- function(global.dir = NULL, user.dir = NULL, global.load.on.demand = TRUE, user.load.on.demand = TRUE, do.reload = F) {
-    if (is.null(global.dir)) {
-        stop("Usage: emr_db.init(global.dir, user.dir = NULL, global.load.on.demand = T, user.load.on.demand = T, do.reload = F)", call. = FALSE)
+emr_db.init <- function(db.dirs = NULL, load.on.demand = NULL, do.reload = F) {
+
+    if (is.null(db.dirs)) {
+        stop("Usage: emr_db.init(db.dirs, load.on.demand = NULL, do.reload = F)", call. = FALSE)
     }
 
-    global.dir <- normalizePath(global.dir) # get absolute path
+    db.dirs <- normalizePath(db.dirs) # get absolute path
 
-    if (!is.null(user.dir)) {
-        user.dir <- normalizePath(user.dir) # get absolute path
-
-        if (global.dir == user.dir) {
-            stop("Global space root directory should differ from user space root directory", call. = FALSE)
-        }
+    if (length(unique(db.dirs)) != length(db.dirs)) {
+        stop("DB directories should differ from one another", call. = FALSE)
     }
 
-    EMR_GROOT <<- global.dir
-    EMR_UROOT <<- user.dir
+    # We set the groot to be the first
+    # directory in the vector
+    EMR_GROOT <<- db.dirs[1]
 
+    # We set the uroot to be the last
+    if (length(db.dirs) > 1) {
+        EMR_UROOT <<- tail(db.dirs, n=1)
+    }
+
+    if (is.null(load.on.demand)) {
+        load.on.demand <- !logical(length(db.dirs))
+    }
+    
     success <- FALSE
 
     tryCatch(
         {
-            .emr_call("emr_dbinit", global.dir, user.dir, global.load.on.demand, user.load.on.demand, do.reload, new.env(parent = parent.frame()), silent = TRUE)
+            .emr_call("emr_dbinit", db.dirs, load.on.demand, do.reload, new.env(parent = parent.frame()), silent = TRUE)
             success <- TRUE
         },
         finally = {

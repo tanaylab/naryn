@@ -22,7 +22,7 @@ SEXP emr_dbinit(SEXP _dbdirs, SEXP _load_on_demand, SEXP _do_load, SEXP envir) {
         if (!isLogical(_do_load) || Rf_length(_do_load) != 1)
             verror("'do.reload' argument must be a logical value");
 
-        if (!(Rf_length(_dbdirs) == Rf_length(_load_on_demand))) {
+        if (Rf_length(_dbdirs) != Rf_length(_load_on_demand)) {
             verror("'db.dirs' and 'load.on.demand' arguments must have matching length");
         }
 
@@ -247,55 +247,6 @@ SEXP emr_track_names(SEXP envir) {
 
     return R_NilValue;
 }
-
-//might be deprecated tdb - maybe one by database id
-
-// SEXP emr_global_track_names(SEXP envir) {
-//     try {
-//         Naryn naryn(envir);
-
-//         SEXP answer;
-
-//         rprotect(answer =
-//                      RSaneAllocVector(STRSXP, g_db->track_names(true).size()));
-//         for (auto itrack_name = g_db->track_names(true).begin();
-//              itrack_name < g_db->track_names(true).end(); ++itrack_name)
-//             SET_STRING_ELT(answer,
-//                            itrack_name - g_db->track_names(true).begin(),
-//                            mkChar(itrack_name->c_str()));
-
-//         return answer;
-//     } catch (TGLException &e) {
-//         rerror("%s", e.msg());
-//     } catch (const bad_alloc &e) {
-//         rerror("Out of memory");
-//     }
-
-//     return R_NilValue;
-// }
-
-// SEXP emr_user_track_names(SEXP _from, SEXP envir) {
-//     try {
-//         Naryn naryn(envir);
-
-//         SEXP answer;
-
-//         rprotect(answer = RSaneAllocVector(STRSXP, g_db->track_names(false).size()));
-//         for (auto itrack_name = g_db->track_names(false).begin();
-//              itrack_name < g_db->track_names(false).end(); ++itrack_name)
-//             SET_STRING_ELT(answer,
-//                            itrack_name - g_db->track_names(false).begin(),
-//                            mkChar(itrack_name->c_str()));
-
-//         return answer;
-//     } catch (TGLException &e) {
-//         rerror("%s", e.msg());
-//     } catch (const bad_alloc &e) {
-//         rerror("Out of memory");
-//     }
-
-//     return R_NilValue;
-// }
 
 SEXP emr_logical_track_names(SEXP envir) {
     try {
