@@ -103,7 +103,7 @@ emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val =
         stop(sprintf("Virtual track %s already exists", filter), call. = F)
     }
 
-    if (is.character(src) && length(src) == 1 && !is.na(match(src, .emr_call("emr_user_track_names", new.env(parent = parent.frame()), silent = TRUE)))) {
+    if (is.character(src) && length(src) == 1 && !is.na(match(src, .emr_call("emr_track_db_names", EMR_UROOT, new.env(parent = parent.frame()), silent = TRUE)))) {
         root <- get("EMR_UROOT", envir = .GlobalEnv)
     } else {
         root <- get("EMR_GROOT", envir = .GlobalEnv)
@@ -230,7 +230,7 @@ emr_filter.attr.src <- function(filter, src) {
         }
     }
 
-    if (is.character(src) && length(src) == 1 && !is.na(match(src, .emr_call("emr_user_track_names", new.env(parent = parent.frame()), silent = TRUE)))) {
+    if (is.character(src) && length(src) == 1 && !is.na(match(src, .emr_call("emr_track_db_names", EMR_UROOT, new.env(parent = parent.frame()), silent = TRUE)))) {
         root <- get("EMR_UROOT", envir = .GlobalEnv)
     } else {
         root <- get("EMR_GROOT", envir = .GlobalEnv)

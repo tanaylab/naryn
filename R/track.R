@@ -37,12 +37,17 @@
 }
 
 .emr_track.dir <- function(track) {
-    if (is.na(match(track, .emr_call("emr_global_track_names", new.env(parent = parent.frame()), silent = TRUE)))) {
-        dirname <- get("EMR_UROOT", envir = .GlobalEnv)
-    } else {
-        dirname <- get("EMR_GROOT", envir = .GlobalEnv)
-    }
-    dirname
+    # if (is.na(match(track, .emr_call("emr_global_track_names", new.env(parent = parent.frame()), silent = TRUE)))) {
+        # dirname <- get("EMR_UROOT", envir = .GlobalEnv)
+    # } else {
+        # dirname <- get("EMR_GROOT", envir = .GlobalEnv)
+    # }
+    track_path <- emr_track.info(track)$path
+    splitted_path <- stringr::str_split(track_path, "/")[[1]]
+    splitted_path <- head(splitted_path, -1)
+    dir <- paste0(splitted_path, collapse='/')
+
+    return(dir)
 }
 
 .emr_track.filename <- function(track) {
@@ -363,7 +368,15 @@ emr_track.create <- function(track, space, categorical, expr, stime = NULL, etim
         stop(sprintf("Filter %s already exists", track), call. = F)
     }
 
-    .emr_call("emr_track_create", track, space, categorical, expr, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
+    # TODO: change the API to receive a db path
+    # this will require to change all tests
+    if (space == "user"){
+        db_id <- EMR_UROOT
+    } else {
+        db_id <- EMR_GROOT
+    }
+    
+    .emr_call("emr_track_create", track, db_id, categorical, expr, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
     retv <- NULL
 }
 
@@ -475,8 +488,16 @@ emr_track.import <- function(track, space, categorical, src) {
     if (emr_filter.exists(track)) {
         stop(sprintf("Filter %s already exists", track), call. = F)
     }
+    
+    # TODO: change this to get the db_path
+    # from the user
+    if (space == "user"){
+        db_id <- EMR_UROOT
+    } else {
+        db_id <- EMR_GROOT
+    }
 
-    .emr_call("emr_import", track, space, categorical, src, F, new.env(parent = parent.frame()))
+    .emr_call("emr_import", track, db_id, categorical, src, F, new.env(parent = parent.frame()))
 }
 
 
@@ -506,7 +527,7 @@ emr_track.info <- function(track) {
 
     if (is.character(track) && emr_track.logical.exists(track)) {
         ltrack <- emr_track.logical.info(track)
-        .emr_call("emr_logical_track_user_info", track, ltrack$source, NULL, NULL, ltrack$source, TRUE, .emr_filter(create_logical_track_filter(ltrack)), EMR_GROOT, EMR_UROOT, c("/home/gilatb"),  new.env(parent = parent.frame()))
+        .emr_call("emr_logical_track_user_info", track, ltrack$source, NULL, NULL, ltrack$source, TRUE, .emr_filter(create_logical_track_filter(ltrack)), c(EMR_ROOTS), new.env(parent = parent.frame()))
     } else {
         .emr_call("emr_track_info", track, new.env(parent = parent.frame()))
     }
@@ -629,8 +650,19 @@ emr_track.mv <- function(src, tgt, space = NULL) {
         # when moving a physical track we need
         # to move all the ltracks which depend
         # on it
+
+        #TODO change the API to get the db path
+        #from the user
+        if (!is.null(space) && space == "user") {    
+            db_id <- EMR_UROOT
+        } else if (!is.null(space) && space == "global") {
+            db_id <- EMR_GROOT
+        } else {
+            db_id <- NULL
+        }
+
         dependent_ltracks <- get_dependent_ltracks(src)
-        .emr_call("emr_track_mv", src, tgt, space, new.env(parent = parent.frame()))
+        .emr_call("emr_track_mv", src, tgt, db_id, new.env(parent = parent.frame()))
 
         for (ltrack in dependent_ltracks) {
             ltrack_info <- emr_track.logical.info(ltrack)
@@ -859,9 +891,9 @@ emr_track.rm <- function(track, force = F) {
 #' @rdname emr_track.ls
 emr_track.global.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
     .emr_checkroot()
-    # tracks <- .emr_call("emr_global_track_names", new.env(parent = parent.frame()), silent = TRUE)
-    # logical_tracks <- .emr_call("emr_logical_track_names", new.env(parent = parent.frame()), silent = TRUE)
-    # .emr_tracks_filter(..., tracks = sort(c(tracks, logical_tracks)), ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes)
+    tracks <- .emr_call("emr_track_db_names", EMR_GROOT, new.env(parent = parent.frame()), silent = TRUE)
+    logical_tracks <- .emr_call("emr_logical_track_names", new.env(parent = parent.frame()), silent = TRUE)
+    .emr_tracks_filter(..., tracks = sort(c(tracks, logical_tracks)), ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes)
 }
 
 #' emr_track.ls for user db
@@ -869,9 +901,9 @@ emr_track.global.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = 
 #' @export
 #' @rdname emr_track.ls
 emr_track.user.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
-    # .emr_checkroot()
-    # tracks <- .emr_call("emr_user_track_names", new.env(parent = parent.frame()), silent = TRUE)
-    # .emr_tracks_filter(..., tracks = tracks, ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes)
+    .emr_checkroot()
+    tracks <- .emr_call("emr_track_db_names", EMR_UROOT, new.env(parent = parent.frame()), silent = TRUE)
+    .emr_tracks_filter(..., tracks = tracks, ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes)
 }
 
 #' emr_track.ls for logical tracks

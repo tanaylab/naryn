@@ -248,6 +248,30 @@ SEXP emr_track_names(SEXP envir) {
     return R_NilValue;
 }
 
+SEXP emr_track_db_names(SEXP _db_id, SEXP envir) {
+      try {
+        Naryn naryn(envir);
+
+        SEXP answer;
+        string db_id = CHAR(asChar(_db_id));
+
+        rprotect(answer = RSaneAllocVector(STRSXP, g_db->track_names(db_id).size()));
+        for (auto itrack_name = g_db->track_names(db_id).begin();
+             itrack_name < g_db->track_names(db_id).end(); ++itrack_name)
+            SET_STRING_ELT(answer,
+                           itrack_name - g_db->track_names(db_id).begin(),
+                           mkChar(itrack_name->c_str()));
+
+        return answer;
+    } catch (TGLException &e) {
+        rerror("%s", e.msg());
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
+
+    return R_NilValue;
+}
+
 SEXP emr_logical_track_names(SEXP envir) {
     try {
         Naryn naryn(envir);

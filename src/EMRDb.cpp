@@ -801,12 +801,10 @@ void EMRDb::init(vector<string> rootdirs, vector<bool> dirs_load_on_demand, bool
         m_rootdirs_copy.end(),
         back_inserter(dirs_keep));
 
-    for (auto db_id = rootdirs.begin(); db_id != rootdirs.end(); db_id++)
+    for (auto db_id = m_rootdirs.begin(); db_id != m_rootdirs.end(); db_id++)
     {
         //if we dont need the db any more
-        if (count(dirs_keep.begin(), dirs_keep.end(), *db_id) != 1)
-        {
-
+        if (count(dirs_keep.begin(), dirs_keep.end(), *db_id) == 0){
             clear(*db_id);
 
             // TBD - there is no more global? do we have subsets?
@@ -1154,9 +1152,9 @@ void EMRDb::load_track_list(string db_id, BufferedFile *_pbf)
     {
         Name2Track::iterator itrack = m_tracks.find(fresh_track.first);
         if (itrack != m_tracks.end() &&
-            itrack->second.db_id != fresh_track.second.db_id)
-            verror("Track %s appears both in global and user directories",
-                   itrack->first.c_str());
+            itrack->second.db_id != fresh_track.second.db_id){
+            verror("Track %s appears both in global and user directories", itrack->first.c_str());
+    }
     }
 
     // From this point no more errors => time to replace our old list of tracks

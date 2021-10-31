@@ -18,9 +18,6 @@ SEXP emr_import(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _src, SEXP _ad
         if (!isString(_track) || Rf_length(_track) != 1)
             verror("'track' argument must be a string");
 
-        if (!isString(_db_id) || Rf_length(_db_id) != 1)
-            verror("'db.id' argument must be a string");
-
         bool do_add = asLogical(_add);
         string trackname = { CHAR(asChar(_track)) };
         string track_filename;

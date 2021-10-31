@@ -89,6 +89,8 @@ emr_db.init <- function(db.dirs = NULL, load.on.demand = NULL, do.reload = F) {
         EMR_UROOT <<- tail(db.dirs, n=1)
     }
 
+    EMR_ROOTS <<- db.dirs
+
     if (is.null(load.on.demand)) {
         load.on.demand <- !logical(length(db.dirs))
     }
