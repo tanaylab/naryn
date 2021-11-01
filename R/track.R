@@ -37,14 +37,9 @@
 }
 
 .emr_track.dir <- function(track) {
-    # if (is.na(match(track, .emr_call("emr_global_track_names", new.env(parent = parent.frame()), silent = TRUE)))) {
-        # dirname <- get("EMR_UROOT", envir = .GlobalEnv)
-    # } else {
-        # dirname <- get("EMR_GROOT", envir = .GlobalEnv)
-    # }
-    track_path <- emr_track.info(track)$path
+    track_path <- emr_track.info(track)$path #track info holds the path
     splitted_path <- stringr::str_split(track_path, "/")[[1]]
-    splitted_path <- head(splitted_path, -1)
+    splitted_path <- head(splitted_path, -1) #remove the nrtrack suffix
     dir <- paste0(splitted_path, collapse='/')
 
     return(dir)
@@ -662,16 +657,17 @@ emr_track.mv <- function(src, tgt, space = NULL) {
         }
 
         dependent_ltracks <- get_dependent_ltracks(src)
+        dirname1 <- .emr_track.var.dir(src)
+        dirname2 <- .emr_track.pyvar.dir(src)
+
         .emr_call("emr_track_mv", src, tgt, db_id, new.env(parent = parent.frame()))
 
         for (ltrack in dependent_ltracks) {
             ltrack_info <- emr_track.logical.info(ltrack)
             emr_track.logical.rm(ltrack, force = TRUE, rm_vars = FALSE)
             emr_track.logical.create(ltrack, tgt, ltrack_info$values)
-        }
 
-        dirname1 <- .emr_track.var.dir(src)
-        dirname2 <- .emr_track.pyvar.dir(src)
+        }
     }
 
     if (file.exists(dirname1)) {

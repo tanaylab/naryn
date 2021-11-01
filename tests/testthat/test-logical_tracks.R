@@ -1513,7 +1513,6 @@ test_that("emr_track.mv when physical track is moved, all dependent logical are 
 
     emr_track.logical.create("l1", "l1_ph", seq(4, 16, 1))
     emr_track.var.set("l1", "var", 1:10)
-    browser()
     emr_track.mv("l1_ph", "ph_l1")
 
     ltrack_info <- emr_track.logical.info("l1")
