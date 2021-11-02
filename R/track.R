@@ -64,6 +64,18 @@
     unlink(src, recursive = TRUE)
 }
 
+._emr_backward_comp_space <- function(space) {
+    if (!is.null(space) && space == "user"){
+        warning("do not use 'user' as db.id - deprecated")
+        db_id <- EMR_UROOT
+    } else if (!is.null(space) && space == "global"){
+        warning("do not use 'global' as db.id - deprecated")
+        db_id <- EMR_GROOT
+    } else {
+        db_id <- NULL
+    }
+    return(db_id)
+}
 
 
 
@@ -364,12 +376,7 @@ emr_track.create <- function(track, space, categorical, expr, stime = NULL, etim
     }
 
     # TODO: change the API to receive a db path
-    # this will require to change all tests
-    if (space == "user"){
-        db_id <- EMR_UROOT
-    } else {
-        db_id <- EMR_GROOT
-    }
+    db_id <- ._emr_backward_comp_space(space)
     
     .emr_call("emr_track_create", track, db_id, categorical, expr, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
     retv <- NULL
@@ -486,11 +493,7 @@ emr_track.import <- function(track, space, categorical, src) {
     
     # TODO: change this to get the db_path
     # from the user
-    if (space == "user"){
-        db_id <- EMR_UROOT
-    } else {
-        db_id <- EMR_GROOT
-    }
+    db_id <- ._emr_backward_comp_space(space)
 
     .emr_call("emr_import", track, db_id, categorical, src, F, new.env(parent = parent.frame()))
 }
@@ -609,13 +612,11 @@ emr_track.mv <- function(src, tgt, space = NULL) {
     .emr_checkroot()
 
     if (!is.null(space)) {
-        space <- tolower(space)
-        if (emr_track.logical.exists(src) && space == "user") {
-            stop("cannot move logical tracks to user space")
-        }
 
-        if (space == "user" && (!exists("EMR_UROOT", envir = .GlobalEnv) || is.null(get("EMR_UROOT", envir = .GlobalEnv)))) {
-            stop("User space root directory is not set. Please call emr_db.init(user.dir=...)", call. = F)
+        space <- tolower(space)
+
+        if (emr_track.logical.exists(src) && space != EMR_GROOT) {
+            stop("cannot move logical tracks out of global space")
         }
     }
 
@@ -646,15 +647,8 @@ emr_track.mv <- function(src, tgt, space = NULL) {
         # to move all the ltracks which depend
         # on it
 
-        #TODO change the API to get the db path
-        #from the user
-        if (!is.null(space) && space == "user") {    
-            db_id <- EMR_UROOT
-        } else if (!is.null(space) && space == "global") {
-            db_id <- EMR_GROOT
-        } else {
-            db_id <- NULL
-        }
+        #TODO change the API to get the db path from the user
+        db_id <- ._emr_backward_comp_space(space)
 
         dependent_ltracks <- get_dependent_ltracks(src)
         dirname1 <- .emr_track.var.dir(src)

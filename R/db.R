@@ -1,13 +1,3 @@
-
-emr_db.connect <- function(db.dirs, load.on.demand=NULL, do.reload=FALSE) {
-
-    if (is.null(load.on.demand)) {
-        load.on.demand <- !logical(length(db.dirs))
-    }
-
-    .emr_call("test_new_init", db.dirs, load.on.demand, do.reload, new.env(parent = parent.frame()), silent = TRUE)
-}
-
 #' Initializes connection with Naryn Database
 #'
 #' Initializes connection with Naryn Database.
