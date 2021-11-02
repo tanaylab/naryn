@@ -1211,6 +1211,22 @@ test_that("emr_filter.create works as expected", {
     expect_equal(filter_info$val, c(17))
 })
 
+test_that("emr_filter.create works when logical tracks are without values", {
+    EMR_FILTERS <<- list()
+    withr::defer(clean_logical_tracks())
+    emr_track.logical.create("ltrack", "ph1")
+
+    emr_filter.create("f1", src = "ltrack", keepref = TRUE)
+    emr_filter.create("p1", src = "ph1", keepref = TRUE)
+    filter_info <- emr_filter.info("f1")
+    expect_null(filter_info$val)
+
+    a <- emr_extract("ph1", filter = "f1", keepref = TRUE)
+    b <- emr_extract("ph1", filter = "p1", keepref = TRUE)
+    expect_equal(a, b)
+})
+
+
 test_that("emr_filter.create works on logical track", {
     EMR_FILTERS <<- list()
     withr::defer(clean_logical_tracks())
