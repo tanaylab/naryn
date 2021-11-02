@@ -29,6 +29,23 @@ test_that("emr_track.logical.create tracks works", {
     expect_false(emr_track.logical.exists("track1"))
 })
 
+test_that("emr_track.logical.create tracks works in batch mode", {
+    withr::defer(clean_logical_tracks())
+    tracks <- c("logical_track1", "logical_track2", "logical_track3")
+    sources <- c(rep("ph1", 2), "physical_track_subset_15")
+    values <- list(
+        c(11, 12),
+        16:19,
+        15
+    )
+
+    emr_track.logical.create(tracks, sources, values)
+
+    purrr::pwalk(list(tracks, sources, values), function(tr, sr, v) {
+        logical_track_ok(tr, sr, v)
+    })
+})
+
 test_that("emr_track.logical.create tracks works with integer values", {
     withr::defer(clean_logical_tracks())
 

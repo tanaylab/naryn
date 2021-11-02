@@ -18,12 +18,17 @@ extern "C" {
 // an EMRLogicalTrack object (m_logical_tracks).
 // In addition - we save the names of all logical tracks as a vector of
 // strings at m_logical_track_names;
-SEXP emr_create_logical(SEXP _track, SEXP _src, SEXP _values, SEXP _envir) {
+SEXP emr_create_logical(SEXP _track, SEXP _src, SEXP _values,
+                        SEXP _update, SEXP _envir) {
     try {
-        Naryn naryn(_envir);
+        Naryn naryn(_envir, asLogical(_update));
 
         if (!isString(_track) || Rf_length(_track) != 1)
             verror("'track' argument must be a string");
+
+        if (!isLogical(_update)){
+            verror("update argument must be a logical value");
+        }
 
         string sourcename = {CHAR(asChar(_src))};
         EMRTrack *source_track = g_db->track(sourcename);
@@ -47,7 +52,8 @@ SEXP emr_create_logical(SEXP _track, SEXP _src, SEXP _values, SEXP _envir) {
         }
 
         if (isNull(_values) || g_db->track(trackname)){ // no values
-            g_db->add_logical_track(trackname.c_str(), sourcename.c_str(),     true);
+            g_db->add_logical_track(trackname.c_str(), sourcename.c_str(), 
+                                    true, asLogical(_update));
         } else {
             int num_values = Rf_length(_values);
             vector<int> values(num_values);
@@ -66,9 +72,23 @@ SEXP emr_create_logical(SEXP _track, SEXP _src, SEXP _values, SEXP _envir) {
                     vdebug("%d ", *i);
             }
 
-            g_db->add_logical_track(trackname.c_str(), sourcename.c_str(), values, true);
+            g_db->add_logical_track(trackname.c_str(), sourcename.c_str(),
+                                    values, true, asLogical(_update));
         }
 
+    } catch (TGLException &e) {
+        rerror("%s", e.msg());
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
+
+    rreturn(R_NilValue);
+}
+
+SEXP update_logical_tracks_file(SEXP _envir) {
+    try {
+        Naryn naryn(_envir, false);
+        g_db->update_logical_tracks_file();        
     } catch (TGLException &e) {
         rerror("%s", e.msg());
     } catch (const bad_alloc &e) {

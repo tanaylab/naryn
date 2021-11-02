@@ -97,14 +97,19 @@ public:
 
     // Add a logical track to the database
     void add_logical_track(const char *track_name, const char *source_name,
-                            const vector<int> &values, bool update);
+                           const vector<int> &values,
+                           bool create_file, bool update);
     void add_logical_track(const char *track_name, const char *source_name,
-                            bool update);
+                            bool create_file, bool update);
 
     void remove_logical_track(const char *track_name, bool update);
 
     // clear loaded logical tracks
     void clear_logical_tracks();
+
+    // Writes the logical track list file. If the file doesn't exist - recreates
+    // it.
+    void update_logical_tracks_file();
 
     // Returns tracks attributes.
     // Prefer this method over EMRTrack::load_attrs as the current method
@@ -199,9 +204,6 @@ protected:
 
     // Scans logical tracks directory for logical tracks, updates track list file with the gathered data.
     void load_logical_tracks_from_disk();
-
-    // Writes the logical track list file. If the file doesn't exist - recreates it. 
-    void update_logical_tracks_file();
 
     // Loads track list file. If corrupted or missing, recreates it.
     // Removes outdated tracks from memory.
