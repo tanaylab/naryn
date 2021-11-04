@@ -46,6 +46,22 @@ test_that("emr_track.logical.create tracks works in batch mode", {
     })
 })
 
+test_that("emr_track.logical.create fails when track length do not equal names length", {
+    expect_error(emr_track.logical.create(c("a", "b"), c("ph1")))
+})
+
+test_that("emr_track.logical.create fails when track length do not equal values length", {
+    expect_error(emr_track.logical.create(c("a", "b"), c("ph1", "ph1"), values = list(c(15, 16))))
+})
+
+test_that("emr_track.logical.create fails when values is not a list", {
+    expect_error(emr_track.logical.create(c("a", "b"), c("ph1", "ph1"), values = c(15, 16)))
+})
+
+test_that("emr_track.logical.create fails when there are duplicated tracks", {
+    expect_error(emr_track.logical.create(c("a", "a"), c("ph1", "ph1")))
+})
+
 test_that("emr_track.logical.create tracks works with integer values", {
     withr::defer(clean_logical_tracks())
 

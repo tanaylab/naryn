@@ -42,6 +42,11 @@
 #' @export emr_track.logical.create
 emr_track.logical.create <- function(track, src, values = NULL) {
     .emr_checkroot()
+    dups <- duplicated(track)
+    if (any(dups)) {
+        stop("The following tracks appear more than once: ", paste(unique(track[dups]), collapse = ", "))
+    }
+
     if (length(track) != length(src)) {
         stop("Number of tracks is not equal to the number of sources")
     }
