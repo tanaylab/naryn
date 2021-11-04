@@ -29,6 +29,39 @@ test_that("emr_track.logical.create tracks works", {
     expect_false(emr_track.logical.exists("track1"))
 })
 
+test_that("emr_track.logical.create tracks works in batch mode", {
+    withr::defer(clean_logical_tracks())
+    tracks <- c("logical_track1", "logical_track2", "logical_track3")
+    sources <- c(rep("ph1", 2), "physical_track_subset_15")
+    values <- list(
+        c(11, 12),
+        16:19,
+        15
+    )
+
+    emr_track.logical.create(tracks, sources, values)
+
+    purrr::pwalk(list(tracks, sources, values), function(tr, sr, v) {
+        logical_track_ok(tr, sr, v)
+    })
+})
+
+test_that("emr_track.logical.create fails when track length do not equal names length", {
+    expect_error(emr_track.logical.create(c("a", "b"), c("ph1")))
+})
+
+test_that("emr_track.logical.create fails when track length do not equal values length", {
+    expect_error(emr_track.logical.create(c("a", "b"), c("ph1", "ph1"), values = list(c(15, 16))))
+})
+
+test_that("emr_track.logical.create fails when values is not a list", {
+    expect_error(emr_track.logical.create(c("a", "b"), c("ph1", "ph1"), values = c(15, 16)))
+})
+
+test_that("emr_track.logical.create fails when there are duplicated tracks", {
+    expect_error(emr_track.logical.create(c("a", "a"), c("ph1", "ph1")))
+})
+
 test_that("emr_track.logical.create tracks works with integer values", {
     withr::defer(clean_logical_tracks())
 
@@ -119,6 +152,23 @@ test_that("emr_track.logical.rm works ", {
 
     expect_error(emr_track.logical.info("logical_track_test"))
     expect_error(emr_track.logical.info("logical_track_test_numeric"))
+})
+
+test_that("emr_track.logical.rm works in batch mode", {
+    withr::defer(clean_logical_tracks())
+    ltracks <- paste0("ltrack", 1:10)
+    purrr::walk(ltracks, emr_track.logical.create, "ph1", c(15, 16))
+
+    emr_track.logical.rm(ltracks, force = TRUE)
+    purrr::walk(ltracks, ~ {
+        expect_false(.x %in% emr_track.logical.ls())
+        expect_false(.x %in% emr_track.ls())
+        expect_false(.x %in% emr_track.global.ls())
+        expect_false(file.exists(logical_track_path(.x)))
+        expect_false(emr_track.exists(.x))
+        expect_error(emr_extract(.x))
+        expect_error(emr_track.logical.info(.x))
+    })
 })
 
 test_that("emr_track.logical.rm fails when track doesn't exist ", {

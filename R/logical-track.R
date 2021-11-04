@@ -23,28 +23,49 @@
 #' in the global space.
 #'
 #'
-#' @param track the name of the newly created logical track
-#' @param src name of the physical track
-#' @param values vector of selected values
+#'
+#' @param track one or more names of the newly created logical tracks.
+#' @param src name of the physical tracks for each logical \code{track}
+#' @param values vector of selected values. When creating multiple logical tracks at once
+#' - \code{values} should be a list of vectors (with one vector of values for each logical track).
 #' @return None.
+#'
+#' @examples
+#' \dontrun{
+#' emr_track.logical.create("logical_track", "categorical_track", values = c(2, 3))
+#'
+#' # multiple tracks
+#' emr_track.logical.create(c("logical_track1", "logical_track2"), rep("categorical_track", 2), values = list(c(2, 3), c(1, 4)))
+#' }
 #'
 #' @keywords ~track ~create_logical
 #' @export emr_track.logical.create
 emr_track.logical.create <- function(track, src, values = NULL) {
     .emr_checkroot()
-    .emr_call("emr_create_logical", track, src, values, new.env(parent = parent.frame()), silent = TRUE)
+    dups <- duplicated(track)
+    if (any(dups)) {
+        stop("The following tracks appear more than once: ", paste(unique(track[dups]), collapse = ", "))
+    }
+
+    if (length(track) != length(src)) {
+        stop("Number of tracks is not equal to the number of sources")
+    }
+
+    if (length(track) > 1) {
+        stopifnot(is.list(values))
+        if (length(track) != length(values)) {
+            stop("Number of tracks is not equal to the number of entries in the values list")
+        }
+        purrr::pwalk(list(track, src, values), function(tr, sr, v) {
+            .emr_call("emr_create_logical", tr, sr, v, FALSE, new.env(parent = parent.frame()), silent = TRUE)
+        })
+        .emr_call("update_logical_tracks_file", new.env(parent = parent.frame()), silent = TRUE)
+    } else {
+        .emr_call("emr_create_logical", track, src, values, TRUE, new.env(parent = parent.frame()), silent = TRUE)
+    }
 }
 
-#' Deletes a logical track
-#'
-#' @param track the name of the newly created logical track
-#' @param force if 'TRUE', supresses user confirmation of a named track removal
-#' @return None.
-#'
-#' @keywords ~track ~create_logical
-#' @export emr_track.logical.create
-emr_track.logical.rm <- function(track, force = FALSE, rm_vars = TRUE) {
-    .emr_checkroot()
+remove_logical_track <- function(track, force, rm_vars, update) {
     if (!emr_track.exists(track)) {
         if (force) {
             return(invisible())
@@ -68,7 +89,7 @@ emr_track.logical.rm <- function(track, force = FALSE, rm_vars = TRUE) {
     if (answer == "Y" || answer == "YES") {
         dirname1 <- .emr_track.logical.var.dir(track)
         dirname2 <- .emr_track.logical.pyvar.dir(track)
-        .emr_call("emr_remove_logical", track, new.env(parent = parent.frame()), silent = TRUE)
+        .emr_call("emr_remove_logical", track, update, new.env(parent = parent.frame()), silent = TRUE)
 
         if (rm_vars && file.exists(dirname1)) {
             unlink(dirname1, recursive = TRUE)
@@ -77,6 +98,24 @@ emr_track.logical.rm <- function(track, force = FALSE, rm_vars = TRUE) {
         if (rm_vars && file.exists(dirname2)) {
             unlink(dirname2, recursive = TRUE)
         }
+    }
+}
+
+#' Deletes a logical track
+#'
+#' @param track the name of one or more tracks to delete
+#' @param force if 'TRUE', supresses user confirmation of a named track removal
+#' @return None.
+#'
+#' @keywords ~track ~create_logical
+#' @export emr_track.logical.create
+emr_track.logical.rm <- function(track, force = FALSE, rm_vars = TRUE) {
+    .emr_checkroot()
+    if (length(track) > 1) {
+        purrr::walk(track, remove_logical_track, force = force, rm_vars = rm_vars, update = FALSE)
+        .emr_call("update_logical_tracks_file", new.env(parent = parent.frame()), silent = TRUE)
+    } else {
+        remove_logical_track(track, force = force, rm_vars = rm_vars, update = TRUE)
     }
 }
 

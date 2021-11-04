@@ -4,10 +4,10 @@
 \alias{emr_track.logical.rm}
 \title{Deletes a logical track}
 \usage{
-emr_track.logical.rm(track, force = FALSE)
+emr_track.logical.rm(track, force = FALSE, rm_vars = TRUE)
 }
 \arguments{
-\item{track}{the name of the newly created logical track}
+\item{track}{the name of one or more tracks to delete}
 
 \item{force}{if 'TRUE', supresses user confirmation of a named track removal}
 }
