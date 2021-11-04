@@ -98,9 +98,9 @@ SEXP update_logical_tracks_file(SEXP _envir) {
     rreturn(R_NilValue);
 }
 
-SEXP emr_remove_logical(SEXP _track, SEXP _envir) {
+SEXP emr_remove_logical(SEXP _track, SEXP _update, SEXP _envir) {
     try {
-        Naryn naryn(_envir);
+        Naryn naryn(_envir, asLogical(_update));
 
         if (!isString(_track) || Rf_length(_track) != 1)
             verror("'track' argument must be a string");
@@ -115,7 +115,7 @@ SEXP emr_remove_logical(SEXP _track, SEXP _envir) {
                    trackname.c_str());
         }
 
-        g_db->remove_logical_track(trackname.c_str(), true);
+        g_db->remove_logical_track(trackname.c_str(), asLogical(_update));
         vdebug("Removed logical track: %s", trackname.c_str());
 
     } catch (TGLException &e) {

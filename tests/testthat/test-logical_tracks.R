@@ -138,6 +138,23 @@ test_that("emr_track.logical.rm works ", {
     expect_error(emr_track.logical.info("logical_track_test_numeric"))
 })
 
+test_that("emr_track.logical.rm works in batch mode", {
+    withr::defer(clean_logical_tracks())
+    ltracks <- paste0("ltrack", 1:10)
+    purrr::walk(ltracks, emr_track.logical.create, "ph1", c(15, 16))
+
+    emr_track.logical.rm(ltracks, force = TRUE)
+    purrr::walk(ltracks, ~ {
+        expect_false(.x %in% emr_track.logical.ls())
+        expect_false(.x %in% emr_track.ls())
+        expect_false(.x %in% emr_track.global.ls())
+        expect_false(file.exists(logical_track_path(.x)))
+        expect_false(emr_track.exists(.x))
+        expect_error(emr_extract(.x))
+        expect_error(emr_track.logical.info(.x))
+    })
+})
+
 test_that("emr_track.logical.rm fails when track doesn't exist ", {
     expect_error(emr_track.logical.rm("blahblahblah"))
 })
