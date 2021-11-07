@@ -138,7 +138,7 @@ test_that("logical tracks creation persists between R sessions", {
     res <- callr::r(
         function(root) {
             devtools::load_all()
-            emr_db.init(db.dirs = root)
+            emr_db.connect(db.dirs = root)
             return(emr_track.logical.ls())
         },
         args = list(root = EMR_GROOT)
@@ -151,7 +151,7 @@ test_that("logical tracks creation persists between R sessions for existing sess
     callr::r(
         function(root) {
             devtools::load_all()
-            emr_db.init(db.dirs = root)
+            emr_db.connect(db.dirs = root)
             emr_track.logical.create("logical_track_test1", "ph1", c(15, 16))
             emr_track.logical.create("logical_track_test2", "ph1")
             emr_track.logical.create("logical_track_test_numeric", "track0")
@@ -177,7 +177,7 @@ test_that("logical tracks creation persists between R sessions", {
     res <- callr::r(
         function(root) {
             devtools::load_all()
-            emr_db.init(db.dirs = root)
+            emr_db.connect(db.dirs = root)
             return(emr_track.logical.ls())
         },
         args = list(root = EMR_GROOT)
@@ -192,7 +192,7 @@ test_that("logical tracks deletion persists between R sessions for existing sess
     res <- callr::r(
         function(root) {
             devtools::load_all()
-            emr_db.init(db.dirs = root)
+            emr_db.connect(db.dirs = root)
             emr_track.logical.rm("logical_track_test1", force = TRUE)
         },
         args = list(root = EMR_GROOT)

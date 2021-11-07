@@ -65,14 +65,28 @@
 }
 
 ._emr_backward_comp_space <- function(space) {
-    if (!is.null(space) && space == "user"){
+    if (is.null(space)){
+        return(NULL)
+    }
+
+    #if space is a db path as it should be
+    #we do not want to lower case it, so 
+    #using a temp param
+    lspace <- tolower(space)
+
+    if (lspace == "user"){
         warning("do not use 'user' as db.id - deprecated")
+
+        if ((!exists("EMR_UROOT", envir = .GlobalEnv) || is.null(get("EMR_UROOT", envir = .GlobalEnv)))) {
+            stop("User space root directory is not set. Please call see emr_db.connect", call. = F)
+        }
+
         db_id <- EMR_UROOT
-    } else if (!is.null(space) && space == "global"){
+    } else if (lspace == "global"){
         warning("do not use 'global' as db.id - deprecated")
         db_id <- EMR_GROOT
     } else {
-        db_id <- NULL
+        db_id <- space
     }
     return(db_id)
 }
@@ -334,10 +348,10 @@ emr_track.attr.set <- function(track = NULL, attr = NULL, value = NULL) {
 #'
 #' This function creates a new user or global track based on the values from
 #' the track expression. The location of the track is controlled via 'space'
-#' parameter which can be either "user" or to "global".
+#' parameter which can be anyone of the db.dirs supplied in emr_db.connect
 #'
 #' @param track the name of the newly created track
-#' @param space "user" or "global" space
+#' @param space db path, one of the paths supplied in emr_db.connect (still support "space"/"global")
 #' @param categorical if 'TRUE' track is marked as categorical
 #' @param expr track expression
 #' @param stime start time scope
@@ -354,14 +368,9 @@ emr_track.attr.set <- function(track = NULL, attr = NULL, value = NULL) {
 #' @export emr_track.create
 emr_track.create <- function(track, space, categorical, expr, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL) {
     if (missing(track) || missing(space) || missing(categorical) || missing(expr)) {
-        stop("Usage: emr_track.create(track, space = \"user\", categorical, expr, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
+        stop("Usage: emr_track.create(track, space = EMR_GROOT, categorical, expr, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
     }
     .emr_checkroot()
-
-    space <- tolower(space)
-    if (space == "user" && (!exists("EMR_UROOT", envir = .GlobalEnv) || is.null(get("EMR_UROOT", envir = .GlobalEnv)))) {
-        stop("User space root directory is not set. Please call emr_db.init(user.dir=...)", call. = F)
-    }
 
     if (emr_track.exists(track)) {
         stop(sprintf("Track %s already exists", track), call. = F)
@@ -447,9 +456,9 @@ emr_track.ids <- function(track) {
 #'
 #' Imports a track from a file or data-frame.
 #'
-#' This function creates a new track from a text file or a data-frame. The
-#' location of the track is controlled via 'space' parameter which can be
-#' either "user" or to "global".
+#' This function creates a new track from a text file or a data-frame. 
+#' The location of the track is controlled via 'space' parameter which
+#' can be anyone of the db.dirs supplied in emr_db.connect.
 #'
 #' If 'src' is a file name, the latter must be constituted of four columns
 #' separated by spaces or 'TAB' characters: ID, time, reference and value. The
@@ -463,7 +472,7 @@ emr_track.ids <- function(track) {
 #' (see "User Manual" for more info).
 #'
 #' @param track the name of the newly created track
-#' @param space "user" or "global" space
+#' @param space db path, one of the paths supplied in emr_db.connect (still support "space"/"global")
 #' @param categorical if 'TRUE' track is marked as categorical
 #' @param src file name or data-frame containing the track records
 #' @return None.
@@ -599,7 +608,7 @@ emr_track.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE, 
 #'
 #' @param src source track name
 #' @param tgt target track name
-#' @param space "global" or "user" or 'NULL'
+#' @param space db path, one of the paths supplied in emr_db.connect or NULL(still support "space"/"global")
 #' @return None.
 #' @seealso \code{\link{emr_track.create}}, \code{\link{emr_track.rm}},
 #' \code{\link{emr_track.ls}}

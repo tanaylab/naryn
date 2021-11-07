@@ -1,16 +1,42 @@
+#' Deprecated - please user emr_db.connect
+#' 
+#' @export emr_db.init
+emr_db.init <- function(global.dir = NULL, user.dir = NULL, global.load.on.demand = T, user.load.on.demand = T, do.reload = F) {
+    db.dirs <- c(global.dir, user.dir)
+
+    if (is.null(user.dir)) {
+        load.on.demand <- c(global.load.on.demand)    
+    } else {
+        load.on.demand <- c(global.load.on.demand, user.load.on.demand)    
+    }
+
+    emr_db.connect(db.dirs=db.dirs, load.on.demand=load.on.demand, do.reload=do.reload)
+}
+
 #' Initializes connection with Naryn Database
 #'
 #' Initializes connection with Naryn Database.
 #'
-#' 'emr_db.init' initializes the connection with Naryn Database facilitating
-#' tracks access. 'global.dir' marks the root directory of the global tracks.
-#' 'user.dir' parameter specifies the directory of the user tracks. Unlike
+#' 'emr_db.connect' initializes the connection with Naryn Database facilitating
+#' tracks access. The first db in the db.dirs vector is seen as the Global DB 
+#' and as the root directory of the global tracks. The last db in the db.dirs
+#' is seed as the User DB and the directory of the user's tracks. Unlike
 #' global tracks user tracks may be deleted ('emr_track.rm') or new ones can be
-#' created ('emr_track.create'). 'user.dir' can be 'NULL', in which case
-#' operations on user tracks will be disabled.
+#' created ('emr_track.create'). User db is not required, in which case
+#' operations on user tracks will be disabled. Any other db in the db.dirs
+#' vector is seen as an extention to the global tracks, the permissions
+#' of these extentions are up to the user.
+#' 
+#' Overriding mechanism: 
+#' 
+#' The order of the dirs in the db.dirs vector sets their namespace priority.
+#' This means that when a track with the same name appears in two or more
+#' db.dirs, the considered track will be the one from the db.dir with the 
+#' higher position in the vector. When an overriding track is removed, naryn
+#' will update the track list such that the once overridden track will be available
 #'
 #' When the package is attached it internally calls 'emr_db.init_examples'
-#' which sets 'global.dir' to 'PKGDIR/naryndb/test' and 'user.dir' to NULL
+#' which sets Global DB to 'PKGDIR/naryndb/test' and Global DB to NULL
 #' ('PKGDIR' is the directory where the package is installed).
 #'
 #' Physical files in the database are supposed to be managed exclusively by
@@ -44,8 +70,11 @@
 #' global variables are added to the environment. These variables should not be
 #' modified by the user!
 #'
-#' \tabular{ll}{ EMR_GROOT \tab Root directory of global tracks\cr EMR_UROOT
-#' \tab Root directory of user tracks\cr }
+#' \tabular{lll}{ 
+#' EMR_GROOT \tab Root directory of global tracks \cr 
+#' EMR_UROOT \tab Root directory of user tracks \cr 
+#' EMR_ROOTS \tab Vector of directories (db.dirs) \cr 
+#' }
 #'
 #' @aliases emr_db.init emr_db.init_examples
 #' @param db.dirs vector of db directories
@@ -57,9 +86,9 @@
 #' \code{\link{emr_track.ls}}, \code{\link{emr_vtrack.ls}},
 #' \code{\link{emr_filter.ls}}
 #' @keywords ~db ~data ~database
-#' @export emr_db.init
-emr_db.init <- function(db.dirs = NULL, load.on.demand = NULL, do.reload = F) {
+#' @export emr_db.connect
 
+emr_db.connect <- function(db.dirs = NULL, load.on.demand = NULL, do.reload = F){
     if (is.null(db.dirs)) {
         stop("Usage: emr_db.init(db.dirs, load.on.demand = NULL, do.reload = F)", call. = FALSE)
     }
@@ -106,6 +135,7 @@ emr_db.init <- function(db.dirs = NULL, load.on.demand = NULL, do.reload = F) {
     )
     retv <- NULL
 }
+
 
 emr_db.init_examples <- function() {
     emr_db.init(system.file("naryndb/test", package = "naryn"))
