@@ -558,8 +558,6 @@ void EMRDb::clear_ids() {
 
 void EMRDb::load_ids() {
 
-    std::cout << "LOADING IDS \n";
-
     int fd = -1;
 
     try
