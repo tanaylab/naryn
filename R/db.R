@@ -70,6 +70,10 @@ emr_db.init <- function(db.dirs = NULL, load.on.demand = NULL, do.reload = F) {
         stop("DB directories should differ from one another", call. = FALSE)
     }
 
+    if (!is.null(load.on.demand) && (length(db.dirs) != length(load.on.demand))) {
+        stop("load.on.demand must be in the same length of db.dirs", call. = FALSE)
+    }
+
     # We set the groot to be the first
     # directory in the vector
     EMR_GROOT <<- db.dirs[1]
@@ -96,6 +100,7 @@ emr_db.init <- function(db.dirs = NULL, load.on.demand = NULL, do.reload = F) {
             if (!success) {
                 remove("EMR_GROOT", envir = .GlobalEnv)
                 remove("EMR_UROOT", envir = .GlobalEnv)
+                remove("EMR_ROOTS", envir = .GlobalEnv)
             }
         }
     )

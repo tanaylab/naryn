@@ -27,10 +27,12 @@ public:
         EMRTrack        *track;
         string           filename;
         struct timespec  timestamp;
-        string              db_id;
+        string           db_id;
+        bool             overridden;
+        bool           overriding;
 
         TrackInfo(EMRTrack *_track, const string &_filename, const struct timespec &_timestamp, string db_id) :
-            track(_track), filename(_filename), timestamp(_timestamp), db_id(db_id) {}
+            track(_track), filename(_filename), timestamp(_timestamp), db_id(db_id), overridden(0), overriding(0){}
     };
 
     static const string TRACK_FILE_EXT;    
@@ -241,15 +243,13 @@ extern EMRDb *g_db;
 
 //---------------------------------------- IMPLEMENTATION --------------------------------------------
 
-inline unsigned EMRDb::id(size_t idx)
-{
+inline unsigned EMRDb::id(size_t idx){
     if (m_ids_transact_ts != m_transact_id)
         load_ids();
     return m_ids[idx];
 }
 
-inline size_t EMRDb::id2idx(unsigned id)
-{
+inline size_t EMRDb::id2idx(unsigned id){
     if (m_ids_transact_ts != m_transact_id)
         load_ids();
     auto itr = m_id2idx.find(id);
@@ -259,15 +259,13 @@ inline size_t EMRDb::id2idx(unsigned id)
     return itr->second;
 }
 
-inline bool EMRDb::id_exists(unsigned id)
-{
+inline bool EMRDb::id_exists(unsigned id){
     if (m_ids_transact_ts != m_transact_id)
         load_ids();
     return m_id2idx.find(id) != m_id2idx.end();
 }
 
-inline unsigned EMRDb::num_ids()
-{
+inline unsigned EMRDb::num_ids(){
     if (m_ids_transact_ts != m_transact_id)
         load_ids();
     return m_num_ids;
