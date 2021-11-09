@@ -7,6 +7,19 @@ load_test_db <- function() {
 
     system(glue::glue("cp -rf /net/mraid14/export/tgdata/db/tgdb/emr/naryn_testdb {testdb_dir}"))
     
-    emr_db.init(testdb_dir, file.path(testdb_dir, "utest"))
+    emr_db.connect(c(testdb_dir, file.path(testdb_dir, "utest")))
     emr_db.reload()
+}
+
+
+load_test_dbs <- function() {
+
+    testdb_dirs <- purrr::map(c(1:4), ~{test_path(glue::glue("../testdb_{.x}"))})
+
+    purrr::walk(testdb_dirs, ~{
+        if (dir.exists(.x)) {
+            system(glue::glue("rm -rf {.x}"))
+        }
+    })
+
 }

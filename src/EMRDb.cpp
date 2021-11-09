@@ -1238,8 +1238,8 @@ void EMRDb::load_track(const char *track_name, string db_id)
 }
 
 
-void EMRDb::unload_track(const char *track_name)
-{
+void EMRDb::unload_track(const char *track_name, bool overridden){
+    
     Name2Track::iterator itrack = m_tracks.find(track_name);
 
     if (itrack == m_tracks.end())
@@ -1258,12 +1258,11 @@ void EMRDb::unload_track(const char *track_name)
     //If the track was overriding another track
     //touch  the relevant  .naryn file  so next
     //refresh will reload the overridden track 
-    if (itrack->second.overriding) {
-
+    if (itrack->second.overriding || overridden) {
         int db_idx = get_db_idx(itrack->second.db_id);
         utimbuf tbf;
 
-        for (int i=0; i<db_idx; i++) {
+        for (int i=0; i<=db_idx; i++) {
             utime(track_list_filename(m_rootdirs[i]).c_str(), &tbf);
         }
         

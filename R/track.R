@@ -366,15 +366,11 @@ emr_track.attr.set <- function(track = NULL, attr = NULL, value = NULL) {
 #' \code{\link{emr_track.ls}}, \code{\link{emr_track.exists}}
 #' @keywords ~track ~create
 #' @export emr_track.create
-emr_track.create <- function(track, space, categorical, expr, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL) {
+emr_track.create <- function(track, space, categorical, expr, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL, override=FALSE) {
     if (missing(track) || missing(space) || missing(categorical) || missing(expr)) {
         stop("Usage: emr_track.create(track, space = EMR_GROOT, categorical, expr, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
     }
     .emr_checkroot()
-
-    if (emr_track.exists(track)) {
-        stop(sprintf("Track %s already exists", track), call. = F)
-    }
 
     if (emr_vtrack.exists(track)) {
         stop(sprintf("Virtual track %s already exists", track), call. = F)
@@ -387,7 +383,7 @@ emr_track.create <- function(track, space, categorical, expr, stime = NULL, etim
     # TODO: change the API to receive a db path
     db_id <- ._emr_backward_comp_space(space)
     
-    .emr_call("emr_track_create", track, db_id, categorical, expr, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
+    .emr_call("emr_track_create", track, db_id, categorical, expr, stime, etime, iterator, keepref, .emr_filter(filter), override, new.env(parent = parent.frame()))
     retv <- NULL
 }
 
@@ -409,17 +405,22 @@ emr_track.create <- function(track, space, categorical, expr, stime = NULL, etim
 #' emr_db.init_examples()
 #' emr_track.exists("sparse_track")
 #' @export emr_track.exists
-emr_track.exists <- function(track) {
+emr_track.exists <- function(track, db_id=NULL) {
     if (missing(track)) {
         stop("Usage: emr_track.exist(track)", call. = F)
     }
     .emr_checkroot()
-    track_exists <- !is.na(match(track, .emr_call("emr_track_names", new.env(parent = parent.frame()), silent = TRUE)))
 
-    track_exists <- track_exists || !is.na(match(track, .emr_call("emr_logical_track_names", new.env(parent = parent.frame()), silent = TRUE)))
+    if (is.null(db_id)) {
+        track_exists <- !is.na(match(track, .emr_call("emr_track_names", new.env(parent = parent.frame()), silent = TRUE)))
+        track_exists <- track_exists || !is.na(match(track, .emr_call("emr_logical_track_names", new.env(parent = parent.frame()), silent = TRUE)))
+    } else {
+        track_exists <- !is.na(match(track, .emr_call("emr_track_db_names", db_id, new.env(parent = parent.frame()), silent = TRUE)))
+    }
 
     return(track_exists)
 }
+
 
 
 
@@ -457,8 +458,8 @@ emr_track.ids <- function(track) {
 #' Imports a track from a file or data-frame.
 #'
 #' This function creates a new track from a text file or a data-frame. 
-#' The location of the track is controlled via 'space' parameter which
-#' can be anyone of the db.dirs supplied in emr_db.connect.
+#' The location of the track is the User DB which is the last db.dir in
+#' the db.dirs supplied in emr_db.connect.
 #'
 #' If 'src' is a file name, the latter must be constituted of four columns
 #' separated by spaces or 'TAB' characters: ID, time, reference and value. The
@@ -481,16 +482,11 @@ emr_track.ids <- function(track) {
 #' \code{\link{emr_track.ls}}
 #' @keywords ~import
 #' @export emr_track.import
-emr_track.import <- function(track, space, categorical, src) {
+emr_track.import <- function(track, space, categorical, src, override=FALSE) {
     if (missing(track) || missing(space) || missing(src) || missing(categorical)) {
         stop("Usage: emr_track.import(track, space, categorical, src)", call. = F)
     }
     .emr_checkroot()
-
-    space <- tolower(space)
-    if (space == "user" && (!exists("EMR_UROOT", envir = .GlobalEnv) || is.null(get("EMR_UROOT", envir = .GlobalEnv)))) {
-        stop("User space root directory is not set. Please call emr_db.init(user.dir=...)", call. = F)
-    }
 
     if (emr_vtrack.exists(track)) {
         stop(sprintf("Virtual track %s already exists", track), call. = F)
@@ -503,8 +499,7 @@ emr_track.import <- function(track, space, categorical, src) {
     # TODO: change this to get the db_path
     # from the user
     db_id <- ._emr_backward_comp_space(space)
-
-    .emr_call("emr_import", track, db_id, categorical, src, F, new.env(parent = parent.frame()))
+    .emr_call("emr_import", track, db_id, categorical, src, F, override, new.env(parent = parent.frame()))
 }
 
 

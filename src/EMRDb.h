@@ -95,7 +95,7 @@ public:
     void reload();
 
     void load_track(const char *track_name, string db_id);
-    void unload_track(const char *track_name);
+    void unload_track(const char *track_name, bool overridden=0);
 
     // Add a logical track to the database
     void add_logical_track(const char *track_name, const char *source_name,

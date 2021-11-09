@@ -10,7 +10,7 @@
 
 extern "C" {
 
-SEXP emr_import(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _src, SEXP _add, SEXP _envir)
+SEXP emr_import(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _src, SEXP _add, SEXP _override, SEXP _envir)
 {
     try {
         Naryn naryn(_envir);
@@ -22,9 +22,11 @@ SEXP emr_import(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _src, SEXP _ad
         string trackname = { CHAR(asChar(_track)) };
         string track_filename;
         bool categorical;
-        string db_id = { CHAR(asChar(_db_id)) };
+        bool has_overlap = 0;
+        bool toverride = asLogical(_override);
+        string db_id;
         EMRTrackData<float> data;
-
+        
         if (do_add) {
             EMRTrack *track = g_db->track(trackname);
             const EMRDb::TrackInfo *track_info = g_db->track_info(trackname);
@@ -37,17 +39,31 @@ SEXP emr_import(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _src, SEXP _ad
             db_id = track_info->db_id;
             track->data_recs(data);
         } else {
+            
             if (!isLogical(_categorical) || Rf_length(_categorical) != 1 || asLogical(_categorical) == NA_LOGICAL)
                 verror("'categorical' argument must be logical");
 
+            if (!isString(_db_id) || Rf_length(_db_id) != 1)
+                verror("'db_id' (space) argument must be a string");
+
             categorical = asLogical(_categorical);
+            db_id = { CHAR(asChar(_db_id)) };
 
             if (g_db->get_db_idx(db_id) == -1) {
                 verror("%s directory is not set", db_id.c_str());
             }
 
-            if (g_db->track(trackname))
+            //Error only if exists in the same db, otherwise try overriding
+            if (g_db->track(trackname) && (g_db->track_info(trackname)->db_id == db_id))
                 verror("Track %s already exists", trackname.c_str());
+            
+            //User must explicitly pass an overriding argument
+            if (g_db->track(trackname) && (g_db->track_info(trackname)->db_id != db_id) && !toverride) 
+                verror("Track %s already exists in db %s, see override argument", trackname.c_str(), g_db->track_info(trackname)->db_id.c_str());
+
+            //Override was passed and a track to override was found
+            if (g_db->track(trackname) && (g_db->track_info(trackname)->db_id != db_id) && toverride)
+                has_overlap = 1;
 
             EMRDb::check_track_name(trackname);
 
@@ -121,6 +137,10 @@ SEXP emr_import(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _src, SEXP _ad
             FileUtils::move_file(tmp_filename.c_str(), track_filename.c_str());
         } else
             EMRTrack::serialize(track_filename.c_str(), categorical, data);
+        
+        if (has_overlap) 
+            g_db->unload_track(trackname.c_str(), 1);
+
         g_db->load_track(trackname.c_str(), db_id);
     } catch (TGLException &e) {
         rerror("%s", e.msg());
