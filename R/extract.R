@@ -86,7 +86,9 @@ emr_cor <- function(..., cor.exprs = NULL, include.lowest = FALSE, right = TRUE,
     if (is.character(iterator) && emr_track.logical.exists(iterator)) {
         ltrack <- emr_track.logical.info(iterator)
         iterator <- ltrack$source
-        filter <- create_logical_track_filter(ltrack, filter)
+        if (!is.null(ltrack$values)) {
+            filter <- create_logical_track_filter(ltrack, filter)
+        }
     }
 
     res <- .emr_call("emr_covariance", exprs, breaks, include.lowest, right, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
@@ -174,7 +176,9 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, et
     if (is.character(iterator) && emr_track.logical.exists(iterator)) {
         ltrack <- emr_track.logical.info(iterator)
         iterator <- ltrack$source
-        filter <- create_logical_track_filter(ltrack, filter)
+        if (!is.null(ltrack$values)) {
+            filter <- create_logical_track_filter(ltrack, filter)
+        }
     }
 
     res <- .emr_call("emr_dist", exprs, breaks, include.lowest, right, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
@@ -248,7 +252,9 @@ emr_extract <- function(expr, tidy = F, sort = F, names = NULL, stime = NULL, et
     if (is.character(iterator) && emr_track.logical.exists(iterator)) {
         ltrack <- emr_track.logical.info(iterator)
         iterator <- ltrack$source
-        filter <- create_logical_track_filter(ltrack, filter)
+        if (!is.null(ltrack$values)) {
+            filter <- create_logical_track_filter(ltrack, filter)
+        }
     }
 
     .emr_call("emr_extract", expr, names, tidy, sort, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
@@ -477,7 +483,9 @@ emr_quantiles <- function(expr, percentiles = 0.5, stime = NULL, etime = NULL, i
     if (is.character(iterator) && emr_track.logical.exists(iterator)) {
         ltrack <- emr_track.logical.info(iterator)
         iterator <- ltrack$source
-        filter <- create_logical_track_filter(ltrack, filter)
+        if (!is.null(ltrack$values)) {
+            filter <- create_logical_track_filter(ltrack, filter)
+        }
     }
 
     .emr_call("emr_quantiles", expr, percentiles, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
@@ -528,7 +536,9 @@ emr_screen <- function(expr, sort = F, stime = NULL, etime = NULL, iterator = NU
     if (is.character(iterator) && emr_track.logical.exists(iterator)) {
         ltrack <- emr_track.logical.info(iterator)
         iterator <- ltrack$source
-        filter <- create_logical_track_filter(ltrack, filter)
+        if (!is.null(ltrack$values)) {
+            filter <- create_logical_track_filter(ltrack, filter)
+        }
     }
 
     .emr_call("emr_screen", expr, sort, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
@@ -572,7 +582,9 @@ emr_summary <- function(expr, stime = NULL, etime = NULL, iterator = NULL, keepr
     if (is.character(iterator) && emr_track.logical.exists(iterator)) {
         ltrack <- emr_track.logical.info(iterator)
         iterator <- ltrack$source
-        filter <- create_logical_track_filter(ltrack, filter)
+        if (!is.null(ltrack$values)) {
+            filter <- create_logical_track_filter(ltrack, filter)
+        }
     }
 
     .emr_call("emr_summary", expr, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
