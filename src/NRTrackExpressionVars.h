@@ -55,6 +55,7 @@ public:
 	unsigned get_num_track_vars() const { return m_track_vars.size(); }
 
 	const string &get_track_name(unsigned ivar) const { return m_track_vars[ivar].imanager->name; }
+    const string &get_var_name(unsigned ivar) const { return m_track_vars[ivar].var_name; }
     EMRTrack *get_track(unsigned ivar) const { return m_track_vars[ivar].imanager->data_fetcher.track(); }
 
 	void parse_exprs(const vector<string> &track_exprs, unsigned stime, unsigned etime);

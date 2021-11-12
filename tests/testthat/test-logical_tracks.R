@@ -529,7 +529,7 @@ test_that("emr_extract works with logical track as expression and explicit itera
     expect_equal(a, b, ignore_attr = TRUE)
 
     a <- emr_extract("logical_track*2", iterator = "logical_track", names = "logical_track", keepref = TRUE)
-    b <- emr_extract("ph1*2", iterator = "ph1", , names = "logical_track", keepref = TRUE)
+    b <- emr_extract("ph1*2", iterator = "ph1", names = "logical_track", keepref = TRUE)
     expect_equal(a, b, ignore_attr = TRUE)
 
     a <- emr_extract("logical_track_numeric*2", iterator = "logical_track_numeric", names = "logical_track_numeric", keepref = TRUE)

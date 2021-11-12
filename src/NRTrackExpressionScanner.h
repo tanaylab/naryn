@@ -128,6 +128,8 @@ private:
 
 	void create_expr_iterator(IteratorWithFilter *itr, SEXP riterator, bool keepref, const NRTrackExpressionVars &vars, const vector<string> &track_exprs,
                               unsigned stime, unsigned etime, bool is_implicit_scope, SEXP filter, bool call_begin = true);
+    
+    SEXP create_logical_track_filter(SEXP riterator, SEXP filter) const;
 };
 
 

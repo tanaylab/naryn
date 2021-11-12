@@ -253,7 +253,7 @@ random_filter_name <- function(pattern) {
 
 #' Create a filter for logical track
 #'
-#' @param ltrack output of \code{emr_track.logical.info}
+#' @param ltrack name of logical track
 #' @param filter existing filter (the new filter would be added)
 #' @param filter_name name for the new filter (optional)
 #'
@@ -262,10 +262,10 @@ random_filter_name <- function(pattern) {
 #'
 #' @examples
 #'
-#' ltrack <- emr_track.logical.info("logical_track")
 #' create_logical_track_filter("logical_track")
 #' @noRd
 create_logical_track_filter <- function(ltrack, filter = NULL, filter_name = NULL, env = parent.frame()) {
+    ltrack <- emr_track.logical.info(ltrack)
     if (is.null(filter_name)) {
         filter_name <- random_filter_name("logical_filter_")
         withr::defer(

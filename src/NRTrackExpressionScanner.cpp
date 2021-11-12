@@ -490,6 +490,26 @@ void NRTrackExprScanner::create_expr_iterator(SEXP rtrack_exprs, SEXP rstime, SE
     create_expr_iterator(&m_itr, iterator_policy, convert_rkeepref(rkeepref), m_expr_vars, m_track_exprs, stime, etime, is_implicit_scope, filter, call_begin);
 }
 
+// add a filter based on the logical track values:
+// call create_logical_track_filter("logical_track", filter = filter)
+SEXP NRTrackExprScanner::create_logical_track_filter(SEXP riterator, SEXP filter) const {
+    string command;      
+
+    if (filter == R_NilValue){
+        command = string("create_logical_track_filter('") + string(CHAR(asChar(riterator))) + "')";            
+    } else {
+        command = string(".emr_filter(create_logical_track_filter('") + 
+            string(CHAR(asChar(riterator))) + 
+            string("', filter = '") + 
+            string(CHAR(asChar(filter))) + 
+            string("'))");            
+    }                
+
+    filter = run_in_R(command.c_str(), g_naryn->env());
+    
+    return(filter);
+}
+
 void NRTrackExprScanner::create_expr_iterator(IteratorWithFilter *itr, SEXP riterator, bool keepref, const NRTrackExpressionVars &vars,
                                               const vector<string> &track_exprs, unsigned stime, unsigned etime, bool is_implicit_scope, SEXP filter, bool call_begin)
 {
@@ -503,15 +523,23 @@ void NRTrackExprScanner::create_expr_iterator(IteratorWithFilter *itr, SEXP rite
         if (is_implicit_scope)
             verror("Cannot use an implicit time scope with Beat Iteator: please specify 'stime' and 'etime'");
         expr_itr = new EMRBeatIterator(asInteger(riterator), keepref, stime, etime);
-    } else if (isString(riterator) && Rf_length(riterator) == 1 && g_db->track(CHAR(asChar(riterator))))
+    } else if (isString(riterator) && Rf_length(riterator) == 1 && g_db->track(CHAR(asChar(riterator)))){
         expr_itr = new EMRTrackIterator(g_db->track(CHAR(asChar(riterator))), keepref, stime, etime);
-    else if (isNull(riterator)) {
-        string track_name;
+    } else if (isString(riterator) && Rf_length(riterator) == 1 && g_db->logical_track(CHAR(asChar(riterator)))) {
+        const EMRLogicalTrack *logical_track  =
+            g_db->logical_track(CHAR(asChar(riterator)));        
+        expr_itr = new EMRTrackIterator(g_db->track(logical_track->source.c_str()), keepref, stime, etime);
+        
+        if (logical_track->has_values()){
+            filter = create_logical_track_filter(riterator, filter);
+        }
+    } else if (isNull(riterator)) {
+        string track_name, var_name;
         EMRTrack *track = NULL;
 
         for (unsigned ivar = 0; ivar < vars.get_num_track_vars(); ++ivar) {
 			if (track_name.empty()) {
-                track_name = vars.get_track_name(ivar);
+                track_name = vars.get_track_name(ivar);                
 
                 // Normally the iterator goes by the vtrack src, even if vtrack has a filter (in this case vars.get_track(ivar) will contain an intermediate, filtered track).
                 // If however vtrack src is a data frame, iterator must be taken from vars.get_track(ivar) which will contain an intermediate track based on the data frame data.
@@ -519,6 +547,18 @@ void NRTrackExprScanner::create_expr_iterator(IteratorWithFilter *itr, SEXP rite
                 track = g_db->track(track_name.c_str());
                 if (!track)   // src == data.frame
                     track = vars.get_track(ivar);
+
+                var_name = vars.get_var_name(ivar);
+                if (g_db->logical_track(var_name)){ // vtrack is a logical track - need to add a filter
+                    const EMRLogicalTrack *logical_track =
+                        g_db->logical_track(var_name);  
+                    if (logical_track->has_values()){
+                        SEXP ltrack_name;
+                        rprotect(ltrack_name = RSaneAllocVector(STRSXP, 1));
+                        SET_STRING_ELT(ltrack_name, 0, mkChar(var_name.c_str()));
+                        filter = create_logical_track_filter(ltrack_name, filter);                        
+                    }                    
+                }
             } else if (track_name != vars.get_track_name(ivar)) {
                 if (m_track_exprs.size() == 1)
                     verror("Unable to implicitly set iterator policy: track expression contains several different data sources");
