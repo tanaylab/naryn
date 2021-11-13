@@ -401,6 +401,12 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
         throw;
     }
 
+    SEXP rlogical = get_rvector_col(rvtrack, "logical", vtrack.c_str(), false);
+    if (!isNull(rlogical)) {
+        SEXP rlsource = get_rvector_col(rlogical, "src", vtrack.c_str(), false);
+        var.logical_source = CHAR(STRING_ELT(rlsource, 0));        
+    }
+
     if (!only_check)
         var.imanager = add_imanager(imanager, track, (EMRTrack::Func)ifunc, move(vals), track_ownership);
 }

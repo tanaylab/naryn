@@ -548,14 +548,20 @@ void NRTrackExprScanner::create_expr_iterator(IteratorWithFilter *itr, SEXP rite
                 if (!track)   // src == data.frame
                     track = vars.get_track(ivar);
 
-                var_name = vars.get_var_name(ivar);
-                if (g_db->logical_track(var_name)){ // vtrack is a logical track - need to add a filter
+                string logical_track_name = vars.get_logical_track_source(ivar); // test if vtrack source is a logical track 
+
+                var_name = vars.get_var_name(ivar);                
+                if (g_db->logical_track(var_name)){ // vtrack is a logical track 
+                    logical_track_name = var_name;
+                }
+
+                if (!logical_track_name.empty()){  // add a logical track filter
                     const EMRLogicalTrack *logical_track =
-                        g_db->logical_track(var_name);  
+                        g_db->logical_track(logical_track_name);  
                     if (logical_track->has_values()){
                         SEXP ltrack_name;
                         rprotect(ltrack_name = RSaneAllocVector(STRSXP, 1));
-                        SET_STRING_ELT(ltrack_name, 0, mkChar(var_name.c_str()));
+                        SET_STRING_ELT(ltrack_name, 0, mkChar(logical_track_name.c_str()));
                         filter = create_logical_track_filter(ltrack_name, filter);                        
                     }                    
                 }

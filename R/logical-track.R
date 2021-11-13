@@ -284,7 +284,7 @@ create_logical_track_filter <- function(ltrack, filter = NULL, filter_name = NUL
 }
 
 
-#' Get a list of logical track names which depend on the src track given
+#' Get a list of logical track names which depend on the given src track
 #'
 #' @param src a string track name of a physical track
 #'
