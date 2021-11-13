@@ -163,7 +163,7 @@ void NRTrackExprScanner::check(const vector<string> &track_exprs, unsigned stime
 	m_eval_ints.resize(m_track_exprs.size(), NULL);
 
 	m_expr_vars.parse_exprs(m_track_exprs, stime, etime);
-
+    
 	// initiate the expression iterator
 	create_expr_iterator(&m_itr, iterator_policy, keepref, m_expr_vars, m_track_exprs, stime, etime, is_implicit_scope, filter);
 
@@ -496,7 +496,7 @@ SEXP NRTrackExprScanner::create_logical_track_filter(SEXP riterator, SEXP filter
     string command;      
 
     if (filter == R_NilValue){
-        command = string("create_logical_track_filter('") + string(CHAR(asChar(riterator))) + "')";            
+        command = string("create_logical_track_filter('") + string(CHAR(asChar(riterator))) + "')";        
     } else {
         command = string(".emr_filter(create_logical_track_filter('") + 
             string(CHAR(asChar(riterator))) + 
@@ -708,6 +708,17 @@ void NRTrackExprScanner::create_expr_iterator(IteratorWithFilter *itr, SEXP rite
         if (!success)
             verror("Invalid iterator parameter");
     }
+
+    // convert the filter to language (let R parse the expression)
+    if (!isLanguage(filter)){
+        string command;
+        command = string(".emr_filter('") +
+            string(CHAR(asChar(filter))) + 
+            string("')");
+
+        filter = run_in_R(command.c_str(), g_naryn->env());
+    }
+    
 
     itr->init(expr_itr, filter, stime, etime);
     if (call_begin)
