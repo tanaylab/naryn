@@ -1,4 +1,10 @@
-.emr_vtrack.get <- function(vtrackstr) {
+#' Get virtual track parameters given a string
+#'
+#' @param vtrackstr name of the virtual track
+#' @param adjust_logical when the source is logical track - adjust the parameters to imitate a physical track
+#'
+#' @noRd
+.emr_vtrack.get <- function(vtrackstr, adjust_logical = TRUE) {
     if (!emr_vtrack.exists(vtrackstr)) {
         stop(sprintf("Virtual track %s does not exist", vtrackstr), call. = F)
     }
@@ -9,11 +15,13 @@
         root <- get("EMR_UROOT", envir = .GlobalEnv)
         vtrack <- get("EMR_VTRACKS", envir = .GlobalEnv)[[root]][[vtrackstr]]
     }
-    if (!is.null(vtrack$logical)) {
-        vtrack$src <- vtrack$logical$src
-        vtrack$params <- vtrack$logical$params
+    if (adjust_logical) {
+        if (!is.null(vtrack$logical)) {
+            vtrack$src <- vtrack$logical$src
+            vtrack$params <- vtrack$logical$params
+        }
+        vtrack$logical <- NULL
     }
-    vtrack$logical <- NULL
     vtrack
 }
 

@@ -44,7 +44,13 @@ public:
     const string &urootdir() const { return m_rootdirs[0]; }
 
 	EMRTrack *track(const string &track);
+    const bool track_exists(const string &track) {
+        return (m_tracks.find(track) != m_tracks.end());
+    }
     const EMRLogicalTrack *logical_track(const string &track);
+    const bool logical_track_exists(const string &track) {
+        return (m_logical_tracks.find(track) != m_logical_tracks.end());
+    }
     const TrackInfo *track_info(const string &track);
     const vector<string> &track_names(bool is_global) { return m_track_names[is_global]; }
     const vector<string> logical_track_names() { 
