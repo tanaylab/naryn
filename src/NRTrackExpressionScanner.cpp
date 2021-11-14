@@ -491,7 +491,7 @@ void NRTrackExprScanner::create_expr_iterator(SEXP rtrack_exprs, SEXP rstime, SE
 }
 
 // add a filter based on the logical track values:
-// call create_logical_track_filter("logical_track", filter = filter)
+// call the R function create_logical_track_filter("logical_track", filter = filter)
 SEXP NRTrackExprScanner::create_logical_track_filter(SEXP riterator, SEXP filter) const {
     string command;      
 
@@ -523,9 +523,9 @@ void NRTrackExprScanner::create_expr_iterator(IteratorWithFilter *itr, SEXP rite
         if (is_implicit_scope)
             verror("Cannot use an implicit time scope with Beat Iteator: please specify 'stime' and 'etime'");
         expr_itr = new EMRBeatIterator(asInteger(riterator), keepref, stime, etime);
-    } else if (isString(riterator) && Rf_length(riterator) == 1 && g_db->track(CHAR(asChar(riterator)))){
+    } else if (isString(riterator) && Rf_length(riterator) == 1 && g_db->track(CHAR(asChar(riterator)))){ // iterator == physical track
         expr_itr = new EMRTrackIterator(g_db->track(CHAR(asChar(riterator))), keepref, stime, etime);
-    } else if (isString(riterator) && Rf_length(riterator) == 1 && g_db->logical_track(CHAR(asChar(riterator)))) {
+    } else if (isString(riterator) && Rf_length(riterator) == 1 && g_db->logical_track(CHAR(asChar(riterator)))) { // iterator == logical track
         const EMRLogicalTrack *logical_track  =
             g_db->logical_track(CHAR(asChar(riterator)));        
         expr_itr = new EMRTrackIterator(g_db->track(logical_track->source.c_str()), keepref, stime, etime);
@@ -548,6 +548,9 @@ void NRTrackExprScanner::create_expr_iterator(IteratorWithFilter *itr, SEXP rite
                 if (!track)   // src == data.frame
                     track = vars.get_track(ivar);
 
+
+                // if the virtual track is a logical track, or the vtrack source is a logical track, and 
+                // the logical track has values (filtering a physical track) - we need to add those values as a filter
                 string logical_track_name = vars.get_logical_track_source(ivar); // test if vtrack source is a logical track 
 
                 var_name = vars.get_var_name(ivar);                
