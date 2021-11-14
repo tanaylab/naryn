@@ -13,45 +13,57 @@ NRTrackExpressionVars::NRTrackExpressionVars()
     m_imanagers.reserve(10000);
 }
 
-void NRTrackExpressionVars::parse_exprs(const vector<string> &track_exprs, unsigned stime, unsigned etime)
-{
-    for (vector<string>::const_iterator iexpr = track_exprs.begin(); iexpr != track_exprs.end(); ++iexpr) {
+void NRTrackExpressionVars::parse_expr(const string &expr, unsigned stime, unsigned etime){
+    // go over all substrings        
+    for (size_t start = 0; start < expr.length(); start++) {
+        for (size_t len = expr.length() - start; len >= 1; len--) {            
+            string substring = expr.substr(start, len);
 
-        // go over all substrings        
-        for (size_t start = 0; start < iexpr->length(); start++) {
-            for (size_t len = iexpr->length() - start; len >= 1; len--) {            
-                string substring = iexpr->substr(start, len);
-
-                // look for track names
-                if (g_db->track_exists(substring)){                                        
-                    if (is_var(*iexpr, start, start + len)) {                                        
-                        add_track_var(substring);
+            // look for track names
+            if (g_db->track_exists(substring)){                                        
+                if (is_var(expr, start, start + len)) {                                        
+                    add_track_var(substring);                    
+                    if (len == expr.length() - start){ // entire string is a match
+                        return;
                     }
                 }
+            }
 
-                // look for logical tracks and add a virtual track if needed
-                if (g_db->logical_track_exists(substring)){                        
-                    if (is_var(*iexpr, start, start + len)) {
-                        const EMRLogicalTrack *logical_track =
-                            g_db->logical_track(substring.c_str());
-                        add_vtrack_var(
-                            substring,
-                            logical_track->vtrack(),
-                            false, stime, etime);
+            // look for logical tracks and add a virtual track if needed
+            if (g_db->logical_track_exists(substring)){                        
+                if (is_var(expr, start, start + len)) {
+                    const EMRLogicalTrack *logical_track =
+                        g_db->logical_track(substring.c_str());
+                    add_vtrack_var(
+                        substring,
+                        logical_track->vtrack(),
+                        false, stime, etime);
+                    if (len == expr.length() - start){ // entire string is a match
+                        return;
                     }
                 }
+            }
 
-                // look for virtual tracks using emr_vtrack.exists R function
-                string command = string("emr_vtrack.exists('") + substring + string("')");   
-                if (asLogical(run_in_R(command.c_str(), g_naryn->env()))){                    
-                    if (is_var(*iexpr, start, start + len)) {
-                        // get the virtual track from R and add it
-                        command = string(".emr_vtrack.get('") + substring + string("', FALSE)");
-                        add_vtrack_var(substring, run_in_R(command.c_str(), g_naryn->env()), false, stime, etime);
+            // look for virtual tracks using emr_vtrack.exists R function
+            string command = string("emr_vtrack.exists('") + substring + string("')");   
+            if (asLogical(run_in_R(command.c_str(), g_naryn->env()))){                    
+                if (is_var(expr, start, start + len)) {
+                    // get the virtual track from R and add it
+                    command = string(".emr_vtrack.get('") + substring + string("', FALSE)");
+                    add_vtrack_var(substring, run_in_R(command.c_str(), g_naryn->env()), false, stime, etime);
+                    if (len == expr.length() - start){ // entire string is a match
+                        return;
                     }
                 }
             }
         }
+    }
+}
+
+void NRTrackExpressionVars::parse_exprs(const vector<string> &track_exprs, unsigned stime, unsigned etime)
+{
+    for (vector<string>::const_iterator iexpr = track_exprs.begin(); iexpr != track_exprs.end(); ++iexpr) {
+        parse_expr(*iexpr, stime, etime);     
     }
 }
 

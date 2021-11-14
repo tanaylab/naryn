@@ -60,7 +60,8 @@ public:
     const string &get_logical_track_source(unsigned ivar) const { return m_track_vars[ivar].logical_track_source; }
     EMRTrack *get_track(unsigned ivar) const { return m_track_vars[ivar].imanager->data_fetcher.track(); }
 
-	void parse_exprs(const vector<string> &track_exprs, unsigned stime, unsigned etime);
+    void parse_exprs(const vector<string> &track_exprs, unsigned stime, unsigned etime);
+    void parse_expr(const string& expr, unsigned stime, unsigned etime);
 	void define_r_vars(unsigned size);
     const TrackVar *var(const char *var_name) const;
 
