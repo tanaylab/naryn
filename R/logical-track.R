@@ -263,6 +263,7 @@ random_filter_name <- function(pattern) {
 #' @examples
 #'
 #' create_logical_track_filter("logical_track")
+#' @export
 #' @noRd
 create_logical_track_filter <- function(ltrack, filter = NULL, filter_name = NULL, env = parent.frame()) {
     ltrack <- emr_track.logical.info(ltrack)

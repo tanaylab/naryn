@@ -1,3 +1,7 @@
+#' Parse an R filter string
+#'
+#' @noRd
+#' @export
 .emr_filter <- function(filter) {
     eval(parse(text = sprintf("substitute(%s)", filter)))
 }

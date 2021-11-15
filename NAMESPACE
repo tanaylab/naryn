@@ -2,6 +2,9 @@
 
 export("%>%")
 export("%||%")
+export(.emr_filter)
+export(.emr_vtrack.get)
+export(create_logical_track_filter)
 export(emr_annotate)
 export(emr_cor)
 export(emr_date2time)

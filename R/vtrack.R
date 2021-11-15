@@ -3,6 +3,7 @@
 #' @param vtrackstr name of the virtual track
 #' @param adjust_logical when the source is logical track - adjust the parameters to imitate a physical track
 #'
+#' @export
 #' @noRd
 .emr_vtrack.get <- function(vtrackstr, adjust_logical = TRUE) {
     if (!emr_vtrack.exists(vtrackstr)) {
