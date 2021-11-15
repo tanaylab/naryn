@@ -309,39 +309,6 @@ test_that("emr_track.logical.ls works", {
     expect_true(all(paste0("logical_track_numeric", 1:10) %in% emr_track.global.ls()))
 })
 
-# detect logical tracks in expression
-test_that("detect_expr_logical_tracks works", {
-    withr::defer(clean_logical_tracks())
-    emr_track.logical.create("logical_track6", "ph1", c(15, 16))
-    emr_track.logical.create("logical_track", "ph1", c(15, 16))
-    emr_track.logical.create("savta", "ph1", c(15, 16))
-    emr_track.logical.create("savta_numeric", "track0")
-    expect_setequal(detect_expr_logical_tracks("logical_track+logical_track6/log(savta*savta_numeric)"), c("logical_track", "logical_track6", "savta", "savta_numeric"))
-    expect_equal(detect_expr_logical_tracks("logical_track*2"), "logical_track")
-    expect_equal(detect_expr_logical_tracks("blah/blah+logical"), character(0))
-    expect_equal(detect_expr_logical_tracks("logical_track-sababa"), "logical_track")
-})
-
-# detect physical tracks in expression
-test_that("detect_expr_physical_tracks works", {
-    expect_setequal(detect_expr_physical_tracks("track1+track2/log(track3)"), c("track1", "track2", "track3"))
-    expect_equal(detect_expr_physical_tracks("track1*2"), "track1")
-    expect_equal(detect_expr_physical_tracks("blah/blah+logical"), character(0))
-    expect_equal(detect_expr_physical_tracks("track1-sababa"), "track1")
-})
-
-# detect virtual tracks in expression
-test_that("detect_expr_virtual_tracks works", {
-    emr_vtrack.create("vt1", "ph1")
-    emr_vtrack.create("vt2", "track1")
-    emr_vtrack.create("vt3", "track2")
-    withr::defer(EMR_VTRACKS <<- list())
-    expect_setequal(detect_expr_virtual_tracks("vt1+vt2/log(vt3)"), c("vt1", "vt2", "vt3"))
-    expect_equal(detect_expr_virtual_tracks("vt1*2"), "vt1")
-    expect_equal(detect_expr_virtual_tracks("blah/blah+logical"), character(0))
-    expect_equal(detect_expr_virtual_tracks("vt1-sababa"), "vt1")
-})
-
 # test implicit vtrack creation
 test_that("logical track returns a valid vtrack R object without values", {
     withr::defer(clean_logical_tracks())
