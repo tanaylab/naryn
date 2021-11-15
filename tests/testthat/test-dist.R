@@ -197,3 +197,23 @@ test_that("emr_dist dataframe = TRUE with names", {
     colnames(dst1) <- c("mytrack1", "mytrack2", "n")
     expect_equal(dst, dst1)
 })
+
+
+test_that("emr_dist works with fractions", {
+    df <- emr_extract("track1", keepref = TRUE) %>%
+        mutate(value = runif(n())) %>%
+        select(id, time, ref, value)
+    emr_track.import("dist_test", space = "global", categorical = FALSE, src = df)
+    withr::defer(emr_track.rm("dist_test", TRUE))
+    dist_res <- emr_dist("dist_test", seq(0, 1, length.out = 5), dataframe = TRUE, right = FALSE, keepref = TRUE)
+    df_res <- df %>%
+        mutate(dist_test = cut(value, seq(0, 1, length.out = 5), right = FALSE)) %>%
+        count(dist_test)
+    expect_equal(dist_res, df_res)
+
+    dist_res <- emr_dist("dist_test", seq(0, 1, length.out = 5), dataframe = TRUE, right = TRUE, keepref = TRUE)
+    df_res <- df %>%
+        mutate(dist_test = cut(value, seq(0, 1, length.out = 5), right = TRUE)) %>%
+        count(dist_test)
+    expect_equal(dist_res, df_res)
+})
