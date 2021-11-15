@@ -79,17 +79,7 @@ emr_cor <- function(..., cor.exprs = NULL, include.lowest = FALSE, right = TRUE,
     first_exprs <- exprs
     exprs <- append(exprs, cor.exprs)
 
-    if (is.null(iterator)) {
-        iterator <- expand_null_iterator(first_exprs)
-    }
-
-    if (is.character(iterator) && emr_track.logical.exists(iterator)) {
-        ltrack <- emr_track.logical.info(iterator)
-        iterator <- ltrack$source
-        filter <- create_logical_track_filter(ltrack, filter)
-    }
-
-    res <- .emr_call("emr_covariance", exprs, breaks, include.lowest, right, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
+    res <- .emr_call("emr_covariance", exprs, breaks, include.lowest, right, stime, etime, iterator, keepref, filter, new.env(parent = parent.frame()))
 
     if (dataframe) {
         names <- names %||% first_exprs
@@ -167,17 +157,7 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, et
         breaks[length(breaks) + 1] <- list(args[[i * 2 + 2]])
     }
 
-    if (is.null(iterator)) {
-        iterator <- expand_null_iterator(exprs)
-    }
-
-    if (is.character(iterator) && emr_track.logical.exists(iterator)) {
-        ltrack <- emr_track.logical.info(iterator)
-        iterator <- ltrack$source
-        filter <- create_logical_track_filter(ltrack, filter)
-    }
-
-    res <- .emr_call("emr_dist", exprs, breaks, include.lowest, right, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
+    res <- .emr_call("emr_dist", exprs, breaks, include.lowest, right, stime, etime, iterator, keepref, filter, new.env(parent = parent.frame()))
 
     if (dataframe) {
         res <- as.data.frame.table(res)
@@ -241,17 +221,7 @@ emr_extract <- function(expr, tidy = F, sort = F, names = NULL, stime = NULL, et
     }
     .emr_checkroot()
 
-    if (is.null(iterator)) {
-        iterator <- expand_null_iterator(expr)
-    }
-
-    if (is.character(iterator) && emr_track.logical.exists(iterator)) {
-        ltrack <- emr_track.logical.info(iterator)
-        iterator <- ltrack$source
-        filter <- create_logical_track_filter(ltrack, filter)
-    }
-
-    .emr_call("emr_extract", expr, names, tidy, sort, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
+    .emr_call("emr_extract", expr, names, tidy, sort, stime, etime, iterator, keepref, filter, new.env(parent = parent.frame()))
 }
 
 
@@ -300,7 +270,7 @@ emr_ids_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filter = N
                 emr_ids_coverage(
                     ids,
                     ltrack$source,
-                    filter = create_logical_track_filter(ltrack, filter), stime = stime,
+                    filter = create_logical_track_filter(track, filter), stime = stime,
                     etime = etime
                 )[[1]]
         }
@@ -330,7 +300,7 @@ emr_ids_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filter = N
 
             tryCatch(
                 {
-                    res <- .emr_call("emr_ids_dist_with_iterator", ids, tracks, stime, etime, .emr_filter(filter), new.env(parent = parent.frame()))
+                    res <- .emr_call("emr_ids_dist_with_iterator", ids, tracks, stime, etime, filter, new.env(parent = parent.frame()))
                 },
                 finally = {
                     rm("..emr_tmp_filter", envir = .GlobalEnv)
@@ -393,7 +363,7 @@ emr_ids_vals_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filte
             res <- emr_ids_vals_coverage(
                 ids,
                 ltrack$source,
-                filter = create_logical_track_filter(ltrack, filter), stime = stime,
+                filter = create_logical_track_filter(track, filter), stime = stime,
                 etime = etime
             )
             res$track <- track
@@ -421,7 +391,7 @@ emr_ids_vals_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filte
 
         tryCatch(
             {
-                res_physical <- .emr_call("emr_ids_vals_dist", ids, physical_tracks, stime, etime, .emr_filter(filter), new.env(parent = parent.frame()))
+                res_physical <- .emr_call("emr_ids_vals_dist", ids, physical_tracks, stime, etime, filter, new.env(parent = parent.frame()))
             },
             finally = {
                 rm("..emr_tmp_filter", envir = .GlobalEnv)
@@ -470,17 +440,7 @@ emr_quantiles <- function(expr, percentiles = 0.5, stime = NULL, etime = NULL, i
     }
     .emr_checkroot()
 
-    if (is.null(iterator)) {
-        iterator <- expand_null_iterator(expr)
-    }
-
-    if (is.character(iterator) && emr_track.logical.exists(iterator)) {
-        ltrack <- emr_track.logical.info(iterator)
-        iterator <- ltrack$source
-        filter <- create_logical_track_filter(ltrack, filter)
-    }
-
-    .emr_call("emr_quantiles", expr, percentiles, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
+    .emr_call("emr_quantiles", expr, percentiles, stime, etime, iterator, keepref, filter, new.env(parent = parent.frame()))
 }
 
 
@@ -521,17 +481,7 @@ emr_screen <- function(expr, sort = F, stime = NULL, etime = NULL, iterator = NU
     }
     .emr_checkroot()
 
-    if (is.null(iterator)) {
-        iterator <- expand_null_iterator(expr)
-    }
-
-    if (is.character(iterator) && emr_track.logical.exists(iterator)) {
-        ltrack <- emr_track.logical.info(iterator)
-        iterator <- ltrack$source
-        filter <- create_logical_track_filter(ltrack, filter)
-    }
-
-    .emr_call("emr_screen", expr, sort, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
+    .emr_call("emr_screen", expr, sort, stime, etime, iterator, keepref, filter, new.env(parent = parent.frame()))
 }
 
 
@@ -565,15 +515,5 @@ emr_summary <- function(expr, stime = NULL, etime = NULL, iterator = NULL, keepr
     }
     .emr_checkroot()
 
-    if (is.null(iterator)) {
-        iterator <- expand_null_iterator(expr)
-    }
-
-    if (is.character(iterator) && emr_track.logical.exists(iterator)) {
-        ltrack <- emr_track.logical.info(iterator)
-        iterator <- ltrack$source
-        filter <- create_logical_track_filter(ltrack, filter)
-    }
-
-    .emr_call("emr_summary", expr, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
+    .emr_call("emr_summary", expr, stime, etime, iterator, keepref, filter, new.env(parent = parent.frame()))
 }

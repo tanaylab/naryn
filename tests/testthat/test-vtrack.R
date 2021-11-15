@@ -20,8 +20,9 @@ test_that("Function min is not supported with categorical data", {
 
 test_that("emr_vtrack works", {
     EMR_VTRACKS <<- list()
-    emr_vtrack.create("v1", "track6", func = "value")
+    vt_name <- emr_vtrack.create("v1", "track6", func = "value")
     expect_regression(emr_extract("v1"), "vtrack.1")
+    expect_equal(vt_name, "v1")
 })
 
 test_that("function exists requires an additional parameter", {

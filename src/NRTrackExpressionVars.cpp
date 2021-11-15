@@ -13,91 +13,63 @@ NRTrackExpressionVars::NRTrackExpressionVars()
     m_imanagers.reserve(10000);
 }
 
-void NRTrackExpressionVars::parse_exprs(const vector<string> &track_exprs, unsigned stime, unsigned etime)
-{
-    SEXP emr_vtracks = R_NilValue;
-    SEXPCleaner emr_vtracks_cleaner(emr_vtracks);
-    vector<SEXP> rvtracknames;
-    vector<SEXP> vtracks;
-    
-    // retrieve virtual track names (virtual track names are burried in a list of lists)
-    rprotect(emr_vtracks = findVar(install("EMR_VTRACKS"), g_naryn->env()));
+void NRTrackExpressionVars::parse_expr(const string &expr, unsigned stime, unsigned etime){
+    // go over all substrings        
+    for (size_t start = 0; start < expr.length(); start++) {
+        for (size_t len = expr.length() - start; len >= 1; len--) {            
+            string substring = expr.substr(start, len);
 
-    if (!isNull(emr_vtracks) && !isSymbol(emr_vtracks)) {
-        SEXP roots = getAttrib(emr_vtracks, R_NamesSymbol);
+            // look for track names
+            if (g_db->track_exists(substring)){                                        
+                if (is_var(expr, start, start + len)) {                                        
+                    add_track_var(substring);                    
+                    if (len == expr.length() - start){ // entire string is a match
+                        return;
+                    }
+                }
+            }
 
-        if (!isVector(emr_vtracks) || Rf_length(emr_vtracks) && !isString(roots) || Rf_length(roots) != Rf_length(emr_vtracks))
-            verror("Invalid format of EMR_VTRACKS variable (1).\n"
-                   "To continue working with virtual tracks please remove this variable from the environment.");
+            // look for logical tracks and add a virtual track if needed
+            if (g_db->logical_track_exists(substring)){                        
+                if (is_var(expr, start, start + len)) {
+                    const EMRLogicalTrack *logical_track =
+                        g_db->logical_track(substring.c_str());
+                    add_vtrack_var(
+                        substring,
+                        logical_track->vtrack(),
+                        false, stime, etime);
+                    if (len == expr.length() - start){ // entire string is a match
+                        return;
+                    }
+                }
+            }
 
-        for (int i = 0; i < Rf_length(roots); ++i) {
-            if (g_db->grootdir() == CHAR(STRING_ELT(roots, i)) || g_db->urootdir() == CHAR(STRING_ELT(roots, i))) {
-                vtracks.push_back(VECTOR_ELT(emr_vtracks, i));
-                SEXP vtracknames = getAttrib(vtracks.back(), R_NamesSymbol);
+            // look for virtual tracks using emr_vtrack.exists R function
+            SEXP e;
+            PROTECT(e = lang2(install("emr_vtrack.exists"), mkString(substring.c_str())));
+            bool vtrack_exists = asLogical(R_tryEval(e, g_naryn->env(), NULL));
+            UNPROTECT(1);
 
-                if (!isVector(vtracks.back()) || Rf_length(vtracks.back()) && !isString(vtracknames) || Rf_length(vtracknames) != Rf_length(vtracks.back()))
-                    verror("Invalid format of EMR_VTRACKS variable (2).\n"
-                           "To continue working with virtual tracks please remove this variable from the environment.");
-
-                rvtracknames.push_back(vtracknames);
+            if (vtrack_exists) {
+                if (is_var(expr, start, start + len)) {
+                    // get the virtual track from R and add it
+                    PROTECT(e = lang3(install(".emr_vtrack.get"), mkString(substring.c_str()), ScalarLogical(0)));
+                    SEXP vtrack = R_tryEval(e, g_naryn->env(), NULL);
+                    UNPROTECT(1);                    
+                    add_vtrack_var(substring, vtrack, false, stime, etime);
+                    if (len == expr.length() - start){ // entire string is a match
+                        return;
+                    }
+                }
             }
         }
     }
+}
 
+void NRTrackExpressionVars::parse_exprs(const vector<string> &track_exprs, unsigned stime, unsigned etime)
+{
     for (vector<string>::const_iterator iexpr = track_exprs.begin(); iexpr != track_exprs.end(); ++iexpr) {
-        // look for track names
-        for (int is_global = 0; is_global < 2; ++is_global) {
-            for (vector<string>::const_iterator itrack = g_db->track_names(is_global).begin(); itrack < g_db->track_names(is_global).end(); ++itrack) {
-                size_t pos = 0;
-
-                while ((pos = iexpr->find(*itrack, pos)) != string::npos) {
-                    if (is_var(*iexpr, pos, pos + itrack->size())) {
-                        add_track_var(*itrack);
-                        break;
-                    }
-                    pos += itrack->size();
-                }
-            }
-        }
-
-        // look for logical tracks and add a virtual track if needed
-        vector<string> logical_track_names = g_db->logical_track_names();
-        for (vector<string>::const_iterator itrack =
-                 logical_track_names.begin();
-             itrack < logical_track_names.end(); ++itrack) {
-            size_t pos = 0;
-
-            while ((pos = iexpr->find(*itrack, pos)) != string::npos) {
-                if (is_var(*iexpr, pos, pos + itrack->size())) {
-                    const EMRLogicalTrack *logical_track =
-                        g_db->logical_track((*itrack).c_str());
-                    add_vtrack_var(
-                        *itrack,
-                        logical_track->vtrack(),                                   
-                        false, stime, etime);
-                    break;
-                }
-                pos += itrack->size();
-            }
-        }
-
-        // look for virtual tracks
-        for (size_t i = 0; i < vtracks.size(); ++i) {
-            if (isString(rvtracknames[i])) {
-                for (int itrack = 0; itrack < Rf_length(rvtracknames[i]); ++itrack) {
-                    string track = CHAR(STRING_ELT(rvtracknames[i], itrack));
-                    size_t pos = 0;
-
-                    while ((pos = iexpr->find(track, pos)) != string::npos) {
-                        if (is_var(*iexpr, pos, pos + track.size())) {
-                            add_vtrack_var(track, VECTOR_ELT(vtracks[i], itrack), false, stime, etime);
-                            break;
-                        }
-                        pos += track.size();
-                    }
-                }
-            }
-        }
+        parse_expr(*iexpr, stime, etime);     
     }
 }
 
@@ -399,6 +371,12 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
         if (track_ownership && track)
             delete track;
         throw;
+    }
+
+    SEXP rlogical = get_rvector_col(rvtrack, "logical", vtrack.c_str(), false);
+    if (!isNull(rlogical)) {
+        SEXP rlsource = get_rvector_col(rlogical, "src", vtrack.c_str(), false);
+        var.logical_track_source = CHAR(STRING_ELT(rlsource, 0));        
     }
 
     if (!only_check)

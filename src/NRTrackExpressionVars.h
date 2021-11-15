@@ -46,18 +46,22 @@ public:
         SEXP               rvar{R_NilValue};
         double            *var;
         double             percentile;
-        IteratorManager   *imanager;
+        IteratorManager   *imanager;    
+        string             logical_track_source; // name of a logical track the vtrack was created from (empty by default)
     };
 
-	NRTrackExpressionVars();
+    NRTrackExpressionVars();
     ~NRTrackExpressionVars();
 
 	unsigned get_num_track_vars() const { return m_track_vars.size(); }
 
 	const string &get_track_name(unsigned ivar) const { return m_track_vars[ivar].imanager->name; }
+    const string &get_var_name(unsigned ivar) const { return m_track_vars[ivar].var_name; }
+    const string &get_logical_track_source(unsigned ivar) const { return m_track_vars[ivar].logical_track_source; }
     EMRTrack *get_track(unsigned ivar) const { return m_track_vars[ivar].imanager->data_fetcher.track(); }
 
-	void parse_exprs(const vector<string> &track_exprs, unsigned stime, unsigned etime);
+    void parse_exprs(const vector<string> &track_exprs, unsigned stime, unsigned etime);
+    void parse_expr(const string& expr, unsigned stime, unsigned etime);
 	void define_r_vars(unsigned size);
     const TrackVar *var(const char *var_name) const;
 

@@ -309,39 +309,6 @@ test_that("emr_track.logical.ls works", {
     expect_true(all(paste0("logical_track_numeric", 1:10) %in% emr_track.global.ls()))
 })
 
-# detect logical tracks in expression
-test_that("detect_expr_logical_tracks works", {
-    withr::defer(clean_logical_tracks())
-    emr_track.logical.create("logical_track6", "ph1", c(15, 16))
-    emr_track.logical.create("logical_track", "ph1", c(15, 16))
-    emr_track.logical.create("savta", "ph1", c(15, 16))
-    emr_track.logical.create("savta_numeric", "track0")
-    expect_setequal(detect_expr_logical_tracks("logical_track+logical_track6/log(savta*savta_numeric)"), c("logical_track", "logical_track6", "savta", "savta_numeric"))
-    expect_equal(detect_expr_logical_tracks("logical_track*2"), "logical_track")
-    expect_equal(detect_expr_logical_tracks("blah/blah+logical"), character(0))
-    expect_equal(detect_expr_logical_tracks("logical_track-sababa"), "logical_track")
-})
-
-# detect physical tracks in expression
-test_that("detect_expr_physical_tracks works", {
-    expect_setequal(detect_expr_physical_tracks("track1+track2/log(track3)"), c("track1", "track2", "track3"))
-    expect_equal(detect_expr_physical_tracks("track1*2"), "track1")
-    expect_equal(detect_expr_physical_tracks("blah/blah+logical"), character(0))
-    expect_equal(detect_expr_physical_tracks("track1-sababa"), "track1")
-})
-
-# detect virtual tracks in expression
-test_that("detect_expr_virtual_tracks works", {
-    emr_vtrack.create("vt1", "ph1")
-    emr_vtrack.create("vt2", "track1")
-    emr_vtrack.create("vt3", "track2")
-    withr::defer(EMR_VTRACKS <<- list())
-    expect_setequal(detect_expr_virtual_tracks("vt1+vt2/log(vt3)"), c("vt1", "vt2", "vt3"))
-    expect_equal(detect_expr_virtual_tracks("vt1*2"), "vt1")
-    expect_equal(detect_expr_virtual_tracks("blah/blah+logical"), character(0))
-    expect_equal(detect_expr_virtual_tracks("vt1-sababa"), "vt1")
-})
-
 # test implicit vtrack creation
 test_that("logical track returns a valid vtrack R object without values", {
     withr::defer(clean_logical_tracks())
@@ -529,7 +496,7 @@ test_that("emr_extract works with logical track as expression and explicit itera
     expect_equal(a, b, ignore_attr = TRUE)
 
     a <- emr_extract("logical_track*2", iterator = "logical_track", names = "logical_track", keepref = TRUE)
-    b <- emr_extract("ph1*2", iterator = "ph1", , names = "logical_track", keepref = TRUE)
+    b <- emr_extract("ph1*2", iterator = "ph1", names = "logical_track", keepref = TRUE)
     expect_equal(a, b, ignore_attr = TRUE)
 
     a <- emr_extract("logical_track_numeric*2", iterator = "logical_track_numeric", names = "logical_track_numeric", keepref = TRUE)
@@ -593,16 +560,16 @@ test_that("emr_cor works with logical track as expression", {
     emr_filter.create("ltrack_filter", src = "ph1", val = c(15, 16), keepref = TRUE)
     withr::defer(emr_filter.rm("ltrack_filter"))
 
-    a <- emr_cor("logical_track1", c(14, 15, 16), cor.exprs = c("track0", "track1", "track2"), dataframe = TRUE, keepref = TRUE)
-    b <- emr_cor("ph1", c(14, 15, 16), cor.exprs = c("track0", "track1", "track2"), dataframe = TRUE, keepref = TRUE, names = "logical_track")
+    a <- emr_cor("logical_track1", c(14, 15, 16), cor.exprs = c("track0", "track1", "track2"), dataframe = TRUE, keepref = TRUE, iterator = "logical_track1")
+    b <- emr_cor("ph1", c(14, 15, 16), cor.exprs = c("track0", "track1", "track2"), dataframe = TRUE, keepref = TRUE, names = "logical_track", iterator = "ph1")
     expect_equal(a, b, ignore_attr = TRUE)
 
-    a <- emr_cor("logical_track1", c(14, 15, 16), cor.exprs = c("logical_track1", "logical_track2"), dataframe = TRUE, keepref = TRUE)
-    b <- emr_cor("ph1", c(14, 15, 16), cor.exprs = c("logical_track1", "logical_track2"), dataframe = TRUE, keepref = TRUE, names = "logical_track")
+    a <- emr_cor("logical_track1", c(14, 15, 16), cor.exprs = c("logical_track1", "logical_track2"), dataframe = TRUE, keepref = TRUE, iterator = "logical_track1")
+    b <- emr_cor("ph1", c(14, 15, 16), cor.exprs = c("logical_track1", "logical_track2"), dataframe = TRUE, keepref = TRUE, names = "logical_track", iterator = "ph1")
     expect_equal(a, b, ignore_attr = TRUE)
 
-    a <- emr_cor("logical_track2", c(14, 15, 16), cor.exprs = c("track0", "track1", "track2"), dataframe = TRUE, keepref = TRUE)
-    b <- emr_cor("ph1", c(14, 15, 16), cor.exprs = c("track0", "track1", "track2"), dataframe = TRUE, keepref = TRUE, names = "logical_track")
+    a <- emr_cor("logical_track2", c(14, 15, 16), cor.exprs = c("track0", "track1", "track2"), dataframe = TRUE, keepref = TRUE, iterator = "logical_track2")
+    b <- emr_cor("ph1", c(14, 15, 16), cor.exprs = c("track0", "track1", "track2"), dataframe = TRUE, keepref = TRUE, names = "logical_track", iterator = "ph1")
     expect_equal(a, b, ignore_attr = TRUE)
 
     a <- emr_cor("track2", c(100, 300, 500, 900, 2000, 3000), "logical_track1", c(14, 15, 16), "logical_track2",
@@ -633,12 +600,12 @@ test_that("emr_cor works with logical track as iterator", {
     withr::defer(emr_filter.rm("ltrack_filter"))
 
     a <- emr_cor("ph1", c(14, 15, 16), cor.exprs = c("track0", "track1", "track2"), iterator = "logical_track1", dataframe = TRUE, keepref = TRUE)
-    b <- emr_cor("ph1", c(14, 15, 16), filter = "ltrack_filter", cor.exprs = c("track0", "track1", "track2"), dataframe = TRUE, keepref = TRUE, names = "logical_track")
+    b <- emr_cor("ph1", c(14, 15, 16), filter = "ltrack_filter", cor.exprs = c("track0", "track1", "track2"), dataframe = TRUE, keepref = TRUE, names = "logical_track", iterator = "ph1")
     expect_equal(a, b, ignore_attr = TRUE)
 
     emr_track.logical.create("logical_track2", "ph1")
     a <- emr_cor("ph1", c(14, 15, 16), cor.exprs = c("track0", "track1", "track2"), iterator = "logical_track1", dataframe = TRUE, keepref = TRUE)
-    b <- emr_cor("ph1", c(14, 15, 16), cor.exprs = c("track0", "track1", "track2"), dataframe = TRUE, keepref = TRUE)
+    b <- emr_cor("ph1", c(14, 15, 16), cor.exprs = c("track0", "track1", "track2"), dataframe = TRUE, keepref = TRUE, iterator = "ph1")
     expect_equal(a, b, ignore_attr = TRUE)
 })
 
@@ -649,12 +616,12 @@ test_that("emr_cor works with logical track as expression and iterator", {
     withr::defer(emr_filter.rm("ltrack_filter"))
 
     a <- emr_cor("logical_track1", c(14, 15, 16), cor.exprs = c("track0", "track1", "track2"), iterator = "logical_track1", dataframe = TRUE, keepref = TRUE)
-    b <- emr_cor("ph1", c(14, 15, 16), cor.exprs = c("track0", "track1", "track2"), filter = "ltrack_filter", dataframe = TRUE, keepref = TRUE, names = "logical_track")
+    b <- emr_cor("ph1", c(14, 15, 16), cor.exprs = c("track0", "track1", "track2"), filter = "ltrack_filter", dataframe = TRUE, keepref = TRUE, names = "logical_track", iterator = "ph1")
     expect_equal(a, b, ignore_attr = TRUE)
 
     emr_track.logical.create("logical_track2", "ph1")
     a <- emr_cor("logical_track2", c(14, 15, 16), cor.exprs = c("track0", "track1", "track2"), iterator = "logical_track1", dataframe = TRUE, keepref = TRUE)
-    b <- emr_cor("ph1", c(14, 15, 16), cor.exprs = c("track0", "track1", "track2"), dataframe = TRUE, keepref = TRUE, names = "logical_track")
+    b <- emr_cor("ph1", c(14, 15, 16), cor.exprs = c("track0", "track1", "track2"), dataframe = TRUE, keepref = TRUE, names = "logical_track", iterator = "ph1")
     expect_equal(a, b, ignore_attr = TRUE)
 })
 
@@ -664,8 +631,8 @@ test_that("emr_cor works with logical track as cor.expr", {
     emr_track.logical.create("logical_track2", "ph1")
     emr_filter.create("ltrack_filter", src = "ph1", val = c(15, 16), keepref = TRUE)
     withr::defer(emr_filter.rm("ltrack_filter"))
-    a <- emr_cor("track0", c(0, 10, 500, 1000), cor.exprs = c("logical_track1"), dataframe = TRUE, keepref = TRUE)
-    b <- emr_cor("track0", c(0, 10, 500, 1000), cor.exprs = c("ph1"), filter = "ltrack_filter", dataframe = TRUE, keepref = TRUE)
+    a <- emr_cor("track0", c(0, 10, 500, 1000), cor.exprs = c("logical_track1"), dataframe = TRUE, keepref = TRUE, iterator = "track0")
+    b <- emr_cor("track0", c(0, 10, 500, 1000), cor.exprs = c("ph1"), filter = "ltrack_filter", dataframe = TRUE, keepref = TRUE, iterator = "track0")
     expect_equal(a %>% select(-i, -j), b %>% select(-i, -j), ignore_attr = TRUE)
 })
 

@@ -176,3 +176,11 @@ test_that("emr_extract with or filter", {
     expect_error(emr_extract("1", iterator = 1, filter = "df1|df2"))
     expect_regression(emr_extract("1", iterator = 1, stime = 100, etime = 5000, filter = "df1|df2"), "extract.38")
 })
+
+test_that("name inference works", {
+    emr_vtrack.create("vtrack1", src = "track1", keepref = TRUE)
+    emr_track.logical.create("ltrack1", src = "track1")
+    a <- emr_extract("track1 * vtrack1 * ltrack1", keepref = TRUE, iterator = "track1", names = "track1")
+    b <- emr_extract("track1^3", keepref = TRUE, iterator = "track1", names = "track1")
+    expect_equal(a, b, ignore_attr = TRUE)
+})
