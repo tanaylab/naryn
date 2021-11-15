@@ -77,7 +77,7 @@
 #' @param time.shift time shift and expansion for iterator time
 #' @param val selected values
 #' @param expiration expiration period
-#' @return None.
+#' @return Name of the filter (invisibly)
 #' @seealso \code{\link{emr_filter.attr.src}}, \code{\link{emr_filter.ls}},
 #' \code{\link{emr_filter.exists}}, \code{\link{emr_filter.rm}}
 #' @keywords ~filter
@@ -153,7 +153,7 @@ emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val =
     emr_filter.rm(filter)
     EMR_FILTERS[[root]][[filter]] <<- var
 
-    retv <- NULL
+    invisible(filter)
 }
 
 

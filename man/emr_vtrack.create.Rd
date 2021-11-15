@@ -31,7 +31,7 @@ emr_vtrack.create(
 \item{filter}{virtual track filter.}
 }
 \value{
-None.
+Name of the virtual track (invisibly)
 }
 \description{
 Creates a new virtual track.

@@ -1,7 +1,8 @@
 test_that("filter works", {
     EMR_FILTERS <<- list()
-    emr_filter.create("f1", "track1", keepref = T)
+    fname <- emr_filter.create("f1", "track1", keepref = T)
     expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = T, filter = "f1"), "filter.1")
+    expect_equal(fname, "f1")
 })
 
 test_that("time.shift is not allowed when keepref is TRUE", {

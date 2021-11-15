@@ -184,7 +184,7 @@
 #' @param time.shift time shift and expansion for iterator time.
 #' @param id.map id mapping.
 #' @param filter virtual track filter.
-#' @return None.
+#' @return Name of the virtual track (invisibly)
 #' @seealso \code{\link{emr_vtrack.attr.src}}, \code{\link{emr_vtrack.ls}},
 #' \code{\link{emr_vtrack.exists}}, \code{\link{emr_vtrack.rm}}
 #' @keywords ~virtual
@@ -258,7 +258,7 @@ emr_vtrack.create <- function(vtrack, src, func = NULL, params = NULL, keepref =
     emr_vtrack.rm(vtrack)
     EMR_VTRACKS[[root]][[vtrack]] <<- var
 
-    retv <- NULL
+    invisible(vtrack)
 }
 
 
