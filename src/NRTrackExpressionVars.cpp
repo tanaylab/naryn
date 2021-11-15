@@ -45,12 +45,18 @@ void NRTrackExpressionVars::parse_expr(const string &expr, unsigned stime, unsig
             }
 
             // look for virtual tracks using emr_vtrack.exists R function
-            string command = string("emr_vtrack.exists('") + substring + string("')");   
-            if (asLogical(run_in_R(command.c_str(), g_naryn->env()))){                    
+            SEXP e;
+            PROTECT(e = lang2(install("emr_vtrack.exists"), mkString(substring.c_str())));
+            bool vtrack_exists = asLogical(R_tryEval(e, g_naryn->env(), NULL));
+            UNPROTECT(1);
+
+            if (vtrack_exists) {
                 if (is_var(expr, start, start + len)) {
                     // get the virtual track from R and add it
-                    command = string(".emr_vtrack.get('") + substring + string("', FALSE)");
-                    add_vtrack_var(substring, run_in_R(command.c_str(), g_naryn->env()), false, stime, etime);
+                    PROTECT(e = lang3(install(".emr_vtrack.get"), mkString(substring.c_str()), ScalarLogical(0)));
+                    SEXP vtrack = R_tryEval(e, g_naryn->env(), NULL);
+                    UNPROTECT(1);                    
+                    add_vtrack_var(substring, vtrack, false, stime, etime);
                     if (len == expr.length() - start){ // entire string is a match
                         return;
                     }

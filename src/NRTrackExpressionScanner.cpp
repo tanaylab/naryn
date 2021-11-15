@@ -493,21 +493,22 @@ void NRTrackExprScanner::create_expr_iterator(SEXP rtrack_exprs, SEXP rstime, SE
 // add a filter based on the logical track values:
 // call the R function create_logical_track_filter("logical_track", filter = filter)
 SEXP NRTrackExprScanner::create_logical_track_filter(SEXP riterator, SEXP filter) const {
-    string command;      
+    SEXP e;
 
     if (filter == R_NilValue){
-        command = string("create_logical_track_filter('") + string(CHAR(asChar(riterator))) + "')";        
+        PROTECT(e = lang2(install("create_logical_track_filter"), riterator));
     } else {
-        command = string(".emr_filter(create_logical_track_filter('") + 
-            string(CHAR(asChar(riterator))) + 
-            string("', filter = '") + 
-            string(CHAR(asChar(filter))) + 
-            string("'))");            
-    }                
+        PROTECT(e = lang3(install("create_logical_track_filter"), riterator, filter));
+    }
 
-    filter = run_in_R(command.c_str(), g_naryn->env());
-    
-    return(filter);
+    SEXP res = R_tryEval(e, g_naryn->env(), NULL);
+    UNPROTECT(1);
+
+    PROTECT(e = lang2(install(".emr_filter"), e));
+    res = R_tryEval(e, g_naryn->env(), NULL);
+    UNPROTECT(1);
+
+    return (res);
 }
 
 void NRTrackExprScanner::create_expr_iterator(IteratorWithFilter *itr, SEXP riterator, bool keepref, const NRTrackExpressionVars &vars,
