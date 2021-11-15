@@ -108,7 +108,7 @@ remove_logical_track <- function(track, force, rm_vars, update) {
 #' @return None.
 #'
 #' @keywords ~track ~create_logical
-#' @export emr_track.logical.create
+#' @export
 emr_track.logical.rm <- function(track, force = FALSE, rm_vars = TRUE) {
     .emr_checkroot()
     if (length(track) > 1) {

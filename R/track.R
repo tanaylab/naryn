@@ -879,6 +879,7 @@ emr_track.user.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FA
 
 #' emr_track.ls for logical tracks
 #'
+#' @export
 #' @noRd
 emr_track.logical.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
     .emr_checkroot()
