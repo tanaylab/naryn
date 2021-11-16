@@ -79,7 +79,7 @@ emr_track.logical.create("hemoglobin", "lab.103")
 emr_extract("hemoglobin")
 ```
 
-You can also use *logical tracks* to create an alias for specific values from a **categorical** track. For example, suppose we have a track called `diagnosis.250` which contains the diagnosis times of ICD code 250 (*250.\**), with the values being the sub-diagnosis (e.g. `1` for 250.1 and `4` for 250.4). *Logical tracks* allow us to create an alias for a specific sub-diagnosis value and then refer to it as a regular track:
+You can also use *logical tracks* to create an alias for specific values from a *categorical* track. For example, suppose we have a track called `diagnosis.250` which contains the diagnosis times of ICD code 250 ("*250.\**"), with the values being the sub-diagnosis (e.g. `1` for 250.1 and `4` for 250.4). *Logical tracks* allow us to create an alias for a specific sub-diagnosis value and then refer to it as a regular track:
 
 ```r
 emr_track.logical.create("dx.250.1_4", "diagnosis.250", values = c(1,4))
