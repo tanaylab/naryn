@@ -5,18 +5,13 @@ navbar:
     - intro
     - reference
     - articles
-    - tutorials
     - news
     right: github
   components:
     home:
       icon: fa-home fa-lg
       href: index.html
-    tutorials:
-      text: User manual
-      href: articles/manual.pdf
     reference:
       text: Reference
       href: reference/index.html
 
-pdf: /net/mraid14/export/data/tools/lib/naryn/naryn/doc/manual.pdf
