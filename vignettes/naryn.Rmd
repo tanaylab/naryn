@@ -72,7 +72,21 @@ During the track creation one must specify the type of the track: categorical or
 
 #### Logical tracks
 
+In addition to the physical tracks which are stored in the binary files, `naryn` supports a concept of a *logical track* which is an alias to a physical track. For example, assume we have a track called `lab.103` which contains hemoglobin levels of patients. It would be more convenient to refer to it explicitly by `hemoglobin` instead of remembering the lab code. *Logical tracks* do exactly this, we can create a logical track called `hemoglobin` which refers to the physical `lab.103`:
 
+```r
+emr_track.logical.create("hemoglobin", "lab.103")
+emr_extract("hemoglobin")
+```
+
+You can also use *logical tracks* to create an alias for specific values from a **categorical** track. For example, suppose we have a track called `diagnosis.250` which contains the diagnosis times of ICD code 250 (*250.\**), with the values being the sub-diagnosis (e.g. `1` for 250.1 and `4` for 250.4). *Logical tracks* allow us to create an alias for a specific sub-diagnosis value and then refer to it as a regular track:
+
+```r
+emr_track.logical.create("dx.250.1_4", "diagnosis.250", values = c(1,4))
+emr_extract("dx.250.1_4")
+```
+
+Under the hood logical tracks are implemented using the virtual tracks mechanism (see below), but unlike virtual tracks - they are part of the database and are persistent between sessions. You can delete a logical track by calling `emr_track.logical.rm` and list them using `emr_track.logical.ls`. 
 
 #### Track Attributes
 
