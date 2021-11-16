@@ -4,3 +4,8 @@ src/*.o
 src/*.d
 tests/testdb
 tests/snapshot
+.vscode
+Logical_tracks.md
+inst/naryndb/test/.logical_tracks
+inst/naryndb/test/.attrs
+benchmark.*

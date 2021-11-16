@@ -1,7 +1,7 @@
 Type: Package
 Package: naryn
 Title: Toolkit for analysis of medical records
-Version: 2.6.0
+Version: 2.6.1
 Date: 2020-11-09
 Authors@R: 
     person(given = "Misha",
@@ -15,21 +15,24 @@ License: GPL-2
 BugReports: https://github.com/tanaylab/naryn/issues
 Depends: 
     utils
+Imports: 
+    dplyr,
+    glue,
+    magrittr,
+    purrr
+Suggests: 
+    tools,
+    callr,
+    forcats,
+    readr,
+    testthat (>= 3.0.4)
+LinkingTo: 
+    cpp11
+Config/testthat/edition: 3
+Config/testthat/parallel: false
 Encoding: UTF-8
 LazyLoad: yes
 NeedsCompilation: yes
 Packaged: 2020-11-09 18:12:03 UTC; hoichman
 RoxygenNote: 7.1.1
 SystemRequirements: GNU make, C++11
-Suggests: 
-    testthat (>= 3.0.0),
-    glue,    
-    readr    
-Config/testthat/edition: 3
-Config/testthat/parallel: true
-Imports: 
-    purrr,
-    dplyr,
-    magrittr
-LinkingTo: 
-    cpp11

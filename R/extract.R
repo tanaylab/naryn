@@ -20,7 +20,7 @@
 #' dimensional binning the individual data in the matrices can be accessed as:
 #' $cor[bin1, ..., binN, i, j].
 #'
-#' If \code{dataframe == TRUE} the return value is a data frame with a column for each track expression, additional columns i,j with pairs of \code{cor_exprs}
+#' If \code{dataframe = TRUE} the return value is a data frame with a column for each track expression, additional columns i,j with pairs of \code{cor_exprs}
 #' and another 5 columns: 'n', 'e', 'var', 'cov', 'cor' with the same values
 #' as the matrices described above.
 #'
@@ -79,7 +79,7 @@ emr_cor <- function(..., cor.exprs = NULL, include.lowest = FALSE, right = TRUE,
     first_exprs <- exprs
     exprs <- append(exprs, cor.exprs)
 
-    res <- .emr_call("emr_covariance", exprs, breaks, include.lowest, right, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
+    res <- .emr_call("emr_covariance", exprs, breaks, include.lowest, right, stime, etime, iterator, keepref, filter, new.env(parent = parent.frame()))
 
     if (dataframe) {
         names <- names %||% first_exprs
@@ -157,7 +157,7 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, et
         breaks[length(breaks) + 1] <- list(args[[i * 2 + 2]])
     }
 
-    res <- .emr_call("emr_dist", exprs, breaks, include.lowest, right, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
+    res <- .emr_call("emr_dist", exprs, breaks, include.lowest, right, stime, etime, iterator, keepref, filter, new.env(parent = parent.frame()))
 
     if (dataframe) {
         res <- as.data.frame.table(res)
@@ -217,11 +217,11 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, et
 #' @export emr_extract
 emr_extract <- function(expr, tidy = F, sort = F, names = NULL, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL) {
     if (missing(expr)) {
-          stop("Usage: emr_extract(expr, tidy = F, sort = F, names = NULL, tidy = F, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
-      }
+        stop("Usage: emr_extract(expr, tidy = F, sort = F, names = NULL, tidy = F, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
+    }
     .emr_checkroot()
 
-    .emr_call("emr_extract", expr, names, tidy, sort, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
+    .emr_call("emr_extract", expr, names, tidy, sort, stime, etime, iterator, keepref, filter, new.env(parent = parent.frame()))
 }
 
 
@@ -255,36 +255,66 @@ emr_extract <- function(expr, tidy = F, sort = F, names = NULL, stime = NULL, et
 #' @export emr_ids_coverage
 emr_ids_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filter = NULL) {
     if (missing(ids) || missing(tracks)) {
-          stop("Usage: emr_ids_coverage(ids, tracks, stime = NULL, etime = NULL, filter = NULL)", call. = F)
-      }
+        stop("Usage: emr_ids_coverage(ids, tracks, stime = NULL, etime = NULL, filter = NULL)", call. = F)
+    }
     .emr_checkroot()
 
-    if (is.null(stime) && is.null(etime) && is.null(filter)) {
-          .emr_call("emr_ids_dist", ids, tracks, new.env(parent = parent.frame()))
-      } else {
-        if (is.null(filter)) {
-              filter <- "..emr_tmp_filter"
-          } else {
-              filter <- paste0("(", filter, ")", "& ..emr_tmp_filter")
-          }
+    orig_tracks <- tracks
+    res_logical <- list()
+    res <- list()
 
-        if (is.character(ids)) { # ids is a name of the track
-              assign("..emr_tmp_filter", emr_track.ids(ids), envir = .GlobalEnv)
-          } else {
-              assign("..emr_tmp_filter", data.frame(id = unique(ids$id)), envir = .GlobalEnv)
-          }
-
-        tryCatch(
-            {
-                .emr_call("emr_ids_dist_with_iterator", ids, tracks, stime, etime, .emr_filter(filter), new.env(parent = parent.frame()))
-            },
-            finally = {
-                rm("..emr_tmp_filter", envir = .GlobalEnv)
-            }
-        )
+    for (track in tracks) {
+        if (emr_track.logical.exists(track)) {
+            ltrack <- emr_track.logical.info(track)
+            res_logical[[track]] <-
+                emr_ids_coverage(
+                    ids,
+                    ltrack$source,
+                    filter = create_logical_track_filter(track, filter), stime = stime,
+                    etime = etime
+                )[[1]]
+        }
     }
-}
 
+    tracks <- tracks[!(tracks %in% names(res_logical))]
+
+    if (length(tracks) > 0) {
+        if (is.null(stime) && is.null(etime) && is.null(filter)) {
+            res <- .emr_call("emr_ids_dist", ids, tracks, new.env(parent = parent.frame()))
+        } else {
+            if (is.null(filter)) {
+                filter <- "..emr_tmp_filter"
+            } else {
+                filter <- paste0("(", filter, ")", " & ..emr_tmp_filter")
+            }
+
+            if (is.character(ids)) { # ids is a name of the track
+                track_ids <- emr_track.ids(ids)
+                assign("..emr_tmp_filter", track_ids, envir = .GlobalEnv)
+                if (emr_track.logical.exists(ids)) {
+                    ids <- track_ids
+                }
+            } else {
+                assign("..emr_tmp_filter", data.frame(id = unique(ids$id)), envir = .GlobalEnv)
+            }
+
+            tryCatch(
+                {
+                    res <- .emr_call("emr_ids_dist_with_iterator", ids, tracks, stime, etime, filter, new.env(parent = parent.frame()))
+                },
+                finally = {
+                    rm("..emr_tmp_filter", envir = .GlobalEnv)
+                }
+            )
+        }
+    }
+
+    res <- c(res, res_logical)
+
+    res <- res[orig_tracks]
+    res <- unlist(res)
+    return(res)
+}
 
 
 #' Returns ids coverage per value track
@@ -317,30 +347,63 @@ emr_ids_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filter = N
 #' @export emr_ids_vals_coverage
 emr_ids_vals_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filter = NULL) {
     if (missing(ids) || missing(tracks)) {
-          stop("Usage: emr_ids_vals_coverage(ids, tracks, stime = NULL, etime = NULL, filter = NULL)", call. = F)
-      }
+        stop("Usage: emr_ids_vals_coverage(ids, tracks, stime = NULL, etime = NULL, filter = NULL)", call. = F)
+    }
     .emr_checkroot()
 
-    if (is.null(filter)) {
-          filter <- "..emr_tmp_filter"
-      } else {
-          filter <- paste0("(", filter, ")", "& ..emr_tmp_filter")
-      }
+    logical_tracks <- tracks[purrr::map_lgl(tracks, emr_track.logical.exists)]
+    physical_tracks <- tracks[!(tracks %in% logical_tracks)]
 
-    if (is.character(ids)) { # ids is a name of the track
-          assign("..emr_tmp_filter", emr_track.ids(ids), envir = .GlobalEnv)
-      } else {
-          assign("..emr_tmp_filter", data.frame(id = unique(ids$id)), envir = .GlobalEnv)
-      }
+    res_logical <- data.frame(track = character(), val = numeric(), count = numeric())
+    res_physical <- data.frame(track = character(), val = numeric(), count = numeric())
 
-    tryCatch(
-        {
-            .emr_call("emr_ids_vals_dist", ids, tracks, stime, etime, .emr_filter(filter), new.env(parent = parent.frame()))
-        },
-        finally = {
-            rm("..emr_tmp_filter", envir = .GlobalEnv)
+    if (length(logical_tracks) > 0) {
+        res_logical <- purrr::map_dfr(logical_tracks, function(track) {
+            ltrack <- emr_track.logical.info(track)
+            res <- emr_ids_vals_coverage(
+                ids,
+                ltrack$source,
+                filter = create_logical_track_filter(track, filter), stime = stime,
+                etime = etime
+            )
+            res$track <- track
+            res <- res %>% dplyr::filter(val %in% ltrack$values)
+            return(res)
+        })
+    }
+
+    if (length(physical_tracks) > 0) {
+        if (is.null(filter)) {
+            filter <- "..emr_tmp_filter"
+        } else {
+            filter <- paste0("(", filter, ")", "& ..emr_tmp_filter")
         }
-    )
+
+        if (is.character(ids)) { # ids is a name of the track
+            track_ids <- emr_track.ids(ids)
+            assign("..emr_tmp_filter", track_ids, envir = .GlobalEnv)
+            if (emr_track.logical.exists(ids)) {
+                ids <- track_ids
+            }
+        } else {
+            assign("..emr_tmp_filter", data.frame(id = unique(ids$id)), envir = .GlobalEnv)
+        }
+
+        tryCatch(
+            {
+                res_physical <- .emr_call("emr_ids_vals_dist", ids, physical_tracks, stime, etime, filter, new.env(parent = parent.frame()))
+            },
+            finally = {
+                rm("..emr_tmp_filter", envir = .GlobalEnv)
+            }
+        )
+    }
+
+    res <- rbind(res_physical, res_logical)
+    res <- res %>%
+        dplyr::mutate(track = factor(track, levels = tracks)) %>%
+        dplyr::arrange(track)
+    return(res)
 }
 
 
@@ -373,11 +436,11 @@ emr_ids_vals_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filte
 #' @export emr_quantiles
 emr_quantiles <- function(expr, percentiles = 0.5, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL) {
     if (missing(expr)) {
-          stop("Usage: emr_quantiles(expr, percentiles = 0.5, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
-      }
+        stop("Usage: emr_quantiles(expr, percentiles = 0.5, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
+    }
     .emr_checkroot()
 
-    .emr_call("emr_quantiles", expr, percentiles, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
+    .emr_call("emr_quantiles", expr, percentiles, stime, etime, iterator, keepref, filter, new.env(parent = parent.frame()))
 }
 
 
@@ -414,11 +477,11 @@ emr_quantiles <- function(expr, percentiles = 0.5, stime = NULL, etime = NULL, i
 #' @export emr_screen
 emr_screen <- function(expr, sort = F, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL) {
     if (missing(expr)) {
-          stop("Usage: emr_screen(expr, sort = F, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
-      }
+        stop("Usage: emr_screen(expr, sort = F, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
+    }
     .emr_checkroot()
 
-    .emr_call("emr_screen", expr, sort, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
+    .emr_call("emr_screen", expr, sort, stime, etime, iterator, keepref, filter, new.env(parent = parent.frame()))
 }
 
 
@@ -448,9 +511,9 @@ emr_screen <- function(expr, sort = F, stime = NULL, etime = NULL, iterator = NU
 #' @export emr_summary
 emr_summary <- function(expr, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL) {
     if (missing(expr)) {
-          stop("Usage: emr_summary(expr, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
-      }
+        stop("Usage: emr_summary(expr, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
+    }
     .emr_checkroot()
 
-    .emr_call("emr_summary", expr, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
+    .emr_call("emr_summary", expr, stime, etime, iterator, keepref, filter, new.env(parent = parent.frame()))
 }

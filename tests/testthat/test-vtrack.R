@@ -20,8 +20,9 @@ test_that("Function min is not supported with categorical data", {
 
 test_that("emr_vtrack works", {
     EMR_VTRACKS <<- list()
-    emr_vtrack.create("v1", "track6", func = "value")
+    vt_name <- emr_vtrack.create("v1", "track6", func = "value")
     expect_regression(emr_extract("v1"), "vtrack.1")
+    expect_equal(vt_name, "v1")
 })
 
 test_that("function exists requires an additional parameter", {
@@ -428,6 +429,32 @@ test_that("emr_vtrack works", {
     expect_regression(emr_extract("v1", keepref = T), "vtrack.60")
 })
 
+test_that("emr_vtrack works with a single NA value as params", {
+    EMR_VTRACKS <<- list()
+    test_with_func <- function(func) {
+        emr_vtrack.create("v1", "ph1", func = func, time.shift = c(-10, 20), params = NA)
+        emr_vtrack.create("v2", "ph1", func = func, time.shift = c(-10, 20), params = 800)
+        expect_equal(
+            emr_extract("v1", names = "value"),
+            emr_extract("v2", names = "value")
+        )
+    }
+
+    categorical_funcs <- c("exists", "value", "sample", "sample.time", "frequent", "size", "earliest", "latest", "earliest.time", "latest.time", "closest.earlier.time", "closest.later.time", "dt1.earliest", "dt1.latest", "dt2.earliest", "dt2.latest")
+
+    for (f in categorical_funcs) {
+        test_with_func(f)
+    }
+})
+
+test_that("emr_vtrack fails when params are invalid", {
+    EMR_VTRACKS <<- list()
+    expect_error(emr_vtrack.create("v1", "ph1", func = "exists", time.shift = c(-10, 20), params = c(NA, NA)))
+    expect_error(emr_vtrack.create("v1", "ph1", func = "exists", time.shift = c(-10, 20), params = c(TRUE)))
+    expect_error(emr_vtrack.create("v1", "ph1", func = "exists", time.shift = c(-10, 20), params = c("savta")))
+    expect_error(emr_vtrack.create("v1", "ph1", func = "exists", time.shift = c(-10, 20), params = c(15, NA)))
+})
+
 test_that("filter cannot be used when 'src' is a data frame", {
     EMR_VTRACKS <<- list()
     r <- emr_extract("track0", keepref = F, names = "value")
@@ -440,6 +467,14 @@ test_that("Unable to implicitly set iterator policy with vtracks", {
     emr_vtrack.create("v1", list(r, F), func = "percentile.upper", time.shift = c(-10, 20))
     expect_error(emr_extract(c("v1", "track1"), keepref = T))
 })
+
+test_that("Unable to implicitly set iterator policy with logical tracks", {
+    EMR_VTRACKS <<- list()
+    emr_track.logical.create("logical_track1", "ph1", c(15, 16))
+    withr::defer(emr_track.logical.rm("logical_track1", force = TRUE))
+    expect_error(emr_extract(c("logical_track1", "track1"), keepref = T))
+})
+
 
 test_that("emr_vtrack.attr.src works", {
     EMR_VTRACKS <<- list()
@@ -570,4 +605,10 @@ test_that("emr_vtrack works", {
     EMR_VTRACKS <<- list()
     emr_vtrack.create("v1", "track7", func = "frequent", params = c(2:5), time.shift = c(-100, 200))
     expect_regression(emr_extract("v1"), "vtrack.62")
+})
+
+test_that("vtrack and extract return the same", {
+    EMR_VTRACKS <<- list()
+    emr_vtrack.create("vt", "track1")
+    expect_equal(emr_extract("vt"), emr_extract("track1", names = "vt"))
 })

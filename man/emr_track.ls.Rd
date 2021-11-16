@@ -4,6 +4,7 @@
 \alias{emr_track.ls}
 \alias{emr_track.global.ls}
 \alias{emr_track.user.ls}
+\alias{emr_track.logical.ls}
 \title{Returns a list of track names}
 \usage{
 emr_track.ls(
@@ -56,9 +57,9 @@ track attribute is matched against the pattern.
 Multiple patterns are applied one after another. The resulted list of tracks
 should match all the patterns.
 
-'emr_track.global.ls' and 'emr_track.user.ls' work similarly to
+'emr_track.global.ls', 'emr_track.user.ls', 'emr_track.logical.ls' work similarly to
 'emr_track.ls' but instead of returning all track names, each of them
-returns either global or local tracks accordingly.
+returns either global, local or logical tracks accordingly.
 }
 \examples{
 

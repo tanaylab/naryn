@@ -170,6 +170,18 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(vector<SEXP> &filter
             return filter;
         }
 
+        // create a filter based on logical track
+        const EMRLogicalTrack *logical_track = g_db->logical_track(str);
+
+        if (logical_track) {
+            track = g_db->track(logical_track->source.c_str());
+            unordered_set<double> vals(logical_track->values.begin(),
+                                       logical_track->values.end());
+            filter->m_itr = new EMRTrackIterator(track, filter->m_keepref,
+                                                 stime, etime, move(vals));
+            return filter;
+        }
+
         SEXP rval = findVar(install(str), g_naryn->env());
         bool success = false;
 
@@ -365,8 +377,11 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const 
 
                 filter->m_itr = new EMRPointsIterator(points, filter->m_keepref, _stime, _etime);
             } catch (TGLException &e) {
-                if (e.type() == typeid(NRPoint) && e.code() != NRPoint::BAD_FORMAT) 
-                    verror("Filter %s: 'src' is neigther a track nor an id-time data frame", name);
+                if (e.type() == typeid(NRPoint) && e.code() != NRPoint::BAD_FORMAT)
+                    verror(
+                        "Filter %s: 'src' is neither a track nor an id-time "
+                        "data frame",
+                        name);
 
                 verror("Filter item %s: %s", name, e.msg());
             }

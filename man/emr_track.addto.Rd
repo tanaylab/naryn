@@ -4,12 +4,15 @@
 \alias{emr_track.addto}
 \title{Adds new records to a track}
 \usage{
-emr_track.addto(track, src)
+emr_track.addto(track, src, force = FALSE)
 }
 \arguments{
 \item{track}{track name}
 
 \item{src}{file name or data-frame containing the track records}
+
+\item{force}{if 'TRUE', supresses user confirmation for addition to
+logical tracks}
 }
 \value{
 None.
@@ -29,6 +32,13 @@ character. Note that the file should not contain a header line.
 Alternatively 'src' can be a data frame consisting of the columns named
 "id", "time", "ref" and "value". Note: "ref" column in the data frame is
 optional.
+
+Adding to a logical track adds the values to the underlying physical
+track, and is allowed only if all the values are within the logical
+track allowed values and only from a data frame \code{src}. Note that
+this might affect other logical tracks pointing to the same physical
+track and therefore requires confirmation from the user unless
+\code{force=TRUE}.
 }
 \seealso{
 \code{\link{emr_track.import}}, \code{\link{emr_track.create}},
