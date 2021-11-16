@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">naryn</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.6.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.6.1</span>
       </span>
     </div>
 
@@ -85,10 +85,13 @@
   </a>
 </li>
 <li>
+  <a href="../articles/naryn.html">Get started</a>
+</li>
+<li>
   <a href="../reference/index.html">Reference</a>
 </li>
 <li>
-  <a href="../articles/manual.pdf">User manual</a>
+  <a href="../news/index.html">Changelog</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
@@ -120,14 +123,14 @@
     <p>Deletes a logical track</p>
     </div>
 
-    <pre class="usage"><span class='fu'>emr_track.logical.rm</span><span class='op'>(</span><span class='va'>track</span>, force <span class='op'>=</span> <span class='cn'>FALSE</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>emr_track.logical.rm</span><span class='op'>(</span><span class='va'>track</span>, force <span class='op'>=</span> <span class='cn'>FALSE</span>, rm_vars <span class='op'>=</span> <span class='cn'>TRUE</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>track</th>
-      <td><p>the name of the newly created logical track</p></td>
+      <td><p>the name of one or more tracks to delete</p></td>
     </tr>
     <tr>
       <th>force</th>
@@ -150,7 +153,7 @@
 
       <footer>
       <div class="copyright">
-  <p>Developed by Misha Hoichman.</p>
+  <p>Developed by Misha Hoichman, Aviezer Lifshitz, Ben Gilat.</p>
 </div>
 
 <div class="pkgdown">

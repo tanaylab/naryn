@@ -71,7 +71,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">naryn</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.6.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.6.1</span>
       </span>
     </div>
 
@@ -84,10 +84,13 @@
   </a>
 </li>
 <li>
+  <a href="../articles/naryn.html">Get started</a>
+</li>
+<li>
   <a href="../reference/index.html">Reference</a>
 </li>
 <li>
-  <a href="../articles/manual.pdf">User manual</a>
+  <a href="../news/index.html">Changelog</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
@@ -124,7 +127,7 @@
     <tbody>
       <tr>
         <th colspan="2">
-          <h2 id="section-all-functions" class="hasAnchor"><a href="#section-all-functions" class="anchor"></a>All functions</h2>
+          <h2 id="section-extract" class="hasAnchor"><a href="#section-extract" class="anchor"></a>Extract</h2>
           <p class="section-desc"></p>
         </th>
       </tr>
@@ -134,6 +137,24 @@
       
       
       <tr>
+        
+        <td>
+          <p><code><a href="emr_extract.html">emr_extract()</a></code> </p>
+        </td>
+        <td><p>Returns evaluated track expression</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="emr_dist.html">emr_dist()</a></code> </p>
+        </td>
+        <td><p>Calculates distribution of track expressions</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="emr_screen.html">emr_screen()</a></code> </p>
+        </td>
+        <td><p>Finds Id-Time points that match track expression</p></td>
+      </tr><tr>
         
         <td>
           <p><code><a href="emr_annotate.html">emr_annotate()</a></code> </p>
@@ -148,10 +169,41 @@
       </tr><tr>
         
         <td>
-          <p><code><a href="emr_date2time.html">emr_date2time()</a></code> </p>
+          <p><code><a href="emr_quantiles.html">emr_quantiles()</a></code> </p>
         </td>
-        <td><p>Converts date and hour to internal time format</p></td>
+        <td><p>Calculates quantiles of a track expression</p></td>
       </tr><tr>
+        
+        <td>
+          <p><code><a href="emr_summary.html">emr_summary()</a></code> </p>
+        </td>
+        <td><p>Calculates summary statistics of track expression</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="emr_ids_coverage.html">emr_ids_coverage()</a></code> </p>
+        </td>
+        <td><p>Returns ids coverage per track</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="emr_ids_vals_coverage.html">emr_ids_vals_coverage()</a></code> </p>
+        </td>
+        <td><p>Returns ids coverage per value track</p></td>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-database" class="hasAnchor"><a href="#section-database" class="anchor"></a>Database</h2>
+          <p class="section-desc"></p>
+        </th>
+      </tr>
+      
+      
+    </tbody><tbody>
+      
+      
+      <tr>
         
         <td>
           <p><code><a href="emr_db.init.html">emr_db.init()</a></code> </p>
@@ -181,115 +233,20 @@
           <p><code><a href="emr_db.subset.info.html">emr_db.subset.info()</a></code> </p>
         </td>
         <td><p>Returns information about the current subset</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="emr_dist.html">emr_dist()</a></code> </p>
-        </td>
-        <td><p>Calculates distribution of track expressions</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="emr_extract.html">emr_extract()</a></code> </p>
-        </td>
-        <td><p>Returns evaluated track expression</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="emr_filter.attr.src.html">emr_filter.attr.src()</a></code> </p>
-        </td>
-        <td><p>Get or set attributes of a named filter</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="emr_filter.create.html">emr_filter.create()</a></code> </p>
-        </td>
-        <td><p>Creates a new named filter</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="emr_filter.exists.html">emr_filter.exists()</a></code> </p>
-        </td>
-        <td><p>Checks whether the named filter exists</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="emr_filter.info.html">emr_filter.info()</a></code> </p>
-        </td>
-        <td><p>Returns the definition of a named filter</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="emr_filter.ls.html">emr_filter.ls()</a></code> </p>
-        </td>
-        <td><p>Returns a list of named filters</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="emr_filter.rm.html">emr_filter.rm()</a></code> </p>
-        </td>
-        <td><p>Deletes a named filter</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="emr_ids_coverage.html">emr_ids_coverage()</a></code> </p>
-        </td>
-        <td><p>Returns ids coverage per track</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="emr_ids_vals_coverage.html">emr_ids_vals_coverage()</a></code> </p>
-        </td>
-        <td><p>Returns ids coverage per value track</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="emr_quantiles.html">emr_quantiles()</a></code> </p>
-        </td>
-        <td><p>Calculates quantiles of a track expression</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="emr_screen.html">emr_screen()</a></code> </p>
-        </td>
-        <td><p>Finds Id-Time points that match track expression</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="emr_summary.html">emr_summary()</a></code> </p>
-        </td>
-        <td><p>Calculates summary statistics of track expression</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="emr_time2dayofmonth.html">emr_time2dayofmonth()</a></code> </p>
-        </td>
-        <td><p>Converts time from internal format to a day of month</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="emr_time2hour.html">emr_time2hour()</a></code> </p>
-        </td>
-        <td><p>Converts time from internal format to an hour</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="emr_time2month.html">emr_time2month()</a></code> </p>
-        </td>
-        <td><p>Converts time from internal format to a month</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="emr_time2year.html">emr_time2year()</a></code> </p>
-        </td>
-        <td><p>Converts time from internal format to a year</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="emr_traceback.html">emr_traceback()</a></code> </p>
-        </td>
-        <td><p>Prints call stack of the last uncaught error</p></td>
-      </tr><tr>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-track" class="hasAnchor"><a href="#section-track" class="anchor"></a>Track</h2>
+          <p class="section-desc"></p>
+        </th>
+      </tr>
+      
+      
+    </tbody><tbody>
+      
+      
+      <tr>
         
         <td>
           <p><code><a href="emr_track.addto.html">emr_track.addto()</a></code> </p>
@@ -328,12 +285,6 @@
       </tr><tr>
         
         <td>
-          <p><code><a href="emr_track.create_logical.html">emr_track.logical.create()</a></code> </p>
-        </td>
-        <td><p>Creates a logical track</p></td>
-      </tr><tr>
-        
-        <td>
           <p><code><a href="emr_track.exists.html">emr_track.exists()</a></code> </p>
         </td>
         <td><p>Checks whether the track exists</p></td>
@@ -358,13 +309,19 @@
       </tr><tr>
         
         <td>
+          <p><code><a href="emr_track.logical.create.html">emr_track.logical.create()</a></code> </p>
+        </td>
+        <td><p>Creates a logical track</p></td>
+      </tr><tr>
+        
+        <td>
           <p><code><a href="emr_track.logical.rm.html">emr_track.logical.rm()</a></code> </p>
         </td>
         <td><p>Deletes a logical track</p></td>
       </tr><tr>
         
         <td>
-          <p><code><a href="emr_track.ls.html">emr_track.ls()</a></code> <code><a href="emr_track.ls.html">emr_track.global.ls()</a></code> <code><a href="emr_track.ls.html">emr_track.user.ls()</a></code> </p>
+          <p><code><a href="emr_track.ls.html">emr_track.ls()</a></code> <code><a href="emr_track.ls.html">emr_track.global.ls()</a></code> <code><a href="emr_track.ls.html">emr_track.user.ls()</a></code> <code><a href="emr_track.ls.html">emr_track.logical.ls()</a></code> </p>
         </td>
         <td><p>Returns a list of track names</p></td>
       </tr><tr>
@@ -421,7 +378,20 @@
           <p><code><a href="emr_track.var.set.html">emr_track.var.set()</a></code> </p>
         </td>
         <td><p>Assigns value to a track variable</p></td>
-      </tr><tr>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-virtual-track" class="hasAnchor"><a href="#section-virtual-track" class="anchor"></a>Virtual track</h2>
+          <p class="section-desc"></p>
+        </th>
+      </tr>
+      
+      
+    </tbody><tbody>
+      
+      
+      <tr>
         
         <td>
           <p><code><a href="emr_vtrack.attr.src.html">emr_vtrack.attr.src()</a></code> </p>
@@ -457,18 +427,197 @@
           <p><code><a href="emr_vtrack.rm.html">emr_vtrack.rm()</a></code> </p>
         </td>
         <td><p>Deletes a virtual track</p></td>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-filter" class="hasAnchor"><a href="#section-filter" class="anchor"></a>Filter</h2>
+          <p class="section-desc"></p>
+        </th>
+      </tr>
+      
+      
+    </tbody><tbody>
+      
+      
+      <tr>
+        
+        <td>
+          <p><code><a href="emr_filter.attr.src.html">emr_filter.attr.src()</a></code> </p>
+        </td>
+        <td><p>Get or set attributes of a named filter</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="emr_filter.create.html">emr_filter.create()</a></code> </p>
+        </td>
+        <td><p>Creates a new named filter</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="emr_filter.exists.html">emr_filter.exists()</a></code> </p>
+        </td>
+        <td><p>Checks whether the named filter exists</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="emr_filter.info.html">emr_filter.info()</a></code> </p>
+        </td>
+        <td><p>Returns the definition of a named filter</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="emr_filter.ls.html">emr_filter.ls()</a></code> </p>
+        </td>
+        <td><p>Returns a list of named filters</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="emr_filter.rm.html">emr_filter.rm()</a></code> </p>
+        </td>
+        <td><p>Deletes a named filter</p></td>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-time" class="hasAnchor"><a href="#section-time" class="anchor"></a>Time</h2>
+          <p class="section-desc"></p>
+        </th>
+      </tr>
+      
+      
+    </tbody><tbody>
+      
+      
+      <tr>
+        
+        <td>
+          <p><code><a href="emr_date2time.html">emr_date2time()</a></code> </p>
+        </td>
+        <td><p>Converts date and hour to internal time format</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="emr_time2dayofmonth.html">emr_time2dayofmonth()</a></code> </p>
+        </td>
+        <td><p>Converts time from internal format to a day of month</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="emr_time2hour.html">emr_time2hour()</a></code> </p>
+        </td>
+        <td><p>Converts time from internal format to an hour</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="emr_time2month.html">emr_time2month()</a></code> </p>
+        </td>
+        <td><p>Converts time from internal format to a month</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="emr_time2year.html">emr_time2year()</a></code> </p>
+        </td>
+        <td><p>Converts time from internal format to a year</p></td>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-track-attributes" class="hasAnchor"><a href="#section-track-attributes" class="anchor"></a>Track attributes</h2>
+          <p class="section-desc"></p>
+        </th>
+      </tr>
+      
+      
+    </tbody><tbody>
+      
+      
+      <tr>
+        
+        <td>
+          <p><code><a href="emr_track.attr.export.html">emr_track.attr.export()</a></code> </p>
+        </td>
+        <td><p>Returns attributes values of tracks</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="emr_track.attr.get.html">emr_track.attr.get()</a></code> </p>
+        </td>
+        <td><p>Returns the value of the track attribute</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="emr_track.attr.rm.html">emr_track.attr.rm()</a></code> </p>
+        </td>
+        <td><p>Deletes a track attribute</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="emr_track.attr.set.html">emr_track.attr.set()</a></code> </p>
+        </td>
+        <td><p>Assigns a value to the track attribute</p></td>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-track-variables" class="hasAnchor"><a href="#section-track-variables" class="anchor"></a>Track variables</h2>
+          <p class="section-desc"></p>
+        </th>
+      </tr>
+      
+      
+    </tbody><tbody>
+      
+      
+      <tr>
+        
+        <td>
+          <p><code><a href="emr_track.var.get.html">emr_track.var.get()</a></code> </p>
+        </td>
+        <td><p>Returns value of a track variable</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="emr_track.var.ls.html">emr_track.var.ls()</a></code> </p>
+        </td>
+        <td><p>Returns a list of track variables for a track</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="emr_track.var.rm.html">emr_track.var.rm()</a></code> </p>
+        </td>
+        <td><p>Deletes a track variable</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="emr_track.var.set.html">emr_track.var.set()</a></code> </p>
+        </td>
+        <td><p>Assigns value to a track variable</p></td>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-other" class="hasAnchor"><a href="#section-other" class="anchor"></a>Other</h2>
+          <p class="section-desc"></p>
+        </th>
+      </tr>
+      
+      
+    </tbody><tbody>
+      
+      
+      <tr>
+        
+        <td>
+          <p><code><a href="emr_traceback.html">emr_traceback()</a></code> </p>
+        </td>
+        <td><p>Prints call stack of the last uncaught error</p></td>
       </tr><tr>
         
         <td>
           <p><code><a href="naryn-package.html">naryn-package</a></code> </p>
         </td>
         <td><p>Toolkit for medical records data analysis</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="op-null-default.html">`%||%`</a></code> </p>
-        </td>
-        <td><p>Default value for `NULL`</p></td>
       </tr>
     </tbody>
     </table>
@@ -484,7 +633,7 @@
 
       <footer>
       <div class="copyright">
-  <p>Developed by Misha Hoichman.</p>
+  <p>Developed by Misha Hoichman, Aviezer Lifshitz, Ben Gilat.</p>
 </div>
 
 <div class="pkgdown">
