@@ -173,13 +173,14 @@ emr_date2time <- function(day, month, year, hour = 0) {
 }
 
 #' Convert time periods to internal time format
-#' 
+#'
 #' Convert time periods to internal time format
 #'
 #' \code{emr_time} converts a generic number of years, months day and hours to the internal
 #' naryn machine format (which is hours).
 #'
-#' \code{year}, \code{years}, \code{month}, \code{months}, \code{day}, \code{day}, \code{hour}, \code{hours}
+#' \code{year}, \code{years}, \code{month}, \code{months}, \code{week}, \code{weeks},
+#' \code{day}, \code{days}, \code{hour}, \code{hours}
 #' are other convenience functions to get a time period explicitly.
 #'
 #'
@@ -201,7 +202,9 @@ emr_date2time <- function(day, month, year, hour = 0) {
 #' month() # 1 month
 #' months(5) # 5 months
 #' day() # 1 day
-#' days(7) # 1 week
+#' days(9) # 9 days
+#' week() # 1 week
+#' weeks(2) # 2 weeks
 #' hour() # 1 hour
 #' hours(5) # 5 hours
 #' @export
@@ -218,13 +221,31 @@ hours <- function(n) {
 #' @export
 #' @rdname emr_time
 hour <- function() {
-    return(days(1))
+    return(hours(1))
 }
 
 #' @export
 #' @rdname emr_time
 days <- function(n) {
     return(n * 24)
+}
+
+#' @export
+#' @rdname emr_time
+day <- function() {
+    return(days(1))
+}
+
+#' @export
+#' @rdname emr_time
+weeks <- function(n) {
+    return(n * days(7))
+}
+
+#' @export
+#' @rdname emr_time
+week <- function() {
+    return(weeks(1))
 }
 
 #' @export

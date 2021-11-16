@@ -39,3 +39,28 @@ test_that("emr_time2year works", {
     r <- emr_extract("track2_sparse", stime = 10, etime = 1000, keepref = F)
     expect_regression(emr_time2year(r$time), "date2time.4")
 })
+
+test_that("emr_time works", {
+    expect_equal(emr_time(5), 5 * 365 * 24)
+    expect_equal(emr_time(months = 4), 4 * 30 * 24)
+    expect_equal(emr_time(1, 4, 2), c(365 + 4 * 30 + 2) * 24)
+    expect_equal(year(), 365 * 24)
+    expect_equal(years(5), 5 * 365 * 24)
+    expect_equal(month(), 30 * 24)
+    expect_equal(months(5), 5 * 30 * 24)
+    expect_equal(day(), 24)
+    expect_equal(days(9), 9 * 24)
+    expect_equal(week(), 7 * 24)
+    expect_equal(weeks(2), 14 * 24)
+    expect_equal(hour(), 1)
+    expect_equal(hours(5), 5)
+
+    expect_equal(5 * year(), years(5))
+    expect_equal(5 * month(), months(5))
+    expect_equal(5 * day(), days(5))
+    expect_equal(5 * week(), weeks(5))
+
+    expect_equal(emr_time(5), years(5))
+    expect_equal(emr_time(0, 4, 0), months(4))
+    expect_equal(emr_time(0, 0, 4), days(4))
+})

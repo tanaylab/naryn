@@ -6,6 +6,8 @@
 \alias{hour}
 \alias{days}
 \alias{day}
+\alias{weeks}
+\alias{week}
 \alias{months}
 \alias{month}
 \alias{years}
@@ -19,6 +21,12 @@ hours(n)
 hour()
 
 days(n)
+
+day()
+
+weeks(n)
+
+week()
 
 day()
 
@@ -49,7 +57,8 @@ Convert time periods to internal time format
 \code{emr_time} converts a generic number of years, months day and hours to the internal
 naryn machine format (which is hours).
 
-\code{year}, \code{years}, \code{month}, \code{months}, \code{day}, \code{day}, \code{hour}, \code{hours}
+\code{year}, \code{years}, \code{month}, \code{months}, \code{week}, \code{weeks},
+\code{day}, \code{days}, \code{hour}, \code{hours}
 are other convenience functions to get a time period explicitly.
 }
 \examples{
@@ -63,7 +72,9 @@ years(5) # 5 years
 month() # 1 month
 months(5) # 5 months
 day() # 1 day
-days(7) # 1 week
+days(9) # 9 days
+week() # 1 week
+weeks(2) # 2 weeks
 hour() # 1 hour
 hours(5) # 5 hours
 }
