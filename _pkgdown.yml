@@ -14,4 +14,42 @@ navbar:
     reference:
       text: Reference
       href: reference/index.html
+reference:
+  - title: Extract
+    contents:
+    - '`emr_extract`'
+    - '`emr_dist`'
+    - '`emr_screen`'
+    - '`emr_annotate`'
+    - '`emr_cor`'
+    - '`emr_quantiles`'  
+    - '`emr_summary`'
+    - '`emr_ids_coverage`'
+    - '`emr_ids_vals_coverage`'
+  - title: Database
+    contents:
+    - starts_with("emr_db")
+  - title: Track
+    contents:
+    - starts_with("emr_track")
+  - title: Virtual track
+    contents:
+    - starts_with("emr_vtrack")
+  - title: Filter  
+    contents:
+    - starts_with("emr_filter")
+  - title: Time
+    contents:
+    - starts_with("emr_date")
+    - starts_with("emr_time")
+  - title: Track attributes
+    contents:
+    - starts_with("emr_track.attr")
+  - title: Track variables
+    contents:
+    - starts_with("emr_track.var")
+  - title: Other
+    contents:
+    - '`emr_traceback`' 
+    - '`naryn-package`'
 
