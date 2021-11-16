@@ -1,7 +1,7 @@
 Type: Package
 Package: naryn
 Title: Toolkit for analysis of medical records
-Version: 2.6.0.9000
+Version: 2.6.1
 Date: 2020-11-09
 Authors@R: 
     person(given = "Misha",
