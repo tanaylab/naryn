@@ -30,6 +30,14 @@ emr_track.user.ls(
   fixed = FALSE,
   useBytes = FALSE
 )
+
+emr_track.logical.ls(
+  ...,
+  ignore.case = FALSE,
+  perl = FALSE,
+  fixed = FALSE,
+  useBytes = FALSE
+)
 }
 \arguments{
 \item{...}{these arguments are of either form 'pattern' or 'attribute =

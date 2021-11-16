@@ -93,6 +93,10 @@ emr_db.init <- function(global.dir = NULL, user.dir = NULL, global.load.on.deman
     retv <- NULL
 }
 
+#' Initialize the examples database
+#' 
+#' @export
+#' @noRd 
 emr_db.init_examples <- function() {
     emr_db.init(system.file("naryndb/test", package = "naryn"))
 }
