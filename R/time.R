@@ -172,6 +172,90 @@ emr_date2time <- function(day, month, year, hour = 0) {
     .emr_call("emr_date2time", data.frame(hour, day, month, year), new.env(parent = parent.frame()))
 }
 
+#' Convert time periods to internal time format
+#' 
+#' Convert time periods to internal time format
+#'
+#' \code{emr_time} converts a generic number of years, months day and hours to the internal
+#' naryn machine format (which is hours).
+#'
+#' \code{year}, \code{years}, \code{month}, \code{months}, \code{day}, \code{day}, \code{hour}, \code{hours}
+#' are other convenience functions to get a time period explicitly.
+#'
+#'
+#' @param years number of years
+#' @param months number of months
+#' @param days number of days
+#' @param hours number of hours
+#'
+#' @return Machine time format (number of hours)
+#'
+#' @examples
+#'
+#' emr_time(5) # 5 years
+#' emr_time(months = 4) # 4 months
+#' emr_time(1, 4, 2) # 1 year, 4 months and 2 days
+#'
+#' year() # 1 year
+#' years(5) # 5 years
+#' month() # 1 month
+#' months(5) # 5 months
+#' day() # 1 day
+#' days(7) # 1 week
+#' hour() # 1 hour
+#' hours(5) # 5 hours
+#' @export
+emr_time <- function(years = 0, months = 0, days = 0, hours = 0) {
+    return(years(years) + months(months) + days(days) + hours(hours))
+}
+
+#' @export
+#' @rdname emr_time
+hours <- function(n) {
+    return(n)
+}
+
+#' @export
+#' @rdname emr_time
+hour <- function() {
+    return(days(1))
+}
+
+#' @export
+#' @rdname emr_time
+days <- function(n) {
+    return(n * 24)
+}
+
+#' @export
+#' @rdname emr_time
+day <- function() {
+    return(days(1))
+}
+
+#' @export
+#' @rdname emr_time
+months <- function(n) {
+    return(n * 30 * 24)
+}
+
+#' @export
+#' @rdname emr_time
+month <- function() {
+    return(months(1))
+}
+
+#' @export
+#' @rdname emr_time
+years <- function(n) {
+    return(n * 365 * 24)
+}
+
+#' @export
+#' @rdname emr_time
+year <- function() {
+    return(years(1))
+}
 
 
 #' Annotates id-time points table

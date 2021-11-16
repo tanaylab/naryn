@@ -180,8 +180,10 @@ This is where virtual tracks come in use.
 Virtual track is a named set of rules that describe how the track should be proceeded, and how the time of the iterator point should be modified. Virtual tracks are created by `emr_vtrack.create` function:
 
 ```r
-emr_vtrack.create("annual_glucose", src="glucose_track", func="quantile",
-                  param=0.5, time.shift=c(-365*24, 0))
+emr_vtrack.create("annual_glucose",
+  src = "glucose_track", func = "quantile",
+  param = 0.5, time.shift = c(-year(), 0)
+)
 ```
 
 This call creates a new virtual track named `annual_glucose` based on the underlying physical *source track* `glucose_track`. For each iterator point with time `T` we look at values of `glucose_track` in the time window of `[T-365*24,T]`, i.e. one year prior to `T`. We calculate then the median over the values (`func="quantile"`, `param=0.5`).
@@ -191,7 +193,7 @@ There is a rich set of various functions besides "quantile" that can be applied 
 Once a virtual track is created it can be used in a track expression:
 
 ```r
-emr_extract("annual_glucose", iterator=list(365*24, "patients.dob"))
+emr_extract("annual_glucose", iterator = list(year(), "patients.dob"))
 ```
 
 This would give us a median of an annual glucose level in year-steps starting from the patient's birthday. (This example makes use of an *Extended Beat Iterator* that would be expalained later.)
@@ -199,10 +201,12 @@ This would give us a median of an annual glucose level in year-steps starting fr
 Let's expand our example further and ignore in our calculations the glucose readings that had been made within a week after steroids had been prescribed. We can use an additional `filter` parameter to do that.
 
 ```r
-emr_filter.create("steroids_filter", "steroids_track", time.shift=c(-24*7, 0))
-emr_vtrack.create("annual_glucose", src="glucose_track", func="quantile",
-                  param=0.5, time.shift=c(-365*24,0), filter="!steroids_filter")
-emr_extract("annual_glucose", iterator=list(365*24, "date_of_birth_track"))
+emr_filter.create("steroids_filter", "steroids_track", time.shift=c(-days(7), 0))
+emr_vtrack.create("annual_glucose",
+  src = "glucose_track", func = "quantile",
+  param = 0.5, time.shift = c(-year(), 0), filter = "!steroids_filter"
+)
+emr_extract("annual_glucose", iterator = list(year(), "date_of_birth_track"))
 ```
 
 *Filter* is applied to the ID-Time points of the source track (e.g. `glucose_track` in our example). The virtual track function (`quantile`, ...) is applied then only to the points that pass the filter. The concept of filters is explained extensively in a separate chapter.
@@ -308,8 +312,8 @@ Example:
 
 ```r
 # Returns the maximal weight of patients at one year span starting from their birthdays
-emr_vtrack.create("weight", "weight_track", func="max", time.shift=c(0, 24*365))
-emr_extract("weight", iterator=list(24*365, "birthday_track"), stime=1000, etime=2000)
+emr_vtrack.create("weight", "weight_track", func = "max", time.shift = c(0, year()))
+emr_extract("weight", iterator = list(year(), "birthday_track"), stime = 1000, etime = 2000)
 ```
 
 #### Implicit Iterator
@@ -338,9 +342,9 @@ Filter has a form of a logical expression consisting of *named* or *unnamed* *el
 Suppose we are interested in hemoglobin levels of patients who were prescribed either drugX or drugY but not drugZ within a time window of one week before the test. Assume that drugX, drugY and drugZ are residing each in its separate track. Without filters we would need to call `emr_extract` four times, store potentially huge data frame results in the memory and finally merge the tables within R while caring about time windows. With filters we can do it much easier:
 
 ```r
-emr_filter.create("filterX", "drugX", time.shift = c(24 * 7, 0))
-emr_filter.create("filterY", "drugY", time.shift = c(24 * 7, 0))
-emr_filter.create("filterZ", "drugZ", time.shift = c(24 * 7, 0))
+emr_filter.create("filterX", "drugX", time.shift = c(days(7), 0))
+emr_filter.create("filterY", "drugY", time.shift = c(days(7), 0))
+emr_filter.create("filterZ", "drugZ", time.shift = c(days(7), 0))
 emr_extract("hemoglobin", filter = "(filterX | filterY) & !filterZ")
 ```
 
