@@ -219,10 +219,10 @@ SEXP emr_track_names(SEXP envir) {
         SEXP answer;
 
         vector<int> track_names_sizes;
-        vector<string> rootdirs = g_db -> rootdirs();
+        vector<string> rootdirs = g_db->rootdirs();
 
         for (int db_idx = 0; db_idx < rootdirs.size(); db_idx++) {
-            track_names_sizes.push_back(g_db -> track_names(rootdirs[db_idx]).size());
+            track_names_sizes.push_back(g_db->track_names(rootdirs[db_idx]).size());
         }
 
         int tracks_size = std::accumulate(track_names_sizes.begin(),
@@ -239,6 +239,7 @@ SEXP emr_track_names(SEXP envir) {
         }
 
         return answer;
+        
     } catch (TGLException &e) {
         rerror("%s", e.msg());
     } catch (const bad_alloc &e) {

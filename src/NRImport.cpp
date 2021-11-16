@@ -22,7 +22,7 @@ SEXP emr_import(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _src, SEXP _ad
         string trackname = { CHAR(asChar(_track)) };
         string track_filename;
         bool categorical;
-        bool has_overlap = 0;
+        bool has_overlap = false;
         bool toverride = asLogical(_override);
         string db_id;
         EMRTrackData<float> data;
@@ -63,7 +63,7 @@ SEXP emr_import(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _src, SEXP _ad
 
             //Override was passed and a track to override was found
             if (g_db->track(trackname) && (g_db->track_info(trackname)->db_id != db_id) && toverride)
-                has_overlap = 1;
+                has_overlap = true;
 
             EMRDb::check_track_name(trackname);
 
@@ -139,7 +139,7 @@ SEXP emr_import(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _src, SEXP _ad
             EMRTrack::serialize(track_filename.c_str(), categorical, data);
         
         if (has_overlap) 
-            g_db->unload_track(trackname.c_str(), 1);
+            g_db->unload_track(trackname.c_str(), true);
 
         g_db->load_track(trackname.c_str(), db_id);
     } catch (TGLException &e) {

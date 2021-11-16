@@ -817,13 +817,11 @@ void EMRDb::init(vector<string> rootdirs, vector<bool> dirs_load_on_demand, bool
     m_rootdirs = rootdirs;
     m_load_on_demand = dirs_load_on_demand;
 
-    if (do_reload)
-    {
+    if (do_reload) {
         reload();
     }
-    else
-    {
-        refresh();
+    else {
+        refresh(true);
     }
 }
 
@@ -849,7 +847,7 @@ void EMRDb::clear(string db_id)
     m_track_names[db_id].clear();
 }
 
-void EMRDb::refresh()
+void EMRDb::refresh(bool force)
 {
     if (m_rootdirs[0].empty())
 #ifdef RNARYN
@@ -861,7 +859,7 @@ void EMRDb::refresh()
     ++m_transact_id;
 
     for (auto db_id = m_rootdirs.begin(); db_id != m_rootdirs.end(); db_id++){
-        load_track_list(*db_id, NULL);
+        load_track_list(*db_id, NULL, force);
     }
 
     load_logical_tracks();
@@ -1001,10 +999,20 @@ void EMRDb::update_track_list_file(const Name2Track &tracks, string db_id, Buffe
     vdebug("Writing %ld %s tracks to track list file", tracks.size(), db_id.c_str());
 
     bf.seek(0, SEEK_SET); // rewind the file position
+    bool in_dbs = false;
 
-    for (const auto &name2track : tracks)
-    {
-        if (name2track.second.db_id == db_id &&
+    for (const auto &name2track : tracks){
+
+        auto pos = std::find(name2track.second.dbs.begin(), name2track.second.dbs.end(), db_id);
+
+        in_dbs = pos != name2track.second.dbs.end();
+
+        if(strcmp("track7",name2track.first.c_str()) == 0) {
+            std::cout << db_id << " the db_id \n";
+            std::cout << in_dbs << " is in dbs \n";
+        }
+
+        if (((name2track.second.db_id == db_id) || in_dbs) &&
             (bf.write(name2track.first.c_str(), name2track.first.size() + 1) !=
                  name2track.first.size() + 1 ||
              (bf.write(&name2track.second.timestamp.tv_sec,
@@ -1012,23 +1020,25 @@ void EMRDb::update_track_list_file(const Name2Track &tracks, string db_id, Buffe
               sizeof(name2track.second.timestamp.tv_sec)) ||
              (bf.write(&name2track.second.timestamp.tv_nsec,
                        sizeof(name2track.second.timestamp).tv_nsec) !=
-              sizeof(name2track.second.timestamp.tv_nsec))))
-            verror("Failed to write file %s: %s", bf.file_name().c_str(),
-                   strerror(errno));
+              sizeof(name2track.second.timestamp.tv_nsec)))){
+                verror("Failed to write file %s: %s", bf.file_name().c_str(), strerror(errno));
+        }
+
+        in_dbs = false; 
+            
     }
 
     bf.truncate(); // file might be open for update and not just for write
 }
 
-void EMRDb::load_track_list(string db_id, BufferedFile &bf)
+void EMRDb::load_track_list(string db_id, BufferedFile &bf, bool force)
 {
     vdebug("Loading %s track list before update\n", db_id);
     lock_track_list(db_id, bf, "r+");
-    load_track_list(db_id, &bf);
+    load_track_list(db_id, &bf, force);
 }
 
-void EMRDb::load_track_list(string db_id, BufferedFile *_pbf)
-{
+void EMRDb::load_track_list(string db_id, BufferedFile *_pbf, bool force){
 
     Name2Track track_list;
 
@@ -1063,8 +1073,8 @@ void EMRDb::load_track_list(string db_id, BufferedFile *_pbf)
                    strerror(errno));
 
         // track list in memory is synced with the track list on disk
-        if (m_track_list_ts[db_id] == fs.st_mtim) {
-            vdebug("Up-to-date %s track list is already in memory", db_id);
+        if ((m_track_list_ts[db_id] == fs.st_mtim) && !force) {
+            vdebug("Up-to-date %s track list is already in memory", db_id.c_str());
             if (g_naryn->debug()) {
                 int n = 0;
                 for (auto track : m_track_names[db_id]) {
@@ -1104,7 +1114,7 @@ void EMRDb::load_track_list(string db_id, BufferedFile *_pbf)
                              track_name,
                              TrackInfo(NULL,
                                        track_filename(db_id, track_name),
-                                       timestamp, db_id))
+                                       timestamp, db_id)) 
                          .second)
                     break;
 
@@ -1125,8 +1135,9 @@ void EMRDb::load_track_list(string db_id, BufferedFile *_pbf)
 
         m_track_list_ts[db_id] = fs.st_mtim;
         vdebug("Read %lu tracks", track_list.size());
-        if (g_naryn->debug())
-        {
+
+        if (g_naryn->debug()) {
+
             int n = 0;
             for (auto track : track_list)
             {
@@ -1142,8 +1153,10 @@ void EMRDb::load_track_list(string db_id, BufferedFile *_pbf)
     }
 
     for (auto &fresh_track : track_list) {
+
         Name2Track::iterator itrack = m_tracks.find(fresh_track.first);
         if (itrack != m_tracks.end() && itrack->second.db_id != fresh_track.second.db_id){
+
             //Overriding mechanism
             if (fresh_track.first == DOB_TRACKNAME) {
                 verror("Can not override patients.dob track");
@@ -1152,8 +1165,14 @@ void EMRDb::load_track_list(string db_id, BufferedFile *_pbf)
             vector<string>::iterator pos = std::find(m_track_names[itrack->second.db_id].begin(), 
                                                      m_track_names[itrack->second.db_id].end(), 
                                                      itrack->first);
+
             m_track_names[itrack->second.db_id].erase(pos);
-            fresh_track.second.overriding = 1;
+
+            //when coming to override, save the cascase of dbs
+            //already overridden. Then. add the latest one
+            fresh_track.second.dbs = itrack->second.dbs;
+            fresh_track.second.dbs.push_back(itrack->second.db_id);
+            
             itrack->second.overridden = 1;
         }
     }
@@ -1213,10 +1232,9 @@ void EMRDb::load_track(const char *track_name, string db_id)
 
     vdebug("Adding track %s to DB\n", track_name);
 
-    if (itrack == m_tracks.end())
+    if (itrack == m_tracks.end()){
         m_track_names[db_id].push_back(track_name);
-    else
-    {
+    } else {
         delete itrack->second.track;
         m_tracks.erase(itrack);
     }
@@ -1227,13 +1245,12 @@ void EMRDb::load_track(const char *track_name, string db_id)
     EMRTrack *track = EMRTrack::unserialize(track_name, filename.c_str());
     itrack = m_tracks.find(track_name); // search again, load_track_list might
                                         // have loaded this track already
-    if (itrack == m_tracks.end())
-        m_tracks.emplace(track_name, TrackInfo(track, filename.c_str(),
-                                               track->timestamp(), db_id));
-    else
-        itrack->second =
-            TrackInfo(track, filename.c_str(), track->timestamp(), db_id);
-
+    if (itrack == m_tracks.end()){
+        m_tracks.emplace(track_name, TrackInfo(track, filename.c_str(), track->timestamp(), db_id));
+    } else {
+        itrack->second = TrackInfo(track, filename.c_str(), track->timestamp(), db_id);
+    }
+        
     update_track_list_file(m_tracks, db_id, bf);
 }
 
@@ -1258,12 +1275,17 @@ void EMRDb::unload_track(const char *track_name, bool overridden){
     //If the track was overriding another track
     //touch  the relevant  .naryn file  so next
     //refresh will reload the overridden track 
-    if (itrack->second.overriding || overridden) {
+    
+    if ((itrack->second.dbs.size() > 0) || overridden) {
+        int fd;
+        struct timespec times[2];
         int db_idx = get_db_idx(itrack->second.db_id);
-        utimbuf tbf;
-
-        for (int i=0; i<=db_idx; i++) {
-            utime(track_list_filename(m_rootdirs[i]).c_str(), &tbf);
+        
+        for (int i=0; i <= db_idx; i++) {
+            if ((fd = open(track_list_filename(m_rootdirs[i]).c_str(), O_WRONLY, 0)) == -1) {
+                verror("Failed opening file %s", track_list_filename(m_rootdirs[i]).c_str());
+            }
+            futimens(fd, NULL);
         }
         
     }
@@ -1274,10 +1296,6 @@ void EMRDb::unload_track(const char *track_name, bool overridden){
     BufferedFile bf;
     load_track_list(db_id, bf); // lock track list for write
     m_tracks.erase(track_name);
-
-    //change the .naryn mtim for all other dbs only if track was overriding
-    
-
     update_track_list_file(m_tracks, db_id, bf);
 }
 

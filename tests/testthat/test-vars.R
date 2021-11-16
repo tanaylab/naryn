@@ -1,3 +1,4 @@
+
 test_that("error is returned when track doesn't exist", {
     expect_error(emr_track.var.get("aaa", "blablablabla"))
     expect_error(emr_track.var.get("aaa", "blablablabla", 5))

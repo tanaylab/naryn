@@ -1,4 +1,3 @@
-
 clean_logical_tracks()
 
 logical_track_ok <- function(track, source, values = NULL) {

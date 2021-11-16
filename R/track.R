@@ -75,7 +75,7 @@
     lspace <- tolower(space)
 
     if (lspace == "user"){
-        warning("do not use 'user' as db.id - deprecated")
+        # warning("do not use 'user' as db.id - deprecated")
 
         if ((!exists("EMR_UROOT", envir = .GlobalEnv) || is.null(get("EMR_UROOT", envir = .GlobalEnv)))) {
             stop("User space root directory is not set. Please call see emr_db.connect", call. = F)
@@ -83,7 +83,7 @@
 
         db_id <- EMR_UROOT
     } else if (lspace == "global"){
-        warning("do not use 'global' as db.id - deprecated")
+        # warning("do not use 'global' as db.id - deprecated")
         db_id <- EMR_GROOT
     } else {
         db_id <- space
@@ -814,7 +814,6 @@ emr_track.rm <- function(track, force = F) {
         stop("Usage: emr_track.rm(track, force = F)", call. = F)
     }
     .emr_checkroot()
-
     if (!emr_track.exists(track)) {
         if (force) {
             return(invisible())

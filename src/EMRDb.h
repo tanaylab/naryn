@@ -29,10 +29,10 @@ public:
         struct timespec  timestamp;
         string           db_id;
         bool             overridden;
-        bool           overriding;
+        vector<string>   dbs;
 
         TrackInfo(EMRTrack *_track, const string &_filename, const struct timespec &_timestamp, string db_id) :
-            track(_track), filename(_filename), timestamp(_timestamp), db_id(db_id), overridden(0), overriding(0){}
+            track(_track), filename(_filename), timestamp(_timestamp), db_id(db_id), overridden(0) {}
     };
 
     static const string TRACK_FILE_EXT;    
@@ -76,16 +76,19 @@ public:
                LOGICAL_TRACK_FILE_EXT;
     }
 
-    // Sets groot/uroot - TODO - not true any more.
+    // Sets roots - 
     // Loads track list files and tracks (if load_on_demand==false).
     // If track list file is missing => builds it.
     // Removes outdated tracks from the memory.
 
     void init(vector<string> rootdirs, vector<bool> dirs_load_on_demand, bool do_reload);
 
-    // Same as init, but groot/uroot must be set already.
+    // Same as init, but roots must be set already.
     // Intended to be called at the beginning of each transaction.
-    void refresh();
+    // if force is true, refresh rereads .naryn files even if ts
+    // hasn't changed.
+
+    void refresh(bool force=false);
 
     // Rescans file directory and rebuilds track list file.
     // Loads tracks, if load_on_demand==false.
@@ -214,10 +217,10 @@ protected:
 
     // Loads track list file. If corrupted or missing, recreates it.
     // Removes outdated tracks from memory.
-    void load_track_list(string db_id, BufferedFile *pbf);
+    void load_track_list(string db_id, BufferedFile *pbf, bool force=false);
 
     // Loads track list before update (opens the file for r+w and locks it).
-    void load_track_list(string db_id, BufferedFile &bf);
+    void load_track_list(string db_id, BufferedFile &bf, bool force=false);
 
     // Loads logical track list
     void load_logical_tracks();

@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <iostream>
 
 #include <R.h>
 #include <Rinternals.h>
@@ -68,8 +69,9 @@ SEXP emr_track_mv(SEXP _srctrack, SEXP _tgttrack, SEXP _db_id, SEXP _envir)
         vdebug("Moving track file %s to %s\n", src_track_info->filename.c_str(), tgt_fname.c_str());
         FileUtils::move_file(src_track_info->filename.c_str(), tgt_fname.c_str());
 
-        g_db->unload_track(src_trackname);
+        g_db->unload_track(src_trackname, true);
         g_db->load_track(tgt_trackname, db_id);
+        
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
     } catch (const bad_alloc &e) {
@@ -91,14 +93,16 @@ SEXP emr_track_rm(SEXP _track, SEXP _envir)
         vdebug("Removing track %s\n", trackname);
         const EMRDb::TrackInfo *track_info = g_db->track_info(trackname);
 
-        if (!track_info)
+        if (!track_info){
             verror("Track %s does not exist", trackname);
+        }
 
         vdebug("Removing track file %s\n", track_info->filename.c_str());
         if (unlink(track_info->filename.c_str()))
             verror("Deleting file %s: %s", track_info->filename.c_str(), strerror(errno));
 
-        g_db->unload_track(trackname);
+        g_db->unload_track(trackname, true);
+        
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
     } catch (const bad_alloc &e) {

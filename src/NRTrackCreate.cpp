@@ -15,8 +15,7 @@
 
 extern "C" {
 
-SEXP emr_track_create(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _expr, SEXP _stime, SEXP _etime, SEXP _iterator_policy, SEXP _keepref, SEXP _filter, SEXP _override, SEXP _envir)
-{
+SEXP emr_track_create(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _expr, SEXP _stime, SEXP _etime, SEXP _iterator_policy, SEXP _keepref, SEXP _filter, SEXP _override, SEXP _envir) {
 	try {
         Naryn naryn(_envir);
 
@@ -34,7 +33,7 @@ SEXP emr_track_create(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _expr, S
 
         string db_id = { CHAR(asChar(_db_id)) };
         bool toverride = asLogical(_override);
-        bool has_overlap = 0;
+        bool has_overlap = false;
 
         if (!count(g_db->rootdirs().begin(), g_db->rootdirs().end(), CHAR(asChar(_db_id)))) {
             verror("The passed DB directory is not set");
@@ -51,7 +50,7 @@ SEXP emr_track_create(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _expr, S
 
         //Override was passed and a track to override was found
         if (g_db->track(trackname) && (g_db->track_info(trackname)->db_id != db_id) && toverride)
-            has_overlap = 1;
+            has_overlap = true;
 
         EMRDb::check_track_name(trackname);
 
