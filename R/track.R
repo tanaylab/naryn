@@ -880,7 +880,7 @@ emr_track.user.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FA
 #' emr_track.ls for logical tracks
 #'
 #' @export
-#' @noRd
+#' @rdname emr_track.ls
 emr_track.logical.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
     .emr_checkroot()
     tracks <- .emr_call("emr_logical_track_names", new.env(parent = parent.frame()), silent = TRUE)
