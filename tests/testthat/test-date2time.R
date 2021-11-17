@@ -40,6 +40,20 @@ test_that("emr_time2year works", {
     expect_regression(emr_time2year(r$time), "date2time.4")
 })
 
+test_that("emr_time2date works", {
+    t1 <- emr_date2time(30, 1, 1938, 6)
+    t2 <- emr_date2time(2, 9, 2016, 7)
+    expect_equal(
+        emr_time2date(c(t1, t2)),
+        data.frame(
+            year = c(1938, 2016), 
+            month = c(1, 9), 
+            day = c(30, 2), 
+            hour = c(6, 7)
+        )
+    )
+})
+
 test_that("emr_time works", {
     expect_equal(emr_time(5), 5 * 365 * 24)
     expect_equal(emr_time(months = 4), 4 * 30 * 24)
