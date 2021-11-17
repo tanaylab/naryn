@@ -97,6 +97,13 @@ Example: \cr
 emr_vtrack.create("weight", "weight_track", func = "max", time.shift = c(0, year())) \cr
 emr_extract("weight", iterator = list(year(), "birthday_track"), stime = 1000, etime = 2000) \cr
 }
+\item{Periodic Iterator: }{periodic iterator goes over every year/month. You can use it by running  \code{emr_monthly_iterator} or \code{emr_yearly_iterator}. \cr
+Example: \cr
+iter <- emr_yearly_iterator(emr_date2time(1, 1, 2002), emr_date2time(1, 1, 2017)) \cr
+emr_extract("dense_track", iterator = iter, stime = 1, etime = 3) \cr
+iter <- emr_monthly_iterator(emr_date2time(1, 1, 2002), n = 15) \cr
+emr_extract("dense_track", iterator = iter, stime = 1, etime = 3) \cr
+}
 \item{Implicit Iterator: }{The iterator is set implicitly if its value remains `NULL` (which is the default). In that case the track expression is analyzed and searched for track names. If all the track variables or virtual track variables point to the same track, this track is used as a source for a track iterator. If more then one track appears in the track expression, an error message is printed out notifying ambiguity.}
 }
 
