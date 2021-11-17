@@ -1,3 +1,4 @@
+
 #' Calculates correlation statistics for pairs of track expressions
 #'
 #' Calculates correlation statistics for pairs of track expressions.
@@ -23,7 +24,7 @@
 #' If \code{dataframe = TRUE} the return value is a data frame with a column for each track expression, additional columns i,j with pairs of \code{cor_exprs}
 #' and another 5 columns: 'n', 'e', 'var', 'cov', 'cor' with the same values
 #' as the matrices described above.
-#' 
+#'
 #' @inheritSection emr_extract iterator
 #'
 #' @param expr track expression.
@@ -252,8 +253,8 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, et
 #' }
 #' \item{Implicit Iterator: }{The iterator is set implicitly if its value remains `NULL` (which is the default). In that case the track expression is analyzed and searched for track names. If all the track variables or virtual track variables point to the same track, this track is used as a source for a track iterator. If more then one track appears in the track expression, an error message is printed out notifying ambiguity.}
 #' }
-#' 
-#' Revealing Current Iterator Time: 
+#'
+#' Revealing Current Iterator Time:
 #' During the evaluation of a track expression one can access a specially defined variable named `EMR_TIME` (Python: `TIME`). This variable contains a vector (`numpy.ndarray` in Python) of current iterator times. The length of the vector matches the length of the track variable (which is a vector too). \cr
 #' Note that some values in `EMR_TIME` might be set 0. Skip those intervals and the values of the track variables at the corresponding indices. \cr
 #' # Returns times of the current iterator as a day of month \cr
@@ -481,7 +482,7 @@ emr_ids_vals_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filte
 #' If data size exceeds the limit (see: 'getOption(emr_max.data.size)'), the
 #' data is randomly sampled to fit the limit. A warning message is generated
 #' then.
-#' 
+#'
 #' @inheritSection emr_extract iterator
 #'
 #' @param expr track expression
@@ -489,7 +490,7 @@ emr_ids_vals_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filte
 #' @param stime start time scope
 #' @param etime end time scope
 #' @param iterator track expression iterator. If 'NULL' iterator is determined
-#' implicitly based on track expression. See also 'iterator' section. 
+#' implicitly based on track expression. See also 'iterator' section.
 #' @param keepref If 'TRUE' references are preserved in the iterator.
 #' @param filter Iterator filter.
 #' @return An array that represent quantiles.
@@ -522,7 +523,7 @@ emr_quantiles <- function(expr, percentiles = 0.5, stime = NULL, etime = NULL, i
 #' otherwise the order is not guaranteed especially for longer runs, when
 #' multitasking might be launched. Sorting requires additional time, so it is
 #' switched off by default.
-#' 
+#'
 #' @inheritSection emr_extract iterator
 #'
 #' @param expr logical track expression
@@ -561,7 +562,7 @@ emr_screen <- function(expr, sort = F, stime = NULL, etime = NULL, iterator = NU
 #' This function returns summary statistics of a track expression: total number
 #' of values, number of NaN values, min, max, sum, mean and standard deviation
 #' of the values.
-#' 
+#'
 #' @inheritSection emr_extract iterator
 #'
 #' @param expr track expression.

@@ -323,7 +323,7 @@ emr_track.attr.set <- function(track = NULL, attr = NULL, value = NULL) {
 #' This function creates a new user or global track based on the values from
 #' the track expression. The location of the track is controlled via 'space'
 #' parameter which can be either "user" or to "global".
-#' 
+#'
 #' @inheritSection emr_extract iterator
 #'
 #' @param track the name of the newly created track

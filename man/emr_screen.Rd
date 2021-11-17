@@ -100,7 +100,7 @@ emr_extract("weight", iterator = list(year(), "birthday_track"), stime = 1000, e
 \item{Implicit Iterator: }{The iterator is set implicitly if its value remains `NULL` (which is the default). In that case the track expression is analyzed and searched for track names. If all the track variables or virtual track variables point to the same track, this track is used as a source for a track iterator. If more then one track appears in the track expression, an error message is printed out notifying ambiguity.}
 }
 
-Revealing Current Iterator Time: 
+Revealing Current Iterator Time:
 During the evaluation of a track expression one can access a specially defined variable named `EMR_TIME` (Python: `TIME`). This variable contains a vector (`numpy.ndarray` in Python) of current iterator times. The length of the vector matches the length of the track variable (which is a vector too). \cr
 Note that some values in `EMR_TIME` might be set 0. Skip those intervals and the values of the track variables at the corresponding indices. \cr
 # Returns times of the current iterator as a day of month \cr

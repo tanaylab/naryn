@@ -172,6 +172,32 @@ emr_date2time <- function(day, month, year, hour = 0) {
     .emr_call("emr_date2time", data.frame(hour, day, month, year), new.env(parent = parent.frame()))
 }
 
+#' Convert from internal time to year, month, day, hour
+#'
+#' @param time vector of times in internal format
+#'
+#' @return a data frame with columns named 'year', 'month', 'day' and 'hour'
+#'
+#'
+#' @examples
+#'
+#' emr_db.init_examples()
+#'
+#' # 30 January, 1938, 6:00 - birthday of Islam Karimov
+#' t1 <- emr_date2time(30, 1, 1938, 6)
+#' # September 2, 2016, 7:00 - death of Islam Karimov
+#' t2 <- emr_date2time(2, 9, 2016, 7)
+#' emr_time2date(c(t1, t2))
+#' @export
+emr_time2date <- function(time) {
+    data.frame(
+        year = emr_time2year(time),
+        month = emr_time2month(time),
+        day = emr_time2dayofmonth(time),
+        hour = emr_time2hour(time)
+    )
+}
+
 #' Convert time periods to internal time format
 #'
 #' Convert time periods to internal time format
