@@ -323,10 +323,10 @@ emr_extract("weight", iterator = list(year(), "birthday_track"), stime = 1000, e
 Example: 
 
 ```r
-iter <- emr_yearly_iterator(emr_date2time(1, 1, 2002), emr_date2time(1, 1, 2017)) \cr
-emr_extract("dense_track", iterator = iter, stime = 1, etime = 3) \cr
-iter <- emr_monthly_iterator(emr_date2time(1, 1, 2002), n = 15) \cr
-emr_extract("dense_track", iterator = iter, stime = 1, etime = 3) \cr
+iter <- emr_yearly_iterator(emr_date2time(1, 1, 2002), emr_date2time(1, 1, 2017))
+emr_extract("dense_track", iterator = iter, stime = 1, etime = 3)
+iter <- emr_monthly_iterator(emr_date2time(1, 1, 2002), n = 15)
+emr_extract("dense_track", iterator = iter, stime = 1, etime = 3)
 ```
 
 #### Implicit Iterator
