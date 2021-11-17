@@ -168,7 +168,7 @@ points.</p>
     <tr>
       <th>iterator</th>
       <td><p>track expression iterator. If 'NULL' iterator is determined
-implicitly based on track expressions.</p></td>
+implicitly based on track expressions. See also 'iterator' section.</p></td>
     </tr>
     <tr>
       <th>keepref</th>
@@ -201,6 +201,61 @@ switched off by default.</p>
 <p>'names' parameter sets the labels for the track expressions in the return
 value. If 'names' is 'NULL' the labels are set to the track expression
 themselves.</p>
+    <h2 class="hasAnchor" id="iterator"><a class="anchor" href="#iterator"></a>iterator</h2>
+
+    
+
+
+<p>There are a few types of iterators:</p><ul>
+<li><p>Track iterator: Track iterator returns the points (including the reference) from the specified track. Track name is specified as a string. If `keepref=FALSE` the reference of each point is set to `-1` <br />
+Example: <br /> <br />
+# Returns the level of glucose one hour after the insulin shot was made <br />
+emr_vtrack.create("glucose", "glucose_track", func="avg", time.shift=1) <br />
+emr_extract("glucose", iterator="insulin_shot_track") <br /></p></li>
+<li><p>Id-Time Points Iterator: Id-Time points iterator generates points from an *id-time points table*. If `keepref=FALSE` the reference of each point is set to `-1`. <br />
+Example: <br /> <br />
+# Returns the level of glucose one hour after the insulin shot was made <br />
+emr_vtrack.create("glucose", "glucose_track", func = "avg", time.shift = 1) <br />
+r &lt;- emr_extract("insulin_shot_track") # &lt;-- implicit iterator is used here <br />
+emr_extract("glucose", iterator = r) <br /></p></li>
+<li><p>Ids Iterator: Ids iterator generates points with ids taken from an *ids table* and times that run from `stime` to `etime` with a step of 1. If `keepref=TRUE` for each id-time pair the iterator generates 255 points with references running from `0` to `254`. If `keepref=FALSE` only one point is generated for the given id and time, and its reference is set to `-1`.<br />
+Example: <br /> <br />
+stime &lt;- emr_date2time(1, 1, 2016, 0) <br />
+etime &lt;- emr_date2time(31, 12, 2016, 23) <br />
+emr_extract("glucose", iterator = data.frame(id = c(2, 5)), stime = stime, etime = etime)<br /></p></li>
+<li><p>Time Intervals Iterator: *Time intervals iterator* generates points for all the ids that appear in 'patients.dob' track with times taken from a *time intervals table* (see: Appendix). Each time starts at the beginning of the time interval and runs to the end of it with a step of 1. That being said the points that lie outside of `[stime, etime]` range are skipped. <br />
+If `keepref=TRUE` for each id-time pair the iterator generates 255 points with references running from `0` to `254`. If `keepref=FALSE` only one point is generated for the given id and time, and its reference is set to `-1`. <br />
+Example: <br />
+# Returns the level of hangover for all patients the next day after New Year Eve for the years 2015 and 2016 <br />
+stime1 &lt;- emr_date2time(1, 1, 2015, 0) <br />
+etime1 &lt;- emr_date2time(1, 1, 2015, 23) <br />
+stime2 &lt;- emr_date2time(1, 1, 2016, 0) <br />
+etime2 &lt;- emr_date2time(1, 1, 2016, 23) <br />
+emr_extract("alcohol_level_track", iterator = data.frame( <br />
+    stime = c(stime1, stime2), <br />
+    etime = c(etime1, etime2) <br />
+)) <br /></p></li>
+<li><p>Id-Time Intervals Iterator: *Id-Time intervals iterator* generates for each id points that cover `['stime', 'etime']` time range as specified in *id-time intervals table* (see: Appendix). Each time starts at the beginning of the time interval and runs to the end of it with a step of 1. That being said the points that lie outside of `[stime, etime]` range are skipped. <br />
+If `keepref=TRUE` for each id-time pair the iterator generates 255 points with references running from `0` to `254`. If `keepref=FALSE` only one point is generated for the given id and time, and its reference is set to `-1`</p></li>
+<li><p>Beat Iterator: *Beat Iterator* generates a "time beat" at the given period for each id that appear in 'patients.dob' track. The period is given always in hours. <br />
+Example: <br />
+emr_extract("glucose_track", iterator=10, stime=1000, etime=2000) <br />
+This will create a beat iterator with a period of 10 hours starting at `stime` up until `etime` is reached. If, for example, `stime` equals `1000` then the beat iterator will create for each id iterator points at times: 1000, 1010, 1020, ... <br />
+If `keepref=TRUE` for each id-time pair the iterator generates 255 points with references running from `0` to `254`. If `keepref=FALSE` only one point is generated for the given id and time, and its reference is set to `-1`.</p></li>
+<li><p>Extended Beat Iterator: *Extended beat iterator* is as its name suggests a variation on the beat iterator. It works by the same principle of creating time points with the given period however instead of basing the times count on `stime` it accepts an additional parameter - a track or a *Id-Time Points table* - that instructs what should be the initial time point for each of the ids. The two parameters (period and mapping) should come in a list. Each id is required to appear only once and if a certain id does not appear at all, it is skipped by the iterator. <br />
+Anyhow points that lie outside of `[stime, etime]` range are not generated. <br />
+Example: <br />
+# Returns the maximal weight of patients at one year span starting from their birthdays <br />
+emr_vtrack.create("weight", "weight_track", func = "max", time.shift = c(0, year())) <br />
+emr_extract("weight", iterator = list(year(), "birthday_track"), stime = 1000, etime = 2000) <br /></p></li>
+<li><p>Implicit Iterator: The iterator is set implicitly if its value remains `NULL` (which is the default). In that case the track expression is analyzed and searched for track names. If all the track variables or virtual track variables point to the same track, this track is used as a source for a track iterator. If more then one track appears in the track expression, an error message is printed out notifying ambiguity.</p></li>
+</ul>
+
+<p>Revealing Current Iterator Time: 
+During the evaluation of a track expression one can access a specially defined variable named `EMR_TIME` (Python: `TIME`). This variable contains a vector (`numpy.ndarray` in Python) of current iterator times. The length of the vector matches the length of the track variable (which is a vector too). <br />
+Note that some values in `EMR_TIME` might be set 0. Skip those intervals and the values of the track variables at the corresponding indices. <br />
+# Returns times of the current iterator as a day of month <br />
+emr_extract("emr_time2dayofmonth(EMR_TIME)", iterator = "sparse_track") <br /></p>
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
     <div class='dont-index'><p><code><a href='emr_screen.html'>emr_screen</a></code></p></div>
