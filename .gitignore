@@ -11,3 +11,4 @@ inst/naryndb/test/.attrs
 benchmark.*
 inst/doc
 docs/
+architecture.*
