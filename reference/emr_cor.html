@@ -293,7 +293,9 @@ emr_extract("emr_time2dayofmonth(EMR_TIME)", iterator = "sparse_track") <br /></
     include.lowest <span class='op'>=</span> <span class='cn'>T</span>, iterator <span class='op'>=</span> <span class='st'>"categorical_track"</span>,
     keepref <span class='op'>=</span> <span class='cn'>T</span>
 <span class='op'>)</span>
-</div><div class='output co'>#&gt; $n
+</div><div class='output co'>#&gt; <span class='warning'>Warning: Track categorical_track seems to be modified outside of naryn.</span>
+#&gt; <span class='warning'>This might slow down the performance.</span>
+#&gt; <span class='warning'>Please call emr_db.reload to fix the problem</span></div><div class='output co'>#&gt; $n
 #&gt; , , sparse_track
 #&gt; 
 #&gt;       sparse_track 1/dense_track
@@ -372,80 +374,24 @@ emr_extract("emr_time2dayofmonth(EMR_TIME)", iterator = "sparse_track") <br /></
     keepref <span class='op'>=</span> <span class='cn'>T</span>,
     dataframe <span class='op'>=</span> <span class='cn'>TRUE</span>
 <span class='op'>)</span>
-</div><div class='output co'>#&gt; $n
-#&gt; , , sparse_track
-#&gt; 
-#&gt;       sparse_track 1/dense_track
-#&gt; [0,2]            3             3
-#&gt; (2,5]            2             2
-#&gt; 
-#&gt; , , 1/dense_track
-#&gt; 
-#&gt;       sparse_track 1/dense_track
-#&gt; [0,2]            3             4
-#&gt; (2,5]            2             2
-#&gt; 
-#&gt; 
-#&gt; $e
-#&gt; , , sparse_track
-#&gt; 
-#&gt;       sparse_track 1/dense_track
-#&gt; [0,2]           48    0.02608341
-#&gt; (2,5]          130    0.02136752
-#&gt; 
-#&gt; , , 1/dense_track
-#&gt; 
-#&gt;       sparse_track 1/dense_track
-#&gt; [0,2]           48    0.03879333
-#&gt; (2,5]          130    0.02136752
-#&gt; 
-#&gt; 
-#&gt; $var
-#&gt; , , sparse_track
-#&gt; 
-#&gt;       sparse_track 1/dense_track
-#&gt; [0,2]     338.6667  0.0001876685
-#&gt; (2,5]   10816.0000  0.0002922054
-#&gt; 
-#&gt; , , 1/dense_track
-#&gt; 
-#&gt;       sparse_track 1/dense_track
-#&gt; [0,2]     338.6667  0.0006253773
-#&gt; (2,5]   10816.0000  0.0002922054
-#&gt; 
-#&gt; 
-#&gt; $cov
-#&gt; , , sparse_track
-#&gt; 
-#&gt;       sparse_track 1/dense_track
-#&gt; [0,2]     338.6667    -0.2520039
-#&gt; (2,5]   10816.0000    -1.7777778
-#&gt; 
-#&gt; , , 1/dense_track
-#&gt; 
-#&gt;       sparse_track 1/dense_track
-#&gt; [0,2]   -0.2520039  0.0006253773
-#&gt; (2,5]   -1.7777778  0.0002922054
-#&gt; 
-#&gt; 
-#&gt; $cor
-#&gt; , , sparse_track
-#&gt; 
-#&gt;       sparse_track 1/dense_track
-#&gt; [0,2]            1    -0.9995979
-#&gt; (2,5]            1    -1.0000000
-#&gt; 
-#&gt; , , 1/dense_track
-#&gt; 
-#&gt;       sparse_track 1/dense_track
-#&gt; [0,2]   -0.9995979             1
-#&gt; (2,5]   -1.0000000             1
-#&gt; 
-#&gt; 
-#&gt; attr(,"breaks")
-#&gt; attr(,"breaks")[[1]]
-#&gt; [1] 0 2 5
-#&gt; </div></pre>
+</div><div class='output co'>#&gt;   categorical_track             i             j n            e          var
+#&gt; 1             [0,2]  sparse_track  sparse_track 3  48.00000000 3.386667e+02
+#&gt; 2             (2,5]  sparse_track  sparse_track 2 130.00000000 1.081600e+04
+#&gt; 3             [0,2] 1/dense_track  sparse_track 3   0.02608341 1.876685e-04
+#&gt; 4             (2,5] 1/dense_track  sparse_track 2   0.02136752 2.922054e-04
+#&gt; 5             [0,2]  sparse_track 1/dense_track 3  48.00000000 3.386667e+02
+#&gt; 6             (2,5]  sparse_track 1/dense_track 2 130.00000000 1.081600e+04
+#&gt; 7             [0,2] 1/dense_track 1/dense_track 4   0.03879333 6.253773e-04
+#&gt; 8             (2,5] 1/dense_track 1/dense_track 2   0.02136752 2.922054e-04
+#&gt;             cov        cor
+#&gt; 1  3.386667e+02  1.0000000
+#&gt; 2  1.081600e+04  1.0000000
+#&gt; 3 -2.520039e-01 -0.9995979
+#&gt; 4 -1.777778e+00 -1.0000000
+#&gt; 5 -2.520039e-01 -0.9995979
+#&gt; 6 -1.777778e+00 -1.0000000
+#&gt; 7  6.253773e-04  1.0000000
+#&gt; 8  2.922054e-04  1.0000000</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
