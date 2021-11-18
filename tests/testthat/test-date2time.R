@@ -55,9 +55,9 @@ test_that("emr_time2date works", {
 })
 
 test_that("emr_time works", {
-    expect_equal(emr_time(5), 5 * 365 * 24)
+    expect_equal(emr_time(0, 0, 5), 5 * 365 * 24)
     expect_equal(emr_time(months = 4), 4 * 30 * 24)
-    expect_equal(emr_time(1, 4, 2), c(365 + 4 * 30 + 2) * 24)
+    expect_equal(emr_time(2, 4, 1), c(365 + 4 * 30 + 2) * 24)
     expect_equal(year(), 365 * 24)
     expect_equal(years(5), 5 * 365 * 24)
     expect_equal(month(), 30 * 24)
@@ -74,9 +74,9 @@ test_that("emr_time works", {
     expect_equal(5 * day(), days(5))
     expect_equal(5 * week(), weeks(5))
 
-    expect_equal(emr_time(5), years(5))
+    expect_equal(emr_time(0, 0, 5), years(5))
     expect_equal(emr_time(0, 4, 0), months(4))
-    expect_equal(emr_time(0, 0, 4), days(4))
+    expect_equal(emr_time(4, 0, 0), days(4))
 })
 
 test_that("emr_yearly_iterator works", {
@@ -177,4 +177,9 @@ test_that("emr_monthly_iterator works as iterator", {
         emr_time2date(a$time) %>% dplyr::distinct(year, month, day, hour),
         emr_time2date(iter$stime)
     )
+})
+
+test_that("periodic iterators fail when not given etime and n", {
+    expect_error(emr_monthly_iterator(emr_date2time(1, 1, 2002)))
+    expect_error(emr_yearly_iterator(emr_date2time(1, 1, 2002)))
 })

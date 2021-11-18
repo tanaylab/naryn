@@ -14,7 +14,7 @@
 \alias{year}
 \title{Convert time periods to internal time format}
 \usage{
-emr_time(years = 0, months = 0, days = 0, hours = 0)
+emr_time(days = 0, months = 0, years = 0, hours = 0)
 
 hours(n)
 
@@ -39,11 +39,11 @@ years(n)
 year()
 }
 \arguments{
-\item{years}{number of years}
+\item{days}{number of days}
 
 \item{months}{number of months}
 
-\item{days}{number of days}
+\item{years}{number of years}
 
 \item{hours}{number of hours}
 }
@@ -63,9 +63,9 @@ are other convenience functions to get a time period explicitly.
 }
 \examples{
 
-emr_time(5) # 5 years
+emr_time(5) # 5 days
 emr_time(months = 4) # 4 months
-emr_time(1, 4, 2) # 1 year, 4 months and 2 days
+emr_time(2, 4, 1) # 1 year, 4 months and 2 days
 
 year() # 1 year
 years(5) # 5 years

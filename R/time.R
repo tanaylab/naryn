@@ -219,9 +219,9 @@ emr_time2date <- function(time) {
 #'
 #' @examples
 #'
-#' emr_time(5) # 5 years
+#' emr_time(5) # 5 days
 #' emr_time(months = 4) # 4 months
-#' emr_time(1, 4, 2) # 1 year, 4 months and 2 days
+#' emr_time(2, 4, 1) # 1 year, 4 months and 2 days
 #'
 #' year() # 1 year
 #' years(5) # 5 years
@@ -234,7 +234,7 @@ emr_time2date <- function(time) {
 #' hour() # 1 hour
 #' hours(5) # 5 hours
 #' @export
-emr_time <- function(years = 0, months = 0, days = 0, hours = 0) {
+emr_time <- function(days = 0, months = 0, years = 0, hours = 0) {
     return(years(years) + months(months) + days(days) + hours(hours))
 }
 
