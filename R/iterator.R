@@ -51,10 +51,10 @@ iterator_by_period <- function(stime, etime, n, period) {
 #' Create an iterator that goes every year/month
 #'
 #' Create an iterator that goes every year/month, from \code{stime}.
-#' If \code{etime} is set the iterator would go every year/month until the last point <= \code{etime}.
-#' If \code{month} or \code{years} is set the iterator would be set for every year/month
+#' If \code{etime} is set, the iterator would go every year/month until the last point which is <= \code{etime}.
+#' If \code{month} or \code{years} is set, the iterator would be set for every year/month
 #' \code{n}times.
-#' If both parameters are set the iterator would go from \code{etime} until the early between \code{n}
+#' If both parameters are set, the iterator would go from \code{etime} until the early between \code{n}
 #' times and \code{etime}.
 #'
 #'

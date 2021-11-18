@@ -46,9 +46,9 @@ test_that("emr_time2date works", {
     expect_equal(
         emr_time2date(c(t1, t2)),
         data.frame(
-            year = c(1938, 2016),
-            month = c(1, 9),
             day = c(30, 2),
+            month = c(1, 9),
+            year = c(1938, 2016),
             hour = c(6, 7)
         )
     )
