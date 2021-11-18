@@ -324,6 +324,8 @@ emr_track.attr.set <- function(track = NULL, attr = NULL, value = NULL) {
 #' the track expression. The location of the track is controlled via 'space'
 #' parameter which can be either "user" or to "global".
 #'
+#' @inheritSection emr_extract iterator
+#'
 #' @param track the name of the newly created track
 #' @param space "user" or "global" space
 #' @param categorical if 'TRUE' track is marked as categorical
@@ -331,7 +333,7 @@ emr_track.attr.set <- function(track = NULL, attr = NULL, value = NULL) {
 #' @param stime start time scope
 #' @param etime end time scope
 #' @param iterator track expression iterator. If 'NULL' iterator is determined
-#' implicitly based on track expressions
+#' implicitly based on track expressions. See also 'iterator' section.
 #' @param keepref If 'TRUE' references are preserved in the iterator
 #' @param filter Iterator filter
 #' @return None.

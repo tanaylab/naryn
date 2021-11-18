@@ -172,6 +172,137 @@ emr_date2time <- function(day, month, year, hour = 0) {
     .emr_call("emr_date2time", data.frame(hour, day, month, year), new.env(parent = parent.frame()))
 }
 
+#' Convert from internal time to year, month, day, hour
+#'
+#' @param time vector of times in internal format
+#'
+#' @return a data frame with columns named 'year', 'month', 'day' and 'hour'
+#'
+#'
+#' @examples
+#'
+#' emr_db.init_examples()
+#'
+#' # 30 January, 1938, 6:00 - birthday of Islam Karimov
+#' t1 <- emr_date2time(30, 1, 1938, 6)
+#' # September 2, 2016, 7:00 - death of Islam Karimov
+#' t2 <- emr_date2time(2, 9, 2016, 7)
+#' emr_time2date(c(t1, t2))
+#' @export
+emr_time2date <- function(time) {
+    data.frame(
+        year = emr_time2year(time),
+        month = emr_time2month(time),
+        day = emr_time2dayofmonth(time),
+        hour = emr_time2hour(time)
+    )
+}
+
+#' Convert time periods to internal time format
+#'
+#' Convert time periods to internal time format
+#'
+#' \code{emr_time} converts a generic number of years, months day and hours to the internal
+#' naryn machine format (which is hours).
+#'
+#' \code{year}, \code{years}, \code{month}, \code{months}, \code{week}, \code{weeks},
+#' \code{day}, \code{days}, \code{hour}, \code{hours}
+#' are other convenience functions to get a time period explicitly.
+#'
+#'
+#' @param years number of years
+#' @param months number of months
+#' @param days number of days
+#' @param hours number of hours
+#'
+#' @return Machine time format (number of hours)
+#'
+#' @examples
+#'
+#' emr_time(5) # 5 days
+#' emr_time(months = 4) # 4 months
+#' emr_time(2, 4, 1) # 1 year, 4 months and 2 days
+#'
+#' year() # 1 year
+#' years(5) # 5 years
+#' month() # 1 month
+#' months(5) # 5 months
+#' day() # 1 day
+#' days(9) # 9 days
+#' week() # 1 week
+#' weeks(2) # 2 weeks
+#' hour() # 1 hour
+#' hours(5) # 5 hours
+#' @export
+emr_time <- function(days = 0, months = 0, years = 0, hours = 0) {
+    return(years(years) + months(months) + days(days) + hours(hours))
+}
+
+#' @export
+#' @rdname emr_time
+hours <- function(n) {
+    return(n)
+}
+
+#' @export
+#' @rdname emr_time
+hour <- function() {
+    return(hours(1))
+}
+
+#' @export
+#' @rdname emr_time
+days <- function(n) {
+    return(n * 24)
+}
+
+#' @export
+#' @rdname emr_time
+day <- function() {
+    return(days(1))
+}
+
+#' @export
+#' @rdname emr_time
+weeks <- function(n) {
+    return(n * days(7))
+}
+
+#' @export
+#' @rdname emr_time
+week <- function() {
+    return(weeks(1))
+}
+
+#' @export
+#' @rdname emr_time
+day <- function() {
+    return(days(1))
+}
+
+#' @export
+#' @rdname emr_time
+months <- function(n) {
+    return(n * 30 * 24)
+}
+
+#' @export
+#' @rdname emr_time
+month <- function() {
+    return(months(1))
+}
+
+#' @export
+#' @rdname emr_time
+years <- function(n) {
+    return(n * 365 * 24)
+}
+
+#' @export
+#' @rdname emr_time
+year <- function() {
+    return(years(1))
+}
 
 
 #' Annotates id-time points table
