@@ -26,6 +26,7 @@ reference:
     - '`emr_summary`'
     - '`emr_ids_coverage`'
     - '`emr_ids_vals_coverage`'
+    - '`emr_monthly_iterator`'
   - title: Database
     contents:
     - starts_with("emr_db")
