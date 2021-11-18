@@ -123,7 +123,7 @@
     <p>Convert time periods to internal time format</p>
     </div>
 
-    <pre class="usage"><span class='fu'>emr_time</span><span class='op'>(</span>years <span class='op'>=</span> <span class='fl'>0</span>, months <span class='op'>=</span> <span class='fl'>0</span>, days <span class='op'>=</span> <span class='fl'>0</span>, hours <span class='op'>=</span> <span class='fl'>0</span><span class='op'>)</span>
+    <pre class="usage"><span class='fu'>emr_time</span><span class='op'>(</span>days <span class='op'>=</span> <span class='fl'>0</span>, months <span class='op'>=</span> <span class='fl'>0</span>, years <span class='op'>=</span> <span class='fl'>0</span>, hours <span class='op'>=</span> <span class='fl'>0</span><span class='op'>)</span>
 
 <span class='fu'>hours</span><span class='op'>(</span><span class='va'>n</span><span class='op'>)</span>
 
@@ -151,16 +151,16 @@
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>years</th>
-      <td><p>number of years</p></td>
+      <th>days</th>
+      <td><p>number of days</p></td>
     </tr>
     <tr>
       <th>months</th>
       <td><p>number of months</p></td>
     </tr>
     <tr>
-      <th>days</th>
-      <td><p>number of days</p></td>
+      <th>years</th>
+      <td><p>number of years</p></td>
     </tr>
     <tr>
       <th>hours</th>
@@ -181,10 +181,10 @@ are other convenience functions to get a time period explicitly.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <pre class="examples"><div class='input'>
-<span class='fu'>emr_time</span><span class='op'>(</span><span class='fl'>5</span><span class='op'>)</span> <span class='co'># 5 years</span>
+<span class='fu'>emr_time</span><span class='op'>(</span><span class='fl'>5</span><span class='op'>)</span> <span class='co'># 5 days</span>
 </div><div class='output co'>#&gt; <span class='error'>Error in emr_time(5): could not find function "emr_time"</span></div><div class='input'><span class='fu'>emr_time</span><span class='op'>(</span>months <span class='op'>=</span> <span class='fl'>4</span><span class='op'>)</span> <span class='co'># 4 months</span>
-</div><div class='output co'>#&gt; <span class='error'>Error in emr_time(months = 4): could not find function "emr_time"</span></div><div class='input'><span class='fu'>emr_time</span><span class='op'>(</span><span class='fl'>1</span>, <span class='fl'>4</span>, <span class='fl'>2</span><span class='op'>)</span> <span class='co'># 1 year, 4 months and 2 days</span>
-</div><div class='output co'>#&gt; <span class='error'>Error in emr_time(1, 4, 2): could not find function "emr_time"</span></div><div class='input'>
+</div><div class='output co'>#&gt; <span class='error'>Error in emr_time(months = 4): could not find function "emr_time"</span></div><div class='input'><span class='fu'>emr_time</span><span class='op'>(</span><span class='fl'>2</span>, <span class='fl'>4</span>, <span class='fl'>1</span><span class='op'>)</span> <span class='co'># 1 year, 4 months and 2 days</span>
+</div><div class='output co'>#&gt; <span class='error'>Error in emr_time(2, 4, 1): could not find function "emr_time"</span></div><div class='input'>
 <span class='fu'>year</span><span class='op'>(</span><span class='op'>)</span> <span class='co'># 1 year</span>
 </div><div class='output co'>#&gt; <span class='error'>Error in year(): could not find function "year"</span></div><div class='input'><span class='fu'>years</span><span class='op'>(</span><span class='fl'>5</span><span class='op'>)</span> <span class='co'># 5 years</span>
 </div><div class='output co'>#&gt; <span class='error'>Error in years(5): could not find function "years"</span></div><div class='input'><span class='fu'>month</span><span class='op'>(</span><span class='op'>)</span> <span class='co'># 1 month</span>

@@ -255,10 +255,16 @@ Example: <br />
 # Returns the maximal weight of patients at one year span starting from their birthdays <br />
 emr_vtrack.create("weight", "weight_track", func = "max", time.shift = c(0, year())) <br />
 emr_extract("weight", iterator = list(year(), "birthday_track"), stime = 1000, etime = 2000) <br /></p></li>
+<li><p>Periodic Iterator: periodic iterator goes over every year/month. You can use it by running  <code>emr_monthly_iterator</code> or <code>emr_yearly_iterator</code>. <br />
+Example: <br />
+iter &lt;- emr_yearly_iterator(emr_date2time(1, 1, 2002), emr_date2time(1, 1, 2017)) <br />
+emr_extract("dense_track", iterator = iter, stime = 1, etime = 3) <br />
+iter &lt;- emr_monthly_iterator(emr_date2time(1, 1, 2002), n = 15) <br />
+emr_extract("dense_track", iterator = iter, stime = 1, etime = 3) <br /></p></li>
 <li><p>Implicit Iterator: The iterator is set implicitly if its value remains `NULL` (which is the default). In that case the track expression is analyzed and searched for track names. If all the track variables or virtual track variables point to the same track, this track is used as a source for a track iterator. If more then one track appears in the track expression, an error message is printed out notifying ambiguity.</p></li>
 </ul>
 
-<p>Revealing Current Iterator Time: 
+<p>Revealing Current Iterator Time:
 During the evaluation of a track expression one can access a specially defined variable named `EMR_TIME` (Python: `TIME`). This variable contains a vector (`numpy.ndarray` in Python) of current iterator times. The length of the vector matches the length of the track variable (which is a vector too). <br />
 Note that some values in `EMR_TIME` might be set 0. Skip those intervals and the values of the track variables at the corresponding indices. <br />
 # Returns times of the current iterator as a day of month <br />
