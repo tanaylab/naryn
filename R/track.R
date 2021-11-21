@@ -623,11 +623,11 @@ emr_track.mv <- function(src, tgt, space = NULL) {
             stop("cannot move logical tracks out of global space")
         }
     }
-
+    
     if (emr_track.readonly(src)) {
         stop(sprintf("Cannot move track %s: it is read-only.\n", src), call. = F)
     }
-
+    
     if (emr_vtrack.exists(tgt)) {
         stop(sprintf("Virtual track %s already exists", tgt), call. = F)
     }
@@ -639,7 +639,7 @@ emr_track.mv <- function(src, tgt, space = NULL) {
     if (emr_track.exists(tgt)) {
         stop(sprintf("Track %s already exists", tgt), call. = F)
     }
-
+    
     if (emr_track.logical.exists(src)) {
         ltrack <- emr_track.logical.info(src)
         emr_track.logical.rm(src, force = TRUE)
@@ -752,6 +752,7 @@ emr_track.percentile <- function(track, val, lower = TRUE) {
 #' @keywords ~track
 #' @export emr_track.readonly
 emr_track.readonly <- function(track, readonly = NULL) {
+    
     if (missing(track)) {
         stop("Usage: emr_track.readonly(track, readonly = NULL)", call. = F)
     }

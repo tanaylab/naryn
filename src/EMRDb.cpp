@@ -1007,6 +1007,11 @@ void EMRDb::update_track_list_file(const Name2Track &tracks, string db_id, Buffe
 
         in_dbs = pos != name2track.second.dbs.end();
 
+        if (strcmp(name2track.first.c_str(), "stam1_1") == 0) {
+            std::cout << db_id << " updating db_id for stam1\n";
+            std::cout << in_dbs << " stam1_1 in_dbs \n";
+        }
+
         if (((name2track.second.db_id == db_id) || in_dbs) &&
             (bf.write(name2track.first.c_str(), name2track.first.size() + 1) !=
                  name2track.first.size() + 1 ||
@@ -1249,6 +1254,44 @@ void EMRDb::load_track(const char *track_name, string db_id)
     update_track_list_file(m_tracks, db_id, bf);
 }
 
+void EMRDb::soft_unload_track(const char *track_name, bool overridden){
+    Name2Track::iterator itrack = m_tracks.find(track_name);
+
+    if (itrack == m_tracks.end())
+        return;
+
+    string db_id = itrack->second.db_id;
+
+    vector<string>::iterator itr =
+        find(m_track_names[db_id].begin(), m_track_names[db_id].end(), track_name);
+
+    if (itr != m_track_names[db_id].end()) {
+        m_track_names[db_id].erase(itr);
+        vdebug("Unloaded track %s from memory", track_name);
+    }
+
+    //If the track was overriding another track
+    //touch  the relevant  .naryn file  so next
+    //refresh will reload the overridden track 
+    
+    if ((itrack->second.dbs.size() > 0) || overridden) {
+
+        int fd;
+
+        for (int i=0; i < m_rootdirs.size(); i++) {
+            if ((fd = open(track_list_filename(m_rootdirs[i]).c_str(), O_WRONLY, 0)) == -1) {
+                verror("Failed opening file %s", track_list_filename(m_rootdirs[i]).c_str());
+            }
+            futimens(fd, NULL);
+        }
+        
+    }
+
+    delete itrack->second.track;
+    itrack->second.track = NULL;
+    m_tracks.erase(track_name);
+    
+}
 
 void EMRDb::unload_track(const char *track_name, bool overridden){
     
@@ -1272,10 +1315,9 @@ void EMRDb::unload_track(const char *track_name, bool overridden){
     //refresh will reload the overridden track 
     
     if ((itrack->second.dbs.size() > 0) || overridden) {
-        
+
         int fd;
-        struct timespec times[2];
-        
+
         for (int i=0; i < m_rootdirs.size(); i++) {
             if ((fd = open(track_list_filename(m_rootdirs[i]).c_str(), O_WRONLY, 0)) == -1) {
                 verror("Failed opening file %s", track_list_filename(m_rootdirs[i]).c_str());
