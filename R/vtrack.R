@@ -1,4 +1,11 @@
-.emr_vtrack.get <- function(vtrackstr) {
+#' Get virtual track parameters given a string
+#'
+#' @param vtrackstr name of the virtual track
+#' @param adjust_logical when the source is logical track - adjust the parameters to imitate a physical track
+#'
+#' @export
+#' @noRd
+.emr_vtrack.get <- function(vtrackstr, adjust_logical = TRUE) {
     if (!emr_vtrack.exists(vtrackstr)) {
         stop(sprintf("Virtual track %s does not exist", vtrackstr), call. = F)
     }
@@ -9,11 +16,13 @@
         root <- get("EMR_UROOT", envir = .GlobalEnv)
         vtrack <- get("EMR_VTRACKS", envir = .GlobalEnv)[[root]][[vtrackstr]]
     }
-    if (!is.null(vtrack$logical)) {
-        vtrack$src <- vtrack$logical$src
-        vtrack$params <- vtrack$logical$params
+    if (adjust_logical) {
+        if (!is.null(vtrack$logical)) {
+            vtrack$src <- vtrack$logical$src
+            vtrack$params <- vtrack$logical$params
+        }
+        vtrack$logical <- NULL
     }
-    vtrack$logical <- NULL
     vtrack
 }
 
@@ -175,7 +184,7 @@
 #' @param time.shift time shift and expansion for iterator time.
 #' @param id.map id mapping.
 #' @param filter virtual track filter.
-#' @return None.
+#' @return Name of the virtual track (invisibly)
 #' @seealso \code{\link{emr_vtrack.attr.src}}, \code{\link{emr_vtrack.ls}},
 #' \code{\link{emr_vtrack.exists}}, \code{\link{emr_vtrack.rm}}
 #' @keywords ~virtual
@@ -249,7 +258,7 @@ emr_vtrack.create <- function(vtrack, src, func = NULL, params = NULL, keepref =
     emr_vtrack.rm(vtrack)
     EMR_VTRACKS[[root]][[vtrack]] <<- var
 
-    retv <- NULL
+    invisible(vtrack)
 }
 
 

@@ -261,38 +261,37 @@ void EMRDb::load_logical_tracks_from_disk()
 }
 
 void EMRDb::add_logical_track(const char *track_name, const char *source_name,
-                              const vector<int> &values, bool update)
-{
-    EMRLogicalTrack ltrack(source_name, values);
+                              const vector<int> &values, bool create_file, bool update) {
+    EMRLogicalTrack ltrack(source_name, values);    
 
     m_logical_tracks.emplace(track_name, ltrack);
 
-    if (update)
-    {
+    if (create_file){
         string filename = logical_track_filename(string(track_name));
-        if (!ltrack.serialize(filename.c_str()))
-        {
+        if (!ltrack.serialize(filename.c_str())) {
             verror("failed to write logical track %s", track_name);
         }
+    }
+
+    if (update) {
         update_logical_tracks_file();
     }
 }
 
 void EMRDb::add_logical_track(const char *track_name, const char *source_name,
-                              bool update)
-{
+                              bool create_file, bool update) {
+    EMRLogicalTrack ltrack(source_name);    
 
-    EMRLogicalTrack ltrack(source_name);
+    m_logical_tracks.emplace(track_name, ltrack);     
 
-    m_logical_tracks.emplace(track_name, ltrack);
-
-    if (update)
-    {
+    if (create_file){
         string filename = logical_track_filename(string(track_name));
-        if (!ltrack.serialize(filename.c_str()))
-        {
+        if (!ltrack.serialize(filename.c_str())) {
             verror("failed to write logical track %s", track_name);
         }
+    }
+
+    if (update) {       
         update_logical_tracks_file();
     }
 }
@@ -441,11 +440,11 @@ void EMRDb::load_logical_tracks()
                         values.resize(num_vals);
                         bf.read(values.data(), sizeof(int) * num_vals);
                         add_logical_track(track.c_str(), source.c_str(), values,
-                                          false);
+                                          false, false);
                     }
                     else
                     {
-                        add_logical_track(track.c_str(), source.c_str(), false);
+                        add_logical_track(track.c_str(), source.c_str(), false, false);
                     }
                     token = TRACK;
                 }

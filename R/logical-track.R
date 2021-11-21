@@ -23,28 +23,49 @@
 #' in the global space.
 #'
 #'
-#' @param track the name of the newly created logical track
-#' @param src name of the physical track
-#' @param values vector of selected values
+#'
+#' @param track one or more names of the newly created logical tracks.
+#' @param src name of the physical tracks for each logical \code{track}
+#' @param values vector of selected values. When creating multiple logical tracks at once
+#' - \code{values} should be a list of vectors (with one vector of values for each logical track).
 #' @return None.
+#'
+#' @examples
+#' \dontrun{
+#' emr_track.logical.create("logical_track", "categorical_track", values = c(2, 3))
+#'
+#' # multiple tracks
+#' emr_track.logical.create(c("logical_track1", "logical_track2"), rep("categorical_track", 2), values = list(c(2, 3), c(1, 4)))
+#' }
 #'
 #' @keywords ~track ~create_logical
 #' @export emr_track.logical.create
 emr_track.logical.create <- function(track, src, values = NULL) {
     .emr_checkroot()
-    .emr_call("emr_create_logical", track, src, values, new.env(parent = parent.frame()), silent = TRUE)
+    dups <- duplicated(track)
+    if (any(dups)) {
+        stop("The following tracks appear more than once: ", paste(unique(track[dups]), collapse = ", "))
+    }
+
+    if (length(track) != length(src)) {
+        stop("Number of tracks is not equal to the number of sources")
+    }
+
+    if (length(track) > 1) {
+        stopifnot(is.list(values))
+        if (length(track) != length(values)) {
+            stop("Number of tracks is not equal to the number of entries in the values list")
+        }
+        purrr::pwalk(list(track, src, values), function(tr, sr, v) {
+            .emr_call("emr_create_logical", tr, sr, v, FALSE, new.env(parent = parent.frame()), silent = TRUE)
+        })
+        .emr_call("update_logical_tracks_file", new.env(parent = parent.frame()), silent = TRUE)
+    } else {
+        .emr_call("emr_create_logical", track, src, values, TRUE, new.env(parent = parent.frame()), silent = TRUE)
+    }
 }
 
-#' Deletes a logical track
-#'
-#' @param track the name of the newly created logical track
-#' @param force if 'TRUE', supresses user confirmation of a named track removal
-#' @return None.
-#'
-#' @keywords ~track ~create_logical
-#' @export emr_track.logical.create
-emr_track.logical.rm <- function(track, force = FALSE, rm_vars = TRUE) {
-    .emr_checkroot()
+remove_logical_track <- function(track, force, rm_vars, update) {
     if (!emr_track.exists(track)) {
         if (force) {
             return(invisible())
@@ -68,7 +89,7 @@ emr_track.logical.rm <- function(track, force = FALSE, rm_vars = TRUE) {
     if (answer == "Y" || answer == "YES") {
         dirname1 <- .emr_track.logical.var.dir(track)
         dirname2 <- .emr_track.logical.pyvar.dir(track)
-        .emr_call("emr_remove_logical", track, new.env(parent = parent.frame()), silent = TRUE)
+        .emr_call("emr_remove_logical", track, update, new.env(parent = parent.frame()), silent = TRUE)
 
         if (rm_vars && file.exists(dirname1)) {
             unlink(dirname1, recursive = TRUE)
@@ -77,6 +98,24 @@ emr_track.logical.rm <- function(track, force = FALSE, rm_vars = TRUE) {
         if (rm_vars && file.exists(dirname2)) {
             unlink(dirname2, recursive = TRUE)
         }
+    }
+}
+
+#' Deletes a logical track
+#'
+#' @param track the name of one or more tracks to delete
+#' @param force if 'TRUE', supresses user confirmation of a named track removal
+#' @return None.
+#'
+#' @keywords ~track ~create_logical
+#' @export
+emr_track.logical.rm <- function(track, force = FALSE, rm_vars = TRUE) {
+    .emr_checkroot()
+    if (length(track) > 1) {
+        purrr::walk(track, remove_logical_track, force = force, rm_vars = rm_vars, update = FALSE)
+        .emr_call("update_logical_tracks_file", new.env(parent = parent.frame()), silent = TRUE)
+    } else {
+        remove_logical_track(track, force = force, rm_vars = rm_vars, update = TRUE)
     }
 }
 
@@ -121,100 +160,13 @@ emr_track.logical.info <- function(track) {
     .emr_call("emr_logical_track_info", track, new.env(parent = parent.frame()))
 }
 
-#' Detect logical tracks in a track expression
-#'
-#' @param expr track expression (string)
-#'
-#' @return vector with names of logical tracks in the track expression
-#'
-#' @examples
-#'
-#' detect_expr_logical_tracks("logical_track+5")
-#' @noRd
-detect_expr_logical_tracks <- function(expr) {
-    .emr_call("emr_expr_logical_tracks", expr, new.env(parent = parent.frame()))
-}
-
-#' Detect physical tracks in a track expression
-#'
-#' @param expr track expression (string)
-#'
-#' @return vector with names of physical tracks in the track expression
-#'
-#' @examples
-#'
-#' detect_expr_physical_tracks("dense_track+5")
-#' @noRd
-detect_expr_physical_tracks <- function(expr) {
-    .emr_call("emr_expr_physical_tracks", expr, new.env(parent = parent.frame()))
-}
-
-#' Detect virtual tracks in a track expression
-#'
-#' @param expr track expression (string)
-#'
-#' @return vector with names of virtual tracks in the track expression
-#'
-#' @examples
-#'
-#' detect_expr_virtual_tracks("dense_track+5")
-#' @noRd
-detect_expr_virtual_tracks <- function(expr) {
-    .emr_call("emr_expr_virtual_tracks", expr, new.env(parent = parent.frame()))
-}
-
-
-#' Detect a single track in a track expression
-#'
-#' @description
-#' When the iterator is NULL - we want to detect a single
-#' track in the track expression in order to change the iterator to it
-#'
-#' @param exprs vector of track expressions
-#'
-#' @return name of the track if there exists only one in the expression and NULL otherwise.
-#' An error is thrown if there is more than a single track
-#'
-#'
-#' @noRd
-expand_null_iterator <- function(exprs) {
-    tracks <- c()
-    vtracks <- c()
-
-    for (expr in exprs) {
-        tracks <- c(tracks, detect_expr_logical_tracks(expr))
-        tracks <- c(tracks, detect_expr_physical_tracks(expr))
-        vtracks <- c(vtracks, detect_expr_virtual_tracks(expr))
-    }
-
-    # naryn doesn't allow explicit vtrack iterator
-    if (length(tracks) == 1 && length(vtracks) == 0) {
-        return(tracks)
-    }
-
-    if (length(vtracks) == 1) {
-        vtrack_info <- emr_vtrack.info(vtracks)
-        src <- vtrack_info$src
-
-        if (is.character(src) && emr_track.logical.exists(src)) {
-            return(src)
-        }
-    }
-
-    if (length(c(tracks, vtracks)) > 1) {
-        stop("Unable to implicitly set iterator policy: track expression contains several different data sources")
-    }
-
-    return(NULL)
-}
-
 random_filter_name <- function(pattern) {
     basename(tempfile(pattern = pattern))
 }
 
 #' Create a filter for logical track
 #'
-#' @param ltrack output of \code{emr_track.logical.info}
+#' @param ltrack name of logical track
 #' @param filter existing filter (the new filter would be added)
 #' @param filter_name name for the new filter (optional)
 #'
@@ -223,10 +175,11 @@ random_filter_name <- function(pattern) {
 #'
 #' @examples
 #'
-#' ltrack <- emr_track.logical.info("logical_track")
 #' create_logical_track_filter("logical_track")
+#' @export
 #' @noRd
 create_logical_track_filter <- function(ltrack, filter = NULL, filter_name = NULL, env = parent.frame()) {
+    ltrack <- emr_track.logical.info(ltrack)
     if (is.null(filter_name)) {
         filter_name <- random_filter_name("logical_filter_")
         withr::defer(
@@ -245,7 +198,7 @@ create_logical_track_filter <- function(ltrack, filter = NULL, filter_name = NUL
 }
 
 
-#' Get a list of logical track names which depend on the src track given
+#' Get a list of logical track names which depend on the given src track
 #'
 #' @param src a string track name of a physical track
 #'

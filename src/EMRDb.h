@@ -45,7 +45,13 @@ public:
     const string &urootdir() { return m_rootdirs[0]; }
 
 	EMRTrack *track(const string &track);
+    const bool track_exists(const string &track) {
+        return (m_tracks.find(track) != m_tracks.end());
+    }
     const EMRLogicalTrack *logical_track(const string &track);
+    const bool logical_track_exists(const string &track) {
+        return (m_logical_tracks.find(track) != m_logical_tracks.end());
+    }
     const TrackInfo *track_info(const string &track);
     const vector<string> &track_names(string db_id) { return m_track_names[db_id]; }
     const vector<string> &rootdirs() { return m_rootdirs; }
@@ -106,12 +112,13 @@ public:
     void soft_unload_track(const char *track_name, bool overridden=0);
 
     // Add a logical track to the database
-    void add_logical_track(const char *track_name, const char *source_name,
-                            const vector<int> &values, bool update);
-    void add_logical_track(const char *track_name, const char *source_name,
-                            bool update);
+    void add_logical_track(const char *track_name, const char *source_name, const vector<int> &values, bool create_file, bool update);
+    void add_logical_track(const char *track_name, const char *source_name, bool create_file, bool update);
 
     void remove_logical_track(const char *track_name, bool update);
+
+    // Writes the logical track list file. If the file doesn't exist - recreates it. 
+    void update_logical_tracks_file();
 
     // clear loaded logical tracks
     void clear_logical_tracks();
@@ -216,9 +223,6 @@ protected:
 
     // Scans logical tracks directory for logical tracks, updates track list file with the gathered data.
     void load_logical_tracks_from_disk();
-
-    // Writes the logical track list file. If the file doesn't exist - recreates it. 
-    void update_logical_tracks_file();
 
     // Loads track list file. If corrupted or missing, recreates it.
     // Removes outdated tracks from memory.

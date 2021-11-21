@@ -50,6 +50,7 @@ struct LogicalTrackInfo {
 extern "C" {
 
 SEXP emr_logical_track_user_info(SEXP _track, SEXP _expr, SEXP _stime, SEXP _etime, SEXP _iterator_policy, SEXP _keepref, SEXP _filter, SEXP _dbdirs, SEXP _envir)
+
 {
     EMRDb *new_g_db = NULL;
 	try {
@@ -61,8 +62,6 @@ SEXP emr_logical_track_user_info(SEXP _track, SEXP _expr, SEXP _stime, SEXP _eti
         // we create a clean EMRDb instance in order to ignore the current ids subset
         new_g_db = new EMRDb;
 
-        // const char *gdirname = CHAR(STRING_ELT(_gdir, 0));
-        // const char *udirname = isNull(_udir) ? NULL : CHAR(STRING_ELT(_udir, 0));
         vector<string> dbdirs; 
         vector<bool> load_on_demand; 
 

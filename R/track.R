@@ -350,6 +350,8 @@ emr_track.attr.set <- function(track = NULL, attr = NULL, value = NULL) {
 #' the track expression. The location of the track is controlled via 'space'
 #' parameter which can be anyone of the db.dirs supplied in emr_db.connect
 #'
+#' @inheritSection emr_extract iterator
+#'
 #' @param track the name of the newly created track
 #' @param space db path, one of the paths supplied in emr_db.connect (still support "space"/"global")
 #' @param categorical if 'TRUE' track is marked as categorical
@@ -357,7 +359,7 @@ emr_track.attr.set <- function(track = NULL, attr = NULL, value = NULL) {
 #' @param stime start time scope
 #' @param etime end time scope
 #' @param iterator track expression iterator. If 'NULL' iterator is determined
-#' implicitly based on track expressions
+#' implicitly based on track expressions. See also 'iterator' section.
 #' @param keepref If 'TRUE' references are preserved in the iterator
 #' @param filter Iterator filter
 #' @return None.
@@ -529,7 +531,7 @@ emr_track.info <- function(track) {
 
     if (is.character(track) && emr_track.logical.exists(track)) {
         ltrack <- emr_track.logical.info(track)
-        .emr_call("emr_logical_track_user_info", track, ltrack$source, NULL, NULL, ltrack$source, TRUE, .emr_filter(create_logical_track_filter(ltrack)), c(EMR_ROOTS), new.env(parent = parent.frame()))
+        .emr_call("emr_logical_track_user_info", track, ltrack$source, NULL, NULL, ltrack$source, TRUE, .emr_filter(create_logical_track_filter(track)), c(EMR_ROOTS), new.env(parent = parent.frame()))
     } else {
         .emr_call("emr_track_info", track, new.env(parent = parent.frame()))
     }
@@ -902,7 +904,8 @@ emr_track.user.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FA
 
 #' emr_track.ls for logical tracks
 #'
-#' @noRd
+#' @export
+#' @rdname emr_track.ls
 emr_track.logical.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
     .emr_checkroot()
     tracks <- .emr_call("emr_logical_track_names", new.env(parent = parent.frame()), silent = TRUE)

@@ -1,4 +1,3 @@
-
 test_that("emr_track.import from data frame works", {
     a <- emr_extract("track1", keepref = TRUE, names = "value")
     emr_track.import("temp_track", "global", categorical = FALSE, src = a)

@@ -8,3 +8,7 @@ tests/snapshot
 Logical_tracks.md
 inst/naryndb/test/.logical_tracks
 inst/naryndb/test/.attrs
+benchmark.*
+inst/doc
+docs/
+architecture.*

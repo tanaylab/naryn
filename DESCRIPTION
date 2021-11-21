@@ -1,17 +1,15 @@
 Type: Package
 Package: naryn
 Title: Toolkit for analysis of medical records
-Version: 2.6.0
+Version: 2.6.1
 Date: 2020-11-09
-Authors@R: 
-    person(given = "Misha",
-           family = "Hoichman",
-           role = c("aut", "cre"),
-           email = "misha@hoichman.com")
-Author: Misha Hoichman
-Maintainer: Misha Hoichman <misha@hoichman.com>
+Authors@R: c(
+    person("Misha", "Hoichman", , "misha@hoichman.com", role = c("aut", "cre")),
+    person("Aviezer", "Lifshitz", , "aviezer.lifshitz@weizmann.ac.il", role = "aut"),
+    person("Ben", "Gilat", , "ben.gilat@weizmann.ac.il", role = "aut")
+  )
 Description: Toolkit for medical records data analysis
-License: GPL-2
+License: TBD
 BugReports: https://github.com/tanaylab/naryn/issues
 Depends: 
     utils
@@ -21,18 +19,21 @@ Imports:
     magrittr,
     purrr
 Suggests: 
-    tools,
     callr,
     forcats,
+    knitr,
     readr,
-    testthat (>= 3.0.4)
+    rmarkdown,
+    testthat (>= 3.0.4),
+    tools
 LinkingTo: 
     cpp11
+VignetteBuilder: 
+    knitr
 Config/testthat/edition: 3
 Config/testthat/parallel: false
 Encoding: UTF-8
 LazyLoad: yes
 NeedsCompilation: yes
-Packaged: 2020-11-09 18:12:03 UTC; hoichman
 RoxygenNote: 7.1.1
 SystemRequirements: GNU make, C++11

@@ -27,7 +27,7 @@ emr_filter.create(
 \item{expiration}{expiration period}
 }
 \value{
-None.
+Name of the filter (invisibly)
 }
 \description{
 Creates a new named filter.
