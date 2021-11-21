@@ -1007,11 +1007,6 @@ void EMRDb::update_track_list_file(const Name2Track &tracks, string db_id, Buffe
 
         in_dbs = pos != name2track.second.dbs.end();
 
-        if(strcmp("track7",name2track.first.c_str()) == 0) {
-            std::cout << db_id << " the db_id \n";
-            std::cout << in_dbs << " is in dbs \n";
-        }
-
         if (((name2track.second.db_id == db_id) || in_dbs) &&
             (bf.write(name2track.first.c_str(), name2track.first.size() + 1) !=
                  name2track.first.size() + 1 ||
@@ -1277,11 +1272,11 @@ void EMRDb::unload_track(const char *track_name, bool overridden){
     //refresh will reload the overridden track 
     
     if ((itrack->second.dbs.size() > 0) || overridden) {
+        
         int fd;
         struct timespec times[2];
-        int db_idx = get_db_idx(itrack->second.db_id);
         
-        for (int i=0; i <= db_idx; i++) {
+        for (int i=0; i < m_rootdirs.size(); i++) {
             if ((fd = open(track_list_filename(m_rootdirs[i]).c_str(), O_WRONLY, 0)) == -1) {
                 verror("Failed opening file %s", track_list_filename(m_rootdirs[i]).c_str());
             }
