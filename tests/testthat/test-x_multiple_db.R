@@ -257,6 +257,44 @@ test_that("filters work on an overridden track, without changing source", {
 
 test_that("subset works with overridden tracks", {
 
+    set.seed(60427)
+    all_ids <- emr_extract("track2_2") %>% dplyr::distinct(id)
+
+    ids <- all_ids %>% dplyr::sample_frac(0.2) %>% dplyr::select(id)
+
+    emr_db.subset(ids, fraction = 1, complementary = FALSE)
+
+    withr::defer(emr_db.subset(NULL))
+
+    expect_equal(
+        emr_db.subset.info(),
+        list(src = "<Ids Table>", fraction = 1, complementary = FALSE)
+    )
+
+    expect_equal(emr_db.subset.ids(), ids %>% dplyr::arrange(id))
+
+    track2_2 <- emr_extract("track2_2")
+    expect_true(all(track2_2$id %in% ids$id))
+
+    # override track2_2 with new track, shift ids by the max val -1, leaving only one id in the intersection
+    emr_track.import(track="track2_2", 
+                     space=EMR_UROOT, 
+                     categorical=FALSE, 
+                     src=track2_2 %>% dplyr::mutate(track2_2=track2_2*2) %>% dplyr::rename(value=track2_2) %>% dplyr::mutate(id=id+(track2_2 %>% dplyr::pull("track2_2") %>% max())-1), 
+                     override=TRUE)
+
+    track2_2 <- emr_extract("track2_2")
+    expect_true(!any(track2_2$id %in% ids$id))
+
+    emr_track.rm("track2_2", force=TRUE)
+
+    # reset the subset
+    emr_db.subset(NULL)
+    expect_null(emr_db.subset.info())
+    expect_null(emr_db.subset.ids())
+
+    a <- emr_extract("track2_2")
+    expect_true(all(all_ids$id %in% a$id))
 })
 
 test_that("trying to override not explicitly throws an error", {

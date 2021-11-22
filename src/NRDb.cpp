@@ -4,7 +4,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <numeric>
-#include <iostream>
 
 #include "EMRDb.h"
 #include "EMRProgressReporter.h"
@@ -18,7 +17,6 @@ SEXP emr_dbinit(SEXP _dbdirs, SEXP _load_on_demand, SEXP _do_load, SEXP envir) {
     try {
         Naryn naryn(envir, false);
 
-        //TODO check that load on demand for only logical values, and dbdirs is only strings
         if (!isLogical(_do_load) || Rf_length(_do_load) != 1)
             verror("'do.reload' argument must be a logical value");
 
