@@ -1,16 +1,16 @@
 #' Deprecated - please user emr_db.connect
-#' 
+#'
 #' @export emr_db.init
 emr_db.init <- function(global.dir = NULL, user.dir = NULL, global.load.on.demand = T, user.load.on.demand = T, do.reload = F) {
     db.dirs <- c(global.dir, user.dir)
 
     if (is.null(user.dir)) {
-        load.on.demand <- c(global.load.on.demand)    
+        load.on.demand <- c(global.load.on.demand)
     } else {
-        load.on.demand <- c(global.load.on.demand, user.load.on.demand)    
+        load.on.demand <- c(global.load.on.demand, user.load.on.demand)
     }
 
-    emr_db.connect(db.dirs=db.dirs, load.on.demand=load.on.demand, do.reload=do.reload)
+    emr_db.connect(db.dirs = db.dirs, load.on.demand = load.on.demand, do.reload = do.reload)
 }
 
 #' Initializes connection with Naryn Database
@@ -18,7 +18,7 @@ emr_db.init <- function(global.dir = NULL, user.dir = NULL, global.load.on.deman
 #' Initializes connection with Naryn Database.
 #'
 #' 'emr_db.connect' initializes the connection with Naryn Database facilitating
-#' tracks access. The first db in the db.dirs vector is seen as the Global DB 
+#' tracks access. The first db in the db.dirs vector is seen as the Global DB
 #' and as the root directory of the global tracks. The last db in the db.dirs
 #' is seed as the User DB and the directory of the user's tracks. Unlike
 #' global tracks user tracks may be deleted ('emr_track.rm') or new ones can be
@@ -26,12 +26,12 @@ emr_db.init <- function(global.dir = NULL, user.dir = NULL, global.load.on.deman
 #' operations on user tracks will be disabled. Any other db in the db.dirs
 #' vector is seen as an extention to the global tracks, the permissions
 #' of these extentions are up to the user.
-#' 
-#' Overriding mechanism: 
-#' 
+#'
+#' Overriding mechanism:
+#'
 #' The order of the dirs in the db.dirs vector sets their namespace priority.
 #' This means that when a track with the same name appears in two or more
-#' db.dirs, the considered track will be the one from the db.dir with the 
+#' db.dirs, the considered track will be the one from the db.dir with the
 #' higher position in the vector. When an overriding track is removed, naryn
 #' will update the track list such that the once overridden track will be available
 #'
@@ -70,10 +70,10 @@ emr_db.init <- function(global.dir = NULL, user.dir = NULL, global.load.on.deman
 #' global variables are added to the environment. These variables should not be
 #' modified by the user!
 #'
-#' \tabular{lll}{ 
-#' EMR_GROOT \tab Root directory of global tracks \cr 
-#' EMR_UROOT \tab Root directory of user tracks \cr 
-#' EMR_ROOTS \tab Vector of directories (db.dirs) \cr 
+#' \tabular{lll}{
+#' EMR_GROOT \tab Root directory of global tracks \cr
+#' EMR_UROOT \tab Root directory of user tracks \cr
+#' EMR_ROOTS \tab Vector of directories (db.dirs) \cr
 #' }
 #'
 #' @aliases emr_db.init emr_db.init_examples
@@ -88,7 +88,7 @@ emr_db.init <- function(global.dir = NULL, user.dir = NULL, global.load.on.deman
 #' @keywords ~db ~data ~database
 #' @export emr_db.connect
 
-emr_db.connect <- function(db.dirs = NULL, load.on.demand = NULL, do.reload = F){
+emr_db.connect <- function(db.dirs = NULL, load.on.demand = NULL, do.reload = F) {
     if (is.null(db.dirs)) {
         stop("Usage: emr_db.init(db.dirs, load.on.demand = NULL, do.reload = F)", call. = FALSE)
     }
@@ -109,7 +109,7 @@ emr_db.connect <- function(db.dirs = NULL, load.on.demand = NULL, do.reload = F)
 
     # We set the uroot to be the last
     if (length(db.dirs) > 1) {
-        EMR_UROOT <<- tail(db.dirs, n=1)
+        EMR_UROOT <<- tail(db.dirs, n = 1)
     }
 
     EMR_ROOTS <<- db.dirs
@@ -117,7 +117,7 @@ emr_db.connect <- function(db.dirs = NULL, load.on.demand = NULL, do.reload = F)
     if (is.null(load.on.demand)) {
         load.on.demand <- !logical(length(db.dirs))
     }
-    
+
     success <- FALSE
 
     tryCatch(

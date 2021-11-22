@@ -4,7 +4,7 @@
 \alias{emr_track.exists}
 \title{Checks whether the track exists}
 \usage{
-emr_track.exists(track)
+emr_track.exists(track, db_id = NULL)
 }
 \arguments{
 \item{track}{track name}

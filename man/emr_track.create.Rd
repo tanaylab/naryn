@@ -13,13 +13,14 @@ emr_track.create(
   etime = NULL,
   iterator = NULL,
   keepref = F,
-  filter = NULL
+  filter = NULL,
+  override = FALSE
 )
 }
 \arguments{
 \item{track}{the name of the newly created track}
 
-\item{space}{"user" or "global" space}
+\item{space}{db path, one of the paths supplied in emr_db.connect (still support "space"/"global")}
 
 \item{categorical}{if 'TRUE' track is marked as categorical}
 
@@ -45,7 +46,7 @@ Creates a track from a track expression.
 \details{
 This function creates a new user or global track based on the values from
 the track expression. The location of the track is controlled via 'space'
-parameter which can be either "user" or to "global".
+parameter which can be anyone of the db.dirs supplied in emr_db.connect
 }
 \section{iterator}{
 

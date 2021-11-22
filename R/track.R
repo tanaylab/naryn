@@ -37,10 +37,10 @@
 }
 
 .emr_track.dir <- function(track) {
-    track_path <- emr_track.info(track)$path #track info holds the path
+    track_path <- emr_track.info(track)$path # track info holds the path
     splitted_path <- stringr::str_split(track_path, "/")[[1]]
-    splitted_path <- head(splitted_path, -1) #remove the nrtrack suffix
-    dir <- paste0(splitted_path, collapse='/')
+    splitted_path <- head(splitted_path, -1) # remove the nrtrack suffix
+    dir <- paste0(splitted_path, collapse = "/")
     return(dir)
 }
 
@@ -64,16 +64,16 @@
 }
 
 ._emr_backward_comp_space <- function(space) {
-    if (is.null(space)){
+    if (is.null(space)) {
         return(NULL)
     }
 
-    #if space is a db path as it should be
-    #we do not want to lower case it, so 
-    #using a temp param
+    # if space is a db path as it should be
+    # we do not want to lower case it, so
+    # using a temp param
     lspace <- tolower(space)
 
-    if (lspace == "user"){
+    if (lspace == "user") {
         # warning("do not use 'user' as db.id - deprecated")
 
         if ((!exists("EMR_UROOT", envir = .GlobalEnv) || is.null(get("EMR_UROOT", envir = .GlobalEnv)))) {
@@ -81,7 +81,7 @@
         }
 
         db_id <- EMR_UROOT
-    } else if (lspace == "global"){
+    } else if (lspace == "global") {
         # warning("do not use 'global' as db.id - deprecated")
         db_id <- EMR_GROOT
     } else {
@@ -367,7 +367,7 @@ emr_track.attr.set <- function(track = NULL, attr = NULL, value = NULL) {
 #' \code{\link{emr_track.ls}}, \code{\link{emr_track.exists}}
 #' @keywords ~track ~create
 #' @export emr_track.create
-emr_track.create <- function(track, space, categorical, expr, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL, override=FALSE) {
+emr_track.create <- function(track, space, categorical, expr, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL, override = FALSE) {
     if (missing(track) || missing(space) || missing(categorical) || missing(expr)) {
         stop("Usage: emr_track.create(track, space = EMR_GROOT, categorical, expr, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
     }
@@ -383,7 +383,7 @@ emr_track.create <- function(track, space, categorical, expr, stime = NULL, etim
 
     # TODO: change the API to receive a db path
     db_id <- ._emr_backward_comp_space(space)
-    
+
     .emr_call("emr_track_create", track, db_id, categorical, expr, stime, etime, iterator, keepref, .emr_filter(filter), override, new.env(parent = parent.frame()))
     retv <- NULL
 }
@@ -406,7 +406,7 @@ emr_track.create <- function(track, space, categorical, expr, stime = NULL, etim
 #' emr_db.init_examples()
 #' emr_track.exists("sparse_track")
 #' @export emr_track.exists
-emr_track.exists <- function(track, db_id=NULL) {
+emr_track.exists <- function(track, db_id = NULL) {
     if (missing(track)) {
         stop("Usage: emr_track.exist(track)", call. = F)
     }
@@ -458,7 +458,7 @@ emr_track.ids <- function(track) {
 #'
 #' Imports a track from a file or data-frame.
 #'
-#' This function creates a new track from a text file or a data-frame. 
+#' This function creates a new track from a text file or a data-frame.
 #' The location of the track is the User DB which is the last db.dir in
 #' the db.dirs supplied in emr_db.connect.
 #'
@@ -483,7 +483,7 @@ emr_track.ids <- function(track) {
 #' \code{\link{emr_track.ls}}
 #' @keywords ~import
 #' @export emr_track.import
-emr_track.import <- function(track, space, categorical, src, override=FALSE) {
+emr_track.import <- function(track, space, categorical, src, override = FALSE) {
     if (missing(track) || missing(space) || missing(src) || missing(categorical)) {
         stop("Usage: emr_track.import(track, space, categorical, src)", call. = F)
     }
@@ -496,7 +496,7 @@ emr_track.import <- function(track, space, categorical, src, override=FALSE) {
     if (emr_filter.exists(track)) {
         stop(sprintf("Filter %s already exists", track), call. = F)
     }
-    
+
     # TODO: change this to get the db_path
     # from the user
     db_id <- ._emr_backward_comp_space(space)
@@ -617,18 +617,17 @@ emr_track.mv <- function(src, tgt, space = NULL) {
     .emr_checkroot()
 
     if (!is.null(space)) {
-
         space <- tolower(space)
 
         if (emr_track.logical.exists(src) && space != EMR_GROOT) {
             stop("cannot move logical tracks out of global space")
         }
     }
-    
+
     if (emr_track.readonly(src)) {
         stop(sprintf("Cannot move track %s: it is read-only.\n", src), call. = F)
     }
-    
+
     if (emr_vtrack.exists(tgt)) {
         stop(sprintf("Virtual track %s already exists", tgt), call. = F)
     }
@@ -640,7 +639,7 @@ emr_track.mv <- function(src, tgt, space = NULL) {
     if (emr_track.exists(tgt)) {
         stop(sprintf("Track %s already exists", tgt), call. = F)
     }
-    
+
     if (emr_track.logical.exists(src)) {
         ltrack <- emr_track.logical.info(src)
         emr_track.logical.rm(src, force = TRUE)
@@ -652,7 +651,7 @@ emr_track.mv <- function(src, tgt, space = NULL) {
         # to move all the ltracks which depend
         # on it
 
-        #TODO change the API to get the db path from the user
+        # TODO change the API to get the db path from the user
         db_id <- ._emr_backward_comp_space(space)
 
         dependent_ltracks <- get_dependent_ltracks(src)
@@ -665,7 +664,6 @@ emr_track.mv <- function(src, tgt, space = NULL) {
             ltrack_info <- emr_track.logical.info(ltrack)
             emr_track.logical.rm(ltrack, force = TRUE, rm_vars = FALSE)
             emr_track.logical.create(ltrack, tgt, ltrack_info$values)
-
         }
     }
 
@@ -753,7 +751,6 @@ emr_track.percentile <- function(track, val, lower = TRUE) {
 #' @keywords ~track
 #' @export emr_track.readonly
 emr_track.readonly <- function(track, readonly = NULL) {
-    
     if (missing(track)) {
         stop("Usage: emr_track.readonly(track, readonly = NULL)", call. = F)
     }
