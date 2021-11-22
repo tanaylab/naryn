@@ -1361,8 +1361,7 @@ EMRDb::Track2Attrs EMRDb::get_tracks_attrs(const vector<string> &tracks,
         string db_id = itrack->second.db_id;
         bool db_idx = get_db_idx(db_id);
 
-        if (!tracks_attrs_loaded[db_idx])
-        {
+        if (!tracks_attrs_loaded[db_idx]) {
             load_tracks_attrs(db_id, true);
             tracks_attrs_loaded[db_idx] = true;
         }

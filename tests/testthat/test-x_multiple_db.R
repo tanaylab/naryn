@@ -212,7 +212,31 @@ test_that("vtracks work on an overridden track, without changing source", {
 
 test_that("filters work on an overridden track, without changing source", {
 
+    emr_track.import(track="kcart", 
+                     space=EMR_GROOT, 
+                     categorical=TRUE, 
+                     src=data.frame(id=14, time=emr_date2time(27, 12, 1952), value=100), 
+                     )
+
+    withr::defer(emr_track.rm("kcart", force=TRUE))
+
+    emr_filter.create(filter="f1", src="kcart", val=100)
+    expect_equal(emr_extract("kcart", filter="f1") %>% nrow(), 1)
+
+    emr_track.import(track="kcart", 
+                     space=EMR_UROOT, 
+                     categorical=TRUE, 
+                     src=data.frame(id=14, time=emr_date2time(27, 12, 1952), value=101), 
+                     override=TRUE
+                    )
+    
+    withr::defer(emr_track.rm("kcart", force=TRUE))
+
+    expect_equal(emr_extract("kcart", filter="f1") %>% nrow(), 0)
+    
 })
+
+
 
 
 test_that("track attrbs", {
