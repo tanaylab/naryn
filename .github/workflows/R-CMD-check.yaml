@@ -19,9 +19,9 @@ jobs:
       fail-fast: false
       matrix:
         config:
+          - {os: ubuntu-latest,   r: 'release'}
           # - {os: macOS-latest,   r: 'release'}
           # - {os: ubuntu-latest,   r: 'devel', http-user-agent: 'release'}
-          - {os: ubuntu-latest,   r: 'release'}
           # - {os: ubuntu-latest,   r: 'oldrel-1'}
 
     env:
@@ -32,7 +32,7 @@ jobs:
 
       - uses: "finnp/create-file-action@master"
           env:
-            FILE_NAME: ~/.R/Makevars"
+            FILE_NAME: "~/.R/Makevars"
             FILE_DATA: ""
 
       - uses: actions/checkout@v2
