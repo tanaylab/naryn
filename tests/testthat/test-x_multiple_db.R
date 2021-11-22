@@ -189,6 +189,26 @@ test_that("emr_track.vars are overridden correctly", {
 
 })
 
+test_that("emr_track.attrs are overridden correctly", {
+
+    expect_equal(emr_track.attr.export(attr="coffee") %>% nrow(), 0)
+
+    emr_track.attr.set("track2_2", "coffee", "bad")
+    emr_track.attr.set("track2", "coffee", "bad")
+
+    expect_equal(emr_track.attr.export(attr="coffee"), data.frame(track=c("track2", "track2_2"), attr=c("coffee", "coffee"), value=c("bad", "bad")))
+
+    emr_track.create(track="track2_2", space=EMR_UROOT, categorical=FALSE, exp="track2_2*2", keepref=TRUE, override=TRUE)
+
+    expect_equal(emr_track.attr.export(attr="coffee"), data.frame(track="track2", attr="coffee", value="bad"))
+    emr_track.attr.set("track2_2", "coffee", "good")
+    expect_equal(emr_track.attr.export(attr="coffee"), data.frame(track=c("track2", "track2_2"), attr=c("coffee", "coffee"), value=c("bad", "good")))
+
+    emr_track.rm("track2_2", force=TRUE)
+
+    expect_equal(emr_track.attr.export(attr="coffee"), data.frame(track=c("track2", "track2_2"), attr=c("coffee", "coffee"), value=c("bad", "bad")))
+
+})
 
 test_that("vtracks work on an overridden track, without changing source", {
 
@@ -208,7 +228,6 @@ test_that("vtracks work on an overridden track, without changing source", {
     expect_equal(avg1 %>% dplyr::mutate(avg=avg*2), avg2, tolerance=1e-6)
 
 })
-
 
 test_that("filters work on an overridden track, without changing source", {
 
@@ -236,25 +255,43 @@ test_that("filters work on an overridden track, without changing source", {
     
 })
 
-
-
-
-test_that("track attrbs", {
+test_that("subset works with overridden tracks", {
 
 })
 
-test_that("subset overrides", {
-
+test_that("trying to override not explicitly throws an error", {
+    expect_error(emr_track.create(track="track2_2", 
+                                  space=EMR_UROOT, 
+                                  categorical=FALSE, 
+                                  exp="track2_2*2", 
+                                  keepref=TRUE))
 })
 
+test_that("trying to override a track in the same db throws an error", {
+    expect_error(emr_track.create(track="track2", 
+                                  space=EMR_UROOT, 
+                                  categorical=FALSE, 
+                                  exp="track2*2", 
+                                  keepref=TRUE))
+})
 
-# test_that("errors", {
-#     e <- c(
-#         "connect with same db name",
-#         "create track with same name in same db",
-#         "create vtrack with same name as track",
-#         "create logical track with same name as track",
-#         "override without overriding argument",
-        
-#     )
-# })
+test_that("trying to create a vtrack with the name of an overridden track throws an error", {
+    emr_track.create(track="track2_2", space=EMR_UROOT, categorical=FALSE, exp="track2_2*2", keepref=TRUE, override=TRUE)
+    withr::defer(emr_track.rm("track2_2", force=TRUE))
+    expect_error(emr_vtrack.create("track2_2", "track2_2"))
+})
+
+test_that("trying to create a logical track with the name of an overridden track throws an error", {
+    emr_track.create(track="track2_2", space=EMR_UROOT, categorical=FALSE, exp="track2_2*2", keepref=TRUE, override=TRUE)
+    withr::defer(emr_track.rm("track2_2", force=TRUE))
+    expect_error(emr_track.logical.create("track2_2", "track2_2"))
+})
+
+test_that("trying to override a track with mv throws an error", {
+    expect_error(emr_track.mv("track2", "track2_3"))
+})
+
+test_that("trying to connect with non unique dbs throws an error", {
+    expect_error(emr_db.connect(c(EMR_UROOT, EMR_UROOT)))
+})
+
