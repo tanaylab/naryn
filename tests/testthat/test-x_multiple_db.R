@@ -256,7 +256,6 @@ test_that("filters work on an overridden track, without changing source", {
 })
 
 test_that("subset works with overridden tracks", {
-
     set.seed(60427)
     all_ids <- emr_extract("track2_2") %>% dplyr::distinct(id)
 
@@ -277,10 +276,13 @@ test_that("subset works with overridden tracks", {
     expect_true(all(track2_2$id %in% ids$id))
 
     # override track2_2 with new track, shift ids by the max val -1, leaving only one id in the intersection
-    emr_track.import(track="track2_2", 
-                     space=EMR_UROOT, 
-                     categorical=FALSE, 
-                     src=track2_2 %>% dplyr::mutate(track2_2=track2_2*2) %>% dplyr::rename(value=track2_2) %>% dplyr::mutate(id=id+(track2_2 %>% dplyr::pull("track2_2") %>% max())-1), 
+    emr_track.import(track="track2_2",
+                     space=EMR_UROOT,
+                     categorical=FALSE,
+                     src=track2_2 %>%
+                         dplyr::mutate(track2_2=track2_2*2) %>% 
+                         dplyr::rename(value=track2_2) %>% 
+                         dplyr::mutate(id=id+(track2_2 %>% dplyr::pull("track2_2") %>% max())-1), 
                      override=TRUE)
 
     track2_2 <- emr_extract("track2_2")
