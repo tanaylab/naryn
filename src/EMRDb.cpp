@@ -805,10 +805,11 @@ void EMRDb::init(vector<string> rootdirs, vector<bool> dirs_load_on_demand, bool
     {
         //if we dont need the db any more
         if (count(dirs_keep.begin(), dirs_keep.end(), *db_id) == 0){
+
             clear(*db_id);
 
-            // TBD - there is no more global? do we have subsets?
-            if (1)
+            //current global db
+            if (get_db_idx(*db_id) == 0)
                 clear_ids_subset(true);
         }
     }
@@ -1005,11 +1006,6 @@ void EMRDb::update_track_list_file(const Name2Track &tracks, string db_id, Buffe
         auto pos = std::find(name2track.second.dbs.begin(), name2track.second.dbs.end(), db_id);
 
         in_dbs = pos != name2track.second.dbs.end();
-
-        if (strcmp(name2track.first.c_str(), "stam1_1") == 0) {
-            std::cout << db_id << " updating db_id for stam1\n";
-            std::cout << in_dbs << " stam1_1 in_dbs \n";
-        }
 
         if (((name2track.second.db_id == db_id) || in_dbs) &&
             (bf.write(name2track.first.c_str(), name2track.first.size() + 1) !=

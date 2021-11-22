@@ -32,7 +32,7 @@ test_that("deletion of overriding track loads back the overridden track", {
 })
 
 
-test_that("creation of track overrides existing track", {
+test_that("emr_track.create overrides existing track", {
     
     # track2_2 is in db 2, we are creating a new track2_2 in EMR_UROOT
     expect_true("track2_2" %in% emr_track.ls())
@@ -40,6 +40,7 @@ test_that("creation of track overrides existing track", {
     t1 <- emr_extract("track2_2")
 
     emr_track.create(track="track2_2", space=EMR_UROOT, categorical=FALSE, exp="track2_2*2", keepref=TRUE, override=TRUE)
+    withr::defer(emr_track.rm("track2_2", force=TRUE))
 
     expect_true("track2_2" %in% emr_track.ls())
     expect_true(emr_track.exists("track2_2", EMR_UROOT))
@@ -48,6 +49,30 @@ test_that("creation of track overrides existing track", {
     t2 <- emr_extract("track2_2")
     
     expect_equal(t2, t1 %>% dplyr::mutate(track2_2 = 2*track2_2))
+})
+
+
+test_that("emr_track.import overrides existing track", {
+    # track2_2 is in db 2, we are creating a new track2_2 in EMR_UROOT
+    expect_true("track2_2" %in% emr_track.ls())
+    expect_true(emr_track.exists("track2_2", EMR_ROOTS[2]))
+    t1 <- emr_extract("track2_2")
+    
+    emr_track.import(track="track2_2", 
+                     space=EMR_UROOT, 
+                     categorical=FALSE, 
+                     src=t1 %>% dplyr::mutate(track2_2=track2_2*2) %>% dplyr::rename(value=track2_2), 
+                     override=TRUE)
+
+    withr::defer(emr_track.rm("track2_2", force=TRUE))
+
+    expect_true("track2_2" %in% emr_track.ls())
+    expect_true(emr_track.exists("track2_2", EMR_UROOT))
+    expect_false(emr_track.exists("track2_2", EMR_ROOTS[2]))
+
+    t2 <- emr_extract("track2_2")
+
+    expect_equal(t2, t1 %>% dplyr::mutate(track2_2 = 2*track2_2), tolerance=1e-6)
 })
 
 
@@ -110,6 +135,14 @@ test_that("overriding mechanism works wiht mv, when a track is renamed it is no 
     expect_true(emr_track.exists("track7_1"))
 })
 
+test_that("mv to override throws error", {
+    expect_error(emr_track.mv("stam1_2", "stam1_1"))
+    expect_error(emr_track.mv("stam1_3", "stam1_1"))
+    expect_error(emr_track.mv("stam1", "stam1_1"))
+    expect_error(emr_track.mv("stam1_1", "stam1_3"))
+    expect_error(emr_track.mv("stam1_2", "stam1"))
+})
+
 
 test_that("read_only is also overridden when overriding a track", {
 
@@ -131,6 +164,73 @@ test_that("read_only is also overridden when overriding a track", {
 
 })
 
-test_that("", {
-    
+
+test_that("emr_track.vars are overridden correctly", {
+
+    expect_length(emr_track.var.ls("track2_2"), 0)
+    emr_track.var.set("track2_2", "coffee_hours", c(8, 14, 17))
+    expect_equal(emr_track.var.get("track2_2", "coffee_hours"), c(8, 14, 17))
+
+    emr_track.create(track="track2_2", space=EMR_UROOT, categorical=FALSE, exp="track2_2*2", keepref=TRUE, override=TRUE)
+
+    expect_length(emr_track.var.ls("track2_2"), 0)
+    emr_track.var.set("track2_2", "coffee_hours", c(9, 15, 18))
+    expect_equal(emr_track.var.get("track2_2", "coffee_hours"), c(9, 15, 18))
+
+    emr_track.rm("track2_2", force=TRUE)
+
+    expect_length(emr_track.var.ls("track2_2"), 1)
+    expect_equal(emr_track.var.get("track2_2", "coffee_hours"), c(8, 14, 17))
+
+    emr_track.create(track="track2_2", space=EMR_UROOT, categorical=FALSE, exp="track2_2*2", keepref=TRUE, override=TRUE)
+    withr::defer(emr_track.rm("track2_2", force=TRUE))
+
+    expect_length(emr_track.var.ls("track2_2"), 0)
+
 })
+
+
+test_that("vtracks work on an overridden track, without changing source", {
+
+    emr_vtrack.create(vtrack="size", src="track2_2", func="size")
+    emr_vtrack.create(vtrack="avg", src="track2_2", func="avg")
+
+    size1 <- emr_extract("size")
+    avg1 <- emr_extract("avg")
+
+    emr_track.create(track="track2_2", space=EMR_UROOT, categorical=FALSE, exp="track2_2*2", keepref=TRUE, override=TRUE)
+    withr::defer(emr_track.rm("track2_2", force=TRUE))
+
+    size2 <- emr_extract("size")
+    avg2 <- emr_extract("avg")
+
+    expect_equal(size1, size2)
+    expect_equal(avg1 %>% dplyr::mutate(avg=avg*2), avg2, tolerance=1e-6)
+
+})
+
+
+test_that("filters work on an overridden track, without changing source", {
+
+})
+
+
+test_that("track attrbs", {
+
+})
+
+test_that("subset overrides", {
+
+})
+
+
+# test_that("errors", {
+#     e <- c(
+#         "connect with same db name",
+#         "create track with same name in same db",
+#         "create vtrack with same name as track",
+#         "create logical track with same name as track",
+#         "override without overriding argument",
+        
+#     )
+# })

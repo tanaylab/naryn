@@ -68,7 +68,6 @@ SEXP emr_track_create(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _expr, S
         EMRTrack::serialize(track_filename.c_str(), categorical, data);
 
         if (has_overlap) {
-            std::cout << trackname << " has overlap \n";
             g_db->soft_unload_track(trackname.c_str(), true);
         }
 

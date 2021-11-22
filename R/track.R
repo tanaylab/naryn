@@ -41,7 +41,6 @@
     splitted_path <- stringr::str_split(track_path, "/")[[1]]
     splitted_path <- head(splitted_path, -1) #remove the nrtrack suffix
     dir <- paste0(splitted_path, collapse='/')
-
     return(dir)
 }
 
