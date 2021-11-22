@@ -22,13 +22,15 @@ Naryn can work under R (as a package) or Python (as a module). The vast majority
 
 ## Database
 
-### Global and User Space, Read-Only Tracks
 
-Naryn allows accessing the data that resides in *tracks* where each track holds certain type of medical data such as patients' diagnoses or their hemoglobin level at certain points of time. The track files are aggregated in a directory. Before the tracks can be accessed, Naryn needs to establish connection to this directory, also referred as a *global root* or *global space root*. Call `emr_db.init` function to establish the access to the tracks in the global root directory. Optionally `emr_db.init` accepts an additional *user root* (or *user space root*) directory which can also constains additional tracks.
+### DB dirs, Namespaces and Read-Only Tracks
 
-Even though both global and user root directories may contain track files their designation is different. The global root directory is intended to stay mainly read-only. The user root directory on the other hand is intended to store volatile data like the results of intermediate calculations. New tracks can be created in both user or global space using `emr_track.import` or `emr_track.create` yet the creation of tracks in the global space should be done for a well justified reason.
+Naryn allows accessing the data that resides in *tracks* where each track holds certain type of medical data such as patients' diagnoses or their hemoglobin level at certain points of time. The track files are aggregated in one or more directories. Before the tracks can be accessed, Naryn needs to establish connection to the directories, also referred as *db dirs*. Call `emr_db.connect` function to establish the access to the tracks in the db.dirs. To establish a connection using `emr_db.connect`, Naryn requires to specify at-least one db dir, optionaly, `emr_db.connect` accepts additional db dirs which can also constain additional tracks. In a case where 2 or more db dirs, contain the same track name (namespace collision), the track will be taken from the db dir which was passed *last* in the order of connections. For example, if we have 2 db dirs `/db1` and `/db2` which both contain a track named `track1`, the call `emr_db.connect(c('/db1', '/db2'))` will result with Naryn using `track1` from `/db2`.
+
+Even though all db directories may contain track files their designation is different. All the db dirs except the last dir in the order of connectios are mainly read-only. The directory which was connected last in the order, also known as *user dir*, is intended to store volatile data like the results of intermediate calculations. New tracks can be created only in the db dir which was last in the order of connections, using `emr_track.import` or `emr_track.create`. In order to write tracks to a db dir which is not last in the connection order, the user must explicitly, reconnect and set the required db dir as the last in order, this should be done for a well justified reason.
 
 A track may be marked as read-only to prevent its accidential deletion or modification. Use `emr_track.readonly` to set or get read-only property of the track. A newly created tracks is always writable. If you wish to mark it as "read-only", please do it in a separate call.
+
 
 ### Load-on-demand vs. Pre-load Modes
 
