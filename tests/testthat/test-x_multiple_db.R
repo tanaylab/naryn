@@ -9,6 +9,13 @@ test_that("db.connect works with overlapping namespace", {
     expect_true(emr_track.exists("track1", normalizePath(EMR_UROOT)))
 })
 
+test_that("emr_track.dbs works as expected", {
+    expect_equal(emr_track.dbs("track0_1"), EMR_GROOT)
+    expect_equal(emr_track.dbs("track0"), EMR_UROOT)
+    expect_equal(emr_track.dbs("track7"), EMR_ROOTS)
+    expect_equal(emr_track.dbs("track1"), EMR_ROOTS[-3])
+})
+
 test_that("deletion of overriding track loads back the overridden track", {
     expect_true("track1" %in% emr_track.ls())
     expect_true(emr_track.exists("track1", EMR_UROOT))

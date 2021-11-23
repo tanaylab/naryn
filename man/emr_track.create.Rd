@@ -6,7 +6,7 @@
 \usage{
 emr_track.create(
   track,
-  space,
+  space = EMR_UROOT,
   categorical,
   expr,
   stime = NULL,

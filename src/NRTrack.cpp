@@ -59,10 +59,13 @@ SEXP emr_track_mv(SEXP _srctrack, SEXP _tgttrack, SEXP _db_id, SEXP _envir)
         }
 
         if (strcmp(src_trackname, tgt_trackname)) {
-            if (g_db->track_info(tgt_trackname))
-                verror("Track %s already exists", tgt_trackname);  
-        } else if (db_id == src_track_info->db_id)
+            if ((g_db->track_info(tgt_trackname)) && (g_db->track_info(tgt_trackname)->db_id == db_id)){
+                verror("Track %s already exists in db %s", tgt_trackname, db_id);  
+            }
+
+        } else if (db_id == src_track_info->db_id) {
             verror("Cannot move track '%s' into itself.", src_trackname);
+        }
 
         string tgt_fname = db_id + string("/") + tgt_trackname + EMRDb::TRACK_FILE_EXT;
         vdebug("Moving track file %s to %s\n", src_track_info->filename.c_str(), tgt_fname.c_str());
@@ -110,8 +113,7 @@ SEXP emr_track_rm(SEXP _track, SEXP _envir)
 	return R_NilValue;
 }
 
-SEXP emr_track_info(SEXP _track, SEXP _envir)
-{
+SEXP emr_track_info(SEXP _track, SEXP _envir) {
 	try {
 		Naryn naryn(_envir);
 
@@ -378,8 +380,7 @@ SEXP emr_get_tracks_attrs(SEXP _tracks, SEXP _attrs, SEXP _envir)
 	return R_NilValue;
 }
 
-SEXP emr_set_track_attr(SEXP _track, SEXP _attr, SEXP _value, SEXP _envir)
-{
+SEXP emr_set_track_attr(SEXP _track, SEXP _attr, SEXP _value, SEXP _envir) {
 	try {
 		Naryn naryn(_envir);
 
@@ -406,4 +407,43 @@ SEXP emr_set_track_attr(SEXP _track, SEXP _attr, SEXP _value, SEXP _envir)
 	return R_NilValue;
 }
 
+SEXP emr_track_dbs(SEXP _track, SEXP _envir) {
+    try {
+
+        Naryn naryn(_envir);
+
+        if (!isString(_track) || Rf_length(_track) != 1)
+            verror("Track argument is not a string");
+
+        const char *trackname = CHAR(STRING_ELT(_track, 0));
+
+        SEXP answer;
+        EMRTrack *track = g_db->track(trackname);
+
+        const EMRDb::TrackInfo *track_info = g_db->track_info(trackname);
+
+        if (!track)
+            verror("Track %s does not exist", trackname);
+
+        rprotect(answer = RSaneAllocVector(STRSXP, track_info->dbs.size()+1));
+
+        int idx=0;
+
+        for ( auto db_id : track_info->dbs ){
+            SET_STRING_ELT(answer, idx++, mkChar(db_id.c_str()));
+        }
+        
+        SET_STRING_ELT(answer, idx++, mkChar(track_info->db_id.c_str()));
+
+        return answer;
+    } catch (TGLException &e) {
+        rerror("%s", e.msg());
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
+
+    return R_NilValue;
 }
+
+}
+

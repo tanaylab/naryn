@@ -1261,8 +1261,9 @@ void EMRDb::unload_track(const char *track_name, bool overridden, bool soft){
     delete itrack->second.track;
     itrack->second.track = NULL;
 
+    BufferedFile bf;
+
     if (!soft) {
-        BufferedFile bf;
         load_track_list(db_id, bf); // lock track list for write
     }
 
@@ -1274,9 +1275,7 @@ void EMRDb::unload_track(const char *track_name, bool overridden, bool soft){
      
 }
 
-EMRDb::Track2Attrs EMRDb::get_tracks_attrs(const vector<string> &tracks,
-                                           vector<string> &attrs)
-{
+EMRDb::Track2Attrs EMRDb::get_tracks_attrs(const vector<string> &tracks, vector<string> &attrs) {
     Track2Attrs res;
     
     vector<bool> tracks_attrs_loaded(m_rootdirs.size());
@@ -1284,19 +1283,15 @@ EMRDb::Track2Attrs EMRDb::get_tracks_attrs(const vector<string> &tracks,
 
     lock_track_lists(locks, "r+");
 
-    for (const auto &trackname : tracks)
-    {
+    for (const auto &trackname : tracks) {
         Name2Track::iterator itrack = m_tracks.find(trackname);
 
-        if (itrack == m_tracks.end())
-        {
+        if (itrack == m_tracks.end()) {
             Name2LogicalTrack::iterator itrackLogical = m_logical_tracks.find(trackname);
-            if (itrackLogical == m_logical_tracks.end())
-            {
+            if (itrackLogical == m_logical_tracks.end()) {
                 verror("Track %s does not exist", trackname.c_str());
             }
-            else
-            {
+            else {
                 verror("Track %s is a logical track", trackname.c_str());
             }
         }
@@ -1310,23 +1305,18 @@ EMRDb::Track2Attrs EMRDb::get_tracks_attrs(const vector<string> &tracks,
         }
 
         auto itrack2attrs = m_track2attrs[db_id].find(trackname);
-        if (itrack2attrs != m_track2attrs[db_id].end())
-        {
-            if (attrs.empty())
+        if (itrack2attrs != m_track2attrs[db_id].end()) {
+            if (attrs.empty()){
                 res.emplace(trackname, itrack2attrs->second);
-            else
-            {
+            } else {
                 Track2Attrs::iterator ires_track2attrs = res.end();
-                for (const auto &attr : attrs)
-                {
+                for (const auto &attr : attrs) {
                     auto iattr = itrack2attrs->second.find(attr);
-                    if (iattr != itrack2attrs->second.end())
-                    {
-                        if (ires_track2attrs == res.end())
-                            ires_track2attrs =
-                                res.emplace(trackname, TrackAttrs()).first;
-                        ires_track2attrs->second.emplace(iattr->first,
-                                                         iattr->second);
+                    if (iattr != itrack2attrs->second.end()) {
+                        if (ires_track2attrs == res.end()){
+                            ires_track2attrs = res.emplace(trackname, TrackAttrs()).first;
+                        }
+                        ires_track2attrs->second.emplace(iattr->first, iattr->second);
                     }
                 }
             }
@@ -1336,22 +1326,17 @@ EMRDb::Track2Attrs EMRDb::get_tracks_attrs(const vector<string> &tracks,
 }
 
 void EMRDb::set_track_attr(const char *trackname, const char *attr,
-                           const char *val)
-{
+                           const char *val) {
     BufferedFile locks[m_rootdirs.size()];
     lock_track_lists(locks, "r+");
 
     Name2Track::iterator itrack = m_tracks.find(trackname);
 
-    if (itrack == m_tracks.end())
-    {
+    if (itrack == m_tracks.end()) {
         Name2LogicalTrack::iterator itrackLogical = m_logical_tracks.find(trackname);
-        if (itrackLogical == m_logical_tracks.end())
-        {
+        if (itrackLogical == m_logical_tracks.end()) {
             verror("Track %s does not exist", trackname);
-        }
-        else
-        {
+        } else {
             verror("Track %s is a logical track", trackname);
         }
     }
@@ -1369,19 +1354,23 @@ void EMRDb::set_track_attr(const char *trackname, const char *attr,
 
     TrackAttrs track_attrs = EMRTrack::load_attrs(trackname, track_attrs_fname.c_str());
 
-    if (val)
+    if (val) {
         track_attrs[attr] = val;
-    else
+    }
+    else {
         track_attrs.erase(attr);
+    }    
 
     EMRTrack::save_attrs(trackname, track_attrs_fname.c_str(), track_attrs);
 
     load_tracks_attrs(db_id, true);
 
-    if (track_attrs.empty())
+    if (track_attrs.empty()){
         m_track2attrs[db_id].erase(trackname);
-    else
+    }
+    else {
         m_track2attrs[db_id][trackname] = track_attrs;
+    }
 
     update_tracks_attrs_file(db_id, true);
 }

@@ -553,6 +553,37 @@ emr_track.info <- function(track) {
     }
 }
 
+#' Returns a vector of db ids which have a 
+#' version of the track
+#' 
+#' @param track track name
+#' @return A vector of db ids
+#' @seelalso \code{\link{emr_track.info}}
+#' @keywords ~track ~info ~property ~db ~db_id ~connect
+#' @examples 
+#' 
+#' #both db1 and db2 have a track named track1
+#' emr_db.connect(c('/db1', '/db2'))
+#' emr_track.dbs("track1") 
+#' 
+#' [1] "/db1"
+#' [2] "/db2"
+#' 
+#' @export emr_track.dbs
+
+emr_track.dbs <- function(track) {
+    if (missing(track)) {
+        stop("Usage: emr_track.dbs(track)", call. = F)
+    }
+    .emr_checkroot
+
+    if (is.character(track) && emr_track.logical.exists(track)) {
+        return(EMR_GROOT)
+    } 
+    
+    return(.emr_call("emr_track_dbs", track, new.env(parent = parent.frame())))
+}
+
 
 
 #' Returns a list of track names
@@ -651,10 +682,6 @@ emr_track.mv <- function(src, tgt, space = NULL) {
 
     if (emr_filter.exists(tgt)) {
         stop(sprintf("Filter %s already exists", tgt), call. = F)
-    }
-
-    if (emr_track.exists(tgt)) {
-        stop(sprintf("Track %s already exists", tgt), call. = F)
     }
 
     if (emr_track.logical.exists(src)) {

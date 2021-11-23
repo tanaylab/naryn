@@ -28,7 +28,10 @@ specific track(s). If 'NULL', attributes of all the tracks are returned.
 Likewise 'attr' allows to retrieve only specifically named attributes.
 
 If both 'track' and 'attr' are used, the attributes that fulfill both of the
-conditions are returned.
+conditions are returned
+
+Overriding a track also overrides it's track attributes, the 
+attributes will persist when the track is no longer overridden.
 }
 \examples{
 
