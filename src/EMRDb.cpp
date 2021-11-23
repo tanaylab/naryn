@@ -92,8 +92,9 @@ void EMRDb::check_track_name(const string &track)
 
 void EMRDb::cache_tracks()
 {
-    if (std::all_of(m_load_on_demand.begin(), m_load_on_demand.end(), [](bool v) { return v; }))
+    if (std::all_of(m_load_on_demand.begin(), m_load_on_demand.end(), [](bool v) { return v; })) {
         return;
+    }
 
     // If load_on_demand==false, load all the missing tracks into memory.
     EMRProgressReporter progress;
@@ -761,10 +762,6 @@ bool EMRDb::rebuild_ids_file_on_dob_change()
     return false;
 }
 
-// --------------------------------------------------------- //
-//      Big refactor for allowing multiple db connections    //
-// --------------------------------------------------------- //
-
 int EMRDb::get_db_idx(string db_id) {
 
     int idx;
@@ -864,7 +861,6 @@ void EMRDb::refresh(bool force)
 
     load_logical_tracks();
 
-    //TODO: complete this refactor
     cache_tracks();
 }
 
@@ -889,22 +885,17 @@ void EMRDb::reload()
     refresh();
 }
 
-void EMRDb::lock_track_lists(BufferedFile *locks, const char *mode)
-{
-
-    // TODO Changed locks to be unordered_map, it used to be a list of 2, make sure everything that works with locks still wokrs
+void EMRDb::lock_track_lists(BufferedFile *locks, const char *mode){
     for (int db_idx = 0; db_idx < m_rootdirs.size(); db_idx++) {
         lock_track_list(m_rootdirs[db_idx], locks[db_idx], mode);
     }
 }
 
-void EMRDb::lock_track_list(string db_id, BufferedFile &lock,
-                                const char *mode)
-{
+void EMRDb::lock_track_list(string db_id, BufferedFile &lock, const char *mode){
+
     vdebug("MODE: %s", mode);
 
-    if (!lock.opened())
-    {
+    if (!lock.opened()) {
 
         string filename = track_list_filename(db_id);
 

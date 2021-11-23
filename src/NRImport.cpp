@@ -54,16 +54,29 @@ SEXP emr_import(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _src, SEXP _ad
             }
 
             //Error only if exists in the same db, otherwise try overriding
-            if (g_db->track(trackname) && (g_db->track_info(trackname)->db_id == db_id))
+            if (g_db->track(trackname) && (g_db->track_info(trackname)->db_id == db_id)) {
                 verror("Track %s already exists", trackname.c_str());
-            
+            }
             //User must explicitly pass an overriding argument
-            if (g_db->track(trackname) && (g_db->track_info(trackname)->db_id != db_id) && !toverride) 
+            if (g_db->track(trackname) && (g_db->track_info(trackname)->db_id != db_id) && !toverride) {
                 verror("Track %s already exists in db %s, see override argument", trackname.c_str(), g_db->track_info(trackname)->db_id.c_str());
-
+            }
+                
             //Override was passed and a track to override was found
-            if (g_db->track(trackname) && (g_db->track_info(trackname)->db_id != db_id) && toverride)
+            if (g_db->track(trackname) && (g_db->track_info(trackname)->db_id != db_id) && toverride) {
+
+                int curr_db_idx = g_db->get_db_idx(g_db->track_info(trackname)->db_id);
+                int req_db_idx = g_db->get_db_idx(db_id);
+
+                //Do not allowe writing a track with the same name to a db dir
+                //With lower priority. This will only confuse the user.
+                if (curr_db_idx > req_db_idx) {
+                    verror("Can not write track to %s the same track already exists in %s. This kind of write has no effect.", db_id, g_db->track_info(trackname)->db_id);
+                }
+
                 has_overlap = true;
+            }
+                
 
             EMRDb::check_track_name(trackname);
 

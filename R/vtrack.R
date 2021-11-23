@@ -230,6 +230,7 @@ emr_vtrack.create <- function(vtrack, src, func = NULL, params = NULL, keepref =
         stop(sprintf("Filter %s already exists", vtrack), call. = F)
     }
 
+    # TODO: Remove this when globalizing filters and vtracks
     if (is.character(src) && length(src) == 1 && !is.na(match(src, .emr_call("emr_track_db_names", EMR_UROOT, new.env(parent = parent.frame()), silent = TRUE)))) {
         root <- get("EMR_UROOT", envir = .GlobalEnv)
     } else {

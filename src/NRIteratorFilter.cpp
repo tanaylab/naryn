@@ -28,7 +28,10 @@ void NRIteratorFilter::init(SEXP filter, unsigned stime, unsigned etime)
                    "To continue working with filters please remove this variable from the environment.");
 
         for (int i = 0; i < Rf_length(roots); ++i) {
-            if (count(g_db->rootdirs().begin(), g_db->rootdirs().end(), CHAR(STRING_ELT(roots, i)))) {
+
+            auto pos = std::find(g_db->rootdirs().begin(), g_db->rootdirs().end(), CHAR(STRING_ELT(roots, i)));
+            
+            if (pos != g_db->rootdirs().end()) {
                 filters.push_back(VECTOR_ELT(emr_filters, i));
                 SEXP filter_names = getAttrib(filters.back(), R_NamesSymbol);
 

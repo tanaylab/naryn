@@ -1,6 +1,5 @@
 #include <fcntl.h>
 #include <string.h>
-#include <iostream>
 #include "BufferedFile.h"
 #include "TGLException.h"
 

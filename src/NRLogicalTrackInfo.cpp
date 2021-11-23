@@ -72,7 +72,7 @@ SEXP emr_logical_track_user_info(SEXP _track, SEXP _expr, SEXP _stime, SEXP _eti
         }
 
         for (int i = 0; i < Rf_length(_dbdirs); i++){
-                load_on_demand.push_back(1);
+                load_on_demand.push_back(true);
         }
 
         new_g_db->init(dbdirs, load_on_demand, false);
