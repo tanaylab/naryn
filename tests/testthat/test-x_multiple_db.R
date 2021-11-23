@@ -134,12 +134,14 @@ test_that("overriding hierarchy on connect works as expected", {
 
     expect_true(emr_track.exists("track7"))
     expect_true(emr_track.exists("track7", original_roots[1]))
+    expect_equal(emr_track.dbs("track7"), original_roots[1])
 
     emr_db.connect(original_roots[1:2])
 
     expect_true(emr_track.exists("track7"))
     expect_false(emr_track.exists("track7", original_roots[1]))
     expect_true(emr_track.exists("track7", original_roots[2]))
+    expect_equal(emr_track.dbs("track7"), original_roots[1:2])
 
     emr_db.connect(original_roots[1:3])
 
@@ -147,6 +149,7 @@ test_that("overriding hierarchy on connect works as expected", {
     expect_false(emr_track.exists("track7", original_roots[1]))
     expect_false(emr_track.exists("track7", original_roots[2]))
     expect_true(emr_track.exists("track7", original_roots[3]))
+    expect_equal(emr_track.dbs("track7"), original_roots[1:3])
 
     emr_db.connect(original_roots[1:4])
 
@@ -155,6 +158,7 @@ test_that("overriding hierarchy on connect works as expected", {
     expect_false(emr_track.exists("track7", original_roots[2]))
     expect_false(emr_track.exists("track7", original_roots[3]))
     expect_true(emr_track.exists("track7", original_roots[4]))
+    expect_equal(emr_track.dbs("track7"), original_roots)
 })
 
 test_that("overriding mechanism works with mv, when a track is renamed it is no longer overriding/overridden", {
@@ -167,29 +171,44 @@ test_that("overriding mechanism works with mv, when a track is renamed it is no 
     expect_true(emr_track.exists("track7"))
     expect_true(emr_track.exists("track7_4"))
 
+    expect_equal(emr_track.dbs("track7"), EMR_ROOTS[-4])
+
     emr_track.mv("track7", "track7_3")
 
     expect_true(emr_track.exists("track7"))
     expect_true(emr_track.exists("track7_3"))
+
+    expect_equal(emr_track.dbs("track7"), EMR_ROOTS[-c(3, 4)])
 
     emr_track.mv("track7", "track7_2")
 
     expect_true(emr_track.exists("track7"))
     expect_true(emr_track.exists("track7_2"))
 
+    expect_equal(emr_track.dbs("track7"), EMR_ROOTS[1])
+
     emr_track.mv("track7", "track7_1")
 
     # no more track 7
     expect_false(emr_track.exists("track7"))
     expect_true(emr_track.exists("track7_1"))
+
+    expect_error(emr_track.dbs("track7"))
 })
 
 test_that("mv to override throws error", {
-    expect_error(emr_track.mv("stam1_2", "stam1_1"))
-    expect_error(emr_track.mv("stam1_3", "stam1_1"))
-    expect_error(emr_track.mv("stam1", "stam1_1"))
-    expect_error(emr_track.mv("stam1_1", "stam1_3"))
-    expect_error(emr_track.mv("stam1_2", "stam1"))
+
+    expect_error(emr_track.mv("track8_2", "track8_2"))
+    expect_error(emr_track.mv("track8_2", "track8_3", EMR_ROOTS[3]))
+
+    emr_track.mv("track8_2", "track8_1")
+    expect_equal(emr_track.dbs("track8_1"), EMR_ROOTS[1:2])
+
+    # expect_error(emr_track.mv("stam1_2", "stam1_1"))
+    # expect_error(emr_track.mv("stam1_3", "stam1_1"))
+    # expect_error(emr_track.mv("stam1", "stam1_1"))
+    # expect_error(emr_track.mv("stam1_1", "stam1_3"))
+    # expect_error(emr_track.mv("stam1_2", "stam1"))
 })
 
 
@@ -374,10 +393,6 @@ test_that("trying to create a logical track with the name of an overridden track
     emr_track.create(track = "track2_2", space = EMR_UROOT, categorical = FALSE, exp = "track2_2*2", keepref = TRUE, override = TRUE)
     withr::defer(emr_track.rm("track2_2", force = TRUE))
     expect_error(emr_track.logical.create("track2_2", "track2_2"))
-})
-
-test_that("trying to override a track with mv throws an error", {
-    expect_error(emr_track.mv("track2", "track2_3"))
 })
 
 test_that("trying to connect with non unique dbs throws an error", {

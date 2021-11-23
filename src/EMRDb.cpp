@@ -732,24 +732,20 @@ bool EMRDb::rebuild_ids_file_on_dob_change()
 {
     struct stat fs;
 
-    if (stat((m_rootdirs[0] + "/" + DOB_TRACKNAME + TRACK_FILE_EXT).c_str(),
-             &fs) == -1)
-    {
-        if (errno == ENOENT)
+    if (stat((m_rootdirs[0] + "/" + DOB_TRACKNAME + TRACK_FILE_EXT).c_str(), &fs) == -1) {
+        if (errno == ENOENT){
             verror("Failed to retrieve ids: '%s' track is missing", DOB_TRACKNAME);
-
+        }
         verror("Failed to stat '%s' track: %s", DOB_TRACKNAME, strerror(errno));
     }
 
-    if (m_dob_ts != fs.st_mtim)
-    {
+    if (m_dob_ts != fs.st_mtim){
         // remove an outdated version of dob track from the memory
         // (it is there if the session has already accessed dob track in the
         // past)
         Name2Track::iterator itrack = m_tracks.find(DOB_TRACKNAME);
         if (itrack != m_tracks.end() && itrack->second.track &&
-            fs.st_mtim != itrack->second.track->timestamp())
-        {
+            fs.st_mtim != itrack->second.track->timestamp()){
             delete itrack->second.track;
             itrack->second.track = NULL;
         }
@@ -1125,6 +1121,7 @@ void EMRDb::load_track_list(string db_id, BufferedFile *_pbf, bool force){
     for (auto &fresh_track : track_list) {
 
         Name2Track::iterator itrack = m_tracks.find(fresh_track.first);
+        
         if (itrack != m_tracks.end() && itrack->second.db_id != fresh_track.second.db_id){
 
             //Overriding mechanism
@@ -1141,8 +1138,12 @@ void EMRDb::load_track_list(string db_id, BufferedFile *_pbf, bool force){
             //when coming to override, save the cascase of dbs
             //already overridden. Then. add the latest one
             fresh_track.second.dbs = itrack->second.dbs;
-            fresh_track.second.dbs.push_back(itrack->second.db_id);
-            
+
+            vector<string>::iterator db_exists = std::find(fresh_track.second.dbs.begin(), fresh_track.second.dbs.end(), itrack->second.db_id);
+
+            if (db_exists == fresh_track.second.dbs.end()){
+                fresh_track.second.dbs.push_back(itrack->second.db_id);
+            }
             itrack->second.overridden = 1;
         }
     }
@@ -1233,8 +1234,7 @@ void EMRDb::unload_track(const char *track_name, bool overridden, bool soft){
 
     string db_id = itrack->second.db_id;
 
-    vector<string>::iterator itr =
-        find(m_track_names[db_id].begin(), m_track_names[db_id].end(), track_name);
+    vector<string>::iterator itr = find(m_track_names[db_id].begin(), m_track_names[db_id].end(), track_name);
 
     if (itr != m_track_names[db_id].end()) {
         m_track_names[db_id].erase(itr);
