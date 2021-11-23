@@ -3,7 +3,6 @@
 #' @export emr_db.init
 #' @rdname emr_db.connect
 emr_db.init <- function(global.dir = NULL, user.dir = NULL, global.load.on.demand = T, user.load.on.demand = T, do.relaod = F) {
-
     lifecycle::deprecate_soft(
         when = "2.6.2",
         what = "emr_db.init()",
@@ -129,7 +128,8 @@ emr_db.connect <- function(db_dirs = NULL, load_on_demand = NULL, do_relaod = F)
 
     success <- FALSE
 
-    tryCatch({
+    tryCatch(
+        {
             .emr_call("emr_dbinit", db_dirs, load_on_demand, do_relaod, new.env(parent = parent.frame()), silent = TRUE)
             success <- TRUE
         },

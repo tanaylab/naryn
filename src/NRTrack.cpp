@@ -59,7 +59,7 @@ SEXP emr_track_mv(SEXP _srctrack, SEXP _tgttrack, SEXP _db_id, SEXP _envir)
         }
 
         if (strcmp(src_trackname, tgt_trackname)) {
-            if ((g_db->track_info(tgt_trackname)) && (g_db->track_info(tgt_trackname)->db_id == db_id)){
+            if (g_db->track_info(tgt_trackname)){
                 verror("Track %s already exists in db %s", tgt_trackname, db_id);  
             }
 
