@@ -2,7 +2,7 @@
 #'
 #' @export emr_db.init
 #' @rdname emr_db.connect
-emr_db.init <- function(global.dir = NULL, user.dir = NULL, global.load_on_demand = T, user.load_on_demand = T, do_relaod = F) {
+emr_db.init <- function(global.dir = NULL, user.dir = NULL, global.load.on.demand = T, user.load.on.demand = T, do.relaod = F) {
     lifecycle::deprecate_soft(
         when = "2.6.2",
         what = "emr_db.init()",
@@ -13,12 +13,12 @@ emr_db.init <- function(global.dir = NULL, user.dir = NULL, global.load_on_deman
     db_dirs <- c(global.dir, user.dir)
 
     if (is.null(user.dir)) {
-        load_on_demand <- c(global.load_on_demand)
+        load_on_demand <- c(global.load.on.demand)
     } else {
-        load_on_demand <- c(global.load_on_demand, user.load_on_demand)
+        load_on_demand <- c(global.load.on.demand, user.load.on.demand)
     }
 
-    emr_db.connect(db_dirs = db_dirs, load_on_demand = load_on_demand, do_relaod = do_relaod)
+    emr_db.connect(db_dirs = db_dirs, load_on_demand = load_on_demand, do_relaod = do.relaod)
 }
 
 #' Initializes connection with Naryn Database
@@ -89,7 +89,7 @@ emr_db.init <- function(global.dir = NULL, user.dir = NULL, global.load_on_deman
 #' @aliases emr_db.init emr_db.init_examples
 #' @param db_dirs vector of db directories
 #' @param load_on_demand vector of booleans, same length as db_dirs, if load_on_demand[i] is FALSE, tracks from db_dirs[i] will be pre-loaded. If NULL is passed, \code{load_on_demand} is set to TRUE on all the databases
-#' @param do_reload If 'TRUES', rebuilds DB index files.
+#' @param do_reload If \code{TRUE}, rebuilds DB index files.
 #' @return None.
 #' @seealso \code{\link{emr_db.reload}}, \code{\link{emr_track.import}},
 #' \code{\link{emr_track.create}}, \code{\link{emr_track.rm}},
@@ -104,7 +104,7 @@ emr_db.connect <- function(db_dirs = NULL, load_on_demand = NULL, do_relaod = F)
 
     db_dirs <- normalizePath(db_dirs) # get absolute path
 
-    if (length(unique(db_dirs)) != length(db_dirs)) {
+    if (any(duplicated(db_dirs))) {
         stop("DB directories should differ from one another", call. = FALSE)
     }
 

@@ -253,10 +253,10 @@ void EMRDb::load_logical_tracks_from_disk()
         // write the results into logical track list file
         update_logical_tracks_file();
     }
-    catch (...)
-    {
-        if (dir)
+    catch (...){
+        if (dir){
             closedir(dir);
+        }
         throw;
     }
 }
@@ -816,26 +816,19 @@ void EMRDb::init(vector<string> rootdirs, vector<bool> dirs_load_on_demand, bool
 
     if (do_reload) {
         reload();
-    }
-    else {
+    } else {
         refresh(true);
     }
 }
 
 
-void EMRDb::clear(string db_id)
-{
-
+void EMRDb::clear(string db_id) {
     //go over the tracks list, delete tracks from the relevant dir_idx
-    for (auto itrack = m_tracks.begin(); itrack != m_tracks.end();)
-    {
-        if (itrack->second.db_id == db_id)
-        {
+    for (auto itrack = m_tracks.begin(); itrack != m_tracks.end();) {
+        if (itrack->second.db_id == db_id) {
             delete itrack->second.track;
             itrack = m_tracks.erase(itrack);
-        }
-        else
-        {
+        } else {
             ++itrack;
         }
     }
@@ -844,18 +837,17 @@ void EMRDb::clear(string db_id)
     m_track_names[db_id].clear();
 }
 
-void EMRDb::refresh(bool force)
-{
+void EMRDb::refresh(bool force) {
     if (m_rootdirs[0].empty())
 #ifdef RNARYN
-        verror("Database was not loaded. Please call emr_db.init.");
+        verror("Database was not loaded. Please call emr_db.connect.");
 #else
-        verror("Database was not loaded. Please call db_init.");
+        verror("Database was not loaded. Please call db_connect.");
 #endif
     vdebug("EMRDb::refresh()\n");
     ++m_transact_id;
 
-    for (auto db_id = m_rootdirs.begin(); db_id != m_rootdirs.end(); db_id++){
+    for (auto db_id = m_rootdirs.begin(); db_id != m_rootdirs.end(); db_id++) {
         load_track_list(*db_id, NULL, force);
     }
 
@@ -864,13 +856,12 @@ void EMRDb::refresh(bool force)
     cache_tracks();
 }
 
-void EMRDb::reload()
-{
+void EMRDb::reload() {
     if (m_rootdirs[0].empty())
 #ifdef RNARYN
-        verror("Database was not loaded. Please call emr_db.init.");
+        verror("Database was not loaded. Please call emr_db.connect.");
 #else
-        verror("Database was not loaded. Please call db_init.");
+        verror("Database was not loaded. Please call db_connect.");
 #endif
 
     vdebug("EMRDb::reload()\n");
@@ -914,21 +905,17 @@ void EMRDb::lock_track_list(string db_id, BufferedFile &lock, const char *mode){
     }
 }
 
-//not refactored
-//db_id currently rerisents the db path
-void EMRDb::create_track_list_file(string db_id, BufferedFile *_pbf)
-{
+
+void EMRDb::create_track_list_file(string db_id, BufferedFile *_pbf) {
     DIR *dir = NULL;
 
     vdebug("Rescanning %s dir to acquire list of tracks", db_id.c_str());
 
-    try
-    {
+    try {
         BufferedFile bf;
         BufferedFile *pbf = _pbf ? _pbf : &bf;
 
-        if (!_pbf)
-        {
+        if (!_pbf) {
             vdebug("Opening %s track list for write", db_id.c_str());
             // Lock the file for writing before scan to prevent concurrent scan
             // at the same time. If not done, an earlier scan might write its
@@ -944,23 +931,23 @@ void EMRDb::create_track_list_file(string db_id, BufferedFile *_pbf)
         //db_id currently rerisents the db path
         dir = opendir(db_id.c_str());
 
-        if (!dir)
+        if (!dir){
             verror("Failed to open directory %s: %s", db_id, strerror(errno));
+        }
 
-        while ((dirp = readdir(dir)))
-        {
+        while ((dirp = readdir(dir))) {
             struct stat fs;
             int len = strlen(dirp->d_name);
 
             sprintf(filename, "%s/%s", db_id.c_str(), dirp->d_name);
 
-            if (stat(filename, &fs))
+            if (stat(filename, &fs)){
                 verror("Failed to stat file %s: %s", filename, strerror(errno));
-
+            }
+                
             if (S_ISREG(fs.st_mode) && (size_t)len > TRACK_FILE_EXT.size() &&
                 !strncmp(dirp->d_name + len - TRACK_FILE_EXT.size(),
-                         TRACK_FILE_EXT.c_str(), TRACK_FILE_EXT.size()))
-            {
+                         TRACK_FILE_EXT.c_str(), TRACK_FILE_EXT.size())) {
                 string track_name(dirp->d_name, 0, len - TRACK_FILE_EXT.size());
                 track_list.emplace(
                     track_name,
@@ -976,16 +963,15 @@ void EMRDb::create_track_list_file(string db_id, BufferedFile *_pbf)
         // write the results into track list file
         update_track_list_file(track_list, db_id, *pbf);
     }
-    catch (...)
-    {
-        if (dir)
+    catch (...) {
+        if (dir){
             closedir(dir);
+        }
         throw;
     }
 }
 
-void EMRDb::update_track_list_file(const Name2Track &tracks, string db_id, BufferedFile &bf)
-{
+void EMRDb::update_track_list_file(const Name2Track &tracks, string db_id, BufferedFile &bf) {
 
     vdebug("Writing %ld %s tracks to track list file", tracks.size(), db_id.c_str());
 
@@ -1017,8 +1003,7 @@ void EMRDb::update_track_list_file(const Name2Track &tracks, string db_id, Buffe
     bf.truncate(); // file might be open for update and not just for write
 }
 
-void EMRDb::load_track_list(string db_id, BufferedFile &bf, bool force)
-{
+void EMRDb::load_track_list(string db_id, BufferedFile &bf, bool force) {
     vdebug("Loading %s track list before update\n", db_id);
     lock_track_list(db_id, bf, "r+");
     load_track_list(db_id, &bf, force);
@@ -1028,35 +1013,34 @@ void EMRDb::load_track_list(string db_id, BufferedFile *_pbf, bool force){
 
     Name2Track track_list;
 
-    while (1)
-    {
+    while (1) {
         BufferedFile bf;
         BufferedFile *pbf = _pbf ? _pbf : &bf;
         string filename = track_list_filename(db_id);
 
-        if (!_pbf)
+        if (!_pbf){
             vdebug("Loading %s track list\n", db_id.c_str());
-
-        if (!_pbf && pbf->open(filename.c_str(), "r", true))
-
-        {
-            if (errno != ENOENT)
-                verror("Failed to open file %s: %s", filename.c_str(),
-                       strerror(errno));
+        }
+            
+        if (!_pbf && pbf->open(filename.c_str(), "r", true)) {
+            if (errno != ENOENT){
+                verror("Failed to open file %s: %s", filename.c_str(), strerror(errno));
+            }
 
             create_track_list_file(db_id, NULL);
             continue;
         }
 
-        if (!_pbf)
+        if (!_pbf){
             vdebug("R lock acquired\n");
+        }
 
         pbf->seek(0, SEEK_SET); // rewind the file position
 
         struct stat fs;
-        if (pbf->stat(&fs) == -1)
-            verror("stat failed on file %s: %s", pbf->file_name().c_str(),
-                   strerror(errno));
+        if (pbf->stat(&fs) == -1){
+            verror("stat failed on file %s: %s", pbf->file_name().c_str(), strerror(errno));
+        }
 
         // track list in memory is synced with the track list on disk
         if ((m_track_list_ts[db_id] == fs.st_mtim) && !force) {
@@ -1240,46 +1224,7 @@ void EMRDb::load_track(const char *track_name, string db_id)
     update_track_list_file(m_tracks, db_id, bf);
 }
 
-void EMRDb::soft_unload_track(const char *track_name, bool overridden){
-    Name2Track::iterator itrack = m_tracks.find(track_name);
-
-    if (itrack == m_tracks.end())
-        return;
-
-    string db_id = itrack->second.db_id;
-
-    vector<string>::iterator itr =
-        find(m_track_names[db_id].begin(), m_track_names[db_id].end(), track_name);
-
-    if (itr != m_track_names[db_id].end()) {
-        m_track_names[db_id].erase(itr);
-        vdebug("Unloaded track %s from memory", track_name);
-    }
-
-    //If the track was overriding another track
-    //touch  the relevant  .naryn file  so next
-    //refresh will reload the overridden track 
-    
-    if ((itrack->second.dbs.size() > 0) || overridden) {
-
-        int fd;
-
-        for (int i=0; i < m_rootdirs.size(); i++) {
-            if ((fd = open(track_list_filename(m_rootdirs[i]).c_str(), O_WRONLY, 0)) == -1) {
-                verror("Failed opening file %s", track_list_filename(m_rootdirs[i]).c_str());
-            }
-            futimens(fd, NULL);
-        }
-        
-    }
-
-    delete itrack->second.track;
-    itrack->second.track = NULL;
-    m_tracks.erase(track_name);
-    
-}
-
-void EMRDb::unload_track(const char *track_name, bool overridden){
+void EMRDb::unload_track(const char *track_name, bool overridden, bool soft){
     
     Name2Track::iterator itrack = m_tracks.find(track_name);
 
@@ -1316,10 +1261,17 @@ void EMRDb::unload_track(const char *track_name, bool overridden){
     delete itrack->second.track;
     itrack->second.track = NULL;
 
-    BufferedFile bf;
-    load_track_list(db_id, bf); // lock track list for write
+    if (!soft) {
+        BufferedFile bf;
+        load_track_list(db_id, bf); // lock track list for write
+    }
+
     m_tracks.erase(track_name);
-    update_track_list_file(m_tracks, db_id, bf);
+
+    if (!soft) {
+        update_track_list_file(m_tracks, db_id, bf);
+    }
+     
 }
 
 EMRDb::Track2Attrs EMRDb::get_tracks_attrs(const vector<string> &tracks,
@@ -1572,19 +1524,19 @@ void EMRDb::create_tracks_attrs_file(string db_id, bool locked)
     update_tracks_attrs_file(db_id, true);
 }
 
-void EMRDb::update_tracks_attrs_file(string db_id, bool locked)
-{
+void EMRDb::update_tracks_attrs_file(string db_id, bool locked) {
     BufferedFile lock;
-    if (!locked)
+    if (!locked){
         lock_track_list(db_id, lock, "r+");
-
+    }
     BufferedFile bf;
     string filename = tracks_attrs_filename(db_id);
 
     vdebug("Creating %s with attributes from %lu tracks", filename.c_str(), m_track2attrs[db_id].size());
 
-    if (bf.open(filename.c_str(), "w"))
+    if (bf.open(filename.c_str(), "w")){
         verror("Failed to open file %s: %s", filename.c_str(), strerror(errno));
+    }
 
     for (auto const &track2attr : m_track2attrs[db_id]) {
 
@@ -1600,7 +1552,7 @@ void EMRDb::update_tracks_attrs_file(string db_id, bool locked)
         }
     }
 
-    if (bf.error())
-        verror("Error while writing file %s: %s\n", bf.file_name().c_str(),
-               strerror(errno));
+    if (bf.error()){
+        verror("Error while writing file %s: %s\n", bf.file_name().c_str(), strerror(errno));
+    }
 }

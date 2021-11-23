@@ -82,7 +82,7 @@ SEXP emr_track_create(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _expr, S
         EMRTrack::serialize(track_filename.c_str(), categorical, data);
 
         if (has_overlap) {
-            g_db->soft_unload_track(trackname.c_str(), true);
+            g_db->unload_track(trackname.c_str(), true, true);
         }
 
         g_db->load_track(trackname.c_str(), db_id);

@@ -104,12 +104,10 @@ public:
     void reload();
 
     void load_track(const char *track_name, string db_id);
-    // Unloads the track from internal state and updates .naryn file
-    void unload_track(const char *track_name, bool overridden=0);
     
-    // Unloads the track from internal state and does not update .naryn file, 
-    // Used mainly for overriding mechanism
-    void soft_unload_track(const char *track_name, bool overridden=0);
+    // Unloads the track from internal state and updates .naryn file
+    // If soft is set to true, unload track does not update .naryn file, used mainly for overriding mechanism
+    void unload_track(const char *track_name, bool overridden=true, bool soft=false);
 
     // Add a logical track to the database
     void add_logical_track(const char *track_name, const char *source_name, const vector<int> &values, bool create_file, bool update);

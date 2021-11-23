@@ -150,7 +150,7 @@ test_that("overriding hierarchy on connect works as expected", {
     expect_true(emr_track.exists("track7", original_roots[4]))
 })
 
-test_that("overriding mechanism works wiht mv, when a track is renamed it is no longer overriding/overridden", {
+test_that("overriding mechanism works with mv, when a track is renamed it is no longer overriding/overridden", {
 
     # track7 is in all dbs, change its name in db4
     # it should allow the once overridden track7 in

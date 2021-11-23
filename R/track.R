@@ -71,16 +71,14 @@
     lspace <- tolower(space)
 
     if (lspace == "user") {
-        # warning("do not use 'user' as db.id - deprecated")
-
         if ((!exists("EMR_UROOT", envir = .GlobalEnv) || is.null(get("EMR_UROOT", envir = .GlobalEnv)))) {
             stop("User space root directory is not set. Please call see emr_db.connect", call. = F)
         }
-
         db_id <- EMR_UROOT
     } else if (lspace == "global") {
-        # warning("do not use 'global' as db.id - deprecated")
         db_id <- EMR_GROOT
+    } else if (!is.null(space)){
+        db_id <- normalizePath(space)
     } else {
         db_id <- space
     }
@@ -203,7 +201,10 @@ emr_track.addto <- function(track, src, force = FALSE) {
 #' Likewise 'attr' allows to retrieve only specifically named attributes.
 #'
 #' If both 'track' and 'attr' are used, the attributes that fulfill both of the
-#' conditions are returned.
+#' conditions are returned
+#' 
+#' Overriding a track also overrides it's track attributes, the 
+#' attributes will persist when the track is no longer overridden.
 #'
 #' @param track a vector of track names or 'NULL'
 #' @param attr a vector of attribute names or 'NULL'
@@ -365,8 +366,18 @@ emr_track.attr.set <- function(track = NULL, attr = NULL, value = NULL) {
 #' \code{\link{emr_track.ls}}, \code{\link{emr_track.exists}}
 #' @keywords ~track ~create
 #' @export emr_track.create
-emr_track.create <- function(track, space, categorical, expr, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL, override = FALSE) {
-    if (missing(track) || missing(space) || missing(categorical) || missing(expr)) {
+emr_track.create <- function(track, space=EMR_UROOT, categorical, expr, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL, override = FALSE) {
+
+    # when space is missing, writing for the last db in the order of connections
+    if (missing(space)) {
+        if ((!exists("EMR_UROOT", envir = .GlobalEnv) || is.null(get("EMR_UROOT", envir = .GlobalEnv)))) {
+            space <- EMR_GROOT
+        } else {
+            space <- EMR_UROOT
+        }
+    }
+
+    if (missing(track) || missing(categorical) || missing(expr)) {
         stop("Usage: emr_track.create(track, space = EMR_GROOT, categorical, expr, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
     }
     .emr_checkroot()
@@ -484,7 +495,15 @@ emr_track.ids <- function(track) {
 #' @keywords ~import
 #' @export emr_track.import
 emr_track.import <- function(track, space, categorical, src, override = FALSE) {
-    if (missing(track) || missing(space) || missing(src) || missing(categorical)) {
+    # when space is missing, writing for the last db in the order of connections
+    if (missing(space)) {
+        if ((!exists("EMR_UROOT", envir = .GlobalEnv) || is.null(get("EMR_UROOT", envir = .GlobalEnv)))) {
+            space <- EMR_GROOT
+        } else {
+            space <- EMR_UROOT
+        }
+    }
+    if (missing(track) || missing(src) || missing(categorical)) {
         stop("Usage: emr_track.import(track, space, categorical, src)", call. = F)
     }
     .emr_checkroot()
@@ -737,6 +756,9 @@ emr_track.percentile <- function(track, val, lower = TRUE) {
 #'
 #' Logical tracks inherit their "read-onlyness" from the source
 #' physical tracks.
+#' 
+#' Overriding a track also overrides it's "read-onlyness", it's 
+#' "read-onlyness" will persist when the track is no longer overridden
 #'
 #' @param track track name
 #' @param readonly if 'NULL', return "readonlyness" of the track, otherwise
@@ -1004,6 +1026,9 @@ emr_track.var.get <- function(track, var) {
 #' This function returns a list of track variables of a track that match the
 #' pattern (see 'grep'). If called without any arguments all track variables of
 #' a track are returned.
+#' 
+#' Overriding a track also overrides it's track variables, the 
+#' variables will persist when the track is no longer overridden
 #'
 #' @param track track name
 #' @param pattern,ignore.case,perl,fixed,useBytes see 'grep'
