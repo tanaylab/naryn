@@ -86,8 +86,9 @@ inline int BinFinder::val2bin(double val) const
     if (std::isnan(val) || val < m_breaks.front() || val >= m_breaks.back())
         return -1;
 
-    if (m_binsize) // are we using the same bin size for all bins?
-        return (int)(val - m_breaks.front()) / m_binsize;
+    if (m_binsize) { // are we using the same bin size for all bins?
+        return((int)((val - m_breaks.front()) / m_binsize));
+	}
 
     // perform binary search
     unsigned start_bin = 0;

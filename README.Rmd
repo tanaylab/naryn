@@ -22,5 +22,5 @@ knitr::opts_chunk$set(
 
 ## Installation
 ```{r, eval=FALSE}
-install.packages('naryn', repos=c(getOption('repos'), 'https://tanaylab.github.io/repo'))
+remotes::install_github("tanaylab/naryn")
 ```

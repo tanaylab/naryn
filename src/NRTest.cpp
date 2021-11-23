@@ -21,10 +21,28 @@ typedef unordered_map<int, EMRTrackData<float> *> Datasets;
 
 extern "C" {
 
-SEXP netta_bug(SEXP envir)
-{
-	try {
-		Naryn naryn(envir);
+SEXP logical_track_vtrack(SEXP _track, SEXP envir){
+    try {
+        Naryn naryn(envir);        
+        const char *trackname = CHAR(STRING_ELT(_track, 0));        
+        const EMRLogicalTrack *ltrack = g_db->logical_track(trackname);
+        
+        if (!ltrack) verror("Track %s does not exist", trackname);
+        
+        return (ltrack->vtrack());
+
+    } catch (TGLException &e) {
+        rerror("%s", e.msg());
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
+
+    return R_NilValue;
+}
+
+SEXP netta_bug(SEXP envir) {
+    try {
+        Naryn naryn(envir);
 
         const int NUM_TRACKS = 2;
         EMRTrackData<float> data[NUM_TRACKS];
@@ -45,15 +63,15 @@ SEXP netta_bug(SEXP envir)
         data[1].add(8000, EMRTimeStamp(1223183, 0), 11);
         data[1].add(8000, EMRTimeStamp(1296408, 1), 10);
 
-		string filename[NUM_TRACKS];
+        string filename[NUM_TRACKS];
 
-		filename[0] = g_db->grootdir() + "/netta1" + EMRDb::TRACK_FILE_EXT;
-		filename[1] = g_db->grootdir() + "/netta2" + EMRDb::TRACK_FILE_EXT;
+        filename[0] = g_db->grootdir() + "/netta1" + EMRDb::TRACK_FILE_EXT;
+        filename[1] = g_db->grootdir() + "/netta2" + EMRDb::TRACK_FILE_EXT;
 
-		for (int i = 0; i < NUM_TRACKS; ++i) {
-			EMRTrack::serialize(filename[i].c_str(), true, data[i]);
-			REprintf("Track %s created...\n", filename[i].c_str());
-		}
+        for (int i = 0; i < NUM_TRACKS; ++i) {
+            EMRTrack::serialize(filename[i].c_str(), true, data[i]);
+            REprintf("Track %s created...\n", filename[i].c_str());
+        }
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
     } catch (const bad_alloc &e) {
