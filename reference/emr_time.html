@@ -180,22 +180,35 @@ naryn machine format (which is hours).</p>
 are other convenience functions to get a time period explicitly.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'>
-<span class='fu'>emr_time</span><span class='op'>(</span><span class='fl'>5</span><span class='op'>)</span> <span class='co'># 5 days</span>
-</div><div class='output co'>#&gt; [1] 120</div><div class='input'><span class='fu'>emr_time</span><span class='op'>(</span>months <span class='op'>=</span> <span class='fl'>4</span><span class='op'>)</span> <span class='co'># 4 months</span>
-</div><div class='output co'>#&gt; [1] 2880</div><div class='input'><span class='fu'>emr_time</span><span class='op'>(</span><span class='fl'>2</span>, <span class='fl'>4</span>, <span class='fl'>1</span><span class='op'>)</span> <span class='co'># 1 year, 4 months and 2 days</span>
-</div><div class='output co'>#&gt; [1] 11688</div><div class='input'>
-<span class='fu'>year</span><span class='op'>(</span><span class='op'>)</span> <span class='co'># 1 year</span>
-</div><div class='output co'>#&gt; [1] 8760</div><div class='input'><span class='fu'>years</span><span class='op'>(</span><span class='fl'>5</span><span class='op'>)</span> <span class='co'># 5 years</span>
-</div><div class='output co'>#&gt; [1] 43800</div><div class='input'><span class='fu'>month</span><span class='op'>(</span><span class='op'>)</span> <span class='co'># 1 month</span>
-</div><div class='output co'>#&gt; [1] 720</div><div class='input'><span class='fu'>months</span><span class='op'>(</span><span class='fl'>5</span><span class='op'>)</span> <span class='co'># 5 months</span>
-</div><div class='output co'>#&gt; [1] 3600</div><div class='input'><span class='fu'>day</span><span class='op'>(</span><span class='op'>)</span> <span class='co'># 1 day</span>
-</div><div class='output co'>#&gt; [1] 24</div><div class='input'><span class='fu'>days</span><span class='op'>(</span><span class='fl'>9</span><span class='op'>)</span> <span class='co'># 9 days</span>
-</div><div class='output co'>#&gt; [1] 216</div><div class='input'><span class='fu'>week</span><span class='op'>(</span><span class='op'>)</span> <span class='co'># 1 week</span>
-</div><div class='output co'>#&gt; [1] 168</div><div class='input'><span class='fu'>weeks</span><span class='op'>(</span><span class='fl'>2</span><span class='op'>)</span> <span class='co'># 2 weeks</span>
-</div><div class='output co'>#&gt; [1] 336</div><div class='input'><span class='fu'>hour</span><span class='op'>(</span><span class='op'>)</span> <span class='co'># 1 hour</span>
-</div><div class='output co'>#&gt; [1] 1</div><div class='input'><span class='fu'>hours</span><span class='op'>(</span><span class='fl'>5</span><span class='op'>)</span> <span class='co'># 5 hours</span>
-</div><div class='output co'>#&gt; [1] 5</div></pre>
+    <pre class="examples"><span class='r-in'></span>
+<span class='r-in'><span class='fu'>emr_time</span><span class='op'>(</span><span class='fl'>5</span><span class='op'>)</span> <span class='co'># 5 days</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] 120</span>
+<span class='r-in'><span class='fu'>emr_time</span><span class='op'>(</span>months <span class='op'>=</span> <span class='fl'>4</span><span class='op'>)</span> <span class='co'># 4 months</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] 2880</span>
+<span class='r-in'><span class='fu'>emr_time</span><span class='op'>(</span><span class='fl'>2</span>, <span class='fl'>4</span>, <span class='fl'>1</span><span class='op'>)</span> <span class='co'># 1 year, 4 months and 2 days</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] 11688</span>
+<span class='r-in'></span>
+<span class='r-in'><span class='fu'>year</span><span class='op'>(</span><span class='op'>)</span> <span class='co'># 1 year</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] 8760</span>
+<span class='r-in'><span class='fu'>years</span><span class='op'>(</span><span class='fl'>5</span><span class='op'>)</span> <span class='co'># 5 years</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] 43800</span>
+<span class='r-in'><span class='fu'>month</span><span class='op'>(</span><span class='op'>)</span> <span class='co'># 1 month</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] 720</span>
+<span class='r-in'><span class='fu'>months</span><span class='op'>(</span><span class='fl'>5</span><span class='op'>)</span> <span class='co'># 5 months</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] 3600</span>
+<span class='r-in'><span class='fu'>day</span><span class='op'>(</span><span class='op'>)</span> <span class='co'># 1 day</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] 24</span>
+<span class='r-in'><span class='fu'>days</span><span class='op'>(</span><span class='fl'>9</span><span class='op'>)</span> <span class='co'># 9 days</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] 216</span>
+<span class='r-in'><span class='fu'>week</span><span class='op'>(</span><span class='op'>)</span> <span class='co'># 1 week</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] 168</span>
+<span class='r-in'><span class='fu'>weeks</span><span class='op'>(</span><span class='fl'>2</span><span class='op'>)</span> <span class='co'># 2 weeks</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] 336</span>
+<span class='r-in'><span class='fu'>hour</span><span class='op'>(</span><span class='op'>)</span> <span class='co'># 1 hour</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] 1</span>
+<span class='r-in'><span class='fu'>hours</span><span class='op'>(</span><span class='fl'>5</span><span class='op'>)</span> <span class='co'># 5 hours</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] 5</span>
+</pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

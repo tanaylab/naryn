@@ -267,16 +267,17 @@ emr_extract("emr_time2dayofmonth(EMR_TIME)", iterator = "sparse_track") <br /></
     <div class='dont-index'><p><code><a href='emr_screen.html'>emr_screen</a></code></p></div>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'>
-<span class='fu'><a href='emr_db.init.html'>emr_db.init_examples</a></span><span class='op'>(</span><span class='op'>)</span>
-<span class='fu'>emr_extract</span><span class='op'>(</span><span class='st'>"dense_track"</span>, stime <span class='op'>=</span> <span class='fl'>1</span>, etime <span class='op'>=</span> <span class='fl'>3</span><span class='op'>)</span>
-</div><div class='output co'>#&gt;   id time ref dense_track
-#&gt; 1 22    1  -1          13
-#&gt; 2 24    1  -1          13
-#&gt; 3 25    1  -1          10
-#&gt; 4 25    2  -1          24
-#&gt; 5 25    3  -1          34
-#&gt; 6 28    1  -1          13</div></pre>
+    <pre class="examples"><span class='r-in'></span>
+<span class='r-in'><span class='fu'><a href='emr_db.init.html'>emr_db.init_examples</a></span><span class='op'>(</span><span class='op'>)</span></span>
+<span class='r-in'><span class='fu'>emr_extract</span><span class='op'>(</span><span class='st'>"dense_track"</span>, stime <span class='op'>=</span> <span class='fl'>1</span>, etime <span class='op'>=</span> <span class='fl'>3</span><span class='op'>)</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>   id time ref dense_track</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 1 22    1  -1          13</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 2 24    1  -1          13</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 3 25    1  -1          10</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 4 25    2  -1          24</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 5 25    3  -1          34</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 6 28    1  -1          13</span>
+</pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

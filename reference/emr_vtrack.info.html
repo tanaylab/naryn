@@ -145,31 +145,32 @@
     <div class='dont-index'><p><code><a href='emr_vtrack.create.html'>emr_vtrack.create</a></code></p></div>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'>
-<span class='fu'><a href='emr_db.init.html'>emr_db.init_examples</a></span><span class='op'>(</span><span class='op'>)</span>
-<span class='fu'><a href='emr_vtrack.create.html'>emr_vtrack.create</a></span><span class='op'>(</span><span class='st'>"vtrack1"</span>, <span class='st'>"dense_track"</span>, <span class='st'>"max"</span>, time.shift <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>5</span>, <span class='fl'>10</span><span class='op'>)</span><span class='op'>)</span>
-<span class='fu'>emr_vtrack.info</span><span class='op'>(</span><span class='st'>"vtrack1"</span><span class='op'>)</span>
-</div><div class='output co'>#&gt; $src
-#&gt; [1] "dense_track"
-#&gt; 
-#&gt; $time_shift
-#&gt; [1]  5 10
-#&gt; 
-#&gt; $func
-#&gt; [1] "max"
-#&gt; 
-#&gt; $params
-#&gt; NULL
-#&gt; 
-#&gt; $keepref
-#&gt; [1] FALSE
-#&gt; 
-#&gt; $id_map
-#&gt; NULL
-#&gt; 
-#&gt; $filter
-#&gt; NULL
-#&gt; </div></pre>
+    <pre class="examples"><span class='r-in'></span>
+<span class='r-in'><span class='fu'><a href='emr_db.init.html'>emr_db.init_examples</a></span><span class='op'>(</span><span class='op'>)</span></span>
+<span class='r-in'><span class='fu'><a href='emr_vtrack.create.html'>emr_vtrack.create</a></span><span class='op'>(</span><span class='st'>"vtrack1"</span>, <span class='st'>"dense_track"</span>, <span class='st'>"max"</span>, time.shift <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>5</span>, <span class='fl'>10</span><span class='op'>)</span><span class='op'>)</span></span>
+<span class='r-in'><span class='fu'>emr_vtrack.info</span><span class='op'>(</span><span class='st'>"vtrack1"</span><span class='op'>)</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> $src</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] "dense_track"</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> $time_shift</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1]  5 10</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> $func</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] "max"</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> $params</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> NULL</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> $keepref</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] FALSE</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> $id_map</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> NULL</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> $filter</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> NULL</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> </span>
+</pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
