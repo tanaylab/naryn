@@ -7,7 +7,7 @@
 #' @noRd
 .emr_vtrack.get <- function(vtrackstr, adjust_logical = TRUE) {
     if (!emr_vtrack.exists(vtrackstr)) {
-        stop(sprintf("Virtual track %s does not exist", vtrackstr), call. = F)
+        stop(sprintf("Virtual track %s does not exist", vtrackstr), call. = FALSE)
     }
 
     vtrack <- get("EMR_VTRACKS", envir = .GlobalEnv)[[vtrackstr]]
@@ -195,23 +195,23 @@
 #' emr_vtrack.create("vtrack2", "dense_track",
 #'     time.shift = c(-5, 10), func = "min"
 #' )
-#' res <- emr_extract("dense_track", keepref = T, names = "value")
-#' emr_vtrack.create("vtrack3", list(res, F),
+#' res <- emr_extract("dense_track", keepref = TRUE, names = "value")
+#' emr_vtrack.create("vtrack3", list(res, FALSE),
 #'     time.shift = c(-5, 10),
 #'     func = "min"
 #' )
 #' emr_extract(c("dense_track", "vtrack1", "vtrack2", "vtrack3"),
-#'     keepref = T, iterator = "dense_track"
+#'     keepref = TRUE, iterator = "dense_track"
 #' )
 #' @export emr_vtrack.create
-emr_vtrack.create <- function(vtrack, src, func = NULL, params = NULL, keepref = F, time.shift = NULL, id.map = NULL, filter = NULL) {
+emr_vtrack.create <- function(vtrack, src, func = NULL, params = NULL, keepref = FALSE, time.shift = NULL, id.map = NULL, filter = NULL) {
     if (missing(vtrack) || missing(src)) {
-        stop("Usage: emr_vtrack.create(vtrack, src, func = NULL, params = NULL, keepref = F, time.shift = NULL, id.map = NULL, filter = NULL)", call. = F)
+        stop("Usage: emr_vtrack.create(vtrack, src, func = NULL, params = NULL, keepref = FALSE, time.shift = NULL, id.map = NULL, filter = NULL)", call. = FALSE)
     }
     .emr_checkroot()
 
     if (vtrack != make.names(vtrack)) {
-        stop(sprintf("\"%s\" is not a syntactically valid name for a variable", vtrack), call. = F)
+        stop(sprintf("\"%s\" is not a syntactically valid name for a variable", vtrack), call. = FALSE)
     }
 
     if (!exists("EMR_VTRACKS", envir = .GlobalEnv)) {
@@ -219,11 +219,11 @@ emr_vtrack.create <- function(vtrack, src, func = NULL, params = NULL, keepref =
     }
 
     if (emr_track.exists(vtrack)) {
-        stop(sprintf("Track %s already exists", vtrack), call. = F)
+        stop(sprintf("Track %s already exists", vtrack), call. = FALSE)
     }
 
     if (emr_filter.exists(vtrack)) {
-        stop(sprintf("Filter %s already exists", vtrack), call. = F)
+        stop(sprintf("Filter %s already exists", vtrack), call. = FALSE)
     }
 
     if (!length(params) == 1 && any(is.na(params))) {
@@ -287,14 +287,14 @@ emr_vtrack.create <- function(vtrack, src, func = NULL, params = NULL, keepref =
 #' @export emr_vtrack.attr.src
 emr_vtrack.attr.src <- function(vtrack, src) {
     if (missing(vtrack)) {
-        stop("Usage: emr_vtrack.attr.src(vtrack, src)", call. = F)
+        stop("Usage: emr_vtrack.attr.src(vtrack, src)", call. = FALSE)
     }
     .emr_checkroot()
 
     vtrack.var <- get("EMR_VTRACKS", envir = .GlobalEnv)[[vtrack]]
 
     if (is.null(vtrack.var)) {
-        stop(sprintf("Virtual track \"%s\" does not exist", vtrack), call. = F)
+        stop(sprintf("Virtual track \"%s\" does not exist", vtrack), call. = FALSE)
     }
 
     is_logical_vtrack <- !is.null(vtrack.var$logical)
@@ -328,14 +328,14 @@ emr_vtrack.attr.src <- function(vtrack, src) {
 
 emr_vtrack.attr.func <- function(vtrack, func) {
     if (missing(vtrack)) {
-        stop("Usage: emr_vtrack.attr.func(vtrack, func)", call. = F)
+        stop("Usage: emr_vtrack.attr.func(vtrack, func)", call. = FALSE)
     }
     .emr_checkroot()
 
     vtrack.var <- get("EMR_VTRACKS", envir = .GlobalEnv)[[vtrack]]
 
     if (is.null(vtrack.var)) {
-        stop(sprintf("Virtual track \"%s\" does not exist", vtrack), call. = F)
+        stop(sprintf("Virtual track \"%s\" does not exist", vtrack), call. = FALSE)
     }
 
     if (missing(func)) {
@@ -349,7 +349,7 @@ emr_vtrack.attr.func <- function(vtrack, func) {
 
 emr_vtrack.attr.params <- function(vtrack, params) {
     if (missing(vtrack)) {
-        stop("Usage: emr_vtrack.attr.params(vtrack, params)", call. = F)
+        stop("Usage: emr_vtrack.attr.params(vtrack, params)", call. = FALSE)
     }
     .emr_checkroot()
 
@@ -357,7 +357,7 @@ emr_vtrack.attr.params <- function(vtrack, params) {
     vtrack.var <- get("EMR_VTRACKS", envir = .GlobalEnv)[[vtrack]]
 
     if (is.null(vtrack.var)) {
-        stop(sprintf("Virtual track \"%s\" does not exist", vtrack), call. = F)
+        stop(sprintf("Virtual track \"%s\" does not exist", vtrack), call. = FALSE)
     }
 
     is_logical_vtrack <- !is.null(vtrack.var$logical)
@@ -379,21 +379,21 @@ emr_vtrack.attr.params <- function(vtrack, params) {
 
 emr_vtrack.attr.keepref <- function(vtrack, keepref) {
     if (missing(vtrack)) {
-        stop("Usage: emr_vtrack.attr.keepref(vtrack, keepref)", call. = F)
+        stop("Usage: emr_vtrack.attr.keepref(vtrack, keepref)", call. = FALSE)
     }
     .emr_checkroot()
 
     vtrack.var <- get("EMR_VTRACKS", envir = .GlobalEnv)[[vtrack]]
 
     if (is.null(vtrack.var)) {
-        stop(sprintf("Virtual track \"%s\" does not exist", vtrack), call. = F)
+        stop(sprintf("Virtual track \"%s\" does not exist", vtrack), call. = FALSE)
     }
 
     if (missing(keepref)) {
         vtrack.var$keepref
     } else {
         if (!is.logical(keepref) || is.na(keepref)) {
-            stop("'keepref' parameter must be logical", call. = F)
+            stop("'keepref' parameter must be logical", call. = FALSE)
         }
 
         EMR_VTRACKS[[vtrack]]["keepref"] <<- list(keepref)
@@ -403,14 +403,14 @@ emr_vtrack.attr.keepref <- function(vtrack, keepref) {
 
 emr_vtrack.attr.time.shift <- function(vtrack, time.shift) {
     if (missing(vtrack)) {
-        stop("Usage: emr_vtrack.attr.time.shift(vtrack, time.shift)", call. = F)
+        stop("Usage: emr_vtrack.attr.time.shift(vtrack, time.shift)", call. = FALSE)
     }
     .emr_checkroot()
 
     vtrack.var <- get("EMR_VTRACKS", envir = .GlobalEnv)[[vtrack]]
 
     if (is.null(vtrack.var)) {
-        stop(sprintf("Virtual track \"%s\" does not exist", vtrack), call. = F)
+        stop(sprintf("Virtual track \"%s\" does not exist", vtrack), call. = FALSE)
     }
 
     if (missing(time.shift)) {
@@ -424,14 +424,14 @@ emr_vtrack.attr.time.shift <- function(vtrack, time.shift) {
 
 emr_vtrack.attr.id.map <- function(vtrack, id.map) {
     if (missing(vtrack)) {
-        stop("Usage: emr_vtrack.attr.id.map(vtrack, id.map)", call. = F)
+        stop("Usage: emr_vtrack.attr.id.map(vtrack, id.map)", call. = FALSE)
     }
     .emr_checkroot()
 
     vtrack.var <- get("EMR_VTRACKS", envir = .GlobalEnv)[[vtrack]]
 
     if (is.null(vtrack.var)) {
-        stop(sprintf("Virtual track \"%s\" does not exist", vtrack), call. = F)
+        stop(sprintf("Virtual track \"%s\" does not exist", vtrack), call. = FALSE)
     }
 
     if (missing(id.map)) {
@@ -445,13 +445,13 @@ emr_vtrack.attr.id.map <- function(vtrack, id.map) {
 
 emr_vtrack.attr.filter <- function(vtrack, filter) {
     if (missing(vtrack)) {
-        stop("Usage: emr_vtrack.attr.filter(vtrack, filter)", call. = F)
+        stop("Usage: emr_vtrack.attr.filter(vtrack, filter)", call. = FALSE)
     }
     .emr_checkroot()
 
     vtrack.var <- get("EMR_VTRACKS", envir = .GlobalEnv)[[vtrack]]
     if (is.null(vtrack.var)) {
-        stop(sprintf("Virtual track \"%s\" does not exist", vtrack), call. = F)
+        stop(sprintf("Virtual track \"%s\" does not exist", vtrack), call. = FALSE)
     }
 
     if (missing(filter)) {
@@ -483,7 +483,7 @@ emr_vtrack.attr.filter <- function(vtrack, filter) {
 #' @export emr_vtrack.exists
 emr_vtrack.exists <- function(vtrack) {
     if (missing(vtrack)) {
-        stop("Usage: emr_vtrack.exists(vtrack)", call. = F)
+        stop("Usage: emr_vtrack.exists(vtrack)", call. = FALSE)
     }
     .emr_checkroot()
 
@@ -515,7 +515,7 @@ emr_vtrack.exists <- function(vtrack) {
 #' @export emr_vtrack.info
 emr_vtrack.info <- function(vtrack) {
     if (missing(vtrack)) {
-        stop("Usage: emr_vtrack.info(vtrack)", call. = F)
+        stop("Usage: emr_vtrack.info(vtrack)", call. = FALSE)
     }
     .emr_checkroot()
 
@@ -555,7 +555,7 @@ emr_vtrack.ls <- function(pattern = "", ignore.case = FALSE, perl = FALSE, fixed
     vtracknames <- names(vtracks)
 
     if (!is.list(vtracks) || (length(vtracks) && !is.character(vtracknames)) || length(vtracks) != length(vtracknames)) {
-        stop("Invalid format of EMR_VTRACKS variable.\nTo continue working with virtual tracks please remove this variable from the environment.", call. = F)
+        stop("Invalid format of EMR_VTRACKS variable.\nTo continue working with virtual tracks please remove this variable from the environment.", call. = FALSE)
     }
 
     if (is.null(vtracknames)) {
@@ -592,7 +592,7 @@ emr_vtrack.ls <- function(pattern = "", ignore.case = FALSE, perl = FALSE, fixed
 #' @export emr_vtrack.rm
 emr_vtrack.rm <- function(vtrack) {
     if (missing(vtrack)) {
-        stop("Usage: emr_vtrack.rm(vtrack)", call. = F)
+        stop("Usage: emr_vtrack.rm(vtrack)", call. = FALSE)
     }
     .emr_checkroot()
 

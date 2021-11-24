@@ -6,13 +6,13 @@
 \usage{
 emr_extract(
   expr,
-  tidy = F,
-  sort = F,
+  tidy = FALSE,
+  sort = FALSE,
   names = NULL,
   stime = NULL,
   etime = NULL,
   iterator = NULL,
-  keepref = F,
+  keepref = FALSE,
   filter = NULL
 )
 }

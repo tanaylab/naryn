@@ -1,12 +1,12 @@
 test_that("filter works", {
     emr_filter.clear()
-    fname <- emr_filter.create("f1", "track1", keepref = T)
-    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = T, filter = "f1"), "filter.1")
+    fname <- emr_filter.create("f1", "track1", keepref = TRUE)
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = TRUE, filter = "f1"), "filter.1")
     expect_equal(fname, "f1")
 })
 
 test_that("time.shift is not allowed when keepref is TRUE", {
-    expect_error(emr_filter.create("f1", "track1", keepref = T, time.shift = 10))
+    expect_error(emr_filter.create("f1", "track1", keepref = TRUE, time.shift = 10))
 })
 
 test_that("'val' parameter can be used only with categorical tracks", {
@@ -16,7 +16,7 @@ test_that("'val' parameter can be used only with categorical tracks", {
 test_that("filter works with time shift", {
     emr_filter.clear()
     emr_filter.create("f1", "track8", val = c(3, 5), time.shift = c(-10, 10))
-    expect_regression(emr_extract("track7", keepref = T, filter = "f1"), "filter.2")
+    expect_regression(emr_extract("track7", keepref = TRUE, filter = "f1"), "filter.2")
 })
 
 test_that("'expiration' must be a positive integer", {
@@ -24,213 +24,205 @@ test_that("'expiration' must be a positive integer", {
 })
 
 test_that("'expiration' cannot be used when keepref is 'TRUE'", {
-    expect_error(emr_filter.create("f1", "track8", keepref = T, expiration = 100))
+    expect_error(emr_filter.create("f1", "track8", keepref = TRUE, expiration = 100))
 })
 
 test_that("filter works with keepref", {
     emr_filter.clear()
     emr_filter.create("f1", "track8", expiration = 100)
-    expect_regression(emr_extract("track7", keepref = T, filter = "f1"), "filter.3")
+    expect_regression(emr_extract("track7", keepref = TRUE, filter = "f1"), "filter.3")
 })
 
 test_that("filter works with keepref and val", {
     emr_filter.clear()
     emr_filter.create("f1", "track8", expiration = 100, val = c(3, 5))
-    expect_regression(emr_extract("track7", keepref = T, filter = "f1"), "filter.4")
+    expect_regression(emr_extract("track7", keepref = TRUE, filter = "f1"), "filter.4")
 })
 
 test_that("filter works with keepref and time shift", {
     emr_filter.clear()
-    emr_filter.create("f1", "track1", keepref = F, time.shift = 10)
-    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = T, filter = "f1"), "filter.5")
+    emr_filter.create("f1", "track1", keepref = FALSE, time.shift = 10)
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = TRUE, filter = "f1"), "filter.5")
 })
 
 test_that("filter works with keepref and time shift and stime etime #1", {
     emr_filter.clear()
-    emr_filter.create("f1", "track1", keepref = F, time.shift = c(10, 20))
-    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = T, filter = "f1"), "filter.6")
+    emr_filter.create("f1", "track1", keepref = FALSE, time.shift = c(10, 20))
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = TRUE, filter = "f1"), "filter.6")
 })
 
 test_that("use a track as filter", {
-    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = T, filter = "!track1"), "filter.7")
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = TRUE, filter = "!track1"), "filter.7")
 })
 
 test_that("use multiple tracks as filter", {
-    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = T, filter = "!track0 | !track1"), "filter.8")
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = TRUE, filter = "!track0 | !track1"), "filter.8")
 })
 
 test_that("filter works with keepref and time shift and stime etime #1", {
     emr_filter.clear()
-    emr_filter.create("f1", "track1", keepref = T)
-    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = T, filter = "!f1"), "filter.9")
+    emr_filter.create("f1", "track1", keepref = TRUE)
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = TRUE, filter = "!f1"), "filter.9")
 })
 
 test_that("use multiple tracks as filter", {
-    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = T, filter = "track0 & track1"), "filter.10")
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = TRUE, filter = "track0 & track1"), "filter.10")
 })
 
 test_that("filter works", {
     emr_filter.clear()
-    emr_filter.create("f1", "track0", keepref = T)
-    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = T, filter = "f1 & track1"), "filter.11")
+    emr_filter.create("f1", "track0", keepref = TRUE)
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = TRUE, filter = "f1 & track1"), "filter.11")
 })
 
 test_that("filter works", {
     emr_filter.clear()
-    emr_filter.create("f1", "track0", keepref = T)
-    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = F, filter = "(f1 | track1) & !track5"), "filter.12")
+    emr_filter.create("f1", "track0", keepref = TRUE)
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = FALSE, filter = "(f1 | track1) & !track5"), "filter.12")
 })
 
 test_that("filter works", {
     emr_filter.clear()
-    emr_filter.create("f1", "track0", keepref = T)
-    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = T, filter = "(f1 | track1) & !track5"), "filter.13")
+    emr_filter.create("f1", "track0", keepref = TRUE)
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = TRUE, filter = "(f1 | track1) & !track5"), "filter.13")
 })
 
 test_that("filter works", {
     emr_filter.clear()
-    emr_filter.create("f1", "track0_sparse", keepref = T)
-    expect_regression(emr_extract("track2_sparse", stime = 10, etime = 1000, keepref = T, filter = "(f1 | track1) & !track5_sparse"), "filter.14")
+    emr_filter.create("f1", "track0_sparse", keepref = TRUE)
+    expect_regression(emr_extract("track2_sparse", stime = 10, etime = 1000, keepref = TRUE, filter = "(f1 | track1) & !track5_sparse"), "filter.14")
 })
 
 test_that("Id-time list contains two or more points that differ only by reference", {
-    i1 <- emr_extract("track1", keepref = T)
-    expect_error(emr_extract("2 * track2", stime = 10, etime = 1000, keepref = T, filter = "i1"))
+    i1 <- emr_extract("track1", keepref = TRUE)
+    expect_error(emr_extract("2 * track2", stime = 10, etime = 1000, keepref = TRUE, filter = "i1"))
 })
 
 test_that("filter works", {
-    i1 <- emr_extract("track1", keepref = F)
-    expect_regression(emr_extract("2 * track2", stime = 10, etime = 1000, keepref = T, filter = "i1"), "filter.15")
+    i1 <- emr_extract("track1", keepref = FALSE)
+    expect_regression(emr_extract("2 * track2", stime = 10, etime = 1000, keepref = TRUE, filter = "i1"), "filter.15")
 })
 
 test_that("filter works", {
-    i1 <- emr_extract("track1_sparse", keepref = F)
-    expect_regression(emr_extract("track2_sparse", stime = 10, etime = 1000, keepref = T, filter = "i1"), "filter.16")
-})
-
-test_that("filter works", {
-    emr_filter.clear()
-    i1 <- emr_extract("track1", keepref = T)
-    emr_filter.create("f1", i1, keepref = T)
-    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = T, filter = "f1"), "filter.17")
+    i1 <- emr_extract("track1_sparse", keepref = FALSE)
+    expect_regression(emr_extract("track2_sparse", stime = 10, etime = 1000, keepref = TRUE, filter = "i1"), "filter.16")
 })
 
 test_that("filter works", {
     emr_filter.clear()
-    i1 <- emr_extract("track1", keepref = F)
-    emr_filter.create("f1", i1, keepref = T)
-    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = T, filter = "f1"), "filter.18")
+    i1 <- emr_extract("track1", keepref = TRUE)
+    emr_filter.create("f1", i1, keepref = TRUE)
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = TRUE, filter = "f1"), "filter.17")
+})
+
+test_that("filter works", {
+    emr_filter.clear()
+    i1 <- emr_extract("track1", keepref = FALSE)
+    emr_filter.create("f1", i1, keepref = TRUE)
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = TRUE, filter = "f1"), "filter.18")
 })
 
 test_that("'time.shift' is not allowed when keepref is 'TRUE'", {
     emr_filter.clear()
-    i1 <- emr_extract("track1", keepref = T)
-    expect_error(emr_filter.create("f1", i1, keepref = T, time.shift = 10))
-    expect_error(emr_extract("track2", stime = 10, etime = 1000, keepref = T, filter = "f1"))
+    i1 <- emr_extract("track1", keepref = TRUE)
+    expect_error(emr_filter.create("f1", i1, keepref = TRUE, time.shift = 10))
+    expect_error(emr_extract("track2", stime = 10, etime = 1000, keepref = TRUE, filter = "f1"))
 })
 
 test_that("filter works", {
     emr_filter.clear()
-    i1 <- emr_extract("track1", keepref = F)
-    emr_filter.create("f1", i1, keepref = F, time.shift = 10)
-    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = T, filter = "f1"), "filter.19")
+    i1 <- emr_extract("track1", keepref = FALSE)
+    emr_filter.create("f1", i1, keepref = FALSE, time.shift = 10)
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = TRUE, filter = "f1"), "filter.19")
 })
 
 test_that("filter works", {
     emr_filter.clear()
-    i1 <- emr_extract("track1", keepref = F)
-    emr_filter.create("f1", i1, keepref = F, time.shift = c(10, 20))
-    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = T, filter = "f1"), "filter.20")
+    i1 <- emr_extract("track1", keepref = FALSE)
+    emr_filter.create("f1", i1, keepref = FALSE, time.shift = c(10, 20))
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = TRUE, filter = "f1"), "filter.20")
 })
 
 test_that("filter works", {
-    i1 <- emr_extract("track1", keepref = F)
-    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = T, filter = "!i1"), "filter.21")
-})
-
-test_that("filter works", {
-    emr_filter.clear()
-    i1 <- emr_extract("track1", keepref = T)
-    emr_filter.create("f1", i1, keepref = T)
-    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = T, filter = "!f1"), "filter.22")
-})
-
-test_that("filter works", {
-    i0 <- emr_extract("track0", keepref = F)
-    i1 <- emr_extract("track1", keepref = F)
-    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = T, filter = "i0 & i1"), "filter.23")
+    i1 <- emr_extract("track1", keepref = FALSE)
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = TRUE, filter = "!i1"), "filter.21")
 })
 
 test_that("filter works", {
     emr_filter.clear()
-    i0 <- emr_extract("track0", keepref = T)
-    i1 <- emr_extract("track1", keepref = F)
-    emr_filter.create("f1", i0, keepref = T)
-    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = T, filter = "f1 & i1"), "filter.24")
+    i1 <- emr_extract("track1", keepref = TRUE)
+    emr_filter.create("f1", i1, keepref = TRUE)
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = TRUE, filter = "!f1"), "filter.22")
+})
+
+test_that("filter works", {
+    i0 <- emr_extract("track0", keepref = FALSE)
+    i1 <- emr_extract("track1", keepref = FALSE)
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = TRUE, filter = "i0 & i1"), "filter.23")
 })
 
 test_that("filter works", {
     emr_filter.clear()
-    i0 <- emr_extract("track0", keepref = T)
-    i1 <- emr_extract("track1", keepref = F)
-    emr_filter.create("f1", i0, keepref = T)
-    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = T, filter = "f1 | i1"), "filter.25")
+    i0 <- emr_extract("track0", keepref = TRUE)
+    i1 <- emr_extract("track1", keepref = FALSE)
+    emr_filter.create("f1", i0, keepref = TRUE)
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = TRUE, filter = "f1 & i1"), "filter.24")
 })
 
 test_that("filter works", {
     emr_filter.clear()
-    i0 <- emr_extract("track0", keepref = T)
-    i1 <- emr_extract("track1", keepref = F)
-    emr_filter.create("f1", i0, keepref = T)
-    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = F, filter = "(f1 | i1) & !track5"), "filter.26")
+    i0 <- emr_extract("track0", keepref = TRUE)
+    i1 <- emr_extract("track1", keepref = FALSE)
+    emr_filter.create("f1", i0, keepref = TRUE)
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = TRUE, filter = "f1 | i1"), "filter.25")
 })
 
 test_that("filter works", {
     emr_filter.clear()
-    i0 <- emr_extract("track0", keepref = T)
-    i1 <- emr_extract("track1", keepref = F)
-    emr_filter.create("f1", i0, keepref = T)
-    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = T, filter = "(f1 | i1) & !track5"), "filter.27")
+    i0 <- emr_extract("track0", keepref = TRUE)
+    i1 <- emr_extract("track1", keepref = FALSE)
+    emr_filter.create("f1", i0, keepref = TRUE)
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = FALSE, filter = "(f1 | i1) & !track5"), "filter.26")
 })
 
 test_that("filter works", {
     emr_filter.clear()
-    i1 <- emr_extract("track1", keepref = F)
-    emr_filter.create("f1", "track0_sparse", keepref = T)
-    expect_regression(emr_extract("track2_sparse", stime = 10, etime = 1000, keepref = T, filter = "(f1 | i1) & !track5_sparse"), "filter.28")
+    i0 <- emr_extract("track0", keepref = TRUE)
+    i1 <- emr_extract("track1", keepref = FALSE)
+    emr_filter.create("f1", i0, keepref = TRUE)
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = TRUE, filter = "(f1 | i1) & !track5"), "filter.27")
+})
+
+test_that("filter works", {
+    emr_filter.clear()
+    i1 <- emr_extract("track1", keepref = FALSE)
+    emr_filter.create("f1", "track0_sparse", keepref = TRUE)
+    expect_regression(emr_extract("track2_sparse", stime = 10, etime = 1000, keepref = TRUE, filter = "(f1 | i1) & !track5_sparse"), "filter.28")
 })
 
 test_that("filter works", {
     i1 <- emr_screen("track1>990", stime = 500, etime = 2000)
     i1 <- data.frame(id = unique(i1$id))
-    expect_regression(emr_extract("2 * track2", stime = 10, etime = 1000, keepref = T, filter = "i1"), "filter.29")
+    expect_regression(emr_extract("2 * track2", stime = 10, etime = 1000, keepref = TRUE, filter = "i1"), "filter.29")
 })
 
 test_that("Invalid format of id-time points", {
     emr_filter.clear()
     i1 <- emr_screen("track1>990", stime = 500, etime = 2000)
     i1 <- data.frame(id = unique(i1$id))
-    expect_error(emr_filter.create("f1", i1, keepref = T))
+    expect_error(emr_filter.create("f1", i1, keepref = TRUE))
 })
 
 test_that("filter works", {
     i1 <- emr_screen("track1>990", stime = 500, etime = 2000)
     i1 <- data.frame(id = unique(i1$id))
-    expect_regression(emr_extract("2 * track2", stime = 10, etime = 1000, keepref = T, filter = "i1"), "filter.30")
+    expect_regression(emr_extract("2 * track2", stime = 10, etime = 1000, keepref = TRUE, filter = "i1"), "filter.30")
 })
 
 test_that("filter works", {
     i1 <- emr_screen("track1>990", stime = 500, etime = 2000)
     i1 <- data.frame(id = unique(i1$id))
-    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = T, filter = "!i1"), "filter.31")
-})
-
-test_that("filter works", {
-    i0 <- emr_screen("track0>990", stime = 500, etime = 2000)
-    i0 <- data.frame(id = unique(i0$id))
-    i1 <- emr_screen("track1>990", stime = 500, etime = 2000)
-    i1 <- data.frame(id = unique(i1$id))
-    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = T, filter = "i0 & i1"), "filter.32")
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = TRUE, filter = "!i1"), "filter.31")
 })
 
 test_that("filter works", {
@@ -238,7 +230,7 @@ test_that("filter works", {
     i0 <- data.frame(id = unique(i0$id))
     i1 <- emr_screen("track1>990", stime = 500, etime = 2000)
     i1 <- data.frame(id = unique(i1$id))
-    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = T, filter = "i0 | i1"), "filter.33")
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = TRUE, filter = "i0 & i1"), "filter.32")
 })
 
 test_that("filter works", {
@@ -246,107 +238,115 @@ test_that("filter works", {
     i0 <- data.frame(id = unique(i0$id))
     i1 <- emr_screen("track1>990", stime = 500, etime = 2000)
     i1 <- data.frame(id = unique(i1$id))
-    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = F, filter = "(i0 | i1) & !track5"), "filter.34")
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = TRUE, filter = "i0 | i1"), "filter.33")
+})
+
+test_that("filter works", {
+    i0 <- emr_screen("track0>990", stime = 500, etime = 2000)
+    i0 <- data.frame(id = unique(i0$id))
+    i1 <- emr_screen("track1>990", stime = 500, etime = 2000)
+    i1 <- data.frame(id = unique(i1$id))
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = FALSE, filter = "(i0 | i1) & !track5"), "filter.34")
 })
 
 test_that("filter works", {
     emr_filter.clear()
-    i0 <- emr_extract("track0", keepref = T)
+    i0 <- emr_extract("track0", keepref = TRUE)
     i1 <- emr_screen("track1>990", stime = 500, etime = 2000)
     i1 <- data.frame(id = unique(i1$id))
-    emr_filter.create("f1", i0, keepref = T)
-    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = T, filter = "(f1 | i1) & !track5"), "filter.35")
+    emr_filter.create("f1", i0, keepref = TRUE)
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = TRUE, filter = "(f1 | i1) & !track5"), "filter.35")
 })
 
 test_that("start time cannot exceed end time", {
-    i0 <- emr_screen("track0>700", keepref = F)
-    i1 <- emr_screen("track0<300", keepref = F)
+    i0 <- emr_screen("track0>700", keepref = FALSE)
+    i1 <- emr_screen("track0<300", keepref = FALSE)
     num.rows <- min(nrow(i0), nrow(i1))
     t <- data.frame(stime = i0$time[1:num.rows], etime = i1$time[1:num.rows])
-    expect_error(emr_extract("track2", stime = 10, etime = 20, keepref = T, filter = "t"))
+    expect_error(emr_extract("track2", stime = 10, etime = 20, keepref = TRUE, filter = "t"))
 })
 
 test_that("filter works", {
-    i0 <- emr_screen("track5>990", keepref = F)
-    i1 <- emr_screen("track5<10", keepref = F)
+    i0 <- emr_screen("track5>990", keepref = FALSE)
+    i1 <- emr_screen("track5<10", keepref = FALSE)
     num.rows <- min(nrow(i0), nrow(i1))
     t <- data.frame(stime = pmin(i0$time[1:num.rows], i1$time[1:num.rows]), etime = pmax(i0$time[1:num.rows], i1$time[1:num.rows]))
-    expect_regression(emr_extract("track2", stime = 10, etime = 2000, keepref = T, filter = "t"), "filter.36")
+    expect_regression(emr_extract("track2", stime = 10, etime = 2000, keepref = TRUE, filter = "t"), "filter.36")
 })
 
 test_that("Invalid format of id-time points", {
     emr_filter.clear()
-    i0 <- emr_screen("track5>990", keepref = F)
-    i1 <- emr_screen("track5<10", keepref = F)
+    i0 <- emr_screen("track5>990", keepref = FALSE)
+    i1 <- emr_screen("track5<10", keepref = FALSE)
     num.rows <- min(nrow(i0), nrow(i1))
     t <- data.frame(stime = pmin(i0$time[1:num.rows], i1$time[1:num.rows]), etime = pmax(i0$time[1:num.rows], i1$time[1:num.rows]))
-    expect_error(emr_filter.create("f1", t, keepref = F, time.shift = c(1000, 3000)))
+    expect_error(emr_filter.create("f1", t, keepref = FALSE, time.shift = c(1000, 3000)))
 })
 
 test_that("filter works", {
-    expect_regression(emr_extract("track1", iterator = 1, keepref = F, stime = 10, etime = 15), "filter.37")
+    expect_regression(emr_extract("track1", iterator = 1, keepref = FALSE, stime = 10, etime = 15), "filter.37")
 })
 
 test_that("beat iterator warning", {
-    expect_warning(emr_extract("track1", iterator = 1, keepref = T, stime = 10, etime = 15))
-    expect_warning(expect_regression(emr_extract("track1", iterator = 1, keepref = T, stime = 10, etime = 15), "filter.38"))
+    expect_warning(emr_extract("track1", iterator = 1, keepref = TRUE, stime = 10, etime = 15))
+    expect_warning(expect_regression(emr_extract("track1", iterator = 1, keepref = TRUE, stime = 10, etime = 15), "filter.38"))
 })
 
 test_that("Cannot use an implicit time scope with Beat Iteator: please specify 'stime' and 'etime'", {
     emr_filter.clear()
-    emr_filter.create("f1", "track0", keepref = F, time.shift = c(10, 50))
-    emr_filter.create("f2", "track3", keepref = T)
-    expect_error(emr_extract("track1", iterator = 1, keepref = T, filter = "f1 & f2"))
+    emr_filter.create("f1", "track0", keepref = FALSE, time.shift = c(10, 50))
+    emr_filter.create("f2", "track3", keepref = TRUE)
+    expect_error(emr_extract("track1", iterator = 1, keepref = TRUE, filter = "f1 & f2"))
 })
 
 test_that("filter works", {
     emr_filter.clear()
-    emr_filter.create("f1", "track0", keepref = F, time.shift = c(10, 50))
-    emr_filter.create("f2", "track3", keepref = T)
-    expect_regression(emr_extract("track1", iterator = 1, stime = 20, etime = 5000, keepref = T, filter = "f1 & f2"), "filter.39")
+    emr_filter.create("f1", "track0", keepref = FALSE, time.shift = c(10, 50))
+    emr_filter.create("f2", "track3", keepref = TRUE)
+    expect_regression(emr_extract("track1", iterator = 1, stime = 20, etime = 5000, keepref = TRUE, filter = "f1 & f2"), "filter.39")
 })
 
 test_that("filter works", {
     emr_filter.clear()
-    emr_filter.create("f1", "track0", keepref = F, time.shift = c(10, 50))
-    emr_filter.create("f2", "track3", keepref = F)
-    expect_regression(emr_extract("track1", iterator = 1, stime = 20, etime = 5000, keepref = T, filter = "f1 & f2"), "filter.40")
+    emr_filter.create("f1", "track0", keepref = FALSE, time.shift = c(10, 50))
+    emr_filter.create("f2", "track3", keepref = FALSE)
+    expect_regression(emr_extract("track1", iterator = 1, stime = 20, etime = 5000, keepref = TRUE, filter = "f1 & f2"), "filter.40")
 })
 
 test_that("filter works", {
-    expect_regression(emr_extract("track1", iterator = 2, keepref = F, stime = 10, etime = 15), "filter.41")
+    expect_regression(emr_extract("track1", iterator = 2, keepref = FALSE, stime = 10, etime = 15), "filter.41")
 })
 
 test_that("filter works", {
-    expect_warning(expect_regression(emr_extract("track1", iterator = 2, keepref = T, stime = 10, etime = 15), "filter.42"))
-})
-
-test_that("filter works", {
-    emr_filter.clear()
-    emr_filter.create("f1", "track0", keepref = F, time.shift = c(10, 50))
-    emr_filter.create("f2", "track3", keepref = T)
-    expect_regression(emr_extract("track1", iterator = 2, stime = 20, etime = 5000, keepref = T, filter = "f1 & f2"), "filter.43")
+    expect_warning(expect_regression(emr_extract("track1", iterator = 2, keepref = TRUE, stime = 10, etime = 15), "filter.42"))
 })
 
 test_that("filter works", {
     emr_filter.clear()
-    emr_filter.create("f1", "track0", keepref = F, time.shift = c(10, 50))
-    emr_filter.create("f2", "track3", keepref = F)
-    expect_regression(emr_extract("track1", iterator = 2, stime = 20, etime = 5000, keepref = T, filter = "f1 & f2"), "filter.44")
+    emr_filter.create("f1", "track0", keepref = FALSE, time.shift = c(10, 50))
+    emr_filter.create("f2", "track3", keepref = TRUE)
+    expect_regression(emr_extract("track1", iterator = 2, stime = 20, etime = 5000, keepref = TRUE, filter = "f1 & f2"), "filter.43")
+})
+
+test_that("filter works", {
+    emr_filter.clear()
+    emr_filter.create("f1", "track0", keepref = FALSE, time.shift = c(10, 50))
+    emr_filter.create("f2", "track3", keepref = FALSE)
+    expect_regression(emr_extract("track1", iterator = 2, stime = 20, etime = 5000, keepref = TRUE, filter = "f1 & f2"), "filter.44")
 })
 
 test_that("filter works", {
     set.seed(0)
-    expect_regression(emr_extract("track1", iterator = list(2, data.frame(id = sample(1:1000, 500), time = sample(1:100, 500, replace = T))), stime = 10, etime = 15), "filter.45")
+    expect_regression(emr_extract("track1", iterator = list(2, data.frame(id = sample(1:1000, 500), time = sample(1:100, 500, replace = TRUE))), stime = 10, etime = 15), "filter.45")
 })
 
 test_that("filter works", {
     emr_filter.clear()
-    emr_track.rm("test_track1", T)
+    emr_track.rm("test_track1", TRUE)
     emr_filter.create("f1", "track6", expiration = 100000)
-    emr_track.create("test_track1", "user", T, "track6", keepref = T, filter = "f1")
+    emr_track.create("test_track1", "user", TRUE, "track6", keepref = TRUE, filter = "f1")
     r <- emr_extract("track1", iterator = list(7, "test_track1"), stime = 40, etime = 190)
-    emr_track.rm("test_track1", T)
+    emr_track.rm("test_track1", TRUE)
     expect_regression(r, "filter.46")
 })
 
@@ -384,7 +384,7 @@ test_that("emr_filter.attr.src fails with invalit dataframe", {
 test_that("emr_filter.attr.keepref works", {
     emr_filter.clear()
     emr_filter.create("f1", "track1", time.shift = c(-10, 20))
-    emr_filter.attr.keepref("f1", T)
+    emr_filter.attr.keepref("f1", TRUE)
     expect_true(emr_filter.attr.keepref("f1"))
 })
 
@@ -411,21 +411,21 @@ test_that("emr_filter.attr.expiration works", {
 
 test_that("emr_filter.exists works", {
     emr_filter.clear()
-    emr_filter.create("f1", "track2", keepref = F, time.shift = c(-10, 20))
-    emr_filter.create("f2", "track2", keepref = F, time.shift = c(-10, 30))
+    emr_filter.create("f1", "track2", keepref = FALSE, time.shift = c(-10, 20))
+    emr_filter.create("f2", "track2", keepref = FALSE, time.shift = c(-10, 30))
     expect_true(emr_filter.exists("f1"))
 })
 
 test_that("emr_filter.exists works", {
     emr_filter.clear()
-    emr_filter.create("f1", "track2", keepref = F, time.shift = c(-10, 20))
-    emr_filter.create("f2", "track2", keepref = F, time.shift = c(-10, 30))
+    emr_filter.create("f1", "track2", keepref = FALSE, time.shift = c(-10, 20))
+    emr_filter.create("f2", "track2", keepref = FALSE, time.shift = c(-10, 30))
     expect_false(emr_filter.exists("sdaf"))
 })
 
 test_that("emr_filter.info works", {
     emr_filter.clear()
-    emr_filter.create("f1", "track2", keepref = F, time.shift = c(-10, 20))
+    emr_filter.create("f1", "track2", keepref = FALSE, time.shift = c(-10, 20))
     expect_equal(
         emr_filter.info("f1"),
         list(
@@ -437,22 +437,22 @@ test_that("emr_filter.info works", {
 
 test_that("emr_filter.ls works", {
     emr_filter.clear()
-    emr_filter.create("f1", "track2", keepref = F, time.shift = c(-10, 20))
-    emr_filter.create("f2", "track2", keepref = F, time.shift = c(-10, 30))
+    emr_filter.create("f1", "track2", keepref = FALSE, time.shift = c(-10, 20))
+    emr_filter.create("f2", "track2", keepref = FALSE, time.shift = c(-10, 30))
     expect_equal(emr_filter.ls(), c("f1", "f2"))
 })
 
 test_that("emr_filter.ls works", {
     emr_filter.clear()
-    expect_error(emr_filter.create("f1", "track10", keepref = F, time.shift = c(-10, 20)))
-    emr_filter.create("f2", "track1", keepref = F, time.shift = c(-10, 30))
+    expect_error(emr_filter.create("f1", "track10", keepref = FALSE, time.shift = c(-10, 20)))
+    emr_filter.create("f2", "track1", keepref = FALSE, time.shift = c(-10, 30))
     expect_equal(emr_filter.ls(), "f2")
 })
 
 test_that("emr_filter.ls works", {
     emr_filter.clear()
-    emr_filter.create("f1", "track2", keepref = F, time.shift = c(-10, 20))
-    emr_filter.create("f2", "track2", keepref = F, time.shift = c(-10, 30))
+    emr_filter.create("f1", "track2", keepref = FALSE, time.shift = c(-10, 20))
+    emr_filter.create("f2", "track2", keepref = FALSE, time.shift = c(-10, 30))
     emr_filter.rm("f1")
     expect_equal(emr_filter.ls(), "f2")
 })
@@ -460,8 +460,8 @@ test_that("emr_filter.ls works", {
 test_that("emr_filter.clear works", {
     emr_filter.clear()
     expect_equal(emr_filter.ls(), character(0))
-    emr_filter.create("f1", "track2", keepref = F, time.shift = c(-10, 20))
-    emr_filter.create("f2", "track2", keepref = F, time.shift = c(-10, 30))
+    emr_filter.create("f1", "track2", keepref = FALSE, time.shift = c(-10, 20))
+    emr_filter.create("f2", "track2", keepref = FALSE, time.shift = c(-10, 30))
     emr_filter.clear()
     expect_equal(emr_filter.ls(), character(0))
 })
@@ -508,7 +508,7 @@ test_that("emr_filter.name works", {
     )
 
     expect_equal(
-        emr_filter.name("track1", keepref = F, time.shift = 10),
+        emr_filter.name("track1", keepref = FALSE, time.shift = 10),
         "f_track1.krF.ts_10"
     )
 
@@ -517,13 +517,13 @@ test_that("emr_filter.name works", {
 
 test_that("filter works with automatic naming", {
     emr_filter.clear()
-    fname <- emr_filter.create(NULL, "track1", keepref = T)
+    fname <- emr_filter.create(NULL, "track1", keepref = TRUE)
     expect_equal(fname, "f_track1.krT")
-    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = T, filter = fname), "filter.1")
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = TRUE, filter = fname), "filter.1")
 
     fname <- emr_filter.create(NULL, "track8", val = c(3, 5), time.shift = c(-10, 10))
     expect_equal(fname, "f_track8.krF.vals_3_5.ts_minus10_10")
-    expect_regression(emr_extract("track7", keepref = T, filter = fname), "filter.2")
+    expect_regression(emr_extract("track7", keepref = TRUE, filter = fname), "filter.2")
 })
 
 
@@ -533,56 +533,56 @@ test_that("emr_filter.create_from_name works", {
     fname2 <- emr_filter.create_from_name(fname)
     expect_equal(fname, fname2)
     expect_true(fname %in% emr_filter.ls())
-    expect_regression(emr_extract("track7", keepref = T, filter = fname), "filter.2")
+    expect_regression(emr_extract("track7", keepref = TRUE, filter = fname), "filter.2")
 
-    fname <- emr_filter.name("track1", keepref = T)
+    fname <- emr_filter.name("track1", keepref = TRUE)
     emr_filter.create_from_name(fname)
-    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = T, filter = fname), "filter.1")
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = TRUE, filter = fname), "filter.1")
 
     fname <- emr_filter.name("track8", expiration = 100)
     emr_filter.create_from_name(fname)
-    expect_regression(emr_extract("track7", keepref = T, filter = fname), "filter.3")
+    expect_regression(emr_extract("track7", keepref = TRUE, filter = fname), "filter.3")
 
     fname <- emr_filter.name("track8", expiration = 100, val = c(3, 5))
     emr_filter.create_from_name(fname)
-    expect_regression(emr_extract("track7", keepref = T, filter = fname), "filter.4")
+    expect_regression(emr_extract("track7", keepref = TRUE, filter = fname), "filter.4")
 
-    fname <- emr_filter.create_from_name(emr_filter.name("track1", keepref = F, time.shift = 10))
-    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = T, filter = fname), "filter.5")
+    fname <- emr_filter.create_from_name(emr_filter.name("track1", keepref = FALSE, time.shift = 10))
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = TRUE, filter = fname), "filter.5")
 
-    fname <- emr_filter.create_from_name(emr_filter.name("track1", keepref = F, time.shift = c(10, 20)))
-    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = T, filter = fname), "filter.6")
+    fname <- emr_filter.create_from_name(emr_filter.name("track1", keepref = FALSE, time.shift = c(10, 20)))
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = TRUE, filter = fname), "filter.6")
 
-    fname <- emr_filter.create_from_name(emr_filter.name("track0", keepref = T))
-    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = T, filter = glue::glue("{fname} & track1")), "filter.11")
+    fname <- emr_filter.create_from_name(emr_filter.name("track0", keepref = TRUE))
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = TRUE, filter = glue::glue("{fname} & track1")), "filter.11")
 
-    i1 <- emr_extract("track1", keepref = F)
-    expect_error(emr_filter.name(i1, keepref = F, time.shift = 10), "Cannot generate automatic filter name when source is data.frame")
+    i1 <- emr_extract("track1", keepref = FALSE)
+    expect_error(emr_filter.name(i1, keepref = FALSE, time.shift = 10), "Cannot generate automatic filter name when source is data.frame")
 
-    fname1 <- emr_filter.create_from_name(emr_filter.name("track0", keepref = F, time.shift = c(10, 50)))
-    fname2 <- emr_filter.create_from_name(emr_filter.name("track3", keepref = T))
-    expect_regression(emr_extract("track1", iterator = 1, stime = 20, etime = 5000, keepref = T, filter = glue::glue("{fname1} & {fname2}")), "filter.39")
+    fname1 <- emr_filter.create_from_name(emr_filter.name("track0", keepref = FALSE, time.shift = c(10, 50)))
+    fname2 <- emr_filter.create_from_name(emr_filter.name("track3", keepref = TRUE))
+    expect_regression(emr_extract("track1", iterator = 1, stime = 20, etime = 5000, keepref = TRUE, filter = glue::glue("{fname1} & {fname2}")), "filter.39")
 
-    fname1 <- emr_filter.create_from_name(emr_filter.name("track0", keepref = F, time.shift = c(10, 50)))
-    fname2 <- emr_filter.create_from_name(emr_filter.name("track3", keepref = F))
-    expect_regression(emr_extract("track1", iterator = 1, stime = 20, etime = 5000, keepref = T, filter = glue::glue("{fname1} & {fname2}")), "filter.40")
+    fname1 <- emr_filter.create_from_name(emr_filter.name("track0", keepref = FALSE, time.shift = c(10, 50)))
+    fname2 <- emr_filter.create_from_name(emr_filter.name("track3", keepref = FALSE))
+    expect_regression(emr_extract("track1", iterator = 1, stime = 20, etime = 5000, keepref = TRUE, filter = glue::glue("{fname1} & {fname2}")), "filter.40")
 
-    emr_filter.create("f1", "track2", keepref = F, time.shift = c(-10, 20))
-    fname <- emr_filter.name("track2", keepref = F, time.shift = c(-10, 20))
+    emr_filter.create("f1", "track2", keepref = FALSE, time.shift = c(-10, 20))
+    fname <- emr_filter.name("track2", keepref = FALSE, time.shift = c(-10, 20))
     emr_filter.create_from_name(fname)
     expect_equal(emr_filter.info("f1"), emr_filter.info(fname))
 })
 
-expect_that("emr_filter.create_from_name works when track name has '.'", {
-    emr_track.create("track.1", "user", T, "track1", keepref = TRUE)
+test_that("emr_filter.create_from_name works when track name has '.'", {
+    emr_track.create("track.1", "user", TRUE, "track1", keepref = TRUE)
     withr::defer(emr_track.rm("track.1", TRUE))
-    fname <- emr_filter.create_from_name(emr_filter.name("track.1", keepref = T))
+    fname <- emr_filter.create_from_name(emr_filter.name("track.1", keepref = TRUE))
     expect_equal(emr_filter.info(fname)$src, "track.1")
 })
 
-expect_that("emr_filter.create_from_name works when track name has '_'", {
-    emr_track.create("track_1", "user", T, "track1", keepref = TRUE)
+test_that("emr_filter.create_from_name works when track name has '_'", {
+    emr_track.create("track_1", "user", TRUE, "track1", keepref = TRUE)
     withr::defer(emr_track.rm("track_1", TRUE))
-    fname <- emr_filter.create_from_name(emr_filter.name("track_1", keepref = T))
+    fname <- emr_filter.create_from_name(emr_filter.name("track_1", keepref = TRUE))
     expect_equal(emr_filter.info(fname)$src, "track_1")
 })

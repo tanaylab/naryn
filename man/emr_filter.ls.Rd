@@ -31,7 +31,7 @@ arguments all named filters are returned.
 
 emr_db.init_examples()
 emr_filter.create("f1", "dense_track", time.shift = c(2, 4))
-emr_filter.create("f2", "dense_track", keepref = T)
+emr_filter.create("f2", "dense_track", keepref = TRUE)
 emr_filter.ls()
 emr_filter.ls("*2")
 }

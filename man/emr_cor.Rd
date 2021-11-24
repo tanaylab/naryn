@@ -12,7 +12,7 @@ emr_cor(
   stime = NULL,
   etime = NULL,
   iterator = NULL,
-  keepref = F,
+  keepref = FALSE,
   filter = NULL,
   dataframe = FALSE,
   names = NULL
@@ -152,13 +152,13 @@ emr_extract("emr_time2dayofmonth(EMR_TIME)", iterator = "sparse_track") \cr
 emr_db.init_examples()
 emr_cor("categorical_track", c(0, 2, 5),
     cor.exprs = c("sparse_track", "1/dense_track"),
-    include.lowest = T, iterator = "categorical_track",
-    keepref = T
+    include.lowest = TRUE, iterator = "categorical_track",
+    keepref = TRUE
 )
 emr_cor("categorical_track", c(0, 2, 5),
     cor.exprs = c("sparse_track", "1/dense_track"),
-    include.lowest = T, iterator = "categorical_track",
-    keepref = T,
+    include.lowest = TRUE, iterator = "categorical_track",
+    keepref = TRUE,
     dataframe = TRUE
 )
 }

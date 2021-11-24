@@ -140,8 +140,8 @@ emr_extract("emr_time2dayofmonth(EMR_TIME)", iterator = "sparse_track") \cr
 \examples{
 
 emr_db.init_examples()
-emr_dist("sparse_track", c(0, 15, 20, 30, 40, 50), keepref = T)
-emr_dist("sparse_track", c(0, 15, 20, 30, 40, 50), keepref = T, dataframe = TRUE)
+emr_dist("sparse_track", c(0, 15, 20, 30, 40, 50), keepref = TRUE)
+emr_dist("sparse_track", c(0, 15, 20, 30, 40, 50), keepref = TRUE, dataframe = TRUE)
 }
 \seealso{
 \code{\link{emr_cor}}, \code{\link{cut}}

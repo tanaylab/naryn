@@ -218,7 +218,7 @@ test_that("read_only is also overridden when overriding a track", {
     emr_track.readonly("stam1_1", readonly = TRUE)
     expect_true(emr_track.readonly("stam1_1"))
 
-    emr_track.create(track = "stam1_1", space = EMR_UROOT, categorical = FALSE, keepref = F, exp = "stam1_1", override = TRUE)
+    emr_track.create(track = "stam1_1", space = EMR_UROOT, categorical = FALSE, keepref = FALSE, exp = "stam1_1", override = TRUE)
 
     expect_false(emr_track.exists("stam1_1", EMR_ROOTS[1]))
     expect_true(emr_track.exists("stam1_1", EMR_ROOTS[4]))

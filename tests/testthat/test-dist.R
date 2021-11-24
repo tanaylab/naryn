@@ -12,8 +12,8 @@ test_that("emr_dist works", {
     )
 })
 
-test_that("emr_dist works keepref=T", {
-    dst <- emr_dist("track2", c(100, 300, 500, 900, 2000, 3000), keepref = T)
+test_that("emr_dist works keepref=TRUE", {
+    dst <- emr_dist("track2", c(100, 300, 500, 900, 2000, 3000), keepref = TRUE)
     expect_equal(
         dst,
         structure(c(

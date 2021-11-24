@@ -2,7 +2,7 @@
 #'
 #' @export emr_db.init
 #' @rdname emr_db.connect
-emr_db.init <- function(global.dir = NULL, user.dir = NULL, global.load.on.demand = T, user.load.on.demand = T, do.relaod = F) {
+emr_db.init <- function(global.dir = NULL, user.dir = NULL, global.load.on.demand = TRUE, user.load.on.demand = TRUE, do.relaod = FALSE) {
     lifecycle::deprecate_soft(
         when = "2.6.2",
         what = "emr_db.init()",
@@ -96,9 +96,9 @@ emr_db.init <- function(global.dir = NULL, user.dir = NULL, global.load.on.deman
 #' \code{\link{emr_filter.ls}}
 #' @keywords ~db ~data ~database
 #' @export emr_db.connect
-emr_db.connect <- function(db_dirs = NULL, load_on_demand = NULL, do_relaod = F) {
+emr_db.connect <- function(db_dirs = NULL, load_on_demand = NULL, do_relaod = FALSE) {
     if (is.null(db_dirs)) {
-        stop("Usage: emr_db.connect(db_dirs, load_on_demand = NULL, do_relaod = F)", call. = FALSE)
+        stop("Usage: emr_db.connect(db_dirs, load_on_demand = NULL, do_relaod = FALSE)", call. = FALSE)
     }
 
     db_dirs <- normalizePath(db_dirs) # get absolute path
@@ -169,11 +169,11 @@ emr_db.init_examples <- function() {
 #' @keywords ~db
 #' @export emr_db.reload
 emr_db.reload <- function() {
-    success <- F
+    success <- FALSE
     tryCatch(
         {
             .emr_call("emr_dbreload", silent = TRUE)
-            success <- T
+            success <- TRUE
         },
         finally = {
             if (!success) {
@@ -211,7 +211,7 @@ emr_db.reload <- function() {
 #' @export emr_db.subset
 emr_db.subset <- function(src = "", fraction = NULL, complementary = NULL) {
     if (!is.null(src) && src == "") {
-        stop("Usage: emr_db.subset(src, fraction, complementary)", call. = F)
+        stop("Usage: emr_db.subset(src, fraction, complementary)", call. = FALSE)
     }
     .emr_checkroot()
 

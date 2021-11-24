@@ -8,7 +8,7 @@ test_that("function min does not accept any parameters", {
 })
 
 test_that("Function min is not supported when keepref is 'TRUE'", {
-    expect_error(emr_vtrack.create("v1", "track1", func = "min", keepref = T))
+    expect_error(emr_vtrack.create("v1", "track1", func = "min", keepref = TRUE))
 })
 
 test_that("Function value is not supported with quantitative data", {
@@ -124,194 +124,194 @@ test_that("emr_vtrack works", {
 
 test_that("emr_vtrack works", {
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track1", keepref = T)
+    emr_vtrack.create("v1", "track1", keepref = TRUE)
     expect_regression(emr_extract("v1"), "vtrack.16")
 })
 
 test_that("emr_vtrack works", {
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track1", keepref = T)
-    expect_regression(emr_extract("v1", keepref = T), "vtrack.17")
+    emr_vtrack.create("v1", "track1", keepref = TRUE)
+    expect_regression(emr_extract("v1", keepref = TRUE), "vtrack.17")
 })
 
 test_that("Function max is not supported when keepref is 'TRUE'", {
-    expect_error(emr_vtrack.create("v1", "track1", func = "max", keepref = T))
+    expect_error(emr_vtrack.create("v1", "track1", func = "max", keepref = TRUE))
 })
 
 test_that("Time shift is not allowed when keepref is 'TRUE'", {
-    expect_error(emr_vtrack.create("v1", "track1", func = "avg", keepref = T, time.shift = 2))
+    expect_error(emr_vtrack.create("v1", "track1", func = "avg", keepref = TRUE, time.shift = 2))
 })
 
 test_that("emr_vtrack works", {
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track1", func = "percentile.upper", keepref = T)
-    expect_regression(emr_extract("v1", keepref = T), "vtrack.18")
+    emr_vtrack.create("v1", "track1", func = "percentile.upper", keepref = TRUE)
+    expect_regression(emr_extract("v1", keepref = TRUE), "vtrack.18")
 })
 
 test_that("emr_vtrack works", {
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track1", func = "percentile.lower", keepref = T)
-    expect_regression(emr_extract("v1", keepref = T), "vtrack.19")
+    emr_vtrack.create("v1", "track1", func = "percentile.lower", keepref = TRUE)
+    expect_regression(emr_extract("v1", keepref = TRUE), "vtrack.19")
 })
 
 test_that("emr_vtrack works", {
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track2", func = "avg", keepref = F, time.shift = 2)
-    expect_regression(emr_extract("v1", keepref = T), "vtrack.20")
+    emr_vtrack.create("v1", "track2", func = "avg", keepref = FALSE, time.shift = 2)
+    expect_regression(emr_extract("v1", keepref = TRUE), "vtrack.20")
 })
 
 test_that("emr_vtrack works", {
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track2", func = "avg", keepref = F, time.shift = c(100000, 200000))
-    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = T), "vtrack.21")
+    emr_vtrack.create("v1", "track2", func = "avg", keepref = FALSE, time.shift = c(100000, 200000))
+    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = TRUE), "vtrack.21")
 })
 
 test_that("emr_vtrack works", {
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track2", func = "avg", keepref = F, time.shift = c(-10, 20))
-    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = T), "vtrack.22")
+    emr_vtrack.create("v1", "track2", func = "avg", keepref = FALSE, time.shift = c(-10, 20))
+    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = TRUE), "vtrack.22")
 })
 
 test_that("emr_vtrack works", {
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track2", func = "min", keepref = F, time.shift = c(-10, 20))
-    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = T), "vtrack.23")
+    emr_vtrack.create("v1", "track2", func = "min", keepref = FALSE, time.shift = c(-10, 20))
+    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = TRUE), "vtrack.23")
 })
 
 test_that("emr_vtrack works", {
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track2", func = "max", keepref = F, time.shift = c(-10, 20))
-    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = T), "vtrack.24")
+    emr_vtrack.create("v1", "track2", func = "max", keepref = FALSE, time.shift = c(-10, 20))
+    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = TRUE), "vtrack.24")
 })
 
 test_that("emr_vtrack works", {
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track2", func = "earliest", keepref = F, time.shift = c(-10, 20))
-    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = T), "vtrack.25")
+    emr_vtrack.create("v1", "track2", func = "earliest", keepref = FALSE, time.shift = c(-10, 20))
+    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = TRUE), "vtrack.25")
 })
 
 test_that("emr_vtrack works", {
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track2", func = "latest", keepref = F, time.shift = c(-10, 20))
-    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = T), "vtrack.26")
+    emr_vtrack.create("v1", "track2", func = "latest", keepref = FALSE, time.shift = c(-10, 20))
+    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = TRUE), "vtrack.26")
 })
 
 test_that("emr_vtrack works", {
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track2", func = "closest", keepref = F, time.shift = c(-10, 20))
-    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = T), "vtrack.27")
+    emr_vtrack.create("v1", "track2", func = "closest", keepref = FALSE, time.shift = c(-10, 20))
+    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = TRUE), "vtrack.27")
 })
 
 test_that("emr_vtrack works", {
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track2", func = "earliest.time", keepref = F, time.shift = c(-10, 20))
-    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = T), "vtrack.28")
+    emr_vtrack.create("v1", "track2", func = "earliest.time", keepref = FALSE, time.shift = c(-10, 20))
+    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = TRUE), "vtrack.28")
 })
 
 test_that("emr_vtrack works", {
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track2", func = "latest.time", keepref = F, time.shift = c(-10, 20))
-    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = T), "vtrack.29")
+    emr_vtrack.create("v1", "track2", func = "latest.time", keepref = FALSE, time.shift = c(-10, 20))
+    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = TRUE), "vtrack.29")
 })
 
 test_that("emr_vtrack works", {
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track2", func = "closest.earlier.time", keepref = F, time.shift = c(-10, 20))
-    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = T), "vtrack.30")
+    emr_vtrack.create("v1", "track2", func = "closest.earlier.time", keepref = FALSE, time.shift = c(-10, 20))
+    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = TRUE), "vtrack.30")
 })
 
 test_that("emr_vtrack works", {
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track2", func = "closest.later.time", keepref = F, time.shift = c(-10, 20))
-    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = T), "vtrack.31")
+    emr_vtrack.create("v1", "track2", func = "closest.later.time", keepref = FALSE, time.shift = c(-10, 20))
+    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = TRUE), "vtrack.31")
 })
 
 test_that("function quantile requires an additional parameter - percentile", {
-    expect_error(emr_vtrack.create("v1", "track2", func = "quantile", keepref = F, time.shift = c(-10, 20)))
+    expect_error(emr_vtrack.create("v1", "track2", func = "quantile", keepref = FALSE, time.shift = c(-10, 20)))
 })
 
 test_that("emr_vtrack works", {
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track2", func = "quantile", keepref = F, time.shift = c(-10, 20), params = 0.5)
-    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = T), "vtrack.32")
+    emr_vtrack.create("v1", "track2", func = "quantile", keepref = FALSE, time.shift = c(-10, 20), params = 0.5)
+    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = TRUE), "vtrack.32")
 })
 
 test_that("emr_vtrack works", {
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track2", func = "sum", keepref = F, time.shift = c(-10, 20))
-    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = T), "vtrack.33")
+    emr_vtrack.create("v1", "track2", func = "sum", keepref = FALSE, time.shift = c(-10, 20))
+    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = TRUE), "vtrack.33")
 })
 
 test_that("emr_vtrack works", {
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track2", func = "lm.intercept", keepref = F, time.shift = c(-10, 20))
-    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = T), "vtrack.34")
+    emr_vtrack.create("v1", "track2", func = "lm.intercept", keepref = FALSE, time.shift = c(-10, 20))
+    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = TRUE), "vtrack.34")
 })
 
 test_that("emr_vtrack works", {
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track2", func = "lm.slope", keepref = F, time.shift = c(-10, 20))
-    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = T), "vtrack.35")
+    emr_vtrack.create("v1", "track2", func = "lm.slope", keepref = FALSE, time.shift = c(-10, 20))
+    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = TRUE), "vtrack.35")
 })
 
 test_that("emr_vtrack works", {
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track2", func = "percentile.upper", keepref = F, time.shift = c(-10, 20))
-    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = T), "vtrack.36")
+    emr_vtrack.create("v1", "track2", func = "percentile.upper", keepref = FALSE, time.shift = c(-10, 20))
+    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = TRUE), "vtrack.36")
 })
 
 test_that("emr_vtrack works", {
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track2", func = "percentile.upper.min", keepref = F, time.shift = c(-10, 20))
-    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = T), "vtrack.37")
+    emr_vtrack.create("v1", "track2", func = "percentile.upper.min", keepref = FALSE, time.shift = c(-10, 20))
+    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = TRUE), "vtrack.37")
 })
 
 test_that("emr_vtrack works", {
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track2", func = "percentile.upper.max", keepref = F, time.shift = c(-10, 20))
-    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = T), "vtrack.38")
+    emr_vtrack.create("v1", "track2", func = "percentile.upper.max", keepref = FALSE, time.shift = c(-10, 20))
+    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = TRUE), "vtrack.38")
 })
 
 test_that("emr_vtrack works", {
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track2", func = "percentile.lower", keepref = F, time.shift = c(-10, 20))
-    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = T), "vtrack.39")
+    emr_vtrack.create("v1", "track2", func = "percentile.lower", keepref = FALSE, time.shift = c(-10, 20))
+    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = TRUE), "vtrack.39")
 })
 
 test_that("emr_vtrack works", {
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track2", func = "percentile.lower.min", keepref = F, time.shift = c(-10, 20))
-    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = T), "vtrack.40")
+    emr_vtrack.create("v1", "track2", func = "percentile.lower.min", keepref = FALSE, time.shift = c(-10, 20))
+    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = TRUE), "vtrack.40")
 })
 
 test_that("emr_vtrack works", {
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track2", func = "percentile.lower.max", keepref = F, time.shift = c(-10, 20))
-    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = T), "vtrack.41")
+    emr_vtrack.create("v1", "track2", func = "percentile.lower.max", keepref = FALSE, time.shift = c(-10, 20))
+    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = TRUE), "vtrack.41")
 })
 
 test_that("emr_vtrack works", {
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track2", func = "dt1.earliest", keepref = F, time.shift = c(-10, 20))
-    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = T), "vtrack.42")
+    emr_vtrack.create("v1", "track2", func = "dt1.earliest", keepref = FALSE, time.shift = c(-10, 20))
+    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = TRUE), "vtrack.42")
 })
 
 test_that("emr_vtrack works", {
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track2", func = "dt1.latest", keepref = F, time.shift = c(-10, 20))
-    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = T), "vtrack.43")
+    emr_vtrack.create("v1", "track2", func = "dt1.latest", keepref = FALSE, time.shift = c(-10, 20))
+    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = TRUE), "vtrack.43")
 })
 
 test_that("emr_vtrack works", {
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track2", func = "dt2.earliest", keepref = F, time.shift = c(-10, 20))
-    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = T), "vtrack.44")
+    emr_vtrack.create("v1", "track2", func = "dt2.earliest", keepref = FALSE, time.shift = c(-10, 20))
+    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = TRUE), "vtrack.44")
 })
 
 test_that("emr_vtrack works", {
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track2", func = "dt2.latest", keepref = F, time.shift = c(-10, 20))
-    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = T), "vtrack.45")
+    emr_vtrack.create("v1", "track2", func = "dt2.latest", keepref = FALSE, time.shift = c(-10, 20))
+    expect_regression(emr_extract("v1", stime = 10, etime = 500, keepref = TRUE), "vtrack.45")
 })
 
 test_that("emr_vtrack works", {
@@ -324,7 +324,7 @@ test_that("emr_vtrack works", {
 
 test_that("emr_vtrack works", {
     set.seed(0)
-    id2id <- data.frame(id1 = sample(0:999, 500), id2 = sample(0:999, 500), time.shift = sample(-100:200, 500, replace = T))
+    id2id <- data.frame(id1 = sample(0:999, 500), id2 = sample(0:999, 500), time.shift = sample(-100:200, 500, replace = TRUE))
     emr_vtrack.clear()
     emr_vtrack.create("v1", "track1", func = "avg", id.map = id2id)
     expect_regression(emr_extract("v1", iterator = "track2"), "vtrack.47")
@@ -356,78 +356,78 @@ test_that("emr_vtrack works", {
 
 test_that("emr_vtrack works", {
     emr_filter.clear()
-    emr_filter.create("f1", "track0", keepref = T)
+    emr_filter.create("f1", "track0", keepref = TRUE)
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track1", filter = "!f1", keepref = T)
-    expect_regression(emr_extract("v1", keepref = T), "vtrack.52")
+    emr_vtrack.create("v1", "track1", filter = "!f1", keepref = TRUE)
+    expect_regression(emr_extract("v1", keepref = TRUE), "vtrack.52")
 })
 
 
 test_that("emr_vtrack works", {
     emr_filter.clear()
-    emr_filter.create("f1", "track0", keepref = T)
+    emr_filter.create("f1", "track0", keepref = TRUE)
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track1", filter = "f1", keepref = T)
-    expect_regression(emr_extract("v1", keepref = T), "vtrack.53")
+    emr_vtrack.create("v1", "track1", filter = "f1", keepref = TRUE)
+    expect_regression(emr_extract("v1", keepref = TRUE), "vtrack.53")
 })
 
 test_that("emr_vtrack works", {
     emr_filter.clear()
-    emr_filter.create("f1", "track0", keepref = T)
+    emr_filter.create("f1", "track0", keepref = TRUE)
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track1", filter = "!f1", keepref = T, func = "percentile.upper")
-    expect_regression(emr_extract("v1", keepref = T), "vtrack.54")
+    emr_vtrack.create("v1", "track1", filter = "!f1", keepref = TRUE, func = "percentile.upper")
+    expect_regression(emr_extract("v1", keepref = TRUE), "vtrack.54")
 })
 
 test_that("emr_vtrack works", {
     emr_filter.clear()
-    emr_filter.create("f1", "track0", keepref = T)
+    emr_filter.create("f1", "track0", keepref = TRUE)
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track1", filter = "f1", keepref = T, func = "percentile.upper")
-    expect_regression(emr_extract("v1", keepref = T), "vtrack.55")
+    emr_vtrack.create("v1", "track1", filter = "f1", keepref = TRUE, func = "percentile.upper")
+    expect_regression(emr_extract("v1", keepref = TRUE), "vtrack.55")
 })
 
 test_that("Function max is not supported with categorical data", {
     emr_vtrack.clear()
-    r <- emr_extract("track0", keepref = T, names = "value")
-    expect_error(emr_vtrack.create("v1", list(r, T), func = "max", time.shift = c(-10, 20)))
+    r <- emr_extract("track0", keepref = TRUE, names = "value")
+    expect_error(emr_vtrack.create("v1", list(r, TRUE), func = "max", time.shift = c(-10, 20)))
 })
 
 test_that("emr_vtrack works", {
     emr_vtrack.clear()
-    r <- emr_extract("track0", keepref = T, names = "value")
-    emr_vtrack.create("v1", list(r, F), func = "max", time.shift = c(-10, 20))
-    expect_regression(emr_extract("v1", keepref = T), "vtrack.56")
+    r <- emr_extract("track0", keepref = TRUE, names = "value")
+    emr_vtrack.create("v1", list(r, FALSE), func = "max", time.shift = c(-10, 20))
+    expect_regression(emr_extract("v1", keepref = TRUE), "vtrack.56")
 })
 
 test_that("emr_vtrack works", {
     emr_vtrack.clear()
-    r <- emr_extract("track0", keepref = T, names = "value")
-    emr_vtrack.create("v1", list(r, T), func = "closest", time.shift = c(-10, 20))
-    expect_regression(emr_extract("v1", keepref = T), "vtrack.57")
+    r <- emr_extract("track0", keepref = TRUE, names = "value")
+    emr_vtrack.create("v1", list(r, TRUE), func = "closest", time.shift = c(-10, 20))
+    expect_regression(emr_extract("v1", keepref = TRUE), "vtrack.57")
 })
 
 test_that("emr_vtrack works", {
     emr_vtrack.clear()
-    r <- emr_extract("track0", keepref = F, names = "value")
+    r <- emr_extract("track0", keepref = FALSE, names = "value")
     r$ref <- NULL
-    emr_vtrack.create("v1", list(r, F), func = "max", time.shift = c(-10, 20))
-    expect_regression(emr_extract("v1", keepref = T), "vtrack.58")
+    emr_vtrack.create("v1", list(r, FALSE), func = "max", time.shift = c(-10, 20))
+    expect_regression(emr_extract("v1", keepref = TRUE), "vtrack.58")
 })
 
 test_that("emr_vtrack works", {
     emr_vtrack.clear()
-    r <- emr_extract("track0", keepref = F, names = "value")
+    r <- emr_extract("track0", keepref = FALSE, names = "value")
     r$ref <- NULL
-    emr_vtrack.create("v1", list(r, T), func = "closest", time.shift = c(-10, 20))
-    expect_regression(emr_extract("v1", keepref = T), "vtrack.59")
+    emr_vtrack.create("v1", list(r, TRUE), func = "closest", time.shift = c(-10, 20))
+    expect_regression(emr_extract("v1", keepref = TRUE), "vtrack.59")
 })
 
 test_that("emr_vtrack works", {
     emr_vtrack.clear()
-    r <- emr_extract("track0", keepref = F, names = "value")
-    emr_vtrack.create("v1", list(r, F), func = "percentile.upper", time.shift = c(-10, 20))
-    expect_regression(emr_extract("v1", keepref = T), "vtrack.60")
+    r <- emr_extract("track0", keepref = FALSE, names = "value")
+    emr_vtrack.create("v1", list(r, FALSE), func = "percentile.upper", time.shift = c(-10, 20))
+    expect_regression(emr_extract("v1", keepref = TRUE), "vtrack.60")
 })
 
 test_that("emr_vtrack works with a single NA value as params", {
@@ -458,22 +458,22 @@ test_that("emr_vtrack fails when params are invalid", {
 
 test_that("filter cannot be used when 'src' is a data frame", {
     emr_vtrack.clear()
-    r <- emr_extract("track0", keepref = F, names = "value")
-    expect_error(emr_vtrack.create("v1", list(r, F), func = "percentile.upper", time.shift = c(-10, 20), filter = "track1"))
+    r <- emr_extract("track0", keepref = FALSE, names = "value")
+    expect_error(emr_vtrack.create("v1", list(r, FALSE), func = "percentile.upper", time.shift = c(-10, 20), filter = "track1"))
 })
 
 test_that("Unable to implicitly set iterator policy with vtracks", {
     emr_vtrack.clear()
-    r <- emr_extract("track0", keepref = F, names = "value")
-    emr_vtrack.create("v1", list(r, F), func = "percentile.upper", time.shift = c(-10, 20))
-    expect_error(emr_extract(c("v1", "track1"), keepref = T))
+    r <- emr_extract("track0", keepref = FALSE, names = "value")
+    emr_vtrack.create("v1", list(r, FALSE), func = "percentile.upper", time.shift = c(-10, 20))
+    expect_error(emr_extract(c("v1", "track1"), keepref = TRUE))
 })
 
 test_that("Unable to implicitly set iterator policy with logical tracks", {
     emr_vtrack.clear()
     emr_track.logical.create("logical_track1", "ph1", c(15, 16))
     withr::defer(emr_track.logical.rm("logical_track1", force = TRUE))
-    expect_error(emr_extract(c("logical_track1", "track1"), keepref = T))
+    expect_error(emr_extract(c("logical_track1", "track1"), keepref = TRUE))
 })
 
 
@@ -494,8 +494,8 @@ test_that("emr_vtrack.attr.src works", {
 test_that("Invalid source used in a virtual track", {
     emr_vtrack.clear()
     expect_error(emr_vtrack.create("v1", "track10"))
-    r <- emr_extract("track0", keepref = F, names = "value")
-    expect_error(emr_vtrack.attr.src("v1", list(head(r), F)))
+    r <- emr_extract("track0", keepref = FALSE, names = "value")
+    expect_error(emr_vtrack.attr.src("v1", list(head(r), FALSE)))
     expect_error(emr_vtrack.attr.src("v1"))
 })
 
@@ -516,7 +516,7 @@ test_that("emr_vtrack.attr.params works", {
 test_that("emr_vtrack.attr.keepref works", {
     emr_vtrack.clear()
     emr_vtrack.create("v1", "track1")
-    emr_vtrack.attr.keepref("v1", T)
+    emr_vtrack.attr.keepref("v1", TRUE)
     expect_true(emr_vtrack.attr.keepref("v1"))
 })
 
@@ -550,21 +550,21 @@ test_that("emr_vtrack.attr.filter works", {
 
 test_that("emr_vtrack.exists works", {
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track2", func = "dt2.latest", keepref = F, time.shift = c(-10, 20))
-    emr_vtrack.create("v2", "track2", func = "dt2.latest", keepref = F, time.shift = c(-10, 20))
+    emr_vtrack.create("v1", "track2", func = "dt2.latest", keepref = FALSE, time.shift = c(-10, 20))
+    emr_vtrack.create("v2", "track2", func = "dt2.latest", keepref = FALSE, time.shift = c(-10, 20))
     expect_true(emr_vtrack.exists("v1"))
 })
 
 test_that("emr_vtrack.exists works", {
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track2", func = "dt2.latest", keepref = F, time.shift = c(-10, 20))
-    emr_vtrack.create("v2", "track2", func = "dt2.latest", keepref = F, time.shift = c(-10, 20))
+    emr_vtrack.create("v1", "track2", func = "dt2.latest", keepref = FALSE, time.shift = c(-10, 20))
+    emr_vtrack.create("v2", "track2", func = "dt2.latest", keepref = FALSE, time.shift = c(-10, 20))
     expect_false(emr_vtrack.exists("sdaf"))
 })
 
 test_that("emr_vtrack.info works", {
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track2", func = "dt2.latest", keepref = F, time.shift = c(-10, 20))
+    emr_vtrack.create("v1", "track2", func = "dt2.latest", keepref = FALSE, time.shift = c(-10, 20))
     expect_equal(
         emr_vtrack.info("v1"),
         list(
@@ -576,8 +576,8 @@ test_that("emr_vtrack.info works", {
 
 test_that("emr_vtrack.ls works", {
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track2", func = "dt2.latest", keepref = F, time.shift = c(-10, 20))
-    emr_vtrack.create("v2", "track2", func = "dt2.latest", keepref = F, time.shift = c(-10, 20))
+    emr_vtrack.create("v1", "track2", func = "dt2.latest", keepref = FALSE, time.shift = c(-10, 20))
+    emr_vtrack.create("v2", "track2", func = "dt2.latest", keepref = FALSE, time.shift = c(-10, 20))
     expect_equal(emr_vtrack.ls(), c("v1", "v2"))
 })
 
@@ -590,8 +590,8 @@ test_that("emr_vtrack.ls works", {
 
 test_that("emr_vtrack.ls works", {
     emr_vtrack.clear()
-    emr_vtrack.create("v1", "track2", func = "dt2.latest", keepref = F, time.shift = c(-10, 20))
-    emr_vtrack.create("v2", "track2", func = "dt2.latest", keepref = F, time.shift = c(-10, 20))
+    emr_vtrack.create("v1", "track2", func = "dt2.latest", keepref = FALSE, time.shift = c(-10, 20))
+    emr_vtrack.create("v2", "track2", func = "dt2.latest", keepref = FALSE, time.shift = c(-10, 20))
     emr_vtrack.rm("v1")
     expect_equal(emr_vtrack.ls(), "v2")
 })
@@ -617,8 +617,8 @@ test_that("vtrack and extract return the same", {
 test_that("emr_vtrack.clear works", {
     emr_vtrack.clear()
     expect_equal(emr_vtrack.ls(), character(0))
-    emr_vtrack.create("v1", "track2", func = "dt2.latest", keepref = F, time.shift = c(-10, 20))
-    emr_vtrack.create("v2", "track2", func = "dt2.latest", keepref = F, time.shift = c(-10, 20))
+    emr_vtrack.create("v1", "track2", func = "dt2.latest", keepref = FALSE, time.shift = c(-10, 20))
+    emr_vtrack.create("v2", "track2", func = "dt2.latest", keepref = FALSE, time.shift = c(-10, 20))
     emr_vtrack.clear()
     expect_equal(emr_vtrack.ls(), character(0))
 })

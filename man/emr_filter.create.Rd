@@ -61,7 +61,7 @@ Note: 'time.shift' can be used only when 'keepref' is 'FALSE'.
 
 emr_db.init_examples()
 emr_filter.create("f1", "dense_track", time.shift = c(2, 4))
-emr_filter.create("f2", "dense_track", keepref = T)
+emr_filter.create("f2", "dense_track", keepref = TRUE)
 emr_extract("sparse_track", filter = "!f1 & f2")
 }
 \seealso{

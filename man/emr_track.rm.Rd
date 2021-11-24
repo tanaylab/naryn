@@ -4,7 +4,7 @@
 \alias{emr_track.rm}
 \title{Deletes a track}
 \usage{
-emr_track.rm(track, force = F)
+emr_track.rm(track, force = FALSE)
 }
 \arguments{
 \item{track}{track name}

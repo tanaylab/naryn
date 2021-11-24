@@ -12,7 +12,7 @@
 
 .emr_checkroot <- function() {
     if (!exists("EMR_GROOT", envir = .GlobalEnv) || is.null(get("EMR_GROOT", envir = .GlobalEnv))) {
-        stop("Database root directory is not set. Please call emr_db.init().", call. = F)
+        stop("Database root directory is not set. Please call emr_db.init().", call. = FALSE)
     }
 }
 

@@ -9,7 +9,7 @@
 
 .emr_filter.get <- function(filterstr) {
     if (!emr_filter.exists(filterstr)) {
-        stop(sprintf("Filter %s does not exist", filterstr), call. = F)
+        stop(sprintf("Filter %s does not exist", filterstr), call. = FALSE)
     }
 
     filter <- get("EMR_FILTERS", envir = .GlobalEnv)[[filterstr]]
@@ -53,7 +53,7 @@
 #' @export
 emr_filter.name <- function(src, keepref = FALSE, time.shift = NULL, val = NULL, expiration = NULL) {
     if (!is.character(src)) {
-        stop("Cannot generate automatic filter name when source is data.frame", call. = F)
+        stop("Cannot generate automatic filter name when source is data.frame", call. = FALSE)
     }
 
     if (keepref) {
@@ -74,7 +74,7 @@ emr_filter.name <- function(src, keepref = FALSE, time.shift = NULL, val = NULL,
         } else if (length(time.shift) == 2) {
             time.shift_str <- glue::glue("ts_{time.shift[1]}_{time.shift[2]}.")
         } else {
-            stop("cannot parse time.shift argument", .call = F)
+            stop("cannot parse time.shift argument", .call = FALSE)
         }
     } else {
         time.shift_str <- ""
@@ -116,7 +116,7 @@ emr_filter.create_from_name <- function(filter) {
     parsed_str <- stringr::str_match(filter, glue::glue("{parsed_str[, 1]}([TF])\\.?"))
     keepref <- as.logical(parsed_str[, 2])
     if (is.na(keepref)) {
-        stop("Couldn't find keepref. Did you create the name using emr_track.name?", call. = F)
+        stop("Couldn't find keepref. Did you create the name using emr_track.name?", call. = FALSE)
     }
 
     # vals
@@ -129,7 +129,7 @@ emr_filter.create_from_name <- function(filter) {
         val <- gsub("minus", "-", val)
         val <- as.numeric(val)
         if (any(is.na(val))) {
-            stop("Couldn't parse values. Did you create the name using emr_track.name?", call. = F)
+            stop("Couldn't parse values. Did you create the name using emr_track.name?", call. = FALSE)
         }
     }
 
@@ -143,7 +143,7 @@ emr_filter.create_from_name <- function(filter) {
         time.shift <- gsub("minus", "-", time.shift)
         time.shift <- as.numeric(time.shift)
         if (any(is.na(time.shift))) {
-            stop("Couldn't parse time.shift. Did you create the name using emr_track.name?", call. = F)
+            stop("Couldn't parse time.shift. Did you create the name using emr_track.name?", call. = FALSE)
         }
     }
 
@@ -157,7 +157,7 @@ emr_filter.create_from_name <- function(filter) {
         expiration <- gsub("minus", "-", expiration)
         expiration <- as.numeric(expiration)
         if (any(is.na(expiration))) {
-            stop("Couldn't parse expiration. Did you create the name using emr_track.name?", call. = F)
+            stop("Couldn't parse expiration. Did you create the name using emr_track.name?", call. = FALSE)
         }
     }
 
@@ -207,12 +207,12 @@ emr_filter.create_from_name <- function(filter) {
 #'
 #' emr_db.init_examples()
 #' emr_filter.create("f1", "dense_track", time.shift = c(2, 4))
-#' emr_filter.create("f2", "dense_track", keepref = T)
+#' emr_filter.create("f2", "dense_track", keepref = TRUE)
 #' emr_extract("sparse_track", filter = "!f1 & f2")
 #' @export emr_filter.create
 emr_filter.create <- function(filter, src, keepref = FALSE, time.shift = NULL, val = NULL, expiration = NULL) {
     if (missing(filter) || missing(src)) {
-        stop("Usage: emr_filter.create(filter, src, keepref = F, time.shift = NULL, val = NULL, expiration = NULL)", call. = F)
+        stop("Usage: emr_filter.create(filter, src, keepref = FALSE, time.shift = NULL, val = NULL, expiration = NULL)", call. = FALSE)
     }
     .emr_checkroot()
 
@@ -223,7 +223,7 @@ emr_filter.create <- function(filter, src, keepref = FALSE, time.shift = NULL, v
     }
 
     if (filter != make.names(filter)) {
-        stop(sprintf("\"%s\" is not a syntactically valid name for a variable", filter), call. = F)
+        stop(sprintf("\"%s\" is not a syntactically valid name for a variable", filter), call. = FALSE)
     }
 
     if (!exists("EMR_FILTERS", envir = .GlobalEnv)) {
@@ -231,11 +231,11 @@ emr_filter.create <- function(filter, src, keepref = FALSE, time.shift = NULL, v
     }
 
     if (emr_track.exists(filter)) {
-        stop(sprintf("Track %s already exists", filter), call. = F)
+        stop(sprintf("Track %s already exists", filter), call. = FALSE)
     }
 
     if (emr_vtrack.exists(filter)) {
-        stop(sprintf("Virtual track %s already exists", filter), call. = F)
+        stop(sprintf("Virtual track %s already exists", filter), call. = FALSE)
     }
 
 
@@ -317,14 +317,14 @@ emr_filter.create <- function(filter, src, keepref = FALSE, time.shift = NULL, v
 #' @export emr_filter.attr.src
 emr_filter.attr.src <- function(filter, src) {
     if (missing(filter)) {
-        stop("Usage: emr_filter.attr.src(filter, src)", call. = F)
+        stop("Usage: emr_filter.attr.src(filter, src)", call. = FALSE)
     }
     .emr_checkroot()
 
     filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[filter]]
 
     if (is.null(filter.var)) {
-        stop(sprintf("Filter \"%s\" does not exist", filter), call. = F)
+        stop(sprintf("Filter \"%s\" does not exist", filter), call. = FALSE)
     }
 
     is_logical_filter <- !is.null(filter.var$logical)
@@ -368,21 +368,21 @@ emr_filter.attr.src <- function(filter, src) {
 
 emr_filter.attr.keepref <- function(filter, keepref) {
     if (missing(filter)) {
-        stop("Usage: emr_filter.attr.keepref(filter, keepref)", call. = F)
+        stop("Usage: emr_filter.attr.keepref(filter, keepref)", call. = FALSE)
     }
     .emr_checkroot()
 
 
     filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[filter]]
     if (is.null(filter.var)) {
-        stop(sprintf("Filter \"%s\" does not exist", filter), call. = F)
+        stop(sprintf("Filter \"%s\" does not exist", filter), call. = FALSE)
     }
 
     if (missing(keepref)) {
         filter.var$keepref
     } else {
         if (!is.logical(keepref) || is.na(keepref)) {
-            stop("'keepref' parameter must be logical", call. = F)
+            stop("'keepref' parameter must be logical", call. = FALSE)
         }
 
         EMR_FILTERS[[filter]]["keepref"] <<- list(keepref)
@@ -392,13 +392,13 @@ emr_filter.attr.keepref <- function(filter, keepref) {
 
 emr_filter.attr.time.shift <- function(filter, time.shift) {
     if (missing(filter)) {
-        stop("Usage: emr_filter.attr.time.shift(filter, time.shift)", call. = F)
+        stop("Usage: emr_filter.attr.time.shift(filter, time.shift)", call. = FALSE)
     }
     .emr_checkroot()
 
     filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[filter]]
     if (is.null(filter.var)) {
-        stop(sprintf("Filter \"%s\" does not exist", filter), call. = F)
+        stop(sprintf("Filter \"%s\" does not exist", filter), call. = FALSE)
     }
 
     if (missing(time.shift)) {
@@ -412,13 +412,13 @@ emr_filter.attr.time.shift <- function(filter, time.shift) {
 
 emr_filter.attr.val <- function(filter, val) {
     if (missing(filter)) {
-        stop("Usage: emr_filter.attr.val(filter, val)", call. = F)
+        stop("Usage: emr_filter.attr.val(filter, val)", call. = FALSE)
     }
     .emr_checkroot()
 
     filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[filter]]
     if (is.null(filter.var)) {
-        stop(sprintf("Filter \"%s\" does not exist", filter), call. = F)
+        stop(sprintf("Filter \"%s\" does not exist", filter), call. = FALSE)
     }
 
     is_logical_filter <- !is.null(filter.var$logical)
@@ -432,7 +432,7 @@ emr_filter.attr.val <- function(filter, val) {
     }
 
     if (!is.numeric(val)) {
-        stop("'val' parameter must be a numeric vector", call. = F)
+        stop("'val' parameter must be a numeric vector", call. = FALSE)
     }
 
     if (is_logical_filter) {
@@ -452,13 +452,13 @@ emr_filter.attr.val <- function(filter, val) {
 
 emr_filter.attr.expiration <- function(filter, expiration) {
     if (missing(filter)) {
-        stop("Usage: emr_filter.attr.expiration(filter, expiration)", call. = F)
+        stop("Usage: emr_filter.attr.expiration(filter, expiration)", call. = FALSE)
     }
     .emr_checkroot()
 
     filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[filter]]
     if (is.null(filter.var)) {
-        stop(sprintf("Filter \"%s\" does not exist", filter), call. = F)
+        stop(sprintf("Filter \"%s\" does not exist", filter), call. = FALSE)
     }
 
     if (missing(expiration)) {
@@ -490,7 +490,7 @@ emr_filter.attr.expiration <- function(filter, expiration) {
 #' @export emr_filter.exists
 emr_filter.exists <- function(filter) {
     if (missing(filter)) {
-        stop("Usage: emr_filter.exists(filter)", call. = F)
+        stop("Usage: emr_filter.exists(filter)", call. = FALSE)
     }
     .emr_checkroot()
 
@@ -521,7 +521,7 @@ emr_filter.exists <- function(filter) {
 #' @export emr_filter.info
 emr_filter.info <- function(filter) {
     if (missing(filter)) {
-        stop("Usage: emr_filter.info(filter)", call. = F)
+        stop("Usage: emr_filter.info(filter)", call. = FALSE)
     }
     .emr_checkroot()
 
@@ -548,7 +548,7 @@ emr_filter.info <- function(filter) {
 #'
 #' emr_db.init_examples()
 #' emr_filter.create("f1", "dense_track", time.shift = c(2, 4))
-#' emr_filter.create("f2", "dense_track", keepref = T)
+#' emr_filter.create("f2", "dense_track", keepref = TRUE)
 #' emr_filter.ls()
 #' emr_filter.ls("*2")
 #' @export emr_filter.ls
@@ -562,7 +562,7 @@ emr_filter.ls <- function(pattern = "", ignore.case = FALSE, perl = FALSE, fixed
     filternames <- names(filters)
 
     if (!is.list(filters) || (length(filters) && !is.character(filternames)) || length(filters) != length(filternames)) {
-        stop("Invalid format of EMR_FILTERS variable.\nTo continue working with filters please remove this variable from the environment.", call. = F)
+        stop("Invalid format of EMR_FILTERS variable.\nTo continue working with filters please remove this variable from the environment.", call. = FALSE)
     }
 
     if (is.null(filternames)) {
@@ -592,14 +592,14 @@ emr_filter.ls <- function(pattern = "", ignore.case = FALSE, perl = FALSE, fixed
 #'
 #' emr_db.init_examples()
 #' emr_filter.create("f1", "dense_track", time.shift = c(2, 4))
-#' emr_filter.create("f2", "dense_track", keepref = T)
+#' emr_filter.create("f2", "dense_track", keepref = TRUE)
 #' emr_filter.ls()
 #' emr_filter.rm("f1")
 #' emr_filter.ls()
 #' @export emr_filter.rm
 emr_filter.rm <- function(filter) {
     if (missing(filter)) {
-        stop("Usage: emr_filter.rm(filter)", call. = F)
+        stop("Usage: emr_filter.rm(filter)", call. = FALSE)
     }
     .emr_checkroot()
 

@@ -70,11 +70,11 @@ remove_logical_track <- function(track, force, rm_vars, update) {
         if (force) {
             return(invisible())
         }
-        stop(sprintf("Track %s does not exist", track), call. = F)
+        stop(sprintf("Track %s does not exist", track), call. = FALSE)
     }
 
     if (!emr_track.logical.exists(track)) {
-        stop(sprintf("Track %s is not a logical track", track), call. = F)
+        stop(sprintf("Track %s is not a logical track", track), call. = FALSE)
     }
 
     answer <- "N"
@@ -153,7 +153,7 @@ emr_track.logical.exists <- function(track) {
 #' @noRd
 emr_track.logical.info <- function(track) {
     if (missing(track)) {
-        stop("Usage: emr_track.logical.info(track)", call. = F)
+        stop("Usage: emr_track.logical.info(track)", call. = FALSE)
     }
     .emr_checkroot()
 

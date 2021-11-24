@@ -9,12 +9,12 @@
 emr_db.init(
   global.dir = NULL,
   user.dir = NULL,
-  global.load.on.demand = T,
-  user.load.on.demand = T,
-  do.relaod = F
+  global.load.on.demand = TRUE,
+  user.load.on.demand = TRUE,
+  do.relaod = FALSE
 )
 
-emr_db.connect(db_dirs = NULL, load_on_demand = NULL, do_relaod = F)
+emr_db.connect(db_dirs = NULL, load_on_demand = NULL, do_relaod = FALSE)
 }
 \arguments{
 \item{db_dirs}{vector of db directories}

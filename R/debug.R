@@ -32,7 +32,7 @@ emr_traceback <- function(x = NULL, max.lines = getOption("deparse.max.lines")) 
         x <- sapply(x, paste, collapse = "")
 
         # extract call stack function names
-        fnames <- gsub("^(\\S+)\\s*\\(.*\\)$", "\\1", x, perl = T)
+        fnames <- gsub("^(\\S+)\\s*\\(.*\\)$", "\\1", x, perl = TRUE)
 
         # get the indices of lib functions
         libindices <- which(fnames %in% get(".EMR_FUNCS", envir = .GlobalEnv))
