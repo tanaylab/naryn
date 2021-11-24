@@ -26,7 +26,7 @@ This function gets or sets "read-onlyness" of the track. If 'readonly' is
 Logical tracks inherit their "read-onlyness" from the source
 physical tracks.
 
-Overriding a track also overrides it's "read-onlyness", it's 
+Overriding a track also overrides it's "read-onlyness", it's
 "read-onlyness" will persist when the track is no longer overridden
 }
 \seealso{

@@ -317,37 +317,31 @@ SEXP emr_expr_virtual_tracks(SEXP _expr, SEXP _envir) {
         vector<SEXP> rvtracknames;
         vector<SEXP> vtracks;
 
-        // retrieve virtual track names (virtual track names are burried in a
-        // list of lists)
+        // retrieve virtual track names (named filters are at a global variable
+        // called EMR_VTRACKS)
         rprotect(emr_vtracks = findVar(install("EMR_VTRACKS"), g_naryn->env()));
 
         if (!isNull(emr_vtracks) && !isSymbol(emr_vtracks)) {
-            SEXP roots = getAttrib(emr_vtracks, R_NamesSymbol);
-
-            if (!isVector(emr_vtracks) ||
-                Rf_length(emr_vtracks) && !isString(roots) ||
-                Rf_length(roots) != Rf_length(emr_vtracks))
+            if (!isVector(emr_vtracks)){
                 verror(
                     "Invalid format of EMR_VTRACKS variable (1).\n"
                     "To continue working with virtual tracks please remove "
                     "this variable from the environment.");
-
-            for (int i = 0; i < Rf_length(roots); ++i) {
-                if (count(g_db->rootdirs().begin(), g_db->rootdirs().end(), CHAR(STRING_ELT(roots, i)))) {
-                    vtracks.push_back(VECTOR_ELT(emr_vtracks, i));
-                    SEXP vtracknames = getAttrib(vtracks.back(), R_NamesSymbol);
-
-                    if (!isVector(vtracks.back()) ||
-                        Rf_length(vtracks.back()) && !isString(vtracknames) ||
-                        Rf_length(vtracknames) != Rf_length(vtracks.back()))
-                        verror(
-                            "Invalid format of EMR_VTRACKS variable (2).\n"
-                            "To continue working with virtual tracks please "
-                            "remove this variable from the environment.");
-
-                    rvtracknames.push_back(vtracknames);
-                }
             }
+
+            vtracks.push_back(emr_vtracks);
+            SEXP vtracknames = getAttrib(vtracks.back(), R_NamesSymbol);
+
+            if (!isVector(vtracks.back()) ||
+                Rf_length(vtracks.back()) && !isString(vtracknames) ||
+                Rf_length(vtracknames) != Rf_length(vtracks.back())){
+                verror(
+                    "Invalid format of EMR_VTRACKS variable (2).\n"
+                    "To continue working with virtual tracks please "
+                    "remove this variable from the environment.");
+            }
+
+            rvtracknames.push_back(vtracknames);
         }
 
         // look for virtual tracks

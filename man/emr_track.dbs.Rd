@@ -2,7 +2,7 @@
 % Please edit documentation in R/track.R
 \name{emr_track.dbs}
 \alias{emr_track.dbs}
-\title{Returns a vector of db ids which have a 
+\title{Returns a vector of db ids which have a
 version of the track}
 \usage{
 emr_track.dbs(track)
@@ -14,18 +14,17 @@ emr_track.dbs(track)
 A vector of db ids
 }
 \description{
-Returns a vector of db ids which have a 
+Returns a vector of db ids which have a
 version of the track
 }
 \examples{
 
-#both db1 and db2 have a track named track1
-emr_db.connect(c('/db1', '/db2'))
-emr_track.dbs("track1") 
-
-[1] "/db1"
-[2] "/db2"
-
+# both db1 and db2 have a track named track1
+emr_db.connect(c("/db1", "/db2"))
+emr_track.dbs("track1")
+}
+\seealso{
+\code{\link{emr_track.info}}
 }
 \keyword{~connect}
 \keyword{~db}

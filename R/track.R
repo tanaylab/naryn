@@ -77,7 +77,7 @@
         db_id <- EMR_UROOT
     } else if (lspace == "global") {
         db_id <- EMR_GROOT
-    } else if (!is.null(space)){
+    } else if (!is.null(space)) {
         db_id <- normalizePath(space)
     } else {
         db_id <- space
@@ -202,8 +202,8 @@ emr_track.addto <- function(track, src, force = FALSE) {
 #'
 #' If both 'track' and 'attr' are used, the attributes that fulfill both of the
 #' conditions are returned
-#' 
-#' Overriding a track also overrides it's track attributes, the 
+#'
+#' Overriding a track also overrides it's track attributes, the
 #' attributes will persist when the track is no longer overridden.
 #'
 #' @param track a vector of track names or 'NULL'
@@ -366,7 +366,7 @@ emr_track.attr.set <- function(track = NULL, attr = NULL, value = NULL) {
 #' \code{\link{emr_track.ls}}, \code{\link{emr_track.exists}}
 #' @keywords ~track ~create
 #' @export emr_track.create
-emr_track.create <- function(track, space=EMR_UROOT, categorical, expr, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL, override = FALSE) {
+emr_track.create <- function(track, space = EMR_UROOT, categorical, expr, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL, override = FALSE) {
 
     # when space is missing, writing for the last db in the order of connections
     if (missing(space)) {
@@ -553,24 +553,19 @@ emr_track.info <- function(track) {
     }
 }
 
-#' Returns a vector of db ids which have a 
+#' Returns a vector of db ids which have a
 #' version of the track
-#' 
+#'
 #' @param track track name
 #' @return A vector of db ids
-#' @seelalso \code{\link{emr_track.info}}
+#' @seealso \code{\link{emr_track.info}}
 #' @keywords ~track ~info ~property ~db ~db_id ~connect
-#' @examples 
-#' 
-#' #both db1 and db2 have a track named track1
-#' emr_db.connect(c('/db1', '/db2'))
-#' emr_track.dbs("track1") 
-#' 
-#' [1] "/db1"
-#' [2] "/db2"
-#' 
+#' @examples
+#'
+#' # both db1 and db2 have a track named track1
+#' emr_db.connect(c("/db1", "/db2"))
+#' emr_track.dbs("track1")
 #' @export emr_track.dbs
-
 emr_track.dbs <- function(track) {
     if (missing(track)) {
         stop("Usage: emr_track.dbs(track)", call. = F)
@@ -579,8 +574,8 @@ emr_track.dbs <- function(track) {
 
     if (is.character(track) && emr_track.logical.exists(track)) {
         return(EMR_GROOT)
-    } 
-    
+    }
+
     return(.emr_call("emr_track_dbs", track, new.env(parent = parent.frame())))
 }
 
@@ -783,8 +778,8 @@ emr_track.percentile <- function(track, val, lower = TRUE) {
 #'
 #' Logical tracks inherit their "read-onlyness" from the source
 #' physical tracks.
-#' 
-#' Overriding a track also overrides it's "read-onlyness", it's 
+#'
+#' Overriding a track also overrides it's "read-onlyness", it's
 #' "read-onlyness" will persist when the track is no longer overridden
 #'
 #' @param track track name
@@ -1053,8 +1048,8 @@ emr_track.var.get <- function(track, var) {
 #' This function returns a list of track variables of a track that match the
 #' pattern (see 'grep'). If called without any arguments all track variables of
 #' a track are returned.
-#' 
-#' Overriding a track also overrides it's track variables, the 
+#'
+#' Overriding a track also overrides it's track variables, the
 #' variables will persist when the track is no longer overridden
 #'
 #' @param track track name

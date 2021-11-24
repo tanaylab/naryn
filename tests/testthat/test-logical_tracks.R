@@ -318,7 +318,7 @@ test_that("logical track returns a valid vtrack R object without values", {
     emr_vtrack.create("vt", "ph1", keepref = TRUE)
     emr_vtrack.create("vt_numeric", "track0", keepref = TRUE)
     # commented because logical field was added to local R object
-    # vt <- EMR_VTRACKS[[1]]$vt
+    # vt <- EMR_VTRACKS$vt
     vt <- emr_vtrack.info("vt")
     vt_numeric <- emr_vtrack.info("vt_numeric")
     expect_equal(vt, res)
@@ -333,7 +333,7 @@ test_that("logical track returns a valid vtrack R object with values", {
     res <- .emr_call("logical_track_vtrack", "logical_track1", new.env(parent = parent.frame()), silent = TRUE)
     emr_vtrack.create("vt", "ph1", params = c(15, 16), keepref = TRUE)
     # commented because logical field was added to local R object
-    # vt <- EMR_VTRACKS[[1]]$vt
+    # vt <- EMR_VTRACKS$vt
     vt <- emr_vtrack.info("vt")
     expect_equal(vt, res)
 
