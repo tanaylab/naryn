@@ -343,7 +343,7 @@ emr_vtrack.attr.src <- function(vtrack, src) {
         root <- get("EMR_GROOT", envir = .GlobalEnv)
     }
     EMR_VTRACKS[[root]][[vtrack]] <<- vtrack.var
-    retv <- NULL
+    return(NULL)
 }
 
 emr_vtrack.attr.func <- function(vtrack, func) {
@@ -368,7 +368,7 @@ emr_vtrack.attr.func <- function(vtrack, func) {
     } else {
         .emr_call("emr_check_vtrack_attr_func", func, new.env(parent = parent.frame()))
         EMR_VTRACKS[[root]][[vtrack]]["func"] <<- list(func)
-        retv <- NULL
+        return(NULL)
     }
 }
 
@@ -403,7 +403,7 @@ emr_vtrack.attr.params <- function(vtrack, params) {
     }
 
     EMR_VTRACKS[[root]][[vtrack]]["params"] <<- list(params)
-    retv <- NULL
+    return(NULL)
 }
 
 emr_vtrack.attr.keepref <- function(vtrack, keepref) {
@@ -431,7 +431,7 @@ emr_vtrack.attr.keepref <- function(vtrack, keepref) {
         }
 
         EMR_VTRACKS[[root]][[vtrack]]["keepref"] <<- list(keepref)
-        retv <- NULL
+        return(NULL)
     }
 }
 
@@ -457,7 +457,7 @@ emr_vtrack.attr.time.shift <- function(vtrack, time.shift) {
     } else {
         .emr_call("emr_check_vtrack_attr_time_shift", time.shift, new.env(parent = parent.frame()))
         EMR_VTRACKS[[root]][[vtrack]]["time_shift"] <<- list(time.shift)
-        retv <- NULL
+        return(NULL)
     }
 }
 
@@ -483,7 +483,7 @@ emr_vtrack.attr.id.map <- function(vtrack, id.map) {
     } else {
         .emr_call("emr_check_vtrack_attr_id_map", id.map, new.env(parent = parent.frame()))
         EMR_VTRACKS[[root]][[vtrack]]["id.map"] <<- list(id.map)
-        retv <- NULL
+        return(NULL)
     }
 }
 
@@ -509,7 +509,7 @@ emr_vtrack.attr.filter <- function(vtrack, filter) {
     } else {
         .emr_call("emr_check_vtrack_attr_filter", .emr_filter(filter), new.env(parent = parent.frame()))
         EMR_VTRACKS[[root]][[vtrack]]["filter"] <<- list(.emr_filter(filter))
-        retv <- NULL
+        return(NULL)
     }
 }
 
@@ -675,5 +675,5 @@ emr_vtrack.rm <- function(vtrack) {
 
         assign("EMR_VTRACKS", emr_vtracks, envir = .GlobalEnv)
     }
-    retv <- NULL
+    return(NULL)
 }

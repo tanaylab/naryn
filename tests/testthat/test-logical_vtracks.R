@@ -278,7 +278,7 @@ test_that("emr_vtrack functions work on logical tracks with keepref combinations
 
 test_that("emr_vtrack.create with filter works on numeric logical tracks", {
     EMR_VTRACKS <<- list()
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     withr::defer(clean_logical_tracks())
 
     df <- emr_extract("track0", names = c("value"), keepref = TRUE)
@@ -346,7 +346,7 @@ test_that("emr_vtrack.create with filter works on numeric logical tracks", {
 
 test_that("emr_vtrack.create with filter works on logical tracks", {
     EMR_VTRACKS <<- list()
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     withr::defer(clean_logical_tracks())
 
     emr_filter.create("f1", src = "ph1", val = seq(4, 16, 1), keepref = TRUE)
@@ -415,7 +415,7 @@ test_that("emr_vtrack.create with filter works on logical tracks", {
 
 test_that("emr_vtrack works on numeric logical tracks with filter on extract", {
     EMR_VTRACKS <<- list()
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     withr::defer(clean_logical_tracks())
 
     df <- emr_extract("track0", names = c("value"), keepref = TRUE)
@@ -452,7 +452,7 @@ test_that("emr_vtrack works on numeric logical tracks with filter on extract", {
 
 test_that("emr_vtrack works on logical tracks with filter on extract", {
     EMR_VTRACKS <<- list()
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     withr::defer(clean_logical_tracks())
 
     emr_filter.create("f1", src = "ph1", val = seq(4, 16, 1), keepref = TRUE)

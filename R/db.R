@@ -141,7 +141,7 @@ emr_db.connect <- function(db_dirs = NULL, load_on_demand = NULL, do_relaod = F)
             }
         }
     )
-    retv <- NULL
+    return(NULL)
 }
 
 #' Initialize the examples database
@@ -182,7 +182,7 @@ emr_db.reload <- function() {
             }
         }
     )
-    retv <- NULL
+    return(NULL)
 }
 
 
@@ -216,7 +216,7 @@ emr_db.subset <- function(src = "", fraction = NULL, complementary = NULL) {
     .emr_checkroot()
 
     .emr_call("emr_db_subset", src, fraction, complementary, new.env(parent = parent.frame()))
-    retv <- NULL
+    return(NULL)
 }
 
 

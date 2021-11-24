@@ -17,31 +17,28 @@ void NRIteratorFilter::init(SEXP filter, unsigned stime, unsigned etime)
     vector<SEXP> rfilter_names;
     vector<SEXP> filters;
     
-    // retrieve filter names (named filters are burried in a list of lists)
+    // retrieve filter names (named filters are at a global variable called EMR_FILTERS)
     rprotect(emr_filters = findVar(install("EMR_FILTERS"), g_naryn->env()));
 
-    if (!isNull(emr_filters) && !isSymbol(emr_filters)) {
-        SEXP roots = getAttrib(emr_filters, R_NamesSymbol);
+    if (!isNull(emr_filters) && !isSymbol(emr_filters)) {        
 
-        if (!isVector(emr_filters) || Rf_length(emr_filters) && !isString(roots) || Rf_length(roots) != Rf_length(emr_filters))
+        if (!isVector(emr_filters) ) {
             verror("Invalid format of EMR_FILTERS variable (1).\n"
                    "To continue working with filters please remove this variable from the environment.");
-
-        for (int i = 0; i < Rf_length(roots); ++i) {
-
-            auto pos = std::find(g_db->rootdirs().begin(), g_db->rootdirs().end(), CHAR(STRING_ELT(roots, i)));
-            
-            if (pos != g_db->rootdirs().end()) {
-                filters.push_back(VECTOR_ELT(emr_filters, i));
-                SEXP filter_names = getAttrib(filters.back(), R_NamesSymbol);
-
-                if (!isVector(filters.back()) || Rf_length(filters.back()) && !isString(filter_names) || Rf_length(filter_names) != Rf_length(filters.back()))
-                    verror("Invalid format of EMR_FILTERS variable (2).\n"
-                           "To continue working with filters please remove this variable from the environment.");
-
-                rfilter_names.push_back(filter_names);
-            }
         }
+
+        filters.push_back(emr_filters);
+        SEXP filter_names = getAttrib(filters.back(), R_NamesSymbol);
+        if (!isVector(filters.back()) ||
+            Rf_length(filters.back()) && !isString(filter_names) ||
+            Rf_length(filter_names) != Rf_length(filters.back())) {
+            verror(
+                "Invalid format of EMR_FILTERS variable (2).\n"
+                "To continue working with filters please remove this variable "
+                "from the environment.");
+        }
+
+        rfilter_names.push_back(filter_names);
     }
 
     if (isLanguage(filter)) {
@@ -58,8 +55,9 @@ void NRIteratorFilter::init(SEXP filter, unsigned stime, unsigned etime)
             throw;
         }
     } else {
-        if (!isString(filter) && !isSymbol(filter) || Rf_length(filter) != 1)
+        if (!isString(filter) && !isSymbol(filter) || Rf_length(filter) != 1){
             verror("Invalid filter (1)");
+        }
 
         m_tree = create_filter_item(filters, rfilter_names, CHAR(asChar(filter)), false, stime, etime);
     }

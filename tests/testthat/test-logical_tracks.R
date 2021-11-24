@@ -1210,7 +1210,7 @@ test_that("numeric logical track can be used as filter", {
 
 # emr_filter.create
 test_that("emr_filter.create works as expected", {
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     withr::defer(clean_logical_tracks())
     emr_track.logical.create("ltrack", "ph1", c(15, 16))
 
@@ -1228,7 +1228,7 @@ test_that("emr_filter.create works as expected", {
 })
 
 test_that("emr_filter.create works when logical tracks are without values", {
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     withr::defer(clean_logical_tracks())
     emr_track.logical.create("ltrack", "ph1")
 
@@ -1244,7 +1244,7 @@ test_that("emr_filter.create works when logical tracks are without values", {
 
 
 test_that("emr_filter.create works on logical track", {
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     withr::defer(clean_logical_tracks())
 
     emr_track.logical.create("ltrack", "ph1", c(15, 16))
@@ -1271,7 +1271,7 @@ test_that("emr_filter.create works on logical track", {
 })
 
 test_that("empty emr_filter.create works on logical track", {
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     withr::defer(clean_logical_tracks())
 
     emr_track.logical.create("ltrack", "ph1", c(15, 16))
@@ -1285,7 +1285,7 @@ test_that("empty emr_filter.create works on logical track", {
 })
 
 test_that("multiple emr_filter.create works on logical track", {
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     withr::defer(clean_logical_tracks())
     emr_track.logical.create("ltrack", "ph1", seq(1, 16, 1))
 
@@ -1303,7 +1303,7 @@ test_that("multiple emr_filter.create works on logical track", {
 })
 
 test_that("emr_filter works on numeric logical tracks", {
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     withr::defer(clean_logical_tracks())
 
     emr_track.logical.create("ltrack", "track0")
@@ -1324,7 +1324,7 @@ test_that("emr_filter works on numeric logical tracks", {
 # emr_filter.info
 
 test_that("emr_filter.info works with filters on logical tracks", {
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     withr::defer(clean_logical_tracks())
 
     emr_track.logical.create("ltrack", "ph1", c(15, 16))
@@ -1349,7 +1349,7 @@ test_that("emr_filter.info works with filters on logical tracks", {
 })
 
 test_that("emr_filter.info works with filters on numeric logical tracks", {
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     withr::defer(clean_logical_tracks())
 
     emr_track.logical.create("ltrack", "track0")
@@ -1365,7 +1365,7 @@ test_that("emr_filter.info works with filters on numeric logical tracks", {
 # emr_filter.attr.src
 
 test_that("emr_filter.attr.src works no input", {
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     withr::defer(clean_logical_tracks())
 
     emr_track.logical.create("ltrack", "ph1", c(15, 16))
@@ -1376,7 +1376,7 @@ test_that("emr_filter.attr.src works no input", {
 })
 
 test_that("emr_filter.attr.src works change from logical to logical", {
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     withr::defer(clean_logical_tracks())
 
     emr_track.logical.create("l1", "ph1", c(15, 16))
@@ -1397,7 +1397,7 @@ test_that("emr_filter.attr.src works change from logical to logical", {
 })
 
 test_that("emr_filter.attr.src works change from logical to physical", {
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     withr::defer(clean_logical_tracks())
 
     emr_track.logical.create("l1", "ph1", c(15, 16))
@@ -1417,7 +1417,7 @@ test_that("emr_filter.attr.src works change from logical to physical", {
 })
 
 test_that("emr_filter.attr.src works when changed from physical to logical", {
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     withr::defer(clean_logical_tracks())
 
     emr_track.logical.create("l1", "ph1", c(15, 16))
@@ -1439,7 +1439,7 @@ test_that("emr_filter.attr.src works when changed from physical to logical", {
 # emr_filter.attr.val
 
 test_that("emr_filter.attr.val works no input", {
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     withr::defer(clean_logical_tracks())
 
     emr_track.logical.create("ltrack", "ph1", c(15, 16))
@@ -1450,7 +1450,7 @@ test_that("emr_filter.attr.val works no input", {
 })
 
 test_that("emr_filter.attr.val changes work on logical track", {
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     withr::defer(clean_logical_tracks())
 
     emr_track.logical.create("l1", "ph1", c(15, 16))

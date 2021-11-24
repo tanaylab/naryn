@@ -182,7 +182,7 @@ emr_track.addto <- function(track, src, force = FALSE) {
     }
 
     .emr_call("emr_import", track, NULL, NULL, src, T, new.env(parent = parent.frame()))
-    retv <- NULL
+    return(NULL)
 }
 
 
@@ -393,7 +393,7 @@ emr_track.create <- function(track, space=EMR_UROOT, categorical, expr, stime = 
     db_id <- ._emr_backward_comp_space(space)
 
     .emr_call("emr_track_create", track, db_id, categorical, expr, stime, etime, iterator, keepref, .emr_filter(filter), override, new.env(parent = parent.frame()))
-    retv <- NULL
+    return(NULL)
 }
 
 
@@ -717,7 +717,7 @@ emr_track.mv <- function(src, tgt, space = NULL) {
         .emr_dir.mv(dirname2, .emr_track.pyvar.dir(tgt))
     }
 
-    retv <- NULL
+    return(NULL)
 }
 
 
@@ -834,7 +834,7 @@ emr_track.readonly <- function(track, readonly = NULL) {
     if (Sys.chmod(file, mode, use_umask = F) == FALSE) {
         stop(sprintf("Failed to set read-only attribute for track %s", orig_track), call. = F)
     }
-    retv <- NULL
+    return(NULL)
 }
 
 
@@ -919,7 +919,7 @@ emr_track.rm <- function(track, force = F) {
         }
     }
 
-    retv <- NULL
+    return(NULL)
 }
 
 #' emr_track.ls for global db
@@ -1154,7 +1154,7 @@ emr_track.var.rm <- function(track, var) {
         unlink(dirname, recursive = TRUE)
     }
 
-    retv <- NULL
+    return(NULL)
 }
 
 

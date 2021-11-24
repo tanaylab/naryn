@@ -355,7 +355,7 @@ test_that("emr_vtrack works", {
 })
 
 test_that("emr_vtrack works", {
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     emr_filter.create("f1", "track0", keepref = T)
     EMR_VTRACKS <<- list()
     emr_vtrack.create("v1", "track1", filter = "!f1", keepref = T)
@@ -364,7 +364,7 @@ test_that("emr_vtrack works", {
 
 
 test_that("emr_vtrack works", {
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     emr_filter.create("f1", "track0", keepref = T)
     EMR_VTRACKS <<- list()
     emr_vtrack.create("v1", "track1", filter = "f1", keepref = T)
@@ -372,7 +372,7 @@ test_that("emr_vtrack works", {
 })
 
 test_that("emr_vtrack works", {
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     emr_filter.create("f1", "track0", keepref = T)
     EMR_VTRACKS <<- list()
     emr_vtrack.create("v1", "track1", filter = "!f1", keepref = T, func = "percentile.upper")
@@ -380,7 +380,7 @@ test_that("emr_vtrack works", {
 })
 
 test_that("emr_vtrack works", {
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     emr_filter.create("f1", "track0", keepref = T)
     EMR_VTRACKS <<- list()
     emr_vtrack.create("v1", "track1", filter = "f1", keepref = T, func = "percentile.upper")

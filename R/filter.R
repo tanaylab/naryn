@@ -12,12 +12,8 @@
         stop(sprintf("Filter %s does not exist", filterstr), call. = F)
     }
 
-    root <- get("EMR_GROOT", envir = .GlobalEnv)
-    filter <- get("EMR_FILTERS", envir = .GlobalEnv)[[root]][[filterstr]]
-    if (is.null(filter)) {
-        root <- get("EMR_UROOT", envir = .GlobalEnv)
-        filter <- get("EMR_FILTERS", envir = .GlobalEnv)[[root]][[filterstr]]
-    }
+    filter <- get("EMR_FILTERS", envir = .GlobalEnv)[[filterstr]]
+
     if (!is.null(filter$logical)) {
         filter$src <- filter$logical$src
         filter$val <- filter$logical$val
@@ -99,7 +95,7 @@ emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val =
     }
 
     if (!exists("EMR_FILTERS", envir = .GlobalEnv)) {
-        EMR_FILTERS <<- list()
+        emr_filter.clear()
     }
 
     if (emr_track.exists(filter)) {
@@ -110,12 +106,6 @@ emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val =
         stop(sprintf("Virtual track %s already exists", filter), call. = F)
     }
 
-    # TODO: Remove this when globalizing filters and vtracks
-    if (is.character(src) && length(src) == 1 && !is.na(match(src, .emr_call("emr_track_db_names", EMR_UROOT, new.env(parent = parent.frame()), silent = TRUE)))) {
-        root <- get("EMR_UROOT", envir = .GlobalEnv)
-    } else {
-        root <- get("EMR_GROOT", envir = .GlobalEnv)
-    }
 
     logical <- NULL
 
@@ -152,7 +142,7 @@ emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val =
     var <- list(src = src, time_shift = time.shift, keepref = keepref, val = val, expiration = expiration, logical = logical)
     .emr_call("emr_check_named_filter", var, filter, new.env(parent = parent.frame()))
     emr_filter.rm(filter)
-    EMR_FILTERS[[root]][[filter]] <<- var
+    EMR_FILTERS[[filter]] <<- var
 
     invisible(filter)
 }
@@ -195,13 +185,7 @@ emr_filter.attr.src <- function(filter, src) {
     }
     .emr_checkroot()
 
-    root <- get("EMR_GROOT", envir = .GlobalEnv)
-    filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[root]][[filter]]
-
-    if (is.null(filter.var)) {
-        root <- get("EMR_UROOT", envir = .GlobalEnv)
-        filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[root]][[filter]]
-    }
+    filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[filter]]
 
     if (is.null(filter.var)) {
         stop(sprintf("Filter \"%s\" does not exist", filter), call. = F)
@@ -241,14 +225,9 @@ emr_filter.attr.src <- function(filter, src) {
             filter.var$logical <- NULL
         }
     }
-    # TODO: Remove this when globalizing filters and vtracks
-    if (is.character(src) && length(src) == 1 && !is.na(match(src, .emr_call("emr_track_db_names", EMR_UROOT, new.env(parent = parent.frame()), silent = TRUE)))) {
-        root <- get("EMR_UROOT", envir = .GlobalEnv)
-    } else {
-        root <- get("EMR_GROOT", envir = .GlobalEnv)
-    }
-    EMR_FILTERS[[root]][[filter]] <<- filter.var
-    retv <- NULL
+
+    EMR_FILTERS[[filter]] <<- filter.var
+    return(NULL)
 }
 
 emr_filter.attr.keepref <- function(filter, keepref) {
@@ -257,13 +236,8 @@ emr_filter.attr.keepref <- function(filter, keepref) {
     }
     .emr_checkroot()
 
-    root <- get("EMR_GROOT", envir = .GlobalEnv)
-    filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[root]][[filter]]
-    if (is.null(filter.var)) {
-        root <- get("EMR_UROOT", envir = .GlobalEnv)
-        filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[root]][[filter]]
-    }
 
+    filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[filter]]
     if (is.null(filter.var)) {
         stop(sprintf("Filter \"%s\" does not exist", filter), call. = F)
     }
@@ -275,8 +249,8 @@ emr_filter.attr.keepref <- function(filter, keepref) {
             stop("'keepref' parameter must be logical", call. = F)
         }
 
-        EMR_FILTERS[[root]][[filter]]["keepref"] <<- list(keepref)
-        retv <- NULL
+        EMR_FILTERS[[filter]]["keepref"] <<- list(keepref)
+        return(NULL)
     }
 }
 
@@ -286,13 +260,7 @@ emr_filter.attr.time.shift <- function(filter, time.shift) {
     }
     .emr_checkroot()
 
-    root <- get("EMR_GROOT", envir = .GlobalEnv)
-    filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[root]][[filter]]
-    if (is.null(filter.var)) {
-        root <- get("EMR_UROOT", envir = .GlobalEnv)
-        filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[root]][[filter]]
-    }
-
+    filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[filter]]
     if (is.null(filter.var)) {
         stop(sprintf("Filter \"%s\" does not exist", filter), call. = F)
     }
@@ -301,8 +269,8 @@ emr_filter.attr.time.shift <- function(filter, time.shift) {
         filter.var$time_shift
     } else {
         .emr_call("emr_check_filter_attr_time_shift", time.shift, new.env(parent = parent.frame()))
-        EMR_FILTERS[[root]][[filter]]["time_shift"] <<- list(time.shift)
-        retv <- NULL
+        EMR_FILTERS[[filter]]["time_shift"] <<- list(time.shift)
+        return(NULL)
     }
 }
 
@@ -312,13 +280,7 @@ emr_filter.attr.val <- function(filter, val) {
     }
     .emr_checkroot()
 
-    root <- get("EMR_GROOT", envir = .GlobalEnv)
-    filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[root]][[filter]]
-    if (is.null(filter.var)) {
-        root <- get("EMR_UROOT", envir = .GlobalEnv)
-        filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[root]][[filter]]
-    }
-
+    filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[filter]]
     if (is.null(filter.var)) {
         stop(sprintf("Filter \"%s\" does not exist", filter), call. = F)
     }
@@ -345,11 +307,11 @@ emr_filter.attr.val <- function(filter, val) {
             filter.var$src <- data.frame(id = numeric(), time = numeric())
             val <- NULL
         }
-        EMR_FILTERS[[root]][[filter]] <<- filter.var
+        EMR_FILTERS[[filter]] <<- filter.var
     } else {
-        EMR_FILTERS[[root]][[filter]]["val"] <<- unique(list(val))
+        EMR_FILTERS[[filter]]["val"] <<- unique(list(val))
     }
-    retv <- NULL
+    return(NULL)
 }
 
 emr_filter.attr.expiration <- function(filter, expiration) {
@@ -358,13 +320,7 @@ emr_filter.attr.expiration <- function(filter, expiration) {
     }
     .emr_checkroot()
 
-    root <- get("EMR_GROOT", envir = .GlobalEnv)
-    filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[root]][[filter]]
-    if (is.null(filter.var)) {
-        root <- get("EMR_UROOT", envir = .GlobalEnv)
-        filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[root]][[filter]]
-    }
-
+    filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[filter]]
     if (is.null(filter.var)) {
         stop(sprintf("Filter \"%s\" does not exist", filter), call. = F)
     }
@@ -373,8 +329,8 @@ emr_filter.attr.expiration <- function(filter, expiration) {
         filter.var$expiration
     } else {
         .emr_call("emr_check_filter_attr_expiration", expiration, new.env(parent = parent.frame()))
-        EMR_FILTERS[[root]][[filter]]["expiration"] <<- list(expiration)
-        retv <- NULL
+        EMR_FILTERS[[filter]]["expiration"] <<- list(expiration)
+        return(NULL)
     }
 }
 
@@ -405,12 +361,10 @@ emr_filter.exists <- function(filter) {
     res <- FALSE
     if (exists("EMR_FILTERS", envir = .GlobalEnv)) {
         filters <- get("EMR_FILTERS", envir = .GlobalEnv)
-        res <- !is.null(filters[[get("EMR_GROOT", envir = .GlobalEnv)]][[filter]]) ||
-            exists("EMR_UROOT", envir = .GlobalEnv) && !is.null(get("EMR_UROOT", envir = .GlobalEnv)) && !is.null(filters[[get("EMR_UROOT", envir = .GlobalEnv)]][[filter]])
+        res <- !is.null(filters[[filter]])
     }
     res
 }
-
 
 
 #' Returns the definition of a named filter
@@ -450,6 +404,7 @@ emr_filter.info <- function(filter) {
 #'
 #' @param pattern,ignore.case,perl,fixed,useBytes see 'grep'
 #' @return An array that contains the names of filters.
+#' If no filter was found, \code{character(0)} would be returned.
 #' @seealso \code{\link{grep}}, \code{\link{emr_filter.exists}},
 #' \code{\link{emr_filter.create}}, \code{\link{emr_filter.rm}}
 #' @keywords ~filter ~ls
@@ -463,42 +418,25 @@ emr_filter.info <- function(filter) {
 #' @export emr_filter.ls
 emr_filter.ls <- function(pattern = "", ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
     if (!exists("EMR_FILTERS", envir = .GlobalEnv)) {
-        return(NULL)
+        return(character(0))
     }
     .emr_checkroot()
 
-    emr_filters <- get("EMR_FILTERS", envir = .GlobalEnv)
-    emr_roots <- names(emr_filters)
-    if (!is.list(emr_filters) || (length(emr_filters) && !is.character(emr_roots)) || length(emr_filters) != length(emr_roots)) {
+    filters <- get("EMR_FILTERS", envir = .GlobalEnv)
+    filternames <- names(filters)
+
+    if (!is.list(filters) || (length(filters) && !is.character(filternames)) || length(filters) != length(filternames)) {
         stop("Invalid format of EMR_FILTERS variable.\nTo continue working with filters please remove this variable from the environment.", call. = F)
     }
 
-    all.filternames <- NULL
-    roots <- c("EMR_GROOT", "EMR_UROOT")
-
-    for (root in roots) {
-        if (exists(root, envir = .GlobalEnv) && !is.null(get(root, envir = .GlobalEnv))) {
-            emr_root <- get(root, envir = .GlobalEnv)
-            idx <- match(emr_root, emr_roots)
-            if (!is.na(idx)) {
-                filters <- emr_filters[[idx]]
-                filternames <- names(filters)
-                if (!is.list(filters) || (length(filters) && !is.character(filternames)) || length(filters) != length(filternames)) {
-                    stop("Invalid format of EMR_FILTERS variable.\nTo continue working with filters please remove this variable from the environment.", call. = F)
-                }
-                all.filternames <- c(all.filternames, filternames)
-            }
-        }
-    }
-
-    if (is.null(all.filternames)) {
-        return(NULL)
+    if (is.null(filternames)) {
+        return(character(0))
     }
 
     if (pattern != "") {
-        sort(grep(pattern, all.filternames, value = TRUE, ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes))
+        sort(grep(pattern, filternames, value = TRUE, ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes))
     } else {
-        sort(all.filternames)
+        sort(filternames)
     }
 }
 
@@ -531,14 +469,27 @@ emr_filter.rm <- function(filter) {
 
     if (exists("EMR_FILTERS", envir = .GlobalEnv)) {
         emr_filters <- get("EMR_FILTERS", envir = .GlobalEnv)
-        emr_filters[[get("EMR_GROOT", envir = .GlobalEnv)]][[filter]] <- NULL
-
-        if (exists("EMR_UROOT", envir = .GlobalEnv) && !is.null(get("EMR_UROOT", envir = .GlobalEnv))) {
-            emr_filters[[get("EMR_UROOT", envir = .GlobalEnv)]][[filter]] <- NULL
-        }
+        emr_filters[[filter]] <- NULL
 
         assign("EMR_FILTERS", emr_filters, envir = .GlobalEnv)
     }
 
-    retv <- NULL
+    return(NULL)
+}
+
+#' Clear all filters from the current environment
+#'
+#' @return None.
+#'
+#' @examples
+#'
+#' emr_db.init_examples()
+#' emr_filter.create("f1", "dense_track", time.shift = c(2, 4))
+#' emr_filter.ls()
+#' emr_filter.clear()
+#' emr_filter.ls()
+#' @export
+emr_filter.clear <- function() {
+    EMR_FILTERS <<- list()
+    return(NULL)
 }

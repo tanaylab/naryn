@@ -197,7 +197,6 @@ test_that("overriding mechanism works with mv, when a track is renamed it is no 
 })
 
 test_that("mv to override throws error", {
-
     expect_error(emr_track.mv("track8_2", "track8_2"))
     expect_error(emr_track.mv("track8_2", "track8_3", EMR_ROOTS[3]))
 
@@ -401,7 +400,7 @@ test_that("trying to connect with non unique dbs throws an error", {
 
 
 test_that("emr_track.import throws error when trying to override existing track if created in lower order db", {
-    
+
     # track2_2 is in db 2, we are creating a new track2_2 in db 1
     expect_true("track2_2" %in% emr_track.ls())
     expect_true(emr_track.exists("track2_2", EMR_ROOTS[2]))
@@ -414,17 +413,15 @@ test_that("emr_track.import throws error when trying to override existing track 
         src = t1 %>% dplyr::mutate(track2_2 = track2_2 * 2) %>% dplyr::rename(value = track2_2),
         override = TRUE
     ))
-
 })
 
 
 test_that("emr_track.create throws error when trying to override existing track if created in lower order db", {
-    
+
     # track2_2 is in db 2, we are creating a new track2_2 in db 1
     expect_true("track2_2" %in% emr_track.ls())
     expect_true(emr_track.exists("track2_2", EMR_ROOTS[2]))
     t1 <- emr_extract("track2_2")
 
     expect_error(emr_track.create(track = "track2_2", space = EMR_ROOTS[1], categorical = FALSE, exp = "track2_2*2", keepref = TRUE, override = TRUE))
-
 })

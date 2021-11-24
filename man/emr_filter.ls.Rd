@@ -17,6 +17,7 @@ emr_filter.ls(
 }
 \value{
 An array that contains the names of filters.
+If no filter was found, \code{character(0)} would be returned.
 }
 \description{
 Returns a list of named filters.
