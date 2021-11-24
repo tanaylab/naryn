@@ -572,3 +572,17 @@ test_that("emr_filter.create_from_name works", {
     emr_filter.create_from_name(fname)
     expect_equal(emr_filter.info("f1"), emr_filter.info(fname))
 })
+
+expect_that("emr_filter.create_from_name works when track name has '.'", {
+    emr_track.create("track.1", "user", T, "track1", keepref = TRUE)
+    withr::defer(emr_track.rm("track.1", TRUE))
+    fname <- emr_filter.create_from_name(emr_filter.name("track.1", keepref = T))
+    expect_equal(emr_filter.info(fname)$src, "track.1")
+})
+
+expect_that("emr_filter.create_from_name works when track name has '_'", {
+    emr_track.create("track_1", "user", T, "track1", keepref = TRUE)
+    withr::defer(emr_track.rm("track_1", TRUE))
+    fname <- emr_filter.create_from_name(emr_filter.name("track_1", keepref = T))
+    expect_equal(emr_filter.info(fname)$src, "track_1")
+})
