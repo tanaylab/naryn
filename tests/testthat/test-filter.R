@@ -506,6 +506,13 @@ test_that("emr_filter.name works", {
         emr_filter.name("track10", val = 15:17),
         "f_track10.krF.vals_15_16_17"
     )
+
+    expect_equal(
+        emr_filter.name("track1", keepref = F, time.shift = 10),
+        "f_track1.krF.ts_10"
+    )
+
+    expect_error(emr_filter.name("track10", time.shift = 1:10))
 })
 
 test_that("filter works with automatic naming", {
@@ -517,4 +524,51 @@ test_that("filter works with automatic naming", {
     fname <- emr_filter.create(NULL, "track8", val = c(3, 5), time.shift = c(-10, 10))
     expect_equal(fname, "f_track8.krF.vals_3_5.ts_minus10_10")
     expect_regression(emr_extract("track7", keepref = T, filter = fname), "filter.2")
+})
+
+
+test_that("emr_filter.create_from_name works", {
+    emr_filter.clear()
+    fname <- emr_filter.name("track8", val = c(3, 5), time.shift = c(-10, 10))
+    fname2 <- emr_filter.create_from_name(fname)
+    expect_equal(fname, fname2)
+    expect_true(fname %in% emr_filter.ls())
+    expect_regression(emr_extract("track7", keepref = T, filter = fname), "filter.2")
+
+    fname <- emr_filter.name("track1", keepref = T)
+    emr_filter.create_from_name(fname)
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = T, filter = fname), "filter.1")
+
+    fname <- emr_filter.name("track8", expiration = 100)
+    emr_filter.create_from_name(fname)
+    expect_regression(emr_extract("track7", keepref = T, filter = fname), "filter.3")
+
+    fname <- emr_filter.name("track8", expiration = 100, val = c(3, 5))
+    emr_filter.create_from_name(fname)
+    expect_regression(emr_extract("track7", keepref = T, filter = fname), "filter.4")
+
+    fname <- emr_filter.create_from_name(emr_filter.name("track1", keepref = F, time.shift = 10))
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = T, filter = fname), "filter.5")
+
+    fname <- emr_filter.create_from_name(emr_filter.name("track1", keepref = F, time.shift = c(10, 20)))
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = T, filter = fname), "filter.6")
+
+    fname <- emr_filter.create_from_name(emr_filter.name("track0", keepref = T))
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = T, filter = glue::glue("{fname} & track1")), "filter.11")
+
+    i1 <- emr_extract("track1", keepref = F)
+    expect_error(emr_filter.name(i1, keepref = F, time.shift = 10), "Cannot generate automatic filter name when source is data.frame")
+
+    fname1 <- emr_filter.create_from_name(emr_filter.name("track0", keepref = F, time.shift = c(10, 50)))
+    fname2 <- emr_filter.create_from_name(emr_filter.name("track3", keepref = T))
+    expect_regression(emr_extract("track1", iterator = 1, stime = 20, etime = 5000, keepref = T, filter = glue::glue("{fname1} & {fname2}")), "filter.39")
+
+    fname1 <- emr_filter.create_from_name(emr_filter.name("track0", keepref = F, time.shift = c(10, 50)))
+    fname2 <- emr_filter.create_from_name(emr_filter.name("track3", keepref = F))
+    expect_regression(emr_extract("track1", iterator = 1, stime = 20, etime = 5000, keepref = T, filter = glue::glue("{fname1} & {fname2}")), "filter.40")
+
+    emr_filter.create("f1", "track2", keepref = F, time.shift = c(-10, 20))
+    fname <- emr_filter.name("track2", keepref = F, time.shift = c(-10, 20))
+    emr_filter.create_from_name(fname)
+    expect_equal(emr_filter.info("f1"), emr_filter.info(fname))
 })

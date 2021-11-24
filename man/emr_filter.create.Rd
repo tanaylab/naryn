@@ -66,6 +66,6 @@ emr_extract("sparse_track", filter = "!f1 & f2")
 }
 \seealso{
 \code{\link{emr_filter.attr.src}}, \code{\link{emr_filter.ls}},
-\code{\link{emr_filter.exists}}, \code{\link{emr_filter.rm}}
+\code{\link{emr_filter.exists}}, \code{\link{emr_filter.rm}}, \code{\link{emr_filter.create_from_name}}
 }
 \keyword{~filter}

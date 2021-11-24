@@ -37,3 +37,4 @@ emr_filter.name("dense_track", time.shift = c(2, 4))
 \seealso{
 \code{\link{emr_filter.create}}
 }
+\keyword{~filter}

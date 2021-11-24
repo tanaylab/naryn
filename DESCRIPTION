@@ -16,9 +16,10 @@ Depends:
 Imports: 
     dplyr,
     glue,
-    magrittr,
-    purrr,
     lifecycle,
+    magrittr,
+    stringr,
+    purrr
 Suggests: 
     callr,
     forcats,
