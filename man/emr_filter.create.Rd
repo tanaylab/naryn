@@ -7,14 +7,14 @@
 emr_filter.create(
   filter,
   src,
-  keepref = F,
+  keepref = FALSE,
   time.shift = NULL,
   val = NULL,
   expiration = NULL
 )
 }
 \arguments{
-\item{filter}{filter name}
+\item{filter}{filter name. If NULL - a name would be generated automatically using \code{emr_filter.name}.}
 
 \item{src}{source (track name or id-time table)}
 
@@ -27,7 +27,7 @@ emr_filter.create(
 \item{expiration}{expiration period}
 }
 \value{
-Name of the filter (invisibly)
+Name of the filter (invisibly, if filter name wasn't generated automatically)
 }
 \description{
 Creates a new named filter.

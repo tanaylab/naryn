@@ -37,7 +37,51 @@
 }
 
 
+#' Generate a default name for a naryn filter
+#'
+#' @inheritParams emr_filter.create
+#'
+#' @return a default name for the filter
+#'
+#' @seealso \code{\link{emr_filter.create}}
+#'
+#' @examples
+#'
+#' emr_db.init_examples()
+#' emr_filter.name("dense_track", time.shift = c(2, 4))
+#' @export
+emr_filter.name <- function(src, keepref = FALSE, time.shift = NULL, val = NULL, expiration = NULL) {
+    if (!is.null(val)) {
+        val_str <- glue::glue("vals_{vals}.", vals = paste(sort(unique(val)), collapse = "_"))
+    } else {
+        val_str <- ""
+    }
 
+    if (keepref) {
+        keepref_str <- "krT."
+    } else {
+        keepref_str <- "krF."
+    }
+
+    if (!is.null(time.shift)) {
+        time.shift_str <- glue::glue("ts_{time.shift[1]}_{time.shift[2]}.")
+    } else {
+        time.shift_str <- ""
+    }
+
+    if (!is.null(expiration)) {
+        expiration_str <- glue::glue("exp_{expiration}")
+    } else {
+        expiration_str <- ""
+    }
+
+    filter_name <- glue::glue("f_{src}.{keepref_str}{val_str}{time.shift_str}{expiration_str}")
+
+    filter_name <- gsub("-", "minus", filter_name)
+    filter_name <- gsub("\\.$", "", filter_name)
+
+    return(filter_name)
+}
 
 #' Creates a new named filter
 #'
@@ -67,13 +111,13 @@
 #'
 #' Note: 'time.shift' can be used only when 'keepref' is 'FALSE'.
 #'
-#' @param filter filter name
+#' @param filter filter name. If NULL - a name would be generated automatically using \code{emr_filter.name}.
 #' @param src source (track name or id-time table)
 #' @param keepref 'TRUE' or 'FALSE'
 #' @param time.shift time shift and expansion for iterator time
 #' @param val selected values
 #' @param expiration expiration period
-#' @return Name of the filter (invisibly)
+#' @return Name of the filter (invisibly, if filter name wasn't generated automatically)
 #' @seealso \code{\link{emr_filter.attr.src}}, \code{\link{emr_filter.ls}},
 #' \code{\link{emr_filter.exists}}, \code{\link{emr_filter.rm}}
 #' @keywords ~filter
@@ -84,11 +128,17 @@
 #' emr_filter.create("f2", "dense_track", keepref = T)
 #' emr_extract("sparse_track", filter = "!f1 & f2")
 #' @export emr_filter.create
-emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val = NULL, expiration = NULL) {
+emr_filter.create <- function(filter, src, keepref = FALSE, time.shift = NULL, val = NULL, expiration = NULL) {
     if (missing(filter) || missing(src)) {
         stop("Usage: emr_filter.create(filter, src, keepref = F, time.shift = NULL, val = NULL, expiration = NULL)", call. = F)
     }
     .emr_checkroot()
+
+    auto_filter <- FALSE
+    if (is.null(filter)) {
+        filter <- emr_filter.name(src, keepref, time.shift, val, expiration)
+        auto_filter <- TRUE
+    }
 
     if (filter != make.names(filter)) {
         stop(sprintf("\"%s\" is not a syntactically valid name for a variable", filter), call. = F)
@@ -144,7 +194,11 @@ emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val =
     emr_filter.rm(filter)
     EMR_FILTERS[[filter]] <<- var
 
-    invisible(filter)
+    if (auto_filter) {
+        return(filter)
+    } else {
+        invisible(filter)
+    }
 }
 
 

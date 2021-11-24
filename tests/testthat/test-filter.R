@@ -465,3 +465,56 @@ test_that("emr_filter.clear works", {
     emr_filter.clear()
     expect_equal(emr_filter.ls(), character(0))
 })
+
+test_that("emr_filter.name works", {
+    expect_equal(
+        emr_filter.name("track10", keepref = FALSE, time.shift = c(-10, 20)),
+        "f_track10.krF.ts_minus10_20"
+    )
+
+    expect_equal(
+        emr_filter.name("track10", keepref = TRUE, time.shift = c(-10, 30)),
+        "f_track10.krT.ts_minus10_30"
+    )
+
+    expect_equal(
+        emr_filter.name("track10", keepref = TRUE, time.shift = c(-10, 30), expiration = 100),
+        "f_track10.krT.ts_minus10_30.exp_100"
+    )
+
+    expect_equal(
+        emr_filter.name("track10", keepref = FALSE, time.shift = c(-10, 30), val = c(15, 16, 17), expiration = 100),
+        "f_track10.krF.vals_15_16_17.ts_minus10_30.exp_100"
+    )
+
+    expect_equal(
+        emr_filter.name("track10"),
+        "f_track10.krF"
+    )
+
+    expect_equal(
+        emr_filter.name("track10", time.shift = c(-10, 30)),
+        "f_track10.krF.ts_minus10_30"
+    )
+
+    expect_equal(
+        emr_filter.name("track10", expiration = 100),
+        "f_track10.krF.exp_100"
+    )
+
+    expect_equal(
+        emr_filter.name("track10", val = 15:17),
+        "f_track10.krF.vals_15_16_17"
+    )
+})
+
+test_that("filter works with automatic naming", {
+    emr_filter.clear()
+    fname <- emr_filter.create(NULL, "track1", keepref = T)
+    expect_equal(fname, "f_track1.krT")
+    expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = T, filter = fname), "filter.1")
+
+    fname <- emr_filter.create(NULL, "track8", val = c(3, 5), time.shift = c(-10, 10))
+    expect_equal(fname, "f_track8.krF.vals_3_5.ts_minus10_10")
+    expect_regression(emr_extract("track7", keepref = T, filter = fname), "filter.2")
+})
