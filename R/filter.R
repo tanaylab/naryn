@@ -63,8 +63,12 @@
 #' emr_filter.name("dense_track", time.shift = c(2, 4))
 #' @export
 emr_filter.name <- function(src, keepref = FALSE, time.shift = NULL, val = NULL, expiration = NULL) {
+    if (missing(src)) {
+        stop("Usage: emr_filter.name(src, keepref = FALSE, time.shift = NULL, val = NULL, expiration = NULL)", call. = FALSE)
+    }
+
     if (!is.character(src)) {
-        stop("Cannot generate automatic filter name when source is data.frame", call. = FALSE)
+        stop("Cannot generate automatic filter name when source is a data.frame", call. = FALSE)
     }
 
     if (keepref) {
@@ -74,12 +78,14 @@ emr_filter.name <- function(src, keepref = FALSE, time.shift = NULL, val = NULL,
     }
 
     if (!is.null(val)) {
+        val <- formatC(val, format = "fg") # do not use scientific notation
         val_str <- glue::glue("vals_{vals}.", vals = paste(sort(unique(val)), collapse = "_"))
     } else {
         val_str <- ""
     }
 
     if (!is.null(time.shift)) {
+        time.shift <- formatC(time.shift, format = "fg") # do not use scientific notation
         if (length(time.shift) == 1) {
             time.shift_str <- glue::glue("ts_{time.shift}.")
         } else if (length(time.shift) == 2) {
@@ -92,6 +98,7 @@ emr_filter.name <- function(src, keepref = FALSE, time.shift = NULL, val = NULL,
     }
 
     if (!is.null(expiration)) {
+        expiration <- formatC(expiration, format = "fg") # do not use scientific notation
         expiration_str <- glue::glue("exp_{expiration}")
     } else {
         expiration_str <- ""
@@ -119,6 +126,10 @@ emr_filter.name <- function(src, keepref = FALSE, time.shift = NULL, val = NULL,
 #' emr_filter.create_from_name(name)
 #' @export
 emr_filter.create_from_name <- function(filter) {
+    if (missing(filter)) {
+        stop("Usage: emr_filter.create_from_name(filter)", call. = FALSE)
+    }
+
     # src
     parsed_str <- stringr::str_match(filter, "f_(.+)\\.kr")
     src <- parsed_str[, 2]

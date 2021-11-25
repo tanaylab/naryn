@@ -514,7 +514,7 @@ test_that("emr_filter.name works", {
 
     expect_equal(
         emr_filter.name("track.kr.krT.krF.kr", keepref = FALSE, time.shift = 10),
-        "f_track1.krF.ts_10"
+        "f_track.kr.krT.krF.kr.krF.ts_10"
     )
 
     expect_error(emr_filter.name("track10", time.shift = 1:10))
@@ -562,7 +562,7 @@ test_that("emr_filter.create_from_name works", {
     expect_regression(emr_extract("track2", stime = 10, etime = 1000, keepref = TRUE, filter = glue::glue("{fname} & track1")), "filter.11")
 
     i1 <- emr_extract("track1", keepref = FALSE)
-    expect_error(emr_filter.name(i1, keepref = FALSE, time.shift = 10), "Cannot generate automatic filter name when source is data.frame")
+    expect_error(emr_filter.name(i1, keepref = FALSE, time.shift = 10), "Cannot generate automatic filter name when source is a data.frame")
 
     fname1 <- emr_filter.create_from_name(emr_filter.name("track0", keepref = FALSE, time.shift = c(10, 50)))
     fname2 <- emr_filter.create_from_name(emr_filter.name("track3", keepref = TRUE))
@@ -616,4 +616,13 @@ test_that("emr_filter.create_from_name works when track name has '_'", {
     withr::defer(emr_track.rm("track_1", TRUE))
     fname <- emr_filter.create_from_name(emr_filter.name("track_1", keepref = TRUE))
     expect_equal(emr_filter.info(fname)$src, "track_1")
+})
+
+test_that("emr_filter.create_from_name works with very large numbers", {
+    withr::with_options(list(scipen = 1), {
+        fname <- emr_filter.name("ph1", keepref = TRUE, val = 1e9)
+        expect_equal(fname, "f_ph1.krT.vals_1000000000")
+        emr_filter.create_from_name(fname)
+        expect_equal(emr_filter.info(fname)$val, 1e9)
+    })
 })
