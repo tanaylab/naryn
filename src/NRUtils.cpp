@@ -33,7 +33,7 @@ SEXP emr_annotate(SEXP _x, SEXP _y, SEXP _envir)
 
         while (ix < xpoints.end() && iy < ypoints.end()) {
             while (ix < xpoints.end() && *ix < *iy && !ix->match(*iy)) {
-                if (x2y.empty() || x2y.back().first != ix - xpoints.begin())
+                if (x2y.empty() || (unsigned)x2y.back().first != ix - xpoints.begin())
                     x2y.push_back({ix - xpoints.begin(), -1});     // no match for x: x -> -1
                 ++ix;
             }
@@ -89,14 +89,14 @@ SEXP emr_annotate(SEXP _x, SEXP _y, SEXP _envir)
         rprotect(rcolnames = RSaneAllocVector(STRSXP, num_cols));
         rprotect(rrownames = RSaneAllocVector(INTSXP, x2y.size()));
 
-        for (size_t i = 0; i < xlength(_x); ++i) {
+        for (size_t i = 0; i < (size_t)xlength(_x); ++i) {
             rsrc_cols[i] = VECTOR_ELT(_x, i);
             rprotect(rtgt_cols[i] = RSaneAllocVector(TYPEOF(rsrc_cols[i]), x2y.size()));
             copyMostAttrib(VECTOR_ELT(_x, i), rtgt_cols[i]);
             SET_STRING_ELT(rcolnames, i, STRING_ELT(getAttrib(_x, R_NamesSymbol), i));
         }
 
-        for (size_t i = ymeta_col_offset; i < xlength(_y); ++i) {
+        for (size_t i = ymeta_col_offset; i < (size_t)xlength(_y); ++i) {
             size_t idx = xlength(_x) + i - ymeta_col_offset;
             rsrc_cols[idx] = VECTOR_ELT(_y, i);
             rprotect(rtgt_cols[idx] = RSaneAllocVector(TYPEOF(rsrc_cols[idx]), x2y.size()));
@@ -105,32 +105,32 @@ SEXP emr_annotate(SEXP _x, SEXP _y, SEXP _envir)
         }
 
         for (size_t i = 0; i < num_cols; ++i) {
-            bool from_x = i < xlength(_x);
+            bool from_x = i < (size_t)xlength(_x);
 
             if (isInteger(rsrc_cols[i]) || isFactor(rsrc_cols[i])) {
                 int *src_vals = INTEGER(rsrc_cols[i]);
                 int *tgt_vals = INTEGER(rtgt_cols[i]);
                 for (auto ix2y = x2y.begin(); ix2y < x2y.end(); ++ix2y) {
-                    size_t idx = from_x ? ix2y->first : ix2y->second;
+                    int idx = from_x ? ix2y->first : ix2y->second;
                     tgt_vals[ix2y - x2y.begin()] = idx == -1 ? NA_INTEGER : src_vals[idx];
                 }
             } else if (isReal(rsrc_cols[i])) {
                 double *src_vals = REAL(rsrc_cols[i]);
                 double *tgt_vals = REAL(rtgt_cols[i]);
                 for (auto ix2y = x2y.begin(); ix2y < x2y.end(); ++ix2y) {
-                    size_t idx = from_x ? ix2y->first : ix2y->second;
+                    int idx = from_x ? ix2y->first : ix2y->second;
                     tgt_vals[ix2y - x2y.begin()] = idx == -1 ? NA_REAL : src_vals[idx];
                 }
             } else if (isLogical(rsrc_cols[i])) {
                 int *src_vals = LOGICAL(rsrc_cols[i]);
                 int *tgt_vals = LOGICAL(rtgt_cols[i]);
                 for (auto ix2y = x2y.begin(); ix2y < x2y.end(); ++ix2y) {
-                    size_t idx = from_x ? ix2y->first : ix2y->second;
+                    int idx = from_x ? ix2y->first : ix2y->second;
                     tgt_vals[ix2y - x2y.begin()] = idx == -1 ? NA_LOGICAL : src_vals[idx];
                 }
             } else if (isString(rsrc_cols[i])) {
                 for (auto ix2y = x2y.begin(); ix2y < x2y.end(); ++ix2y) {
-                    size_t idx = from_x ? ix2y->first : ix2y->second;
+                    int idx = from_x ? ix2y->first : ix2y->second;
                     SET_STRING_ELT(rtgt_cols[i], ix2y - x2y.begin(), idx == -1 ? NA_STRING : STRING_ELT(rsrc_cols[i], idx));
                 }
             } else
@@ -140,10 +140,10 @@ SEXP emr_annotate(SEXP _x, SEXP _y, SEXP _envir)
         for (size_t i = 0; i < x2y.size(); ++i)
             INTEGER(rrownames)[i] = i + 1;
 
-        for (size_t i = 0; i < xlength(_x); ++i)
+        for (size_t i = 0; i < (size_t)xlength(_x); ++i)
             SET_VECTOR_ELT(ranswer, i, rtgt_cols[i]);
 
-        for (size_t i = ymeta_col_offset; i < xlength(_y); ++i) {
+        for (size_t i = ymeta_col_offset; i < (size_t)xlength(_y); ++i) {
             size_t idx = xlength(_x) + i - ymeta_col_offset;
             SET_VECTOR_ELT(ranswer, idx, rtgt_cols[idx]);
         }

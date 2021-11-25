@@ -35,9 +35,9 @@ static uint64_t get_cur_clock()
 	return tp.time * 1000 + tp.millitm;
 }
 
-NRTrackExprScanner::NRTrackExprScanner() :
-    m_mtask_buf(NULL),
+NRTrackExprScanner::NRTrackExprScanner() :    
 	m_num_track_vars(0),
+    m_mtask_buf(NULL),
 	m_isend(true),
 	m_expr_vars()
 {
@@ -238,8 +238,9 @@ bool NRTrackExprScanner::begin(const vector<string> &track_exprs, ValType valtyp
 	m_last_progress_reported = -1;
 	m_report_step = INIT_REPORT_STEP;
 	m_last_report_clock = get_cur_clock();
-    if (g_naryn->multitasking_avail()) 
+    if (g_naryn->multitasking_avail()) {
         g_naryn->set_alarm(CHECK_MULTITASKING_TIME);
+    }
 
 	m_isend = false;
 	m_eval_buf_idx = m_eval_buf_limit;
@@ -443,7 +444,7 @@ void NRTrackExprScanner::kid_main_loop(vector<unsigned> &ids_subset)
         // pack the values
         char *p = m_mtask_buf;
 
-        for (int ieval = 0; ieval < m_eval_buf_size; ++ieval) {
+        for (int ieval = 0; ieval < (int)m_eval_buf_size; ++ieval) {
             m_expr_itr_points[ieval].pack(p);
             p += EMRPoint::packed_size();
             

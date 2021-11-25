@@ -30,8 +30,8 @@ void NRIteratorFilter::init(SEXP filter, unsigned stime, unsigned etime)
         filters.push_back(emr_filters);
         SEXP filter_names = getAttrib(filters.back(), R_NamesSymbol);
         if (!isVector(filters.back()) ||
-            Rf_length(filters.back()) && !isString(filter_names) ||
-            Rf_length(filter_names) != Rf_length(filters.back())) {
+            (Rf_length(filters.back()) && !isString(filter_names)) ||
+            (Rf_length(filter_names) != Rf_length(filters.back()))) {
             verror(
                 "Invalid format of EMR_FILTERS variable (2).\n"
                 "To continue working with filters please remove this variable "
@@ -55,7 +55,7 @@ void NRIteratorFilter::init(SEXP filter, unsigned stime, unsigned etime)
             throw;
         }
     } else {
-        if (!isString(filter) && !isSymbol(filter) || Rf_length(filter) != 1){
+        if ((!isString(filter) && !isSymbol(filter)) || Rf_length(filter) != 1){
             verror("Invalid filter (1)");
         }
 
@@ -347,10 +347,10 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const 
                 // like (float)0.3 != (double)0.3. So let's "downgrade" all our values to the least precise type.
                 vals.insert(isReal(rval) ? (float)REAL(rval)[i] : (float)INTEGER(rval)[i]);
 
-            double expiration;
+            double expiration = 0;
             if (isNull(rexpiration))
                 expiration = 0;
-            else if (!isReal(rexpiration) && !isInteger(rexpiration) || Rf_length(rexpiration) != 1)
+            else if ((!isReal(rexpiration) && !isInteger(rexpiration)) || Rf_length(rexpiration) != 1)
                 verror("Filter %s: 'expiration' must be a positive integer", name);
             else if (filter->m_keepref)
                 verror("Filter %s: 'expiration' cannot be used when keepref is 'TRUE'", name);
@@ -564,7 +564,7 @@ SEXP emr_check_filter_attr_expiration(SEXP _expiration, SEXP _envir)
         double expiration;
         if (isNull(_expiration))
             expiration = 0;
-        else if (!isReal(_expiration) && !isInteger(_expiration) || Rf_length(_expiration) != 1)
+        else if ((!isReal(_expiration) && !isInteger(_expiration)) || Rf_length(_expiration) != 1)
             verror("'expiration' must be a positive integer");
         else {
             expiration = asReal(_expiration);

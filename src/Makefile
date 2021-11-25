@@ -15,7 +15,7 @@ GCCVERSION := $(subst $(space),$(empty),$(GCCVERSION))
 GCCVERSION := $(shell expr `echo $(GCCVERSION)` | cut -b1-3)
 #$(warning $(GCCVERSION))
 
-CFLAGS=-O3 -DNDEBUG -fpic -I$(R_INCLUDE_DIR) -std=c++11 -Wformat -Wformat-security
+CFLAGS=-O3 -DNDEBUG -fpic -I$(R_INCLUDE_DIR) -std=c++11 -Wformat -Wformat-security -Wall -pedantic -fdiagnostics-color=always
 
 TGT=naryn.so
 SRCS=$(wildcard *.cpp)

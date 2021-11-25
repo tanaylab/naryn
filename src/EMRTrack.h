@@ -370,6 +370,8 @@ EMRTrack *EMRTrack::construct(const char *name, EMRTrack *base_track, Func func,
         case PV_MAX_UPPER:
         case PV_MAX_LOWER:
             build_percentiles = true;
+        default:
+            break;
         }
     }
 
@@ -1086,6 +1088,8 @@ void EMRTrack::calc_vals(DataFetcher &df, const EMRInterval &interv, const T &sr
                     df.m_val = interv.etime - irec->time().hour();
             }
         }
+        break;
+    default:
         break;
     }
 }

@@ -11,8 +11,7 @@ Authors@R: c(
 Description: Toolkit for medical records data analysis
 License: TBD
 BugReports: https://github.com/tanaylab/naryn/issues
-Depends:
-    methods,
+Depends:    
     R (>= 3.0.0),
     utils
 Imports: 

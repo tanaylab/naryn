@@ -12,14 +12,14 @@
 #endif
 
 struct LogicalTrackInfo {
-    set<int> unique_vals;
-    double num_vals;
+    set<int> unique_vals;    
 	double minval;
 	double maxval;
-    unsigned maxid;
     unsigned minid;
-    unsigned maxtime;
+    unsigned maxid;    
     unsigned mintime;
+    unsigned maxtime;
+    double num_vals;
 
     void update_id_time_info(EMRPoint v) {
         minid = min(minid, v.id);
@@ -35,14 +35,14 @@ struct LogicalTrackInfo {
 	    maxval = max(maxval, v);
     }
 
-	LogicalTrackInfo() :
+	LogicalTrackInfo() :        
 	 	minval(numeric_limits<double>::max()),
 	 	maxval(-numeric_limits<double>::max()),
      	minid(numeric_limits<unsigned>::max()),
      	maxid(0),
      	mintime(numeric_limits<unsigned>::max()),
      	maxtime(0),
-	 	num_vals(0) {}
+        num_vals(0) {}
 };
 
 
@@ -84,7 +84,6 @@ SEXP emr_logical_track_user_info(SEXP _track, SEXP _expr, SEXP _stime, SEXP _eti
         const char *logical_trackname = CHAR(STRING_ELT(_track, 0));
         const char *trackname = CHAR(STRING_ELT(_expr, 0));
         EMRTrack *track = g_db->track(trackname);
-        const EMRDb::TrackInfo *track_info = g_db->track_info(trackname);
 
         for (scanner.begin(_expr, NRTrackExprScanner::REAL_T, _stime, _etime,
                            _iterator_policy, _keepref, _filter);

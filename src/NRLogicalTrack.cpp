@@ -333,8 +333,8 @@ SEXP emr_expr_virtual_tracks(SEXP _expr, SEXP _envir) {
             SEXP vtracknames = getAttrib(vtracks.back(), R_NamesSymbol);
 
             if (!isVector(vtracks.back()) ||
-                Rf_length(vtracks.back()) && !isString(vtracknames) ||
-                Rf_length(vtracknames) != Rf_length(vtracks.back())){
+                (Rf_length(vtracks.back()) && !isString(vtracknames)) ||
+                (Rf_length(vtracknames) != Rf_length(vtracks.back()))){
                 verror(
                     "Invalid format of EMR_VTRACKS variable (2).\n"
                     "To continue working with virtual tracks please "
