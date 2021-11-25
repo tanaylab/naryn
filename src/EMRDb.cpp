@@ -102,7 +102,7 @@ void EMRDb::cache_tracks()
     vector<int> track_names_sizes;
     int progress_length;
 
-    for (int db_idx = 0; db_idx < m_rootdirs.size(); db_idx++) {
+    for (int db_idx = 0; db_idx < (int)m_rootdirs.size(); db_idx++) {
         track_names_sizes.push_back((m_track_names[m_rootdirs[db_idx]].size() * (!m_load_on_demand[db_idx])));
     }
 
@@ -113,7 +113,7 @@ void EMRDb::cache_tracks()
 
     progress.init(progress_length, 1);
 
-    for (int db_idx = 0; db_idx < m_rootdirs.size(); ++db_idx)
+    for (int db_idx = 0; db_idx < (int)m_rootdirs.size(); ++db_idx)
     {
         if (m_load_on_demand[db_idx])
             continue;
@@ -759,8 +759,7 @@ bool EMRDb::rebuild_ids_file_on_dob_change()
 }
 
 int EMRDb::get_db_idx(string db_id) {
-
-    int idx;
+    
     vector<string>::iterator itr = std::find(m_rootdirs.begin(), m_rootdirs.end(), db_id);
 
     if (itr != m_rootdirs.cend()) {
@@ -872,8 +871,8 @@ void EMRDb::reload() {
     refresh();
 }
 
-void EMRDb::lock_track_lists(BufferedFile *locks, const char *mode){
-    for (int db_idx = 0; db_idx < m_rootdirs.size(); db_idx++) {
+void EMRDb::lock_track_lists(vector<BufferedFile> &locks, const char *mode) {
+    for (int db_idx = 0; db_idx < (int)m_rootdirs.size(); db_idx++) {
         lock_track_list(m_rootdirs[db_idx], locks[db_idx], mode);
     }
 }
@@ -1249,7 +1248,7 @@ void EMRDb::unload_track(const char *track_name, bool overridden, bool soft){
 
         int fd;
 
-        for (int i=0; i < m_rootdirs.size(); i++) {
+        for (int i=0; i < (int)m_rootdirs.size(); i++) {
             if ((fd = open(track_list_filename(m_rootdirs[i]).c_str(), O_WRONLY, 0)) == -1) {
                 verror("Failed opening file %s", track_list_filename(m_rootdirs[i]).c_str());
             }
@@ -1279,7 +1278,7 @@ EMRDb::Track2Attrs EMRDb::get_tracks_attrs(const vector<string> &tracks, vector<
     Track2Attrs res;
     
     vector<bool> tracks_attrs_loaded(m_rootdirs.size());
-    BufferedFile locks[m_rootdirs.size()];
+    vector<BufferedFile> locks(m_rootdirs.size());
 
     lock_track_lists(locks, "r+");
 
@@ -1327,7 +1326,7 @@ EMRDb::Track2Attrs EMRDb::get_tracks_attrs(const vector<string> &tracks, vector<
 
 void EMRDb::set_track_attr(const char *trackname, const char *attr,
                            const char *val) {
-    BufferedFile locks[m_rootdirs.size()];
+    vector<BufferedFile> locks(m_rootdirs.size());
     lock_track_lists(locks, "r+");
 
     Name2Track::iterator itrack = m_tracks.find(trackname);
@@ -1344,7 +1343,7 @@ void EMRDb::set_track_attr(const char *trackname, const char *attr,
     string db_id = itrack->second.db_id;
     int db_idx = get_db_idx(db_id);
     
-    for (int i=0; i < m_rootdirs.size(); i++) {
+    for (int i=0; i < (int)m_rootdirs.size(); i++) {
         if (i != db_idx) {
             locks[i].close(); // release lock for the other spaces
         }

@@ -208,7 +208,7 @@ protected:
     void lock_track_list(string db_id, BufferedFile &lock, const char *mode);
 
     // opens and locks track list files (both global and user) according to the mode: "r", "r+", "w"
-    void lock_track_lists(BufferedFile *locks, const char *mode);
+    void lock_track_lists(vector<BufferedFile> &locks, const char *mode);
 
     // opens and locks logical track list file according to the mode: "r", "r+", "w"
     void lock_logical_track_list(BufferedFile &lock, const char *mode);
