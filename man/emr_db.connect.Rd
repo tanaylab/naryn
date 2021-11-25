@@ -11,12 +11,14 @@ emr_db.init(
   user.dir = NULL,
   global.load.on.demand = TRUE,
   user.load.on.demand = TRUE,
-  do.relaod = FALSE
+  do.reload = FALSE
 )
 
-emr_db.connect(db_dirs = NULL, load_on_demand = NULL, do_relaod = FALSE)
+emr_db.connect(db_dirs = NULL, load_on_demand = NULL, do_reload = FALSE)
 }
 \arguments{
+\item{global.dir, user.dir, global.load.on.demand, user.load.on.demand, do.reload}{old parameters of the deprecated function \code{emr_db.init}}
+
 \item{db_dirs}{vector of db directories}
 
 \item{load_on_demand}{vector of booleans, same length as db_dirs, if load_on_demand[i] is FALSE, tracks from db_dirs[i] will be pre-loaded. If NULL is passed, \code{load_on_demand} is set to TRUE on all the databases}
@@ -29,7 +31,7 @@ None.
 \description{
 Call `emr_db.connect` function to establish the access to the tracks in the db_dirs.
 To establish a connection using `emr_db.connect`, Naryn requires to specify at-least
-one db dir, optionaly, `emr_db.connect` accepts additional db dirs which can also
+one db dir, optionally, `emr_db.connect` accepts additional db dirs which can also
 contain additional tracks.
 In a case where 2 or more db dirs, contain the same track name (namespace collision),
 the  track will  be taken from the db dir which  was passed *last* in  the order of
@@ -41,7 +43,7 @@ to the track.
 }
 \details{
 Even though all the db dirs may contain track files their designation is different.
-All the db dirs except the last dir in the order of connectios are mainly read-only.
+All the db dirs except the last dir in the order of connections are mainly read-only.
 The directory which  was connected last in  the order, also known as *user dir*, is
 intended to store volatile data like the results of intermediate calculations.
 New tracks  can be created only in  the db dir which was last in  the order of
@@ -58,9 +60,9 @@ Physical files in the database are supposed to be managed exclusively by
 Naryn itself. Manual modification, addition or deletion of track files may
 be done, yet it must be ratified via running 'emr_db.reload'. Some of these
 manual changes however (like moving a track from global space to user or
-vice versa) might cause 'emr_db.init' to fail. 'emr_db.reload' cannot be
+vice versa) might cause 'emr_db.connect' to fail. 'emr_db.reload' cannot be
 invoked then as it requires first the connection to the DB be established.
-To break the deadlock use 'do_relaod=True' parameter within 'emr_db.init'.
+To break the deadlock use 'do_reload=True' parameter within 'emr_db.connect'.
 This will connect to the DB and rebuild the DB index files in one step.
 
 If 'load_on_demand' is 'TRUE' a track is loaded into memory only when it is
@@ -72,10 +74,10 @@ space (global / user) are pre-loaded into memory making subsequent track
 access significantly faster. As loaded tracks reside in shared memory, other
 R sessions running on the same machine, may also enjoy significant run-time
 boost. On the flip side, pre-loading all the tracks prolongs the execution
-of 'emr_db.init' and requires enough memory to accommodate all the data.
+of 'emr_db.connect' and requires enough memory to accommodate all the data.
 
 Choosing between the two modes depends on the specific needs. While
-'load_on_demand=TRUE' seems to be a solid default choice, in an enviroment
+'load_on_demand=TRUE' seems to be a solid default choice, in an environment
 where there are frequent short-living R sessions, each accessing a track one
 might opt for running a "daemon" - an additional permanent R session. The
 daemon would pre-load all the tracks in advance and stay alive thus boosting
@@ -90,6 +92,9 @@ EMR_GROOT \tab First db dir of tracks in the order of connections \cr
 EMR_UROOT \tab Last db dir of tracks in the order of connection (user dir) \cr
 EMR_ROOTS \tab Vector of directories (db_dirs) \cr
 }
+
+\code{emr_db.init} is the old version of this function which
+is now deprecated.
 }
 \seealso{
 \code{\link{emr_db.reload}}, \code{\link{emr_track.import}},

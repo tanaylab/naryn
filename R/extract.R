@@ -27,12 +27,10 @@
 #'
 #' @inheritSection emr_extract iterator
 #'
-#' @param expr track expression.
-#' @param breaks breaks that determine the bin or 'NULL'.
+#' @param ... pairs of [factor.expr, breaks], where \code{factor.expr} is the  track expression and breaks are the breaks that determine the bin or 'NULL'.
 #' @param cor.exprs vector of track expressions for which correlation
 #' statistics is calculated.
-#' @param include.lowest if 'TRUE', the lowest (or highest, for ‘right =
-#' FALSE’) value of the range determined by breaks is included.
+#' @param include.lowest if 'TRUE', the lowest (or highest, for 'right = FALSE') value of the range determined by breaks is included.
 #' @param right if 'TRUE' the intervals are closed on the right (and open on
 #' the left), otherwise vice versa.
 #' @param stime start time scope.
@@ -123,10 +121,8 @@ emr_cor <- function(..., cor.exprs = NULL, include.lowest = FALSE, right = TRUE,
 #'
 #' @inheritSection emr_extract iterator
 #'
-#' @param expr track expression
-#' @param breaks breaks that determine the bin or 'NULL'
-#' @param include.lowest if 'TRUE', the lowest (or highest, for ‘right =
-#' FALSE’) value of the range determined by breaks is included
+#' @param ... pairs of [expr, breaks], where \code{expr} is the  track expression and breaks are the breaks that determine the bin or 'NULL'.
+#' @param include.lowest if 'TRUE', the lowest (or highest, for 'right = FALSE') value of the range determined by breaks is included
 #' @param right if 'TRUE' the intervals are closed on the right (and open on
 #' the left), otherwise vice versa.
 #' @param stime start time scope

@@ -9,7 +9,7 @@ emr_track.rm(track, force = FALSE)
 \arguments{
 \item{track}{track name}
 
-\item{force}{if 'TRUE', supresses user confirmation of a named track removal}
+\item{force}{if 'TRUE', suppresses user confirmation of a named track removal}
 }
 \value{
 None.

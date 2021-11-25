@@ -18,7 +18,7 @@ SEXP emr_dbinit(SEXP _dbdirs, SEXP _load_on_demand, SEXP _do_load, SEXP envir) {
         Naryn naryn(envir, false);
 
         if (!isLogical(_do_load) || Rf_length(_do_load) != 1)
-            verror("'do_relaod' argument must be a logical value");
+            verror("'do_reload' argument must be a logical value");
 
         if (Rf_length(_dbdirs) != Rf_length(_load_on_demand)) {
             verror("'db_dirs' and 'load_on_demand' arguments must have matching length");

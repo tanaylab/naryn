@@ -35,7 +35,11 @@
 #' emr_track.logical.create("logical_track", "categorical_track", values = c(2, 3))
 #'
 #' # multiple tracks
-#' emr_track.logical.create(c("logical_track1", "logical_track2"), rep("categorical_track", 2), values = list(c(2, 3), c(1, 4)))
+#' emr_track.logical.create(
+#'     c("logical_track1", "logical_track2"),
+#'     rep("categorical_track", 2),
+#'     values = list(c(2, 3), c(1, 4))
+#' )
 #' }
 #'
 #' @keywords ~track ~create_logical
@@ -104,7 +108,8 @@ remove_logical_track <- function(track, force, rm_vars, update) {
 #' Deletes a logical track
 #'
 #' @param track the name of one or more tracks to delete
-#' @param force if 'TRUE', supresses user confirmation of a named track removal
+#' @param force if 'TRUE', suppresses user confirmation of a named track removal
+#' @param rm_vars remove track variables
 #' @return None.
 #'
 #' @keywords ~track ~create_logical
@@ -176,7 +181,6 @@ random_filter_name <- function(pattern) {
 #' @examples
 #'
 #' create_logical_track_filter("logical_track")
-#' @export
 #' @noRd
 create_logical_track_filter <- function(ltrack, filter = NULL, filter_name = NULL, env = parent.frame()) {
     ltrack <- emr_track.logical.info(ltrack)

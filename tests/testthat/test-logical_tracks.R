@@ -180,6 +180,8 @@ test_that("emr_track.logical.rm fails when track is physical", {
 
 # test multiple processes
 test_that("logical tracks creation persists between R sessions", {
+    skip_on_cran()
+    skip_on_ci()
     withr::defer(clean_logical_tracks())
     emr_track.logical.create("logical_track_test1", "ph1", c(15, 16))
     emr_track.logical.create("logical_track_test2", "ph1")
@@ -196,6 +198,8 @@ test_that("logical tracks creation persists between R sessions", {
 })
 
 test_that("logical tracks creation persists between R sessions for existing sessions", {
+    skip_on_cran()
+    skip_on_ci()
     withr::defer(clean_logical_tracks())
     callr::r(
         function(root) {
@@ -216,6 +220,8 @@ test_that("logical tracks creation persists between R sessions for existing sess
 })
 
 test_that("logical tracks creation persists between R sessions", {
+    skip_on_cran()
+    skip_on_ci()
     withr::defer(clean_logical_tracks())
     emr_track.logical.create("logical_track_test1", "ph1", c(15, 16))
     emr_track.logical.create("logical_track_test_numeric1", "track0")
@@ -235,6 +241,8 @@ test_that("logical tracks creation persists between R sessions", {
 })
 
 test_that("logical tracks deletion persists between R sessions for existing sessions", {
+    skip_on_cran()
+    skip_on_ci()
     withr::defer(clean_logical_tracks())
     emr_track.logical.create("logical_track_test1", "ph1", c(15, 16))
     emr_track.logical.create("logical_track_test2", "ph1")

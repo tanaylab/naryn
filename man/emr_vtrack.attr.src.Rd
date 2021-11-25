@@ -11,6 +11,18 @@
 \title{Get or set attributes of a virtual track}
 \usage{
 emr_vtrack.attr.src(vtrack, src)
+
+emr_vtrack.attr.func(vtrack, func)
+
+emr_vtrack.attr.params(vtrack, params)
+
+emr_vtrack.attr.keepref(vtrack, keepref)
+
+emr_vtrack.attr.time.shift(vtrack, time.shift)
+
+emr_vtrack.attr.id.map(vtrack, id.map)
+
+emr_vtrack.attr.filter(vtrack, filter)
 }
 \arguments{
 \item{vtrack}{virtual track name.}

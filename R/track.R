@@ -113,7 +113,7 @@
 #'
 #' @param track track name
 #' @param src file name or data-frame containing the track records
-#' @param force if 'TRUE', supresses user confirmation for addition to
+#' @param force if 'TRUE', suppresses user confirmation for addition to
 #' logical tracks
 #' @return None.
 #' @seealso \code{\link{emr_track.import}}, \code{\link{emr_track.create}},
@@ -563,8 +563,10 @@ emr_track.info <- function(track) {
 #' @examples
 #'
 #' # both db1 and db2 have a track named track1
+#' \dontrun{
 #' emr_db.connect(c("/db1", "/db2"))
 #' emr_track.dbs("track1")
+#' }
 #' @export emr_track.dbs
 emr_track.dbs <- function(track) {
     if (missing(track)) {
@@ -773,7 +775,7 @@ emr_track.percentile <- function(track, val, lower = TRUE) {
 #' Gets or sets "readonly" property of a track.
 #'
 #' This function gets or sets "read-onlyness" of the track. If 'readonly' is
-#' 'NULL' the functions retuns whether the track is R/O. Otherwise it sets
+#' 'NULL' the functions returns whether the track is R/O. Otherwise it sets
 #' "read-onlyness" to the value indicated by 'readonly'.
 #'
 #' Logical tracks inherit their "read-onlyness" from the source
@@ -842,7 +844,7 @@ emr_track.readonly <- function(track, readonly = NULL) {
 #' 'force' to 'TRUE' to suppress the user prompt.
 #'
 #' @param track track name
-#' @param force if 'TRUE', supresses user confirmation of a named track removal
+#' @param force if 'TRUE', suppresses user confirmation of a named track removal
 #' @return None.
 #' @seealso \code{\link{emr_track.create}}, \code{\link{emr_track.mv}},
 #' \code{\link{emr_track.ls}}, \code{\link{emr_track.readonly}}

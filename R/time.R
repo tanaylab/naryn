@@ -210,10 +210,11 @@ emr_time2date <- function(time) {
 #' are other convenience functions to get a time period explicitly.
 #'
 #'
-#' @param years number of years
-#' @param months number of months
 #' @param days number of days
+#' @param months number of months
+#' @param years number of years
 #' @param hours number of hours
+#' @param n number of days/weeks/months/years/hours
 #'
 #' @return Machine time format (number of hours)
 #'

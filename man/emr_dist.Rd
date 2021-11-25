@@ -18,8 +18,9 @@ emr_dist(
 )
 }
 \arguments{
-\item{include.lowest}{if 'TRUE', the lowest (or highest, for ‘right =
-FALSE’) value of the range determined by breaks is included}
+\item{...}{pairs of [expr, breaks], where \code{expr} is the  track expression and breaks are the breaks that determine the bin or 'NULL'.}
+
+\item{include.lowest}{if 'TRUE', the lowest (or highest, for 'right = FALSE') value of the range determined by breaks is included}
 
 \item{right}{if 'TRUE' the intervals are closed on the right (and open on
 the left), otherwise vice versa.}
@@ -38,10 +39,6 @@ implicitly based on track expressions. See also 'iterator' section.}
 \item{dataframe}{return a data frame instead of an N-dimensional vector.}
 
 \item{names}{names for track expressions in the returned dataframe (only relevant when \code{dataframe == TRUE})}
-
-\item{expr}{track expression}
-
-\item{breaks}{breaks that determine the bin or 'NULL'}
 }
 \value{
 N-dimensional vector where N is the number of 'expr'-'breaks' pairs. If \code{dataframe == TRUE} - a data frame with a column for each track expression and an additional column 'n' with counts.

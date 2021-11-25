@@ -17,7 +17,7 @@ or a warning message is issued by Naryn itself recommending to run
 'emr_db.reload'.
 }
 \seealso{
-\code{\link{emr_db.init}}, \code{\link{emr_track.ls}},
+\code{\link{emr_db.connect}}, \code{\link{emr_track.ls}},
 \code{\link{emr_vtrack.ls}}
 }
 \keyword{~db}

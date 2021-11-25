@@ -23,13 +23,14 @@ uncaught error. Yet 'emr_traceback' does it in a more friendly way by
 omitting the calls that occurred inside the library.
 }
 \examples{
-
+\dontrun{
 emr_db.init_examples()
 f <- function() {
     emr_screen("blablabla")
 }
 f()
 emr_traceback()
+}
 }
 \seealso{
 \code{\link{traceback}}

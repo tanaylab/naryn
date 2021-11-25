@@ -44,7 +44,7 @@ Choosing between the two modes depends on the specific needs. While `load_on_dem
 
 Naryn caches certain data on the disk to maintain fast run-times. In particular two files (`.naryn` and `.ids`) are created in a global root directory and one file (`.ids`}) in a user root directory.
 
-`.naryn` file contains a list of all tracks in the current root directory and their last modification dates. This file spares a full root directory rescan when `emr_db.connect` is called. The recorded modification dates allow to efficiently synchronize the track changes induced by synchronically running R sessions.
+`.naryn` file contains a list of all tracks in the current root directory and their last modification dates. This file spares a full root directory rescan when `emr_db.connect` is called. The recorded modification dates allow to efficiently synchronize the track changes induced by synchronously running R sessions.
 
 `.ids` file contains available ids that are used to run certain types of *track expression iterators* (see below). The source of these ids comes from a `patients.dob} (i.e. Date Of Birth) track, which must be present in the global root directory before these iterators may be utilized.
 
@@ -68,7 +68,7 @@ In those cases when two or more values share identical `id` and `time` Naryn req
 
 Tracks store numerical values assigned to the patients and times. The numerical data however can have different meaning and hence impose different set of operations to be applied to it. Laboratory codes, diagnosis codes, binary information such as date of birth or doctor visits are one type of data which we call *categorical*. Another type of data indicate usually the readings of different instruments such as the heartbeat rate or glucose level. This type of data is called *quantitative*.
 
-The operations that can be applied to both of these types can be very different. One might want to search for the specific diagnosis code, yet it makes little sense to search for the very specific heartbeat rate, say "68". On contrary hearbeat rate readings from different times can be averaged or a mean value might be calculated - something that has no meaning in case of categorical data.
+The operations that can be applied to both of these types can be very different. One might want to search for the specific diagnosis code, yet it makes little sense to search for the very specific heartbeat rate, say "68". On contrary heartbeat rate readings from different times can be averaged or a mean value might be calculated - something that has no meaning in case of categorical data.
 
 During the track creation one must specify the type of the track: categorical or quantitative. Various operations that can be later applied to the track are bound to the track type.
 

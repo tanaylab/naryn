@@ -28,5 +28,5 @@ load_test_dbs <- function() {
         system(glue::glue("cp -rf /net/mraid14/export/tgdata/db/tgdb/emr/nr_test_db_{.x}/ {.y}"))
     })
 
-    emr_db.connect(db_dirs = testdb_dirs, do_relaod = TRUE)
+    emr_db.connect(db_dirs = testdb_dirs, do_reload = TRUE)
 }

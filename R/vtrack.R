@@ -326,6 +326,9 @@ emr_vtrack.attr.src <- function(vtrack, src) {
     return(NULL)
 }
 
+
+#' @export
+#' @rdname emr_vtrack.attr.src
 emr_vtrack.attr.func <- function(vtrack, func) {
     if (missing(vtrack)) {
         stop("Usage: emr_vtrack.attr.func(vtrack, func)", call. = FALSE)
@@ -347,6 +350,8 @@ emr_vtrack.attr.func <- function(vtrack, func) {
     }
 }
 
+#' @export
+#' @rdname emr_vtrack.attr.src
 emr_vtrack.attr.params <- function(vtrack, params) {
     if (missing(vtrack)) {
         stop("Usage: emr_vtrack.attr.params(vtrack, params)", call. = FALSE)
@@ -377,6 +382,8 @@ emr_vtrack.attr.params <- function(vtrack, params) {
     return(NULL)
 }
 
+#' @export
+#' @rdname emr_vtrack.attr.src
 emr_vtrack.attr.keepref <- function(vtrack, keepref) {
     if (missing(vtrack)) {
         stop("Usage: emr_vtrack.attr.keepref(vtrack, keepref)", call. = FALSE)
@@ -401,6 +408,8 @@ emr_vtrack.attr.keepref <- function(vtrack, keepref) {
     }
 }
 
+#' @export
+#' @rdname emr_vtrack.attr.src
 emr_vtrack.attr.time.shift <- function(vtrack, time.shift) {
     if (missing(vtrack)) {
         stop("Usage: emr_vtrack.attr.time.shift(vtrack, time.shift)", call. = FALSE)
@@ -422,6 +431,8 @@ emr_vtrack.attr.time.shift <- function(vtrack, time.shift) {
     }
 }
 
+#' @export
+#' @rdname emr_vtrack.attr.src
 emr_vtrack.attr.id.map <- function(vtrack, id.map) {
     if (missing(vtrack)) {
         stop("Usage: emr_vtrack.attr.id.map(vtrack, id.map)", call. = FALSE)
@@ -443,6 +454,8 @@ emr_vtrack.attr.id.map <- function(vtrack, id.map) {
     }
 }
 
+#' @export
+#' @rdname emr_vtrack.attr.src
 emr_vtrack.attr.filter <- function(vtrack, filter) {
     if (missing(vtrack)) {
         stop("Usage: emr_vtrack.attr.filter(vtrack, filter)", call. = FALSE)
@@ -478,7 +491,7 @@ emr_vtrack.attr.filter <- function(vtrack, filter) {
 #' @examples
 #'
 #' emr_db.init_examples()
-#' emr_vtrack.create("vtrack1", "dense_track", c(5, 10), "max")
+#' emr_vtrack.create("vtrack1", "dense_track", time.shift = c(5, 10), func = "max")
 #' emr_vtrack.exists("vtrack1")
 #' @export emr_vtrack.exists
 emr_vtrack.exists <- function(vtrack) {
@@ -501,7 +514,7 @@ emr_vtrack.exists <- function(vtrack) {
 #'
 #' Returns the definition of a virtual track.
 #'
-#' This function returns the internal represenation of a virtual track.
+#' This function returns the internal representation of a virtual track.
 #'
 #' @param vtrack virtual track name
 #' @return Internal representation of a virtual track.

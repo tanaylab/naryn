@@ -388,6 +388,9 @@ emr_filter.attr.src <- function(filter, src) {
     return(NULL)
 }
 
+#' @export
+#'
+#' @rdname emr_filter.attr.src
 emr_filter.attr.keepref <- function(filter, keepref) {
     if (missing(filter)) {
         stop("Usage: emr_filter.attr.keepref(filter, keepref)", call. = FALSE)
@@ -412,6 +415,9 @@ emr_filter.attr.keepref <- function(filter, keepref) {
     }
 }
 
+#' @export
+#'
+#' @rdname emr_filter.attr.src
 emr_filter.attr.time.shift <- function(filter, time.shift) {
     if (missing(filter)) {
         stop("Usage: emr_filter.attr.time.shift(filter, time.shift)", call. = FALSE)
@@ -432,6 +438,9 @@ emr_filter.attr.time.shift <- function(filter, time.shift) {
     }
 }
 
+#' @export
+#'
+#' @rdname emr_filter.attr.src
 emr_filter.attr.val <- function(filter, val) {
     if (missing(filter)) {
         stop("Usage: emr_filter.attr.val(filter, val)", call. = FALSE)
@@ -472,6 +481,9 @@ emr_filter.attr.val <- function(filter, val) {
     return(NULL)
 }
 
+#' @export
+#'
+#' @rdname emr_filter.attr.src
 emr_filter.attr.expiration <- function(filter, expiration) {
     if (missing(filter)) {
         stop("Usage: emr_filter.attr.expiration(filter, expiration)", call. = FALSE)
@@ -529,7 +541,7 @@ emr_filter.exists <- function(filter) {
 #'
 #' Returns the definition of a named filter.
 #'
-#' This function returns the internal represenation of a named filter.
+#' This function returns the internal representation of a named filter.
 #'
 #' @param filter filter name
 #' @return Internal representation of a named filter.

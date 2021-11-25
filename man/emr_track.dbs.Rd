@@ -20,8 +20,10 @@ version of the track
 \examples{
 
 # both db1 and db2 have a track named track1
+\dontrun{
 emr_db.connect(c("/db1", "/db2"))
 emr_track.dbs("track1")
+}
 }
 \seealso{
 \code{\link{emr_track.info}}

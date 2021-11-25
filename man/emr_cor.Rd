@@ -19,11 +19,12 @@ emr_cor(
 )
 }
 \arguments{
+\item{...}{pairs of [factor.expr, breaks], where \code{factor.expr} is the  track expression and breaks are the breaks that determine the bin or 'NULL'.}
+
 \item{cor.exprs}{vector of track expressions for which correlation
 statistics is calculated.}
 
-\item{include.lowest}{if 'TRUE', the lowest (or highest, for ‘right =
-FALSE’) value of the range determined by breaks is included.}
+\item{include.lowest}{if 'TRUE', the lowest (or highest, for 'right = FALSE') value of the range determined by breaks is included.}
 
 \item{right}{if 'TRUE' the intervals are closed on the right (and open on
 the left), otherwise vice versa.}
@@ -42,10 +43,6 @@ implicitly based on track expressions. See also 'iterator' section.}
 \item{dataframe}{return a data frame instead of an N-dimensional vector.}
 
 \item{names}{names for track expressions in the returned dataframe (only relevant when \code{dataframe == TRUE})}
-
-\item{expr}{track expression.}
-
-\item{breaks}{breaks that determine the bin or 'NULL'.}
 }
 \value{
 A list of 5 elements each containing a N-dimensional vector (N is
