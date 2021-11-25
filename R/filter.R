@@ -39,6 +39,17 @@
 
 #' Generate a default name for a naryn filter
 #'
+#' Generate a default name for a naryn filter
+#'
+#' Given filter parameters, generate a name with the following format:
+#' "f_{src}.kr{keepref}.vals_{val}.ts_{time.shift}.exp_{expiration}"
+#' Where for 'val' and 'time.shift' the values are separated by an
+#' underscore.
+#'
+#' If \code{time.shift}, \code{val} or \code{expiration} are
+#' \code{NULL} - their section would not appear in the generated name.
+#'
+#'
 #' @inheritParams emr_filter.create
 #'
 #' @return a default name for the filter

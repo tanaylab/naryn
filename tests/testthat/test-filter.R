@@ -512,6 +512,11 @@ test_that("emr_filter.name works", {
         "f_track1.krF.ts_10"
     )
 
+    expect_equal(
+        emr_filter.name("track.kr.krT.krF.kr", keepref = FALSE, time.shift = 10),
+        "f_track1.krF.ts_10"
+    )
+
     expect_error(emr_filter.name("track10", time.shift = 1:10))
 })
 
@@ -578,6 +583,32 @@ test_that("emr_filter.create_from_name works when track name has '.'", {
     withr::defer(emr_track.rm("track.1", TRUE))
     fname <- emr_filter.create_from_name(emr_filter.name("track.1", keepref = TRUE))
     expect_equal(emr_filter.info(fname)$src, "track.1")
+})
+
+test_that("emr_filter.create_from_name works when track name has '.kr'", {
+    emr_track.create("track.kr", "user", TRUE, "track1", keepref = TRUE)
+    withr::defer(emr_track.rm("track.kr", TRUE))
+    fname <- emr_filter.create_from_name(emr_filter.name("track.kr", keepref = TRUE))
+    expect_equal(emr_filter.info(fname)$src, "track.kr")
+
+    emr_track.create("track.kr.krT.kr_kr.kr", "user", TRUE, "track1", keepref = TRUE)
+    withr::defer(emr_track.rm("track.kr.krT.kr_kr.kr", TRUE))
+    fname <- emr_filter.create_from_name(emr_filter.name("track.kr.krT.kr_kr.kr", keepref = TRUE))
+    expect_equal(emr_filter.info(fname)$src, "track.kr.krT.kr_kr.kr")
+})
+
+test_that("emr_filter.create_from_name works when track name has '.krT'", {
+    emr_track.create("track.krT", "user", TRUE, "track1", keepref = TRUE)
+    withr::defer(emr_track.rm("track.krT", TRUE))
+    fname <- emr_filter.create_from_name(emr_filter.name("track.krT", keepref = TRUE))
+    expect_equal(emr_filter.info(fname)$src, "track.krT")
+})
+
+test_that("emr_filter.create_from_name works when track name starts with 'f_'", {
+    emr_track.create("f_track", "user", TRUE, "track1", keepref = TRUE)
+    withr::defer(emr_track.rm("f_track", TRUE))
+    fname <- emr_filter.create_from_name(emr_filter.name("f_track", keepref = TRUE))
+    expect_equal(emr_filter.info(fname)$src, "f_track")
 })
 
 test_that("emr_filter.create_from_name works when track name has '_'", {
