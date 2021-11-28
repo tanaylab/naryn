@@ -16,7 +16,7 @@ emr_filter.create(
 \arguments{
 \item{filter}{filter name. If NULL - a name would be generated automatically using \code{emr_filter.name}.}
 
-\item{src}{source (track name or id-time table)}
+\item{src}{source (track name or id-time table). Can be a vector of track names.}
 
 \item{keepref}{'TRUE' or 'FALSE'}
 

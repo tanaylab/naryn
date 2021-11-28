@@ -618,11 +618,82 @@ test_that("emr_filter.create_from_name works when track name has '_'", {
     expect_equal(emr_filter.info(fname)$src, "track_1")
 })
 
+test_that("emr_filter.create_from_name works when arguments have a '.'", {
+    fname <- emr_filter.create_from_name(emr_filter.name("ph1", val = c(1, 2.5, 3.4)))
+    expect_equal(emr_filter.info(fname)$src, "ph1")
+    expect_equal(emr_filter.info(fname)$val, c(1, 2.5, 3.4))
+
+    fname <- emr_filter.create_from_name(emr_filter.name("ph1", val = c(1, 2.5, 3.4), time.shift = c(-10, 50)))
+    expect_equal(emr_filter.info(fname)$src, "ph1")
+    expect_equal(emr_filter.info(fname)$val, c(1, 2.5, 3.4))
+    expect_equal(emr_filter.info(fname)$time_shift, c(-10, 50))
+
+    fname <- emr_filter.create_from_name(emr_filter.name("ph1", val = c(1, 2.5, 3.4), time.shift = c(-10, 50), expiration = 100))
+    expect_equal(emr_filter.info(fname)$src, "ph1")
+    expect_equal(emr_filter.info(fname)$val, c(1, 2.5, 3.4))
+    expect_equal(emr_filter.info(fname)$time_shift, c(-10, 50))
+    expect_equal(emr_filter.info(fname)$expiration, 100)
+
+    fname <- emr_filter.create_from_name(emr_filter.name("ph1", val = c(1, 2.5, 3.4), time.shift = c(-10.5, 50.4)))
+    expect_equal(emr_filter.info(fname)$src, "ph1")
+    expect_equal(emr_filter.info(fname)$val, c(1, 2.5, 3.4))
+    expect_equal(emr_filter.info(fname)$time_shift, c(-10.5, 50.4))
+
+    fname <- emr_filter.create_from_name(emr_filter.name("ph1", time.shift = c(-10.5, 50.4)))
+    expect_equal(emr_filter.info(fname)$src, "ph1")
+    expect_null(emr_filter.info(fname)$val)
+    expect_equal(emr_filter.info(fname)$time_shift, c(-10.5, 50.4))
+
+    fname <- emr_filter.create_from_name(emr_filter.name("ph1", val = c(1, 2.5, 3.4), time.shift = c(-10.5, 50.4), expiration = 100))
+    expect_equal(emr_filter.info(fname)$src, "ph1")
+    expect_equal(emr_filter.info(fname)$val, c(1, 2.5, 3.4))
+    expect_equal(emr_filter.info(fname)$time_shift, c(-10.5, 50.4))
+    expect_equal(emr_filter.info(fname)$expiration, 100)
+
+    fname <- emr_filter.create_from_name(emr_filter.name("ph1", time.shift = c(-10.5, 50.4), expiration = 100))
+    expect_equal(emr_filter.info(fname)$src, "ph1")
+    expect_equal(emr_filter.info(fname)$time_shift, c(-10.5, 50.4))
+    expect_equal(emr_filter.info(fname)$expiration, 100)
+})
+
+
 test_that("emr_filter.create_from_name works with very large numbers", {
     withr::with_options(list(scipen = 1), {
         fname <- emr_filter.name("ph1", keepref = TRUE, val = 1e9)
         expect_equal(fname, "f_ph1.krT.vals_1000000000")
         emr_filter.create_from_name(fname)
         expect_equal(emr_filter.info(fname)$val, 1e9)
+    })
+})
+
+test_that("emr_filter.create_from_name works when src is a vector", {
+    fnames <- emr_filter.name(c("track0", "track1", "track3"), keepref = FALSE, time.shift = c(10, 50))
+    expect_equal(fnames, c("f_track0.krF.ts_10_50", "f_track1.krF.ts_10_50", "f_track3.krF.ts_10_50"))
+    fnames1 <- emr_filter.create_from_name(fnames)
+    expect_equal(fnames, fnames1)
+    expect_equal(purrr::map_chr(fnames, ~ emr_filter.info(.x)$src), c("track0", "track1", "track3"))
+    purrr::walk(fnames, ~ {
+        expect_equal(emr_filter.info(.x)$time_shift, c(10, 50))
+        expect_equal(emr_filter.info(.x)$keepref, FALSE)
+    })
+})
+
+test_that("emr_filter.create works when src is a vector (1)", {
+    fnames <- emr_filter.create(filter = NULL, src = c("track0", "track1", "track3"), keepref = FALSE, time.shift = c(10, 50))
+    expect_equal(fnames, c("f_track0.krF.ts_10_50", "f_track1.krF.ts_10_50", "f_track3.krF.ts_10_50"))
+    expect_equal(purrr::map_chr(fnames, ~ emr_filter.info(.x)$src), c("track0", "track1", "track3"))
+    purrr::walk(fnames, ~ {
+        expect_equal(emr_filter.info(.x)$time_shift, c(10, 50))
+        expect_equal(emr_filter.info(.x)$keepref, FALSE)
+    })
+})
+
+test_that("emr_filter.create works when src is a vector (2)", {
+    fnames <- emr_filter.create(filter = c("f1", "f2", "f3"), src = c("track0", "track1", "track3"), keepref = FALSE, time.shift = c(10, 50))
+    expect_equal(fnames, c("f1", "f2", "f3"))
+    expect_equal(purrr::map_chr(fnames, ~ emr_filter.info(.x)$src), c("track0", "track1", "track3"))
+    purrr::walk(fnames, ~ {
+        expect_equal(emr_filter.info(.x)$time_shift, c(10, 50))
+        expect_equal(emr_filter.info(.x)$keepref, FALSE)
     })
 })

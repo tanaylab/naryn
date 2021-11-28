@@ -215,7 +215,7 @@ emr_vtrack.create <- function(vtrack, src, func = NULL, params = NULL, keepref =
     }
 
     if (!exists("EMR_VTRACKS", envir = .GlobalEnv)) {
-        emr_vtrack.clear()
+        EMR_VTRACKS <<- list()
     }
 
     if (emr_track.exists(vtrack)) {
@@ -356,9 +356,7 @@ emr_vtrack.attr.params <- function(vtrack, params) {
     if (missing(vtrack)) {
         stop("Usage: emr_vtrack.attr.params(vtrack, params)", call. = FALSE)
     }
-    .emr_checkroot()
 
-    root <- get("EMR_GROOT", envir = .GlobalEnv)
     vtrack.var <- get("EMR_VTRACKS", envir = .GlobalEnv)[[vtrack]]
 
     if (is.null(vtrack.var)) {
@@ -388,7 +386,6 @@ emr_vtrack.attr.keepref <- function(vtrack, keepref) {
     if (missing(vtrack)) {
         stop("Usage: emr_vtrack.attr.keepref(vtrack, keepref)", call. = FALSE)
     }
-    .emr_checkroot()
 
     vtrack.var <- get("EMR_VTRACKS", envir = .GlobalEnv)[[vtrack]]
 
@@ -414,7 +411,6 @@ emr_vtrack.attr.time.shift <- function(vtrack, time.shift) {
     if (missing(vtrack)) {
         stop("Usage: emr_vtrack.attr.time.shift(vtrack, time.shift)", call. = FALSE)
     }
-    .emr_checkroot()
 
     vtrack.var <- get("EMR_VTRACKS", envir = .GlobalEnv)[[vtrack]]
 
@@ -437,7 +433,6 @@ emr_vtrack.attr.id.map <- function(vtrack, id.map) {
     if (missing(vtrack)) {
         stop("Usage: emr_vtrack.attr.id.map(vtrack, id.map)", call. = FALSE)
     }
-    .emr_checkroot()
 
     vtrack.var <- get("EMR_VTRACKS", envir = .GlobalEnv)[[vtrack]]
 
@@ -460,7 +455,6 @@ emr_vtrack.attr.filter <- function(vtrack, filter) {
     if (missing(vtrack)) {
         stop("Usage: emr_vtrack.attr.filter(vtrack, filter)", call. = FALSE)
     }
-    .emr_checkroot()
 
     vtrack.var <- get("EMR_VTRACKS", envir = .GlobalEnv)[[vtrack]]
     if (is.null(vtrack.var)) {
@@ -498,7 +492,6 @@ emr_vtrack.exists <- function(vtrack) {
     if (missing(vtrack)) {
         stop("Usage: emr_vtrack.exists(vtrack)", call. = FALSE)
     }
-    .emr_checkroot()
 
     res <- FALSE
     if (exists("EMR_VTRACKS", envir = .GlobalEnv)) {
@@ -530,7 +523,6 @@ emr_vtrack.info <- function(vtrack) {
     if (missing(vtrack)) {
         stop("Usage: emr_vtrack.info(vtrack)", call. = FALSE)
     }
-    .emr_checkroot()
 
     .emr_vtrack.get(vtrack)
 }
@@ -562,7 +554,6 @@ emr_vtrack.ls <- function(pattern = "", ignore.case = FALSE, perl = FALSE, fixed
     if (!exists("EMR_VTRACKS", envir = .GlobalEnv)) {
         return(NULL)
     }
-    .emr_checkroot()
 
     vtracks <- get("EMR_VTRACKS", envir = .GlobalEnv)
     vtracknames <- names(vtracks)
@@ -607,7 +598,6 @@ emr_vtrack.rm <- function(vtrack) {
     if (missing(vtrack)) {
         stop("Usage: emr_vtrack.rm(vtrack)", call. = FALSE)
     }
-    .emr_checkroot()
 
     if (exists("EMR_VTRACKS", envir = .GlobalEnv)) {
         emr_vtracks <- get("EMR_VTRACKS", envir = .GlobalEnv)
