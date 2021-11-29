@@ -986,7 +986,7 @@ void EMRDb::update_track_list_file(const Name2Track &tracks, string db_id, Buffe
                        sizeof(name2track.second.timestamp.tv_sec)) !=
               sizeof(name2track.second.timestamp.tv_sec)) ||
              (bf.write(&name2track.second.timestamp.tv_nsec,
-                       sizeof(name2track.second.timestamp).tv_nsec) !=
+                       sizeof(name2track.second.timestamp.tv_nsec)) !=
               sizeof(name2track.second.timestamp.tv_nsec)))){
                 verror("Failed to write file %s: %s", bf.file_name().c_str(), strerror(errno));
         }
@@ -1123,6 +1123,10 @@ void EMRDb::load_track_list(string db_id, BufferedFile *_pbf, bool force){
         
         if (itrack != m_tracks.end() && itrack->second.db_id != fresh_track.second.db_id){
 
+            // if(get_db_idx(fresh_track.second.db_id) < get_db_idx(itrack->second.db_id)) {
+            //     continue;
+            // }
+
             //Overriding mechanism
             if (fresh_track.first == DOB_TRACKNAME) {
                 verror("Can not override patients.dob track");
@@ -1134,15 +1138,16 @@ void EMRDb::load_track_list(string db_id, BufferedFile *_pbf, bool force){
 
             m_track_names[itrack->second.db_id].erase(pos);
 
-            //when coming to override, save the cascase of dbs
-            //already overridden. Then. add the latest one
+            //when coming to override, save the cascade of dbs
+            //already overridden. Then, add the latest one.
             fresh_track.second.dbs = itrack->second.dbs;
 
             vector<string>::iterator db_exists = std::find(fresh_track.second.dbs.begin(), fresh_track.second.dbs.end(), itrack->second.db_id);
 
-            if (db_exists == fresh_track.second.dbs.end()){
+            if (db_exists == fresh_track.second.dbs.end() && get_db_idx(itrack->second.db_id) < get_db_idx(fresh_track.second.db_id)){
                 fresh_track.second.dbs.push_back(itrack->second.db_id);
             }
+
             itrack->second.overridden = 1;
         }
     }
@@ -1195,8 +1200,9 @@ void EMRDb::load_track_list(string db_id, BufferedFile *_pbf, bool force){
 }
 
 
-void EMRDb::load_track(const char *track_name, string db_id)
-{
+void EMRDb::load_track(const char *track_name, string db_id){
+
+    vector<string> dbs;
     string filename = track_filename(db_id, track_name);
     Name2Track::iterator itrack = m_tracks.find(track_name);
 
@@ -1215,9 +1221,10 @@ void EMRDb::load_track(const char *track_name, string db_id)
     EMRTrack *track = EMRTrack::unserialize(track_name, filename.c_str());
     itrack = m_tracks.find(track_name); // search again, load_track_list might
                                         // have loaded this track already
+    
     if (itrack == m_tracks.end()){
         m_tracks.emplace(track_name, TrackInfo(track, filename.c_str(), track->timestamp(), db_id));
-    } else {
+    } else {      
         itrack->second = TrackInfo(track, filename.c_str(), track->timestamp(), db_id);
     }
         
