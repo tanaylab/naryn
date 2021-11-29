@@ -18,7 +18,7 @@ SEXP emr_dbinit(SEXP _dbdirs, SEXP _load_on_demand, SEXP _do_load, SEXP envir) {
         Naryn naryn(envir, false);
 
         if (!isLogical(_do_load) || Rf_length(_do_load) != 1)
-            verror("'do_relaod' argument must be a logical value");
+            verror("'do_reload' argument must be a logical value");
 
         if (Rf_length(_dbdirs) != Rf_length(_load_on_demand)) {
             verror("'db_dirs' and 'load_on_demand' arguments must have matching length");
@@ -219,7 +219,7 @@ SEXP emr_track_names(SEXP envir) {
         vector<int> track_names_sizes;
         vector<string> rootdirs = g_db->rootdirs();
 
-        for (int db_idx = 0; db_idx < rootdirs.size(); db_idx++) {
+        for (int db_idx = 0; db_idx < (int)rootdirs.size(); db_idx++) {
             track_names_sizes.push_back(g_db->track_names(rootdirs[db_idx]).size());
         }
 
@@ -231,7 +231,7 @@ SEXP emr_track_names(SEXP envir) {
 
         size_t idx = 0;
 
-        for (int db_idx = 0; db_idx < rootdirs.size(); db_idx++) {
+        for (int db_idx = 0; db_idx < (int)rootdirs.size(); db_idx++) {
             for ( auto track_name : g_db->track_names(rootdirs[db_idx]) )
                 SET_STRING_ELT(answer, idx++, mkChar(track_name.c_str()));
         }

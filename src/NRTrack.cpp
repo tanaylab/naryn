@@ -212,7 +212,7 @@ SEXP emr_track_ids(SEXP _track, SEXP _envir)
 			verror("Track argument is not a string");
 
 		const char *trackname = CHAR(STRING_ELT(_track, 0));
-        SEXP answer;
+        
         vector<unsigned> ids;
         EMRTrack *track = g_db->track(trackname);
         const EMRLogicalTrack *logical_track  =

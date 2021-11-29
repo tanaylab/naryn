@@ -4,29 +4,35 @@ Title: Toolkit for analysis of medical records
 Version: 2.6.1
 Date: 2020-11-09
 Authors@R: c(
-    person("Misha", "Hoichman", , "misha@hoichman.com", role = c("aut", "cre")),
-    person("Aviezer", "Lifshitz", , "aviezer.lifshitz@weizmann.ac.il", role = "aut"),
+    person("Misha", "Hoichman", , "misha@hoichman.com", role = "aut"),
+    person("Aviezer", "Lifshitz", , "aviezer.lifshitz@weizmann.ac.il", role = c("aut", "cre")),
     person("Ben", "Gilat", , "ben.gilat@weizmann.ac.il", role = "aut")
   )
 Description: Toolkit for medical records data analysis
 License: TBD
 BugReports: https://github.com/tanaylab/naryn/issues
-Depends: 
+Depends:    
+    R (>= 3.0.0),
     utils
 Imports: 
     dplyr,
     glue,
+    lifecycle,
     magrittr,
     purrr,
-    lifecycle,
+    stringr
 Suggests: 
+    spelling,
+    brio,
     callr,
+    devtools,
     forcats,
     knitr,
     readr,
     rmarkdown,
     testthat (>= 3.0.4),
-    tools
+    tools,
+    withr
 LinkingTo: 
     cpp11
 VignetteBuilder: 
@@ -36,5 +42,6 @@ Config/testthat/parallel: false
 Encoding: UTF-8
 LazyLoad: yes
 NeedsCompilation: yes
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 SystemRequirements: GNU make, C++11
+Language: en-US

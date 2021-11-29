@@ -9,6 +9,14 @@
 \title{Get or set attributes of a named filter}
 \usage{
 emr_filter.attr.src(filter, src)
+
+emr_filter.attr.keepref(filter, keepref)
+
+emr_filter.attr.time.shift(filter, time.shift)
+
+emr_filter.attr.val(filter, val)
+
+emr_filter.attr.expiration(filter, expiration)
 }
 \arguments{
 \item{filter}{filter name.}

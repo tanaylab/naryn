@@ -4,14 +4,17 @@
 
 BinsManager::BinsManager(SEXP _breaks, SEXP _include_lowest, SEXP _right, const vector<string> *exprs, const NRTrackExpressionVars *expr_vars)
 {
-	if (!isVector(_breaks))
+	if (!isVector(_breaks)){
 		TGLError<BinsManager>("'breaks' argument must be a vector");
+    }
 
-	if (!isLogical(_include_lowest) || Rf_length(_include_lowest) != 1)
+	if (!isLogical(_include_lowest) || Rf_length(_include_lowest) != 1){
 		TGLError<BinsManager>("'include.lowest' argument is not logical");
+    }
 
-    if (!isLogical(_right) || Rf_length(_right) != 1)
+    if (!isLogical(_right) || Rf_length(_right) != 1){
         TGLError<BinsManager>("'right' argument is not logical");
+    }
 
 	unsigned num_breaks_sets = Rf_length(_breaks);
 
@@ -25,8 +28,9 @@ BinsManager::BinsManager(SEXP _breaks, SEXP _include_lowest, SEXP _right, const 
 	for (unsigned i = 0; i < num_breaks_sets; ++i) {
 		SEXP breaks = VECTOR_ELT(_breaks, i);
 
-		if (expr_vars && !isNull(breaks) && !isReal(breaks) && !isInteger(breaks) || !expr_vars && !isReal(breaks) && !isInteger(breaks))
+		if ((expr_vars && !isNull(breaks) && !isReal(breaks) && !isInteger(breaks)) || (!expr_vars && !isReal(breaks) && !isInteger(breaks))){
 			TGLError<BinsManager>("breaks[%d] is not numeric", i + 1);
+        }
 
 		m_bin_finders.push_back(BinFinder());
 

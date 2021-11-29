@@ -224,7 +224,7 @@ test_that("read_only is also overridden when overriding a track", {
     emr_track.readonly("stam1_1", readonly = TRUE)
     expect_true(emr_track.readonly("stam1_1"))
 
-    emr_track.create(track = "stam1_1", space = EMR_UROOT, categorical = FALSE, keepref = F, exp = "stam1_1", override = TRUE)
+    emr_track.create(track = "stam1_1", space = EMR_UROOT, categorical = FALSE, keepref = FALSE, exp = "stam1_1", override = TRUE)
 
     expect_false(emr_track.exists("stam1_1", EMR_ROOTS[1]))
     expect_true(emr_track.exists("stam1_1", EMR_ROOTS[4]))
@@ -406,7 +406,7 @@ test_that("trying to connect with non unique dbs throws an error", {
 
 
 test_that("emr_track.import throws error when trying to override existing track if created in lower order db", {
-    
+
     # track2_2 is in db 2, we are creating a new track2_2 in db 1
     expect_true("track2_2" %in% emr_track.ls())
     expect_true(emr_track.exists("track2_2", EMR_ROOTS[2]))
@@ -419,18 +419,16 @@ test_that("emr_track.import throws error when trying to override existing track 
         src = t1 %>% dplyr::mutate(track2_2 = track2_2 * 2) %>% dplyr::rename(value = track2_2),
         override = TRUE
     ))
-
 })
 
 test_that("emr_track.create throws error when trying to override existing track if created in lower order db", {
-    
+
     # track2_2 is in db 2, we are creating a new track2_2 in db 1
     expect_true("track2_2" %in% emr_track.ls())
     expect_true(emr_track.exists("track2_2", EMR_ROOTS[2]))
     t1 <- emr_extract("track2_2")
 
     expect_error(emr_track.create(track = "track2_2", space = EMR_ROOTS[1], categorical = FALSE, exp = "track2_2*2", keepref = TRUE, override = TRUE))
-
 })
 
 test_that("trying to override patients.dob throws error in any case", {

@@ -57,8 +57,8 @@ void NRPoint::convert_rpoints_vals(SEXP rsrc, EMRTrackData<T> &data, const char 
 
         rcol[i] = VECTOR_ELT(rsrc, rcolidx);
 
-        if (strcmp(CHAR(STRING_ELT(colnames, rcolidx)), COL_NAMES[i]) || !isReal(rcol[i]) && !isInteger(rcol[i]) ||
-            rcolidx && Rf_length(VECTOR_ELT(rsrc, rcolidx - 1)) != Rf_length(rcol[i]))
+        if (strcmp(CHAR(STRING_ELT(colnames, rcolidx)), COL_NAMES[i]) || (!isReal(rcol[i]) && !isInteger(rcol[i])) ||
+            (rcolidx && Rf_length(VECTOR_ELT(rsrc, rcolidx - 1)) != Rf_length(rcol[i])))
             TGLError<NRPoint>(BAD_FORMAT, "%sInvalid format", error_msg_prefix);
 
         ++rcolidx;

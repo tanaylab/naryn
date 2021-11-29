@@ -2,7 +2,9 @@ inst/naryndb/test/.naryn
 src/*.so
 src/*.o
 src/*.d
+src/Makevars_bak
 tests/testdb
+tests/testdb_*
 tests/snapshot
 .vscode
 Logical_tracks.md

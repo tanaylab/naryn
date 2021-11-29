@@ -6,11 +6,11 @@
 \usage{
 emr_screen(
   expr,
-  sort = F,
+  sort = FALSE,
   stime = NULL,
   etime = NULL,
   iterator = NULL,
-  keepref = F,
+  keepref = FALSE,
   filter = NULL
 )
 }
@@ -118,7 +118,7 @@ emr_extract("emr_time2dayofmonth(EMR_TIME)", iterator = "sparse_track") \cr
 
 emr_db.init_examples()
 emr_screen("sparse_track == 13 | dense_track < 80",
-    iterator = "sparse_track", keepref = T
+    iterator = "sparse_track", keepref = TRUE
 )
 }
 \seealso{
