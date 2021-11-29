@@ -1198,7 +1198,6 @@ void EMRDb::load_track_list(string db_id, BufferedFile *_pbf, bool force){
 
 void EMRDb::load_track(const char *track_name, string db_id){
 
-    vector<string> dbs;
     string filename = track_filename(db_id, track_name);
     Name2Track::iterator itrack = m_tracks.find(track_name);
 
