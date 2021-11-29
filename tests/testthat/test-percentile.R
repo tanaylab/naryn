@@ -1,7 +1,7 @@
 
 test_that("emr_track.percentile works", {
     expect_equal(
-        emr_track.percentile("track1", emr_extract("track2", iterator = "track3")$track2, lower = T),
+        emr_track.percentile("track1", emr_extract("track2", iterator = "track3")$track2, lower = TRUE),
         c(
             NaN, NaN, 0.462709993124008, NaN, 0.811730027198792, NaN, 0.428662002086639,
             NaN, NaN, NaN, NaN, 0.522267997264862, NaN, NaN, NaN, NaN, 0.65066397190094,
@@ -19,9 +19,9 @@ test_that("emr_track.percentile works", {
     )
 })
 
-test_that("emr_track.percentile works lower=F", {
+test_that("emr_track.percentile works lower=FALSE", {
     expect_equal(
-        emr_track.percentile("track1", emr_extract("track2", iterator = "track3")$track2, lower = F),
+        emr_track.percentile("track1", emr_extract("track2", iterator = "track3")$track2, lower = FALSE),
         c(
             NaN, NaN, 0.463672012090683, NaN, 0.812665998935699, NaN, 0.429715991020203,
             NaN, NaN, NaN, NaN, 0.523307979106903, NaN, NaN, NaN, NaN, 0.651678025722504,

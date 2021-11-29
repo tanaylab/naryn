@@ -129,11 +129,11 @@ SEXP emr_import(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _src, SEXP _ad
                     verror("%s, line %d: invalid id", filename, lineno);
 
                 hour = strtol(fields[NRPoint::TIME].c_str(), &endptr, 10);
-                if (*endptr || hour < 0 || hour > EMRTimeStamp::MAX_HOUR)
+                if (*endptr || hour < 0 || (EMRTimeStamp::Hour)hour > EMRTimeStamp::MAX_HOUR)
                     verror("%s, line %d: invalid time", filename, lineno);
 
                 ref = strtol(fields[NRPoint::REF].c_str(), &endptr, 10);
-                if (*endptr || ref < 0 && ref != -1 || ref > EMRTimeStamp::MAX_REFCOUNT)
+                if (*endptr || (ref < 0 && ref != -1) || ref > EMRTimeStamp::MAX_REFCOUNT)
                     verror("%s, line %d: invalid reference", filename, lineno);
 
                 val = strtod(fields[NRPoint::VALUE].c_str(), &endptr);

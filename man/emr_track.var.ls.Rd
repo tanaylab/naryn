@@ -29,7 +29,7 @@ This function returns a list of track variables of a track that match the
 pattern (see 'grep'). If called without any arguments all track variables of
 a track are returned.
 
-Overriding a track also overrides it's track variables, the 
+Overriding a track also overrides it's track variables, the
 variables will persist when the track is no longer overridden
 }
 \examples{

@@ -25,14 +25,11 @@ Naryn can work under R (as a package) or Python (as a module). The vast majority
 
 ### DB dirs, Namespaces and Read-Only Tracks
 
-Naryn allows accessing the data that resides in *tracks* where each track holds certain type of medical data such as patients' diagnoses or their hemoglobin level at certain points of time. The track files are aggregated in one or more directories. Before the tracks can be accessed, Naryn needs to establish connection to the directories, also referred as *db dirs*. Call `emr_db.connect` function to establish the access to the tracks in the db_dirs. To establish a connection using `emr_db.connect`, Naryn requires to specify at-least one db dir, optionaly, `emr_db.connect` accepts additional db dirs which can also contain additional tracks. In a case where 2 or more db dirs, contain the same track name (namespace collision), the track will be taken from the db dir which was passed *last* in the order of connections. For example, if we have 2 db dirs `/db1` and `/db2` which both contain a track named `track1`, the call `emr_db.connect(c('/db1', '/db2'))` will result with Naryn using `track1` from `/db2`. As you might expect the overriding is consistent not only for the track's data it self, but also for any other Naryn entity using or pointing to the track.
+Naryn allows accessing the data that resides in *tracks* where each track holds certain type of medical data such as patients' diagnoses or their hemoglobin level at certain points of time. The track files can be aggregated from one or more directories. Before the tracks can be accessed, Naryn needs to establish connection to the directories, also referred as *db dirs*. Call `emr_db.connect` function to establish the access to the tracks in the db_dirs. To establish a connection using `emr_db.connect`, Naryn requires to specify at-least one db dir. Optionally, `emr_db.connect` accepts additional db dirs which can also contain additional tracks. In a case where 2 or more db dirs contain the same track name (namespace collision), the track will be taken from the db dir which was passed *last* in the order of connections. For example, if we have 2 db dirs `/db1` and `/db2` which both contain a track named `track1`, the call `emr_db.connect(c('/db1', '/db2'))` will result with Naryn using `track1` from `/db2`. As you might expect the overriding is consistent not only for the track's data itself, but also for any other Naryn entity using or pointing to the track.
 
-Even though all db directories may contain track files their designation is different. All the db dirs except the last dir in the order of connectios are mainly read-only. The directory which was connected last in the order, also known as *user dir*, is intended to store volatile data like the results of intermediate calculations. New tracks can be created only in the db dir which was last in the order of connections, using `emr_track.import` or `emr_track.create`. In order to write tracks to a db dir which is not last in the connection order, the user must explicitly pass the required db dir, t
+Even though all db directories may contain track files, their designation is different. All the db dirs except for the last dir in the order of connections are mainly read-only. The directory which was connected last in the order, is termed *user dir*, and is intended to store volatile data like the results of intermediate calculations. New tracks can be created only in the db dir which was last in the order of connections, using `emr_track.import` or `emr_track.create`. In order to write tracks to a db dir which is not last in the connection order, you must explicitly pass the path to the required db dir, and this should be done for a well justified reason.
 
-
-his should be done for a well justified reason.
-
-A track may be marked as read-only to prevent its accidential deletion or modification. Use `emr_track.readonly` to set or get read-only property of the track. A newly created tracks is always writable. If you wish to mark it as "read-only", please do it in a separate call.
+A track may be marked as read-only to prevent its accidental deletion or modification. Use `emr_track.readonly` to set or get read-only property of the track. A newly created tracks is always writable. If you wish to mark it as "read-only", please do it in a separate call.
 
 
 ### Load-on-demand vs. Pre-load Modes
@@ -47,7 +44,7 @@ Choosing between the two modes depends on the specific needs. While `load_on_dem
 
 Naryn caches certain data on the disk to maintain fast run-times. In particular two files (`.naryn` and `.ids`) are created in a global root directory and one file (`.ids`}) in a user root directory.
 
-`.naryn` file contains a list of all tracks in the current root directory and their last modification dates. This file spares a full root directory rescan when `emr_db.connect` is called. The recorded modification dates allow to efficiently synchronize the track changes induced by synchronically running R sessions.
+`.naryn` file contains a list of all tracks in the current root directory and their last modification dates. This file spares a full root directory rescan when `emr_db.connect` is called. The recorded modification dates allow to efficiently synchronize the track changes induced by synchronously running R sessions.
 
 `.ids` file contains available ids that are used to run certain types of *track expression iterators* (see below). The source of these ids comes from a `patients.dob} (i.e. Date Of Birth) track, which must be present in the global root directory before these iterators may be utilized.
 
@@ -57,7 +54,7 @@ Manual modifications of the database files can still be performed, yet they must
 
 ### Tracks
 
-Each track is stored in a binary file with `.nrtrack` file extention. One of the two internal formats, *dense* or *sparse*, is automatically selected during the track creation. The choice of the exact format is based on the optimal run-time performance.
+Each track is stored in a binary file with `.nrtrack` file extension. One of the two internal formats, *dense* or *sparse*, is automatically selected during the track creation. The choice of the exact format is based on the optimal run-time performance.
 
 #### Records and References
 
@@ -71,7 +68,7 @@ In those cases when two or more values share identical `id` and `time` Naryn req
 
 Tracks store numerical values assigned to the patients and times. The numerical data however can have different meaning and hence impose different set of operations to be applied to it. Laboratory codes, diagnosis codes, binary information such as date of birth or doctor visits are one type of data which we call *categorical*. Another type of data indicate usually the readings of different instruments such as the heartbeat rate or glucose level. This type of data is called *quantitative*.
 
-The operations that can be applied to both of these types can be very different. One might want to search for the specific diagnosis code, yet it makes little sense to search for the very specific heartbeat rate, say "68". On contrary hearbeat rate readings from different times can be averaged or a mean value might be calculated - something that has no meaning in case of categorical data.
+The operations that can be applied to both of these types can be very different. One might want to search for the specific diagnosis code, yet it makes little sense to search for the very specific heartbeat rate, say "68". On contrary heartbeat rate readings from different times can be averaged or a mean value might be calculated - something that has no meaning in case of categorical data.
 
 During the track creation one must specify the type of the track: categorical or quantitative. Various operations that can be later applied to the track are bound to the track type.
 
@@ -129,9 +126,9 @@ Though both track attributes and track variables can be used to store meta-data 
 #### Subsets
 
 The analysis of data often involves dividing the data to train and test sets. 
-Naryn allows to subset the data via `emr_db.subset` function. `emr_db.subset` accepts a list of ids or samples the ids randomally. These ids constitute the subset. The ids that are not in the subset are skipped by all the *iterators*, *filters* and various functions.
+Naryn allows to subset the data via `emr_db.subset` function. `emr_db.subset` accepts a list of ids or samples the ids randomly. These ids constitute the subset. The ids that are not in the subset are skipped by all the *iterators*, *filters* and various functions.
 
-One may think of a subset as an additonal layer, a "viewport", that filters out some of the ids. Some lower-level functions such as `emr_track.info` or `emr_track.unique` ignore the subsets. Same applies to `percentile.*` functions of the virtual tracks.
+One may think of a subset as an additional layer, a "viewport", that filters out some of the ids. Some lower-level functions such as `emr_track.info` or `emr_track.unique` ignore the subsets. Same applies to `percentile.*` functions of the virtual tracks.
 
 
 ## Accessing the Data
@@ -152,7 +149,7 @@ Every track expression is accompanied by an *iterator* that produces a set of *i
 
 To boost the performance of the track expression evaluation, run-time track variables are actually defined as vectors in R rather than scalars. The result of the evaluation is expected to be also a vector of a similar size. One should always keep in his mind the vectorial notation and write the track expressions accordingly.
 
-For example, at first glance a track expression `"min(mytrack, 10)"` seems to be perfectly fine. However the evaluation of this expression produces always a scalar, i.e. a signle number even if `mytrack` is actually a vector. The way to correct the specific track expression so that it works on vectors, is to use `pmin` function instead of `min`.
+For example, at first glance a track expression `"min(mytrack, 10)"` seems to be perfectly fine. However the evaluation of this expression produces always a scalar, i.e. a single number even if `mytrack` is actually a vector. The way to correct the specific track expression so that it works on vectors, is to use `pmin` function instead of `min`.
 
 **Python**
 
@@ -178,7 +175,7 @@ If the track expression contains a track (or virtual track) name, then the value
 
 #### Virtual Tracks
 
-So far we have shown that in some situations `mytrack` variable can be set to the average of the matching track values. But what if we do not want to average the values but rather pick up the maximal, minimal or median value? What if we want to use the percentile of a track value rather than the value itself? And maybe we even want to alter the time of the iterator point: shift it or expand to a time window and by that look at the different set of track values? For instance: given an iterator point we might want to know what was the maximal level of glucose during the last year that preceeded the time of the point.
+So far we have shown that in some situations `mytrack` variable can be set to the average of the matching track values. But what if we do not want to average the values but rather pick up the maximal, minimal or median value? What if we want to use the percentile of a track value rather than the value itself? And maybe we even want to alter the time of the iterator point: shift it or expand to a time window and by that look at the different set of track values? For instance: given an iterator point we might want to know what was the maximal level of glucose during the last year that preceded the time of the point.
 
 This is where virtual tracks come in use.
 
@@ -201,7 +198,7 @@ Once a virtual track is created it can be used in a track expression:
 emr_extract("annual_glucose", iterator = list(year(), "patients.dob"))
 ```
 
-This would give us a median of an annual glucose level in year-steps starting from the patient's birthday. (This example makes use of an *Extended Beat Iterator* that would be expalained later.)
+This would give us a median of an annual glucose level in year-steps starting from the patient's birthday. (This example makes use of an *Extended Beat Iterator* that would be explained later.)
 
 Let's expand our example further and ignore in our calculations the glucose readings that had been made within a week after steroids had been prescribed. We can use an additional `filter` parameter to do that.
 
@@ -351,7 +348,7 @@ emr_extract("emr_time2dayofmonth(EMR_TIME)", iterator = "sparse_track")
 
 ### Filters
 
-*Filter* is used to approve / reject an ID-Time point. It can be applied to an iterator, in which case the iterator points are required to be approved by the filter before they are passed further to the track expression. Filter may also be used by a virtual track. In this case the virtual track function (see `func` parameter of `emr_vitrack.create`) is applied only to the points from the source track (`src` parameter) that pass the filter.
+*Filter* is used to approve / reject an ID-Time point. It can be applied to an iterator, in which case the iterator points are required to be approved by the filter before they are passed further to the track expression. Filter may also be used by a virtual track. In this case the virtual track function (see `func` parameter of `emr_vtrack.create`) is applied only to the points from the source track (`src` parameter) that pass the filter.
 
 Filter has a form of a logical expression consisting of *named* or *unnamed* *elementary filters* (the "building bricks" of the filter) connected with the logical operators: `&`, `|`, `!` (`and`, `or` and `not` in Python) and brackets `()`.
 
@@ -398,7 +395,7 @@ emr_extract(my.track.expression, filter="drug_filter", keepref=TRUE)
 
 ### Random Algorithms
 
-Various functions in the library such as `emr_quantiles` make use of pseudo-random number generator. Each time the function is invoked a unique series of random numbers is issued. Hence two identical calls might produce different results. To guarantee reproducible results call `set.seed` (Python: texttt{seed`) before invoking the function.
+Various functions in the library such as `emr_quantiles` make use of pseudo-random number generator. Each time the function is invoked a unique series of random numbers is issued. Hence two identical calls might produce different results. To guarantee reproducible results call `set.seed` (Python: `seed`) before invoking the function.
 
 Note: R and Python implementations of Naryn use different pseudo-random number generator algorithms. Sadly it means that the result achieved in R cannot be reproducible in Python if random is used, even if identical seed is shared between the two platforms.
 
@@ -420,7 +417,7 @@ In addition to increased CPU usage multitasking might also alter the behavior of
 |                                                                                                              | R                      | Python            |
 |--------------------------------------------------------------------------------------------------------------|------------------------|-------------------|
 | Naming Conventions <br /> (except for virtual track 'func', which stays unchanged)                           | `emr_xxx.yyy.zzz`      |  `xxx_yyy_zzz`    |
-| Varibales | Defined in global environment: <br>`EMR_GROOT`<br>`EMR_UROOT` | Defined in  module's environment:<br>`_GROOT`<br>`_UROOT`
+| Variables | Defined in global environment: <br>`EMR_GROOT`<br>`EMR_UROOT` | Defined in  module's environment:<br>`_GROOT`<br>`_UROOT`
 | Run-time Variables (available only during track expression evaluation) | `EMR_TIME` | `TIME` |
 | Package / Module Options | Controlled via standard options mechanism: <br /> `options(emr_xxx.yyy=zzz)` <br /> `getOption("emr_xxx.yyy")` | Controlled by module's `CONFIG` variable: <br /> `CONFIG['xxx_yyy']=zzz` <br /> `CONFIG['xxx_yyy']` |
 | Data Types (used as function parameters) | `data.frame` <br /> `list` <br /> `vector` of strings <br /> `vector` of numerics <br /> `NULL` | `pandas.DataFrame` <br /> `list` <br /> `list` of strings <br /> `numpy.ndarray` of numerics <br /> `None` | 

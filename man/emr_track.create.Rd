@@ -12,7 +12,7 @@ emr_track.create(
   stime = NULL,
   etime = NULL,
   iterator = NULL,
-  keepref = F,
+  keepref = FALSE,
   filter = NULL,
   override = FALSE
 )

@@ -1,7 +1,7 @@
 
 test_that("emr_cor works", {
     # The warning is due to the bit iterator
-    expect_warning(res <- emr_cor("track0", c(0, 10, 500, 1000), cor.exprs = c("track0", "track1", "track2", "track3"), iterator = 1, stime = 20, etime = 5000, keepref = F))
+    expect_warning(res <- emr_cor("track0", c(0, 10, 500, 1000), cor.exprs = c("track0", "track1", "track2", "track3"), iterator = 1, stime = 20, etime = 5000, keepref = FALSE))
     expect_equal(
         res,
         structure(list(n = structure(c(
@@ -92,9 +92,9 @@ test_that("emr_cor works", {
 
 test_that("emr_cor works when dataframe = TRUE", {
     # The warning is due to the bit iterator
-    expect_warning(res <- emr_cor("track0", c(0, 10, 500, 1000), cor.exprs = c("track0", "track1", "track2", "track3"), iterator = 1, stime = 20, etime = 5000, keepref = F, dataframe = TRUE))
+    expect_warning(res <- emr_cor("track0", c(0, 10, 500, 1000), cor.exprs = c("track0", "track1", "track2", "track3"), iterator = 1, stime = 20, etime = 5000, keepref = FALSE, dataframe = TRUE))
 
-    expect_warning(res_non_df <- emr_cor("track0", c(0, 10, 500, 1000), cor.exprs = c("track0", "track1", "track2", "track3"), iterator = 1, stime = 20, etime = 5000, keepref = F, dataframe = FALSE))
+    expect_warning(res_non_df <- emr_cor("track0", c(0, 10, 500, 1000), cor.exprs = c("track0", "track1", "track2", "track3"), iterator = 1, stime = 20, etime = 5000, keepref = FALSE, dataframe = FALSE))
 
     expect_true(all(res_non_df$n == res$n))
     expect_true(all(res_non_df$e == res$e, na.rm = TRUE))
@@ -119,13 +119,13 @@ test_that("emr_cor works when dataframe = TRUE", {
 
 test_that("emr_cor works when dataframe = TRUE", {
     # The warning is due to the bit iterator
-    expect_warning(res <- emr_cor("track0", c(0, 10, 500, 1000), cor.exprs = c("track0", "track1", "track2", "track3"), iterator = 1, stime = 20, etime = 5000, keepref = F, dataframe = TRUE, names = "savta"))
+    expect_warning(res <- emr_cor("track0", c(0, 10, 500, 1000), cor.exprs = c("track0", "track1", "track2", "track3"), iterator = 1, stime = 20, etime = 5000, keepref = FALSE, dataframe = TRUE, names = "savta"))
 
     expect_equal(colnames(res), c("savta", "i", "j", "n", "e", "var", "cov", "cor"))
 })
 
 test_that("emr_cor works with beat iterator", {
-    emr_cor("track0", c(0, 10, 500, 1000), cor.exprs = c("track0", "track1", "track2", "track3"), iterator = 1, stime = 20, etime = 5000, keepref = F) %>%
+    emr_cor("track0", c(0, 10, 500, 1000), cor.exprs = c("track0", "track1", "track2", "track3"), iterator = 1, stime = 20, etime = 5000, keepref = FALSE) %>%
         expect_regression("cor.1") %>%
         expect_warning()
 })

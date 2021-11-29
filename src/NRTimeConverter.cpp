@@ -167,8 +167,10 @@ SEXP emr_date2time(SEXP _date, SEXP _envir)
 
         for (int i = 0; i < NUM_COLS; ++i) {
             rcols[i] = VECTOR_ELT(_date, i);
-            if (!isInteger(rcols[i]) && !isReal(rcols[i]) || i > 0 && Rf_length(rcols[i]) != Rf_length(rcols[i - 1]))
+            if ((!isInteger(rcols[i]) && !isReal(rcols[i])) || 
+                (i > 0 && Rf_length(rcols[i]) != Rf_length(rcols[i - 1]))){
                 verror("Invalid format of 'date' argument");
+            }
         }
 
         int num_rows = Rf_length(rcols[0]);

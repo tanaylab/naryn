@@ -10,7 +10,7 @@ emr_quantiles(
   stime = NULL,
   etime = NULL,
   iterator = NULL,
-  keepref = F,
+  keepref = FALSE,
   filter = NULL
 )
 }

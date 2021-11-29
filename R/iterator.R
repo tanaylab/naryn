@@ -26,7 +26,7 @@ iterator_by_period <- function(stime, etime, n, period) {
         end_date <- .emr_time_to_date_obj(etime)
         dates_etime <- seq(start_date, end_date, by = period)
         if (!is.null(n)) {
-            end_date <- min(tail(dates, 1), tail(dates_etime, 1))
+            end_date <- min(utils::tail(dates, 1), utils::tail(dates_etime, 1))
             dates <- seq(start_date, end_date, by = period)
         } else {
             dates <- dates_etime

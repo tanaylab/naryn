@@ -31,7 +31,7 @@ complementary set of sampled ids is used as a subset.
 If 'src' is 'NULL' the current subset is annihilated.
 }
 \seealso{
-\code{\link{emr_db.init}}, \code{\link{emr_db.subset.ids}},
+\code{\link{emr_db.connect}}, \code{\link{emr_db.subset.ids}},
 \code{\link{emr_db.subset.info}}
 }
 \keyword{~data}
