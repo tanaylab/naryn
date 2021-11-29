@@ -1124,10 +1124,6 @@ void EMRDb::load_track_list(string db_id, BufferedFile *_pbf, bool force){
         
         if (itrack != m_tracks.end() && itrack->second.db_id != fresh_track.second.db_id){
 
-            // if(get_db_idx(fresh_track.second.db_id) < get_db_idx(itrack->second.db_id)) {
-            //     continue;
-            // }
-
             //Overriding mechanism
             if (fresh_track.first == DOB_TRACKNAME) {
                 verror("Can not override patients.dob track");
