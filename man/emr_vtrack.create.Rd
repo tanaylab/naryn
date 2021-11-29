@@ -9,7 +9,7 @@ emr_vtrack.create(
   src,
   func = NULL,
   params = NULL,
-  keepref = F,
+  keepref = FALSE,
   time.shift = NULL,
   id.map = NULL,
   filter = NULL
@@ -153,13 +153,13 @@ emr_vtrack.create("vtrack1", "dense_track",
 emr_vtrack.create("vtrack2", "dense_track",
     time.shift = c(-5, 10), func = "min"
 )
-res <- emr_extract("dense_track", keepref = T, names = "value")
-emr_vtrack.create("vtrack3", list(res, F),
+res <- emr_extract("dense_track", keepref = TRUE, names = "value")
+emr_vtrack.create("vtrack3", list(res, FALSE),
     time.shift = c(-5, 10),
     func = "min"
 )
 emr_extract(c("dense_track", "vtrack1", "vtrack2", "vtrack3"),
-    keepref = T, iterator = "dense_track"
+    keepref = TRUE, iterator = "dense_track"
 )
 }
 \seealso{

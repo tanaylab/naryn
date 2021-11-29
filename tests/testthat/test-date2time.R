@@ -1,3 +1,4 @@
+
 test_that("emr_date2time fails with invalid dates", {
     expect_error(emr_date2time(0, 0, 0, 0))
     expect_error(emr_date2time(1, 1, 1000, 0))
@@ -21,22 +22,22 @@ test_that("emr_date2time fails when length of hour vector is different than mont
 })
 
 test_that("emr_time2dayofmonth works", {
-    r <- emr_extract("track2_sparse", stime = 10, etime = 1000, keepref = F)
+    r <- emr_extract("track2_sparse", stime = 10, etime = 1000, keepref = FALSE)
     expect_regression(emr_time2dayofmonth(r$time), "date2time.1")
 })
 
 test_that("emr_time2hour works", {
-    r <- emr_extract("track2_sparse", stime = 10, etime = 1000, keepref = F)
+    r <- emr_extract("track2_sparse", stime = 10, etime = 1000, keepref = FALSE)
     expect_regression(emr_time2hour(r$time), "date2time.2")
 })
 
 test_that("emr_time2month works", {
-    r <- emr_extract("track2_sparse", stime = 10, etime = 1000, keepref = F)
+    r <- emr_extract("track2_sparse", stime = 10, etime = 1000, keepref = FALSE)
     expect_regression(emr_time2month(r$time), "date2time.3")
 })
 
 test_that("emr_time2year works", {
-    r <- emr_extract("track2_sparse", stime = 10, etime = 1000, keepref = F)
+    r <- emr_extract("track2_sparse", stime = 10, etime = 1000, keepref = FALSE)
     expect_regression(emr_time2year(r$time), "date2time.4")
 })
 

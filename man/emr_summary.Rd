@@ -9,7 +9,7 @@ emr_summary(
   stime = NULL,
   etime = NULL,
   iterator = NULL,
-  keepref = F,
+  keepref = FALSE,
   filter = NULL
 )
 }

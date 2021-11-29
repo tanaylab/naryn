@@ -2,7 +2,7 @@
 % Please edit documentation in R/track.R
 \name{emr_track.info}
 \alias{emr_track.info}
-\title{Returns information about the track}
+\title{Returns information about the track.}
 \usage{
 emr_track.info(track)
 }
@@ -13,13 +13,11 @@ emr_track.info(track)
 A list that contains track properties
 }
 \description{
-Returns information about the track.
-}
-\details{
 This function returns information about the track: type, data type, number
 of vales, number of unique values, minimal / maximal value, minimal /
 maximal id, minimal / maximal time.
-
+}
+\details{
 Note: this function ignores the current subset, i.e. it is applied to the
 whole track.
 }

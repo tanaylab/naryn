@@ -1,3 +1,4 @@
+
 test_that("emr_track.exists work", {
     expect_true(emr_track.exists("track1"))
     expect_true(emr_track.exists("track1_sparse"))

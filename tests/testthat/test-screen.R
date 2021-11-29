@@ -1,3 +1,4 @@
+
 test_that("emr_screen fails without logical expr", {
     expect_error(emr_screen("track1"))
 })

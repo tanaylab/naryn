@@ -37,12 +37,8 @@
 }
 
 .emr_track.dir <- function(track) {
-    if (is.na(match(track, .emr_call("emr_global_track_names", new.env(parent = parent.frame()), silent = TRUE)))) {
-        dirname <- get("EMR_UROOT", envir = .GlobalEnv)
-    } else {
-        dirname <- get("EMR_GROOT", envir = .GlobalEnv)
-    }
-    dirname
+    track_path <- emr_track.info(track)$path # track info holds the path
+    return(dirname(track_path))
 }
 
 .emr_track.filename <- function(track) {
@@ -60,10 +56,34 @@
 
 .emr_dir.mv <- function(src, tgt) {
     dir.create(tgt, mode = "0777")
-    file.copy(paste0(src, "/."), tgt, recursive = T)
+    file.copy(paste0(src, "/."), tgt, recursive = TRUE)
     unlink(src, recursive = TRUE)
 }
 
+._emr_backward_comp_space <- function(space) {
+    if (is.null(space)) {
+        return(NULL)
+    }
+
+    # if space is a db path as it should be
+    # we do not want to lower case it, so
+    # using a temp param
+    lspace <- tolower(space)
+
+    if (lspace == "user") {
+        if ((!exists("EMR_UROOT", envir = .GlobalEnv) || is.null(get("EMR_UROOT", envir = .GlobalEnv)))) {
+            stop("User space root directory is not set. Please call see emr_db.connect", call. = FALSE)
+        }
+        db_id <- EMR_UROOT
+    } else if (lspace == "global") {
+        db_id <- EMR_GROOT
+    } else if (!is.null(space)) {
+        db_id <- normalizePath(space)
+    } else {
+        db_id <- space
+    }
+    return(db_id)
+}
 
 
 
@@ -93,7 +113,7 @@
 #'
 #' @param track track name
 #' @param src file name or data-frame containing the track records
-#' @param force if 'TRUE', supresses user confirmation for addition to
+#' @param force if 'TRUE', suppresses user confirmation for addition to
 #' logical tracks
 #' @return None.
 #' @seealso \code{\link{emr_track.import}}, \code{\link{emr_track.create}},
@@ -102,12 +122,12 @@
 #' @export emr_track.addto
 emr_track.addto <- function(track, src, force = FALSE) {
     if (missing(track) || missing(src)) {
-        stop("Usage: emr_track.addto(track, src)", call. = F)
+        stop("Usage: emr_track.addto(track, src)", call. = FALSE)
     }
     .emr_checkroot()
 
     if (emr_track.readonly(track)) {
-        stop(sprintf("Cannot add data to track %s: it is read-only.\n", track), call. = F)
+        stop(sprintf("Cannot add data to track %s: it is read-only.\n", track), call. = FALSE)
     }
 
     if (emr_track.logical.exists(track)) {
@@ -122,7 +142,7 @@ emr_track.addto <- function(track, src, force = FALSE) {
         ltrack <- emr_track.logical.info(track)
 
         if (emr_track.readonly(ltrack$source)) {
-            stop(sprintf("Cannot add data to track %s: it's source track (\"%s\") is read-only.\n", ltrack$source, track), call. = F)
+            stop(sprintf("Cannot add data to track %s: it's source track (\"%s\") is read-only.\n", ltrack$source, track), call. = FALSE)
         }
 
         if (!all(src$value %in% ltrack$value)) {
@@ -161,8 +181,8 @@ emr_track.addto <- function(track, src, force = FALSE) {
         }
     }
 
-    .emr_call("emr_import", track, NULL, NULL, src, T, new.env(parent = parent.frame()))
-    retv <- NULL
+    .emr_call("emr_import", track, NULL, NULL, src, TRUE, new.env(parent = parent.frame()))
+    return(NULL)
 }
 
 
@@ -181,7 +201,10 @@ emr_track.addto <- function(track, src, force = FALSE) {
 #' Likewise 'attr' allows to retrieve only specifically named attributes.
 #'
 #' If both 'track' and 'attr' are used, the attributes that fulfill both of the
-#' conditions are returned.
+#' conditions are returned
+#'
+#' Overriding a track also overrides it's track attributes, the
+#' attributes will persist when the track is no longer overridden.
 #'
 #' @param track a vector of track names or 'NULL'
 #' @param attr a vector of attribute names or 'NULL'
@@ -238,7 +261,7 @@ emr_track.attr.export <- function(track = NULL, attr = NULL) {
 #' @export emr_track.attr.get
 emr_track.attr.get <- function(track = NULL, attr = NULL) {
     if (missing(track) || missing(attr)) {
-        stop("Usage: emr_track.attr.get(track, attr)", call. = F)
+        stop("Usage: emr_track.attr.get(track, attr)", call. = FALSE)
     }
     .emr_checkroot()
 
@@ -274,7 +297,7 @@ emr_track.attr.get <- function(track = NULL, attr = NULL) {
 #' @export emr_track.attr.rm
 emr_track.attr.rm <- function(track = NULL, attr = NULL) {
     if (missing(track) || missing(attr)) {
-        stop("Usage: emr_track.attr.rm(track, attr)", call. = F)
+        stop("Usage: emr_track.attr.rm(track, attr)", call. = FALSE)
     }
     .emr_checkroot()
 
@@ -306,7 +329,7 @@ emr_track.attr.rm <- function(track = NULL, attr = NULL) {
 #' @export emr_track.attr.set
 emr_track.attr.set <- function(track = NULL, attr = NULL, value = NULL) {
     if (missing(track) || missing(attr) || missing(value)) {
-        stop("Usage: emr_track.attr.set(track, attr, value)", call. = F)
+        stop("Usage: emr_track.attr.set(track, attr, value)", call. = FALSE)
     }
     .emr_checkroot()
 
@@ -320,14 +343,14 @@ emr_track.attr.set <- function(track = NULL, attr = NULL, value = NULL) {
 #'
 #' Creates a track from a track expression.
 #'
-#' This function creates a new user or global track based on the values from
+#' This function creates a new track based on the values from
 #' the track expression. The location of the track is controlled via 'space'
-#' parameter which can be either "user" or to "global".
+#' parameter which can be any of the db_dirs supplied in emr_db.connect
 #'
 #' @inheritSection emr_extract iterator
 #'
 #' @param track the name of the newly created track
-#' @param space "user" or "global" space
+#' @param space db path, one of the paths supplied in emr_db.connect
 #' @param categorical if 'TRUE' track is marked as categorical
 #' @param expr track expression
 #' @param stime start time scope
@@ -336,37 +359,41 @@ emr_track.attr.set <- function(track = NULL, attr = NULL, value = NULL) {
 #' implicitly based on track expressions. See also 'iterator' section.
 #' @param keepref If 'TRUE' references are preserved in the iterator
 #' @param filter Iterator filter
+#' @param override Boolean indicating whether the creation intends to override an existing track (default FALSE)
 #' @return None.
 #' @seealso \code{\link{emr_track.import}}, \code{\link{emr_track.addto}},
 #' \code{\link{emr_track.rm}}, \code{\link{emr_track.readonly}},
 #' \code{\link{emr_track.ls}}, \code{\link{emr_track.exists}}
 #' @keywords ~track ~create
 #' @export emr_track.create
-emr_track.create <- function(track, space, categorical, expr, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL) {
-    if (missing(track) || missing(space) || missing(categorical) || missing(expr)) {
-        stop("Usage: emr_track.create(track, space = \"user\", categorical, expr, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
+emr_track.create <- function(track, space = EMR_UROOT, categorical, expr, stime = NULL, etime = NULL, iterator = NULL, keepref = FALSE, filter = NULL, override = FALSE) {
+
+    # when space is missing, writing for the last db in the order of connections
+    if (missing(space)) {
+        if ((!exists("EMR_UROOT", envir = .GlobalEnv) || is.null(get("EMR_UROOT", envir = .GlobalEnv)))) {
+            space <- EMR_GROOT
+        } else {
+            space <- EMR_UROOT
+        }
+    }
+
+    if (missing(track) || missing(categorical) || missing(expr)) {
+        stop("Usage: emr_track.create(track, space = EMR_GROOT, categorical, expr, stime = NULL, etime = NULL, iterator = NULL, keepref = FALSE, filter = NULL)", call. = FALSE)
     }
     .emr_checkroot()
 
-    space <- tolower(space)
-    if (space == "user" && (!exists("EMR_UROOT", envir = .GlobalEnv) || is.null(get("EMR_UROOT", envir = .GlobalEnv)))) {
-        stop("User space root directory is not set. Please call emr_db.init(user.dir=...)", call. = F)
-    }
-
-    if (emr_track.exists(track)) {
-        stop(sprintf("Track %s already exists", track), call. = F)
-    }
-
     if (emr_vtrack.exists(track)) {
-        stop(sprintf("Virtual track %s already exists", track), call. = F)
+        stop(sprintf("Virtual track %s already exists", track), call. = FALSE)
     }
 
     if (emr_filter.exists(track)) {
-        stop(sprintf("Filter %s already exists", track), call. = F)
+        stop(sprintf("Filter %s already exists", track), call. = FALSE)
     }
 
-    .emr_call("emr_track_create", track, space, categorical, expr, stime, etime, iterator, keepref, .emr_filter(filter), new.env(parent = parent.frame()))
-    retv <- NULL
+    db_id <- ._emr_backward_comp_space(space)
+
+    .emr_call("emr_track_create", track, db_id, categorical, expr, stime, etime, iterator, keepref, .emr_filter(filter), override, new.env(parent = parent.frame()))
+    return(NULL)
 }
 
 
@@ -376,8 +403,11 @@ emr_track.create <- function(track, space, categorical, expr, stime = NULL, etim
 #' Checks whether the track exists.
 #'
 #' This function checks whether the track exists.
+#' If \code{db_id} is passed, the function checks
+#' whether the track exists in the specific db.
 #'
 #' @param track track name
+#' @param db_id string of a db dir passed to \code{emr_db.connect}
 #'
 #' @return 'TRUE' if the tracks exists, otherwise 'FALSE'
 #' @seealso \code{\link{emr_track.ls}}, \code{\link{emr_track.info}}
@@ -387,14 +417,18 @@ emr_track.create <- function(track, space, categorical, expr, stime = NULL, etim
 #' emr_db.init_examples()
 #' emr_track.exists("sparse_track")
 #' @export emr_track.exists
-emr_track.exists <- function(track) {
+emr_track.exists <- function(track, db_id = NULL) {
     if (missing(track)) {
-        stop("Usage: emr_track.exist(track)", call. = F)
+        stop("Usage: emr_track.exist(track)", call. = FALSE)
     }
     .emr_checkroot()
-    track_exists <- !is.na(match(track, .emr_call("emr_track_names", new.env(parent = parent.frame()), silent = TRUE)))
 
-    track_exists <- track_exists || !is.na(match(track, .emr_call("emr_logical_track_names", new.env(parent = parent.frame()), silent = TRUE)))
+    if (is.null(db_id)) {
+        track_exists <- !is.na(match(track, .emr_call("emr_track_names", new.env(parent = parent.frame()), silent = TRUE)))
+        track_exists <- track_exists || !is.na(match(track, .emr_call("emr_logical_track_names", new.env(parent = parent.frame()), silent = TRUE)))
+    } else {
+        track_exists <- !is.na(match(track, .emr_call("emr_track_db_names", db_id, new.env(parent = parent.frame()), silent = TRUE)))
+    }
 
     return(track_exists)
 }
@@ -421,7 +455,7 @@ emr_track.exists <- function(track) {
 #' @export emr_track.ids
 emr_track.ids <- function(track) {
     if (missing(track)) {
-        stop("Usage: emr_track.ids(track)", call. = F)
+        stop("Usage: emr_track.ids(track)", call. = FALSE)
     }
     .emr_checkroot()
 
@@ -434,9 +468,9 @@ emr_track.ids <- function(track) {
 #'
 #' Imports a track from a file or data-frame.
 #'
-#' This function creates a new track from a text file or a data-frame. The
-#' location of the track is controlled via 'space' parameter which can be
-#' either "user" or to "global".
+#' This function creates a new track from a text file or a data-frame.
+#' The location of the track is controlled via 'space' parameter which
+#' can be any of the db_dirs supplied in emr_db.connect.
 #'
 #' If 'src' is a file name, the latter must be constituted of four columns
 #' separated by spaces or 'TAB' characters: ID, time, reference and value. The
@@ -450,41 +484,43 @@ emr_track.ids <- function(track) {
 #' (see "User Manual" for more info).
 #'
 #' @param track the name of the newly created track
-#' @param space "user" or "global" space
+#' @param space db dir string (path), one of the paths supplied in emr_db.connect
 #' @param categorical if 'TRUE' track is marked as categorical
 #' @param src file name or data-frame containing the track records
+#' @param override Boolean indicating whether the creation intends to override an existing track (default FALSE)
 #' @return None.
 #' @seealso \code{\link{emr_track.addto}}, \code{\link{emr_track.create}},
 #' \code{\link{emr_track.readonly}}, \code{\link{emr_db.init}},
 #' \code{\link{emr_track.ls}}
 #' @keywords ~import
 #' @export emr_track.import
-emr_track.import <- function(track, space, categorical, src) {
-    if (missing(track) || missing(space) || missing(src) || missing(categorical)) {
-        stop("Usage: emr_track.import(track, space, categorical, src)", call. = F)
+emr_track.import <- function(track, space, categorical, src, override = FALSE) {
+    # when space is missing, writing for the last db in the order of connections
+    if (missing(space)) {
+        if ((!exists("EMR_UROOT", envir = .GlobalEnv) || is.null(get("EMR_UROOT", envir = .GlobalEnv)))) {
+            space <- EMR_GROOT
+        } else {
+            space <- EMR_UROOT
+        }
+    }
+    if (missing(track) || missing(src) || missing(categorical)) {
+        stop("Usage: emr_track.import(track, space, categorical, src)", call. = FALSE)
     }
     .emr_checkroot()
 
-    space <- tolower(space)
-    if (space == "user" && (!exists("EMR_UROOT", envir = .GlobalEnv) || is.null(get("EMR_UROOT", envir = .GlobalEnv)))) {
-        stop("User space root directory is not set. Please call emr_db.init(user.dir=...)", call. = F)
-    }
-
     if (emr_vtrack.exists(track)) {
-        stop(sprintf("Virtual track %s already exists", track), call. = F)
+        stop(sprintf("Virtual track %s already exists", track), call. = FALSE)
     }
 
     if (emr_filter.exists(track)) {
-        stop(sprintf("Filter %s already exists", track), call. = F)
+        stop(sprintf("Filter %s already exists", track), call. = FALSE)
     }
 
-    .emr_call("emr_import", track, space, categorical, src, F, new.env(parent = parent.frame()))
+    db_id <- ._emr_backward_comp_space(space)
+    .emr_call("emr_import", track, db_id, categorical, src, FALSE, override, new.env(parent = parent.frame()))
 }
 
 
-
-#' Returns information about the track
-#'
 #' Returns information about the track.
 #'
 #' This function returns information about the track: type, data type, number
@@ -505,16 +541,44 @@ emr_track.import <- function(track, space, categorical, src) {
 #' @export emr_track.info
 emr_track.info <- function(track) {
     if (missing(track)) {
-        stop("Usage: emr_track.info(track)", call. = F)
+        stop("Usage: emr_track.info(track)", call. = FALSE)
     }
     .emr_checkroot()
 
     if (is.character(track) && emr_track.logical.exists(track)) {
         ltrack <- emr_track.logical.info(track)
-        .emr_call("emr_logical_track_user_info", track, ltrack$source, NULL, NULL, ltrack$source, TRUE, .emr_filter(create_logical_track_filter(track)), EMR_GROOT, EMR_UROOT, new.env(parent = parent.frame()))
+        .emr_call("emr_logical_track_user_info", track, ltrack$source, NULL, NULL, ltrack$source, TRUE, .emr_filter(create_logical_track_filter(track)), c(EMR_ROOTS), new.env(parent = parent.frame()))
     } else {
         .emr_call("emr_track_info", track, new.env(parent = parent.frame()))
     }
+}
+
+#' Returns a vector of db ids which have a
+#' version of the track
+#'
+#' @param track track name
+#' @return A vector of db ids
+#' @seealso \code{\link{emr_track.info}}
+#' @keywords ~track ~info ~property ~db ~db_id ~connect
+#' @examples
+#'
+#' # both db1 and db2 have a track named track1
+#' \dontrun{
+#' emr_db.connect(c("/db1", "/db2"))
+#' emr_track.dbs("track1")
+#' }
+#' @export emr_track.dbs
+emr_track.dbs <- function(track) {
+    if (missing(track)) {
+        stop("Usage: emr_track.dbs(track)", call. = FALSE)
+    }
+    .emr_checkroot
+
+    if (is.character(track) && emr_track.logical.exists(track)) {
+        return(EMR_GROOT)
+    }
+
+    return(.emr_call("emr_track_dbs", track, new.env(parent = parent.frame())))
 }
 
 
@@ -585,7 +649,7 @@ emr_track.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE, 
 #'
 #' @param src source track name
 #' @param tgt target track name
-#' @param space "global" or "user" or 'NULL'
+#' @param space db path (string), one of the paths supplied in emr_db.connect or NULL
 #' @return None.
 #' @seealso \code{\link{emr_track.create}}, \code{\link{emr_track.rm}},
 #' \code{\link{emr_track.ls}}
@@ -593,35 +657,28 @@ emr_track.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE, 
 #' @export emr_track.mv
 emr_track.mv <- function(src, tgt, space = NULL) {
     if (missing(src) || missing(tgt)) {
-        stop("Usage: emr_track.mv(src, tgt, space = NULL)", call. = F)
+        stop("Usage: emr_track.mv(src, tgt, space = NULL)", call. = FALSE)
     }
     .emr_checkroot()
 
     if (!is.null(space)) {
         space <- tolower(space)
-        if (emr_track.logical.exists(src) && space == "user") {
-            stop("cannot move logical tracks to user space")
-        }
 
-        if (space == "user" && (!exists("EMR_UROOT", envir = .GlobalEnv) || is.null(get("EMR_UROOT", envir = .GlobalEnv)))) {
-            stop("User space root directory is not set. Please call emr_db.init(user.dir=...)", call. = F)
+        if (emr_track.logical.exists(src) && space != EMR_GROOT) {
+            stop("cannot move logical tracks out of global space")
         }
     }
 
     if (emr_track.readonly(src)) {
-        stop(sprintf("Cannot move track %s: it is read-only.\n", src), call. = F)
+        stop(sprintf("Cannot move track %s: it is read-only.\n", src), call. = FALSE)
     }
 
     if (emr_vtrack.exists(tgt)) {
-        stop(sprintf("Virtual track %s already exists", tgt), call. = F)
+        stop(sprintf("Virtual track %s already exists", tgt), call. = FALSE)
     }
 
     if (emr_filter.exists(tgt)) {
-        stop(sprintf("Filter %s already exists", tgt), call. = F)
-    }
-
-    if (emr_track.exists(tgt)) {
-        stop(sprintf("Track %s already exists", tgt), call. = F)
+        stop(sprintf("Filter %s already exists", tgt), call. = FALSE)
     }
 
     if (emr_track.logical.exists(src)) {
@@ -634,17 +691,19 @@ emr_track.mv <- function(src, tgt, space = NULL) {
         # when moving a physical track we need
         # to move all the ltracks which depend
         # on it
+        db_id <- ._emr_backward_comp_space(space)
+
         dependent_ltracks <- get_dependent_ltracks(src)
-        .emr_call("emr_track_mv", src, tgt, space, new.env(parent = parent.frame()))
+        dirname1 <- .emr_track.var.dir(src)
+        dirname2 <- .emr_track.pyvar.dir(src)
+
+        .emr_call("emr_track_mv", src, tgt, db_id, new.env(parent = parent.frame()))
 
         for (ltrack in dependent_ltracks) {
             ltrack_info <- emr_track.logical.info(ltrack)
             emr_track.logical.rm(ltrack, force = TRUE, rm_vars = FALSE)
             emr_track.logical.create(ltrack, tgt, ltrack_info$values)
         }
-
-        dirname1 <- .emr_track.var.dir(src)
-        dirname2 <- .emr_track.pyvar.dir(src)
     }
 
     if (file.exists(dirname1)) {
@@ -655,7 +714,7 @@ emr_track.mv <- function(src, tgt, space = NULL) {
         .emr_dir.mv(dirname2, .emr_track.pyvar.dir(tgt))
     }
 
-    retv <- NULL
+    return(NULL)
 }
 
 
@@ -716,11 +775,14 @@ emr_track.percentile <- function(track, val, lower = TRUE) {
 #' Gets or sets "readonly" property of a track.
 #'
 #' This function gets or sets "read-onlyness" of the track. If 'readonly' is
-#' 'NULL' the functions retuns whether the track is R/O. Otherwise it sets
+#' 'NULL' the functions returns whether the track is R/O. Otherwise it sets
 #' "read-onlyness" to the value indicated by 'readonly'.
 #'
 #' Logical tracks inherit their "read-onlyness" from the source
 #' physical tracks.
+#'
+#' Overriding a track also overrides it's "read-onlyness", it's
+#' "read-onlyness" will persist when the track is no longer overridden
 #'
 #' @param track track name
 #' @param readonly if 'NULL', return "readonlyness" of the track, otherwise
@@ -732,12 +794,12 @@ emr_track.percentile <- function(track, val, lower = TRUE) {
 #' @export emr_track.readonly
 emr_track.readonly <- function(track, readonly = NULL) {
     if (missing(track)) {
-        stop("Usage: emr_track.readonly(track, readonly = NULL)", call. = F)
+        stop("Usage: emr_track.readonly(track, readonly = NULL)", call. = FALSE)
     }
     .emr_checkroot()
 
     if (!emr_track.exists(track)) {
-        stop(sprintf("Track %s does not exist", track), call. = F)
+        stop(sprintf("Track %s does not exist", track), call. = FALSE)
     }
 
     orig_track <- track
@@ -749,7 +811,7 @@ emr_track.readonly <- function(track, readonly = NULL) {
     }
 
     if (file.access(file, 0) == -1) {
-        stop(sprintf("File %s does not exist", file), call. = F)
+        stop(sprintf("File %s does not exist", file), call. = FALSE)
     }
 
     if (is.null(readonly)) {
@@ -766,10 +828,10 @@ emr_track.readonly <- function(track, readonly = NULL) {
         mode <- "666"
     }
 
-    if (Sys.chmod(file, mode, use_umask = F) == FALSE) {
-        stop(sprintf("Failed to set read-only attribute for track %s", orig_track), call. = F)
+    if (Sys.chmod(file, mode, use_umask = FALSE) == FALSE) {
+        stop(sprintf("Failed to set read-only attribute for track %s", orig_track), call. = FALSE)
     }
-    retv <- NULL
+    return(NULL)
 }
 
 
@@ -782,26 +844,25 @@ emr_track.readonly <- function(track, readonly = NULL) {
 #' 'force' to 'TRUE' to suppress the user prompt.
 #'
 #' @param track track name
-#' @param force if 'TRUE', supresses user confirmation of a named track removal
+#' @param force if 'TRUE', suppresses user confirmation of a named track removal
 #' @return None.
 #' @seealso \code{\link{emr_track.create}}, \code{\link{emr_track.mv}},
 #' \code{\link{emr_track.ls}}, \code{\link{emr_track.readonly}}
 #' @keywords ~track
 #' @export emr_track.rm
-emr_track.rm <- function(track, force = F) {
+emr_track.rm <- function(track, force = FALSE) {
     if (missing(track)) {
-        stop("Usage: emr_track.rm(track, force = F)", call. = F)
+        stop("Usage: emr_track.rm(track, force = FALSE)", call. = FALSE)
     }
     .emr_checkroot()
-
     if (!emr_track.exists(track)) {
         if (force) {
             return(invisible())
         }
-        stop(sprintf("Track %s does not exist", track), call. = F)
+        stop(sprintf("Track %s does not exist", track), call. = FALSE)
     }
 
-    readonly <- F
+    readonly <- FALSE
     if (force) {
         tryCatch({
             readonly <- emr_track.readonly(track)
@@ -811,7 +872,7 @@ emr_track.rm <- function(track, force = F) {
     }
 
     if (readonly) {
-        stop(sprintf("Cannot remove track %s: it is read-only.\n", track), call. = F)
+        stop(sprintf("Cannot remove track %s: it is read-only.\n", track), call. = FALSE)
     }
 
     if (emr_track.logical.exists(track)) {
@@ -855,7 +916,7 @@ emr_track.rm <- function(track, force = F) {
         }
     }
 
-    retv <- NULL
+    return(NULL)
 }
 
 #' emr_track.ls for global db
@@ -864,7 +925,7 @@ emr_track.rm <- function(track, force = F) {
 #' @rdname emr_track.ls
 emr_track.global.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
     .emr_checkroot()
-    tracks <- .emr_call("emr_global_track_names", new.env(parent = parent.frame()), silent = TRUE)
+    tracks <- .emr_call("emr_track_db_names", EMR_GROOT, new.env(parent = parent.frame()), silent = TRUE)
     logical_tracks <- .emr_call("emr_logical_track_names", new.env(parent = parent.frame()), silent = TRUE)
     .emr_tracks_filter(..., tracks = sort(c(tracks, logical_tracks)), ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes)
 }
@@ -875,7 +936,7 @@ emr_track.global.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = 
 #' @rdname emr_track.ls
 emr_track.user.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
     .emr_checkroot()
-    tracks <- .emr_call("emr_user_track_names", new.env(parent = parent.frame()), silent = TRUE)
+    tracks <- .emr_call("emr_track_db_names", EMR_UROOT, new.env(parent = parent.frame()), silent = TRUE)
     .emr_tracks_filter(..., tracks = tracks, ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes)
 }
 
@@ -913,7 +974,7 @@ emr_track.logical.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed =
 #' @export emr_track.unique
 emr_track.unique <- function(track) {
     if (missing(track)) {
-        stop("Usage: emr_track.unique(track)", call. = F)
+        stop("Usage: emr_track.unique(track)", call. = FALSE)
     }
     .emr_checkroot()
 
@@ -954,12 +1015,12 @@ emr_track.unique <- function(track) {
 #' @export emr_track.var.get
 emr_track.var.get <- function(track, var) {
     if (missing(track) || missing(var)) {
-        stop("Usage: emr_track.var.get(track, var)", call. = F)
+        stop("Usage: emr_track.var.get(track, var)", call. = FALSE)
     }
     .emr_checkroot()
 
     if (!emr_track.exists(track)) {
-        stop(sprintf("Track %s does not exist", track), call. = F)
+        stop(sprintf("Track %s does not exist", track), call. = FALSE)
     }
 
     if (emr_track.logical.exists(track)) {
@@ -971,7 +1032,7 @@ emr_track.var.get <- function(track, var) {
     filename <- paste(dirname, var, sep = "/")
 
     if (!file.exists(filename)) {
-        stop(sprintf("Track variable %s does not exist", var), call. = F)
+        stop(sprintf("Track variable %s does not exist", var), call. = FALSE)
     }
 
     f <- file(filename, "rb")
@@ -989,6 +1050,9 @@ emr_track.var.get <- function(track, var) {
 #' This function returns a list of track variables of a track that match the
 #' pattern (see 'grep'). If called without any arguments all track variables of
 #' a track are returned.
+#'
+#' Overriding a track also overrides it's track variables, the
+#' variables will persist when the track is no longer overridden
 #'
 #' @param track track name
 #' @param pattern,ignore.case,perl,fixed,useBytes see 'grep'
@@ -1009,12 +1073,12 @@ emr_track.var.get <- function(track, var) {
 #' @export emr_track.var.ls
 emr_track.var.ls <- function(track, pattern = "", ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
     if (missing(track)) {
-        stop("Usage: emr_track.var.ls(track, pattern = \"\", ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE)", call. = F)
+        stop("Usage: emr_track.var.ls(track, pattern = \"\", ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE)", call. = FALSE)
     }
     .emr_checkroot()
 
     if (!emr_track.exists(track)) {
-        stop(sprintf("Track %s does not exist", track), call. = F)
+        stop(sprintf("Track %s does not exist", track), call. = FALSE)
     }
 
     if (emr_track.logical.exists(track)) {
@@ -1059,16 +1123,16 @@ emr_track.var.ls <- function(track, pattern = "", ignore.case = FALSE, perl = FA
 #' @export emr_track.var.rm
 emr_track.var.rm <- function(track, var) {
     if (missing(track) || missing(var)) {
-        stop("Usage: emr_track.var.rm(track, var)", call. = F)
+        stop("Usage: emr_track.var.rm(track, var)", call. = FALSE)
     }
     .emr_checkroot()
 
     if (!emr_track.exists(track)) {
-        stop(sprintf("Track %s does not exist", track), call. = F)
+        stop(sprintf("Track %s does not exist", track), call. = FALSE)
     }
 
     if (emr_track.readonly(track)) {
-        stop(sprintf("Cannot remove vars from track %s: it is read-only.\n", track), call. = F)
+        stop(sprintf("Cannot remove vars from track %s: it is read-only.\n", track), call. = FALSE)
     }
     if (emr_track.logical.exists(track)) {
         dirname <- .emr_track.logical.var.dir(track)
@@ -1078,7 +1142,7 @@ emr_track.var.rm <- function(track, var) {
 
     filename <- paste(dirname, var, sep = "/")
     if (!file.exists(filename)) {
-        stop(sprintf("Track variable %s does not exist", var), call. = F)
+        stop(sprintf("Track variable %s does not exist", var), call. = FALSE)
     }
 
     file.remove(filename)
@@ -1087,7 +1151,7 @@ emr_track.var.rm <- function(track, var) {
         unlink(dirname, recursive = TRUE)
     }
 
-    retv <- NULL
+    return(NULL)
 }
 
 
@@ -1115,16 +1179,16 @@ emr_track.var.rm <- function(track, var) {
 #' @export emr_track.var.set
 emr_track.var.set <- function(track, var, value) {
     if (missing(track) || missing(var) || missing(value)) {
-        stop("Usage: emr_track.var.set(track, var, value)", call. = F)
+        stop("Usage: emr_track.var.set(track, var, value)", call. = FALSE)
     }
     .emr_checkroot()
 
     if (!emr_track.exists(track)) {
-        stop(sprintf("Track %s does not exist", track), call. = F)
+        stop(sprintf("Track %s does not exist", track), call. = FALSE)
     }
 
     if (emr_track.readonly(track)) {
-        stop(sprintf("Cannot set vars for track %s: it is read-only.\n", track), call. = F)
+        stop(sprintf("Cannot set vars for track %s: it is read-only.\n", track), call. = FALSE)
     }
 
     if (emr_track.logical.exists(track)) {
