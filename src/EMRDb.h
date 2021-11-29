@@ -28,8 +28,8 @@ public:
         string           filename;
         struct timespec  timestamp;
         string           db_id;
-        bool             overridden;
         vector<string>   dbs;
+        bool             overridden;
 
         TrackInfo(EMRTrack *_track, const string &_filename, const struct timespec &_timestamp, string db_id) :
             track(_track), filename(_filename), timestamp(_timestamp), db_id(db_id), overridden(0) {}
@@ -43,6 +43,7 @@ public:
     //Only called by NRTest - here for compilation, should be removed
     const string &grootdir() { return m_rootdirs[0]; }
     const string &urootdir() { return m_rootdirs[0]; }
+    const char* dob_trackname() { return DOB_TRACKNAME; }
 
 	EMRTrack *track(const string &track);
     const bool track_exists(const string &track) {

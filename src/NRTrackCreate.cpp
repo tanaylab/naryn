@@ -66,6 +66,10 @@ SEXP emr_track_create(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _expr, S
 
             has_overlap = true;
         }
+        //can not override patients.dob
+        if (g_db->track(trackname) && (strcmp(trackname.c_str(), g_db->dob_trackname()) == 0) && (g_db->get_db_idx(db_id) != 0)) {
+            verror("Can not override %s track", g_db->dob_trackname());
+        }
             
         EMRDb::check_track_name(trackname);
 

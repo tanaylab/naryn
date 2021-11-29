@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <iostream>
 
 #include <R.h>
 #include <Rinternals.h>
@@ -40,6 +41,7 @@ SEXP emr_track_mv(SEXP _srctrack, SEXP _tgttrack, SEXP _db_id, SEXP _envir)
         const EMRDb::TrackInfo *src_track_info = g_db->track_info(src_trackname);
         string db_id;
         int db_idx;
+        bool mv_to_override = false;
 
         if (!src_track_info)
             verror("Track %s does not exist", src_trackname);
@@ -58,9 +60,16 @@ SEXP emr_track_mv(SEXP _srctrack, SEXP _tgttrack, SEXP _db_id, SEXP _envir)
             }
         }
 
+        if ((strcmp(tgt_trackname, g_db->dob_trackname()) == 0) && (g_db->get_db_idx(db_id) != 0)) {
+            verror("Can not override %s track", g_db->dob_trackname());
+        }
+
         if (strcmp(src_trackname, tgt_trackname)) {
             if ((g_db->track_info(tgt_trackname)) && (g_db->track_info(tgt_trackname)->db_id == db_id)){
                 verror("Track %s already exists in db %s", tgt_trackname, db_id);  
+            }
+            if (g_db->track_info(tgt_trackname)) {
+                mv_to_override = true;
             }
 
         } else if (db_id == src_track_info->db_id) {
@@ -70,6 +79,10 @@ SEXP emr_track_mv(SEXP _srctrack, SEXP _tgttrack, SEXP _db_id, SEXP _envir)
         string tgt_fname = db_id + string("/") + tgt_trackname + EMRDb::TRACK_FILE_EXT;
         vdebug("Moving track file %s to %s\n", src_track_info->filename.c_str(), tgt_fname.c_str());
         FileUtils::move_file(src_track_info->filename.c_str(), tgt_fname.c_str());
+
+        if (mv_to_override) {
+            g_db->unload_track(tgt_trackname, true, true);    
+        }
 
         g_db->unload_track(src_trackname, true);
         g_db->load_track(tgt_trackname, db_id);
