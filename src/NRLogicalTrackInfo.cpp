@@ -12,14 +12,14 @@
 #endif
 
 struct LogicalTrackInfo {
-    set<int> unique_vals;
-    double num_vals;
+    set<int> unique_vals;    
 	double minval;
 	double maxval;
-    unsigned maxid;
     unsigned minid;
-    unsigned maxtime;
+    unsigned maxid;    
     unsigned mintime;
+    unsigned maxtime;
+    double num_vals;
 
     void update_id_time_info(EMRPoint v) {
         minid = min(minid, v.id);
@@ -35,21 +35,22 @@ struct LogicalTrackInfo {
 	    maxval = max(maxval, v);
     }
 
-	LogicalTrackInfo() :
+	LogicalTrackInfo() :        
 	 	minval(numeric_limits<double>::max()),
 	 	maxval(-numeric_limits<double>::max()),
      	minid(numeric_limits<unsigned>::max()),
      	maxid(0),
      	mintime(numeric_limits<unsigned>::max()),
      	maxtime(0),
-	 	num_vals(0) {}
+        num_vals(0) {}
 };
 
 
 
 extern "C" {
 
-SEXP emr_logical_track_user_info(SEXP _track, SEXP _expr, SEXP _stime, SEXP _etime, SEXP _iterator_policy, SEXP _keepref, SEXP _filter, SEXP _gdir, SEXP _udir, SEXP _envir)
+SEXP emr_logical_track_user_info(SEXP _track, SEXP _expr, SEXP _stime, SEXP _etime, SEXP _iterator_policy, SEXP _keepref, SEXP _filter, SEXP _dbdirs, SEXP _envir)
+
 {
     EMRDb *new_g_db = NULL;
 	try {
@@ -58,12 +59,24 @@ SEXP emr_logical_track_user_info(SEXP _track, SEXP _expr, SEXP _stime, SEXP _eti
         enum { PATH, TYPE, DATA_TYPE, CATEGORICAL, NUM_VALS, NUM_UNIQUE_VALS, MIN_VAL, MAX_VAL, MIN_ID, MAX_ID, MIN_TIME, MAX_TIME, NUM_COLS };
         const char *COL_NAMES[NUM_COLS] = { "path", "type", "data.type", "categorical", "num.vals", "num.unique.vals", "min.val", "max.val", "min.id", "max.id", "min.time", "max.time" };
 
-        // we create a clean EMRDb instance in order to ignore the current ids subset        
-        new_g_db = new EMRDb;        
-        const char *gdirname = CHAR(STRING_ELT(_gdir, 0));
-        const char *udirname =
-            isNull(_udir) ? NULL : CHAR(STRING_ELT(_udir, 0));
-        new_g_db->init(gdirname, udirname, true, true, false);
+        // we create a clean EMRDb instance in order to ignore the current ids subset
+        new_g_db = new EMRDb;
+
+        vector<string> dbdirs; 
+        vector<bool> load_on_demand; 
+
+        if (!isNull(_dbdirs)) {
+            for (int i = 0; i < Rf_length(_dbdirs); i++){
+                dbdirs.push_back(CHAR(STRING_ELT(_dbdirs, i)));
+            }
+        }
+
+        for (int i = 0; i < Rf_length(_dbdirs); i++){
+                load_on_demand.push_back(true);
+        }
+
+        new_g_db->init(dbdirs, load_on_demand, false);
+
         swap(g_db, new_g_db);
 
         LogicalTrackInfo summary;
@@ -71,7 +84,6 @@ SEXP emr_logical_track_user_info(SEXP _track, SEXP _expr, SEXP _stime, SEXP _eti
         const char *logical_trackname = CHAR(STRING_ELT(_track, 0));
         const char *trackname = CHAR(STRING_ELT(_expr, 0));
         EMRTrack *track = g_db->track(trackname);
-        const EMRDb::TrackInfo *track_info = g_db->track_info(trackname);
 
         for (scanner.begin(_expr, NRTrackExprScanner::REAL_T, _stime, _etime,
                            _iterator_policy, _keepref, _filter);

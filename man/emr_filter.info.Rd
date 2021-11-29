@@ -16,7 +16,7 @@ Internal representation of a named filter.
 Returns the definition of a named filter.
 }
 \details{
-This function returns the internal represenation of a named filter.
+This function returns the internal representation of a named filter.
 }
 \examples{
 

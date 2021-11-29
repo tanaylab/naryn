@@ -26,7 +26,7 @@ SEXP NRPoint::convert_points(const vector<EMRPoint> &points, unsigned num_cols, 
 
         for (vector<EMRPoint>::const_iterator ipoint = points.begin() + 1; ipoint < points.end(); ++ipoint) {
             ppoints->push_back((EMRPoint *)&*ipoint);
-            need_sort = need_sort | *ipoint < *(ipoint - 1);
+            need_sort = need_sort | (*ipoint < *(ipoint - 1));
         }
 
         if (do_sort && need_sort)
@@ -119,16 +119,20 @@ void NRPoint::convert_rpoints(SEXP rpoints, vector<EMRPoint> *points, const char
     unsigned num_points = (unsigned)Rf_length(ids);
 
     for (unsigned i = 1; i < NUM_POINT_COLS; i++) {
-        if ((i != REF || i == REF && refs != R_NilValue) && Rf_length(VECTOR_ELT(rpoints, i)) != Rf_length(VECTOR_ELT(rpoints, i - 1)))
+        if ((i != REF || (i == REF && refs != R_NilValue)) && Rf_length(VECTOR_ELT(rpoints, i)) != Rf_length(VECTOR_ELT(rpoints, i - 1))){
             TGLError<NRPoint>(BAD_FORMAT, "%sInvalid format of id-time points", error_msg_prefix);
+        }
     }
 
-    if (!isReal(ids) && !isInteger(ids) || !isReal(hours) && !isInteger(hours) || refs != R_NilValue && !isReal(refs) && !isInteger(refs))
+    if ((!isReal(ids) && !isInteger(ids)) || (!isReal(hours) && !isInteger(hours)) || ((refs != R_NilValue) && !isReal(refs) && !isInteger(refs))){
         TGLError<NRPoint>(BAD_FORMAT, "%sInvalid format of id-time points", error_msg_prefix);
+    }
+
 
     for (unsigned i = 0; i < num_points; i++) {
-        if (isReal(ids) && std::isnan(REAL(ids)[i]) || isReal(hours) && std::isnan(REAL(hours)[i]) || refs != R_NilValue && isReal(refs) && std::isnan(REAL(refs)[i]))
+        if ((isReal(ids) && std::isnan(REAL(ids)[i])) || (isReal(hours) && std::isnan(REAL(hours)[i])) || ((refs != R_NilValue) && isReal(refs) && std::isnan(REAL(refs)[i]))){
             TGLError<NRPoint>(BAD_VALUE, "%sInvalid format of id-time points, row %d", error_msg_prefix, i + 1);
+        }
 
         int id = isReal(ids) ? REAL(ids)[i] : INTEGER(ids)[i];
         int hour = isReal(hours) ? REAL(hours)[i] : INTEGER(hours)[i];
@@ -140,10 +144,11 @@ void NRPoint::convert_rpoints(SEXP rpoints, vector<EMRPoint> *points, const char
         if (isReal(ids) && REAL(ids)[i] != id)
             TGLError<NRPoint>(BAD_VALUE, "%sInvalid id at id-time points, row %d", error_msg_prefix, i + 1);
 
-		if (isReal(hours) && REAL(hours)[i] != hour || hour < 0 || hour > EMRTimeStamp::MAX_HOUR)
+        if ((isReal(hours) && REAL(hours)[i] != hour) || hour < 0 ||
+            (EMRTimeStamp::Hour)hour > EMRTimeStamp::MAX_HOUR)
             TGLError<NRPoint>(BAD_VALUE, "%sInvalid time at id-time points, row %d", error_msg_prefix, i + 1);
 
-        if (refs != R_NilValue && isReal(refs) && REAL(refs)[i] != ref || ref < -1 || ref > EMRTimeStamp::MAX_REFCOUNT)
+        if ((refs != R_NilValue && isReal(refs) && REAL(refs)[i] != ref )|| ref < -1 || ref > EMRTimeStamp::MAX_REFCOUNT)
             TGLError<NRPoint>(BAD_VALUE, "%sInvalid reference at id-time points, row %d", error_msg_prefix, i + 1);
 
 		points->push_back(EMRPoint(id, EMRTimeStamp((EMRTimeStamp::Hour)hour, (EMRTimeStamp::Refcount)ref)));

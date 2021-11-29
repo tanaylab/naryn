@@ -21,7 +21,7 @@ This function checks whether the virtual track exists.
 \examples{
 
 emr_db.init_examples()
-emr_vtrack.create("vtrack1", "dense_track", c(5, 10), "max")
+emr_vtrack.create("vtrack1", "dense_track", time.shift = c(5, 10), func = "max")
 emr_vtrack.exists("vtrack1")
 }
 \seealso{

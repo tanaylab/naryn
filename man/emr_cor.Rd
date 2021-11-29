@@ -12,18 +12,19 @@ emr_cor(
   stime = NULL,
   etime = NULL,
   iterator = NULL,
-  keepref = F,
+  keepref = FALSE,
   filter = NULL,
   dataframe = FALSE,
   names = NULL
 )
 }
 \arguments{
+\item{...}{pairs of [factor.expr, breaks], where \code{factor.expr} is the  track expression and breaks are the breaks that determine the bin or 'NULL'.}
+
 \item{cor.exprs}{vector of track expressions for which correlation
 statistics is calculated.}
 
-\item{include.lowest}{if 'TRUE', the lowest (or highest, for ‘right =
-FALSE’) value of the range determined by breaks is included.}
+\item{include.lowest}{if 'TRUE', the lowest (or highest, for 'right = FALSE') value of the range determined by breaks is included.}
 
 \item{right}{if 'TRUE' the intervals are closed on the right (and open on
 the left), otherwise vice versa.}
@@ -42,10 +43,6 @@ implicitly based on track expressions. See also 'iterator' section.}
 \item{dataframe}{return a data frame instead of an N-dimensional vector.}
 
 \item{names}{names for track expressions in the returned dataframe (only relevant when \code{dataframe == TRUE})}
-
-\item{expr}{track expression.}
-
-\item{breaks}{breaks that determine the bin or 'NULL'.}
 }
 \value{
 A list of 5 elements each containing a N-dimensional vector (N is
@@ -152,13 +149,13 @@ emr_extract("emr_time2dayofmonth(EMR_TIME)", iterator = "sparse_track") \cr
 emr_db.init_examples()
 emr_cor("categorical_track", c(0, 2, 5),
     cor.exprs = c("sparse_track", "1/dense_track"),
-    include.lowest = T, iterator = "categorical_track",
-    keepref = T
+    include.lowest = TRUE, iterator = "categorical_track",
+    keepref = TRUE
 )
 emr_cor("categorical_track", c(0, 2, 5),
     cor.exprs = c("sparse_track", "1/dense_track"),
-    include.lowest = T, iterator = "categorical_track",
-    keepref = T,
+    include.lowest = TRUE, iterator = "categorical_track",
+    keepref = TRUE,
     dataframe = TRUE
 )
 }

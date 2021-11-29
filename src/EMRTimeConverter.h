@@ -17,7 +17,7 @@ namespace Emr {
     unsigned date2time(unsigned hour, unsigned dayofmonth, unsigned month, unsigned year);
 
     inline bool is_leap_year(unsigned year) { return !(year % 400) || (!(year % 4) && (year % 100)); }
-};
+}
 
 #endif
 

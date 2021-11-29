@@ -1,7 +1,7 @@
 create_mock_logical_track <- function() {
     set.seed(60427)
     testdb_dir <- "/net/mraid14/export/tgdata/db/tgdb/emr/naryn_testdb"
-    emr_db.init(testdb_dir, file.path(testdb_dir, "utest"))
+    emr_db.init(c(testdb_dir, file.path(testdb_dir, "utest")))
     emr_db.reload()
 
     df <- emr_extract("track1_sparse", keepref = TRUE, names = "val")
