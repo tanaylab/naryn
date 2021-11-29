@@ -213,7 +213,7 @@ test_that("mv to override works as expected", {
 
     # mv two levels up
     emr_track.mv("track5_3", "track5_1")
-    expect_equal(emr_track.dbs("track5_1"), EMR_ROOTS[c(1,3)])
+    expect_equal(emr_track.dbs("track5_1"), EMR_ROOTS[c(1, 3)])
 })
 
 
@@ -435,20 +435,20 @@ test_that("trying to override patients.dob throws error in any case", {
     expect_error(emr_track.mv("track4_1", "patients.dob"))
     expect_error(emr_track.mv("track4_1", "patients.dob", EMR_ROOTS[2]))
     expect_error(emr_track.create(
-        track = "patients.dob", 
-        space = EMR_ROOTS[3], 
-        categorical = FALSE, 
-        exp = "patients.dob*2", 
-        keepref = TRUE, 
-        override = TRUE)
-        )
+        track = "patients.dob",
+        space = EMR_ROOTS[3],
+        categorical = FALSE,
+        exp = "patients.dob*2",
+        keepref = TRUE,
+        override = TRUE
+    ))
     expect_error(emr_track.import(
         track = "patients.dob",
         space = EMR_ROOTS[4],
         categorical = FALSE,
         src = "patients.dob*2",
         override = TRUE
-    ))  
+    ))
 })
 
 
@@ -462,9 +462,9 @@ test_that("emr_ids_coverage works with multiple dbs", {
 
 test_that("emr_ids_coverage works with multiple dbs", {
     expect_equal(emr_ids_coverage(data.frame(id = 0:999), c("track2_1")), c(track2_1 = 1000L))
-    track2_1 <- emr_extract("track2_1", names=c("value"))
-    
-    #originally, ids range 0-999, add 998 to ids, 0 becomes 998, and 1 becomes 999, ...
+    track2_1 <- emr_extract("track2_1", names = c("value"))
+
+    # originally, ids range 0-999, add 998 to ids, 0 becomes 998, and 1 becomes 999, ...
     emr_track.import(
         track = "track2_1",
         space = EMR_ROOTS[3],
@@ -473,17 +473,17 @@ test_that("emr_ids_coverage works with multiple dbs", {
         override = TRUE
     )
 
-    withr::defer(emr_track.rm("track2_1", force=TRUE))
+    withr::defer(emr_track.rm("track2_1", force = TRUE))
     expect_equal(emr_ids_coverage(data.frame(id = 0:999), c("track2_1")), c(track2_1 = 2L))
 })
 
 
 test_that("emr_ids_coverage works with filter and overriding", {
-    #track2 and track2_1 are the same - should result in full coverage
-    expect_equal(emr_ids_coverage(data.frame(id = 0:999), c("track2"), filter="track2_1"), c(track2 = 1000L))
-    track2_1 <- emr_extract("track2_1", names=c("value"))
-    
-    #originally, ids range 0-999, add 998 to ids, 0 becomes 998, and 1 becomes 999, ...
+    # track2 and track2_1 are the same - should result in full coverage
+    expect_equal(emr_ids_coverage(data.frame(id = 0:999), c("track2"), filter = "track2_1"), c(track2 = 1000L))
+    track2_1 <- emr_extract("track2_1", names = c("value"))
+
+    # originally, ids range 0-999, add 998 to ids, 0 becomes 998, and 1 becomes 999, ...
     emr_track.import(
         track = "track2_1",
         space = EMR_ROOTS[3],
@@ -492,8 +492,8 @@ test_that("emr_ids_coverage works with filter and overriding", {
         override = TRUE
     )
 
-    withr::defer(emr_track.rm("track2_1", force=TRUE))
+    withr::defer(emr_track.rm("track2_1", force = TRUE))
 
-    #track2_1 was overridden, noew coverage should change avcordingly
-    expect_equal(emr_ids_coverage(data.frame(id = 0:999), c("track2"), filter="track2_1"), c(track2 = 2L))
+    # track2_1 was overridden, noew coverage should change avcordingly
+    expect_equal(emr_ids_coverage(data.frame(id = 0:999), c("track2"), filter = "track2_1"), c(track2 = 2L))
 })
