@@ -6,7 +6,7 @@ logical_track_ok <- function(track, source, values = NULL) {
     expect_true(track %in% emr_track.global.ls())
     expect_true(emr_track.logical.exists(track))
     expect_equal(emr_track.logical.info(track)$source, source)
-    if (is.null(values)) {
+    if (is.null(values) || length(values) == 0) {
         expect_null(emr_track.logical.info(track)$values)
     } else {
         expect_equal(emr_track.logical.info(track)$values, values)
@@ -44,6 +44,54 @@ test_that("emr_track.logical.create tracks works in batch mode", {
         logical_track_ok(tr, sr, v)
     })
 })
+
+test_that("emr_track.logical.create tracks works in batch mode when some ltracks have NULL values", {
+    withr::defer(clean_logical_tracks())
+    tracks <- c("logical_track1", "logical_track2", "logical_track3")
+    sources <- c(rep("ph1", 2), "physical_track_subset_15")
+    values <- list(
+        c(11, 12),
+        NULL,
+        15
+    )
+
+    emr_track.logical.create(tracks, sources, values)
+
+    purrr::pwalk(list(tracks, sources, values), function(tr, sr, v) {
+        logical_track_ok(tr, sr, v)
+    })
+})
+
+test_that("emr_track.logical.create tracks works in batch mode when some ltracks do not have values", {
+    withr::defer(clean_logical_tracks())
+    tracks <- c("logical_track1", "logical_track2", "logical_track3")
+    sources <- c(rep("ph1", 2), "physical_track_subset_15")
+    values <- list(
+        c(11, 12),
+        c(),
+        15
+    )
+
+    emr_track.logical.create(tracks, sources, values)
+
+    purrr::pwalk(list(tracks, sources, values), function(tr, sr, v) {
+        logical_track_ok(tr, sr, v)
+    })
+})
+
+test_that("emr_track.logical.create tracks works in batch mode length of values list is 1", {
+    withr::defer(clean_logical_tracks())
+    tracks <- c("logical_track1")
+    sources <- c("ph1")
+    values <- list(
+        c(11, 12)
+    )
+
+    emr_track.logical.create("logical_track1", "ph1", values)
+    logical_track_ok("logical_track1", "ph1", c(11, 12))
+})
+
+
 
 test_that("emr_track.logical.create fails when track length do not equal names length", {
     expect_error(emr_track.logical.create(c("a", "b"), c("ph1")))
