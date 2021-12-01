@@ -61,6 +61,16 @@ test_that("empty emr_vtrack.create works on logical track with all keepref combi
     withr::defer(emr_track.rm("l1_ph", force = TRUE))
 })
 
+test_that("emr_vtrack.create works on logical track without values", {
+    emr_track.logical.create("l1", src = "ph1", values = NULL)
+    emr_vtrack.create("vt", src = "l1")
+
+    t1 <- emr_extract("l1", names = c("val"))
+    t2 <- emr_extract("vt", names = c("val"))
+
+    expect_equal(t1, t2)
+})
+
 
 test_that("empty emr_vtrack.create works on numeric logical track with all keepref combinations", {
     emr_vtrack.clear()
@@ -200,7 +210,7 @@ test_that("emr_vtrack functions work on logical tracks as expected", {
     withr::defer(emr_track.rm("l1_ph", force = TRUE))
 })
 
-test_that("emr_vtrack functions work on nmeric logical tracks with keepref combinations", {
+test_that("emr_vtrack functions work on numeric logical tracks with keepref combinations", {
     emr_vtrack.clear()
     withr::defer(clean_logical_tracks())
 
