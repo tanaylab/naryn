@@ -49,10 +49,11 @@
         return(params)
     }
 
+    if (is.null(ltrack_info$values)) {
+        return(NULL)
+    }
+
     if (is.null(params)) {
-        if (is.null(ltrack_info$values)) {
-            return(NULL)
-        }
         params <- ltrack_info$values
     }
 
