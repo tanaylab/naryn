@@ -49,6 +49,10 @@
         return(params)
     }
 
+    if (is.null(ltrack_info$values)) {
+        return(NULL)
+    }
+
     if (is.null(params)) {
         params <- ltrack_info$values
     }
@@ -237,7 +241,6 @@ emr_vtrack.create <- function(vtrack, src, func = NULL, params = NULL, keepref =
         logical$src <- src
 
         ltrack_info <- emr_track.logical.info(src)
-
         params <- .emr_vtrack_calc_logical_params(src, params)
         src <- ltrack_info$source
     }

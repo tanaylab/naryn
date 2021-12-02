@@ -36,9 +36,9 @@
 #'
 #' # multiple tracks
 #' emr_track.logical.create(
-#'     c("logical_track1", "logical_track2"),
-#'     rep("categorical_track", 2),
-#'     values = list(c(2, 3), c(1, 4))
+#'     c("logical_track1", "logical_track2", "logical_track3"),
+#'     rep("categorical_track", 3),
+#'     values = list(c(2, 3), NULL, c(1, 4))
 #' )
 #' }
 #'
@@ -52,19 +52,25 @@ emr_track.logical.create <- function(track, src, values = NULL) {
     }
 
     if (length(track) != length(src)) {
-        stop("Number of tracks is not equal to the number of sources")
+        stop("Number of tracks is not equal to the number of sources", call. = FALSE)
     }
 
     if (length(track) > 1) {
         stopifnot(is.list(values))
         if (length(track) != length(values)) {
-            stop("Number of tracks is not equal to the number of entries in the values list")
+            stop("Number of tracks is not equal to the number of entries in the values list", call. = FALSE)
         }
         purrr::pwalk(list(track, src, values), function(tr, sr, v) {
             .emr_call("emr_create_logical", tr, sr, v, FALSE, new.env(parent = parent.frame()), silent = TRUE)
         })
         .emr_call("update_logical_tracks_file", new.env(parent = parent.frame()), silent = TRUE)
     } else {
+        if (is.list(values)) {
+            if (length(values) != 1) {
+                stop("Number of tracks is not equal to the number of entries in the values list")
+            }
+            values <- unlist(values)
+        }
         .emr_call("emr_create_logical", track, src, values, TRUE, new.env(parent = parent.frame()), silent = TRUE)
     }
 }
