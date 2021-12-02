@@ -4,6 +4,8 @@
 * New functions: `emr_filter.name` and `emr_filter.create_from_name` allow creating filters 
 with standard names. 
 * Bug fix: allow calling `emr_track.logical.create` when values are a list of length 1. 
+* Bug fix: wrong results when creating virtual track where the source is a logical track 
+without parameters. 
 
 # naryn 2.6.1
 
