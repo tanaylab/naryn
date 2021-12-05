@@ -139,6 +139,7 @@ protected:
 		unsigned               m_data_idx;   // last patient idx that is greater or equal than the last query
 		unsigned               m_rec_idx;    // last record idx that is greater or equal than the last query
         double                 m_val;
+
         vector<double>         m_frequent_vals;
 		StreamPercentiler<double> m_sp;
 	};

@@ -33,8 +33,7 @@ inline EMRTrackIterator::EMRTrackIterator(EMRTrack *track, bool keepref, unsigne
     init(track, keepref, stime, etime, move(vals), expiration);
 }
 
-inline void EMRTrackIterator::init(EMRTrack *track, bool keepref, unsigned stime, unsigned etime, unordered_set<double> &&vals, EMRTimeStamp::Hour expiration)
-{
+inline void EMRTrackIterator::init(EMRTrack *track, bool keepref, unsigned stime, unsigned etime, unordered_set<double> &&vals, EMRTimeStamp::Hour expiration){
     m_keepref = keepref;
     m_itr.init(track, stime, etime, move(vals), expiration);
 }
@@ -55,8 +54,7 @@ inline bool EMRTrackIterator::begin()
     return true;
 }
 
-inline bool EMRTrackIterator::next()
-{
+inline bool EMRTrackIterator::next() {
 	while (m_itr.next()) {
         if (m_keepref || m_itr.point().timestamp.hour() != m_point.timestamp.hour() || m_itr.point().id != m_point.id) {
 			if (m_keepref)
