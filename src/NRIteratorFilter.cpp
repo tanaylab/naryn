@@ -337,8 +337,8 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const 
             if (!track)
                 verror("Filter %s: track %s does not exist", name, track_name);
 
-            // if (!isNull(rval) && !track->is_categorical())
-            //     verror("Filter %s: 'val' parameter can be used only with categorical tracks", name);
+            if (Rf_length(rval) > 1 && !track->is_categorical())
+                verror("Filter %s: 'val' parameter must be a single value with numerical tracks", name);
 
             if (!isNull(rval) && (!isReal(rval) && !isInteger(rval)))
                 verror("Filter %s: 'val' must be a numeric vector", name);

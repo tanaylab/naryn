@@ -430,7 +430,7 @@ test_that("emr_filter.info works", {
         emr_filter.info("f1"),
         list(
             src = "track2", time_shift = c(-10, 20), keepref = FALSE,
-            val = NULL, expiration = NULL
+            val = NULL, expiration = NULL, operator="="
         )
     )
 })
@@ -455,4 +455,74 @@ test_that("emr_filter.ls works", {
     emr_filter.create("f2", "track2", keepref = F, time.shift = c(-10, 30))
     emr_filter.rm("f1")
     expect_equal(emr_filter.ls(), "f2")
+})
+
+
+test_that("emr_filter with operator works as expected on numerical tracks and keepref true", {
+
+    EMR_FILTERS <<- list()
+
+    t1 <- emr_extract("track0", keepref=TRUE)
+
+    emr_filter.create("eq", src="track0", keepref=TRUE, val=414, operator="=")
+    emr_filter.create("lte", src="track0", keepref=TRUE, val=414, operator="<=")
+    emr_filter.create("lt", src="track0", keepref=TRUE, val=414, operator="<")
+    emr_filter.create("gt", src="track0", keepref=TRUE, val=414, operator=">")
+    emr_filter.create("gte", src="track0", keepref=TRUE, val=414, operator=">=")
+
+    expect_error(emr_filter.create("gte", src="track0", keepref=TRUE, val=414 , operator="~"))
+    expect_error(emr_filter.create("gte", src="track0", keepref=TRUE, val=c(414, 888), operator=">="))
+    expect_error(emr_filter.create("gte", src="track0", keepref=TRUE, time.shift=c(-5,5)*24, val=414, operator="<="))
+
+    t2 <- emr_extract("track0", keepref=TRUE, filter="eq")
+    expect_equal(t1 %>% dplyr::filter(track0 == 414), t2)
+
+    t2 <- emr_extract("track0", keepref=TRUE, filter="lte")
+    expect_equal(t1 %>% dplyr::filter(track0 <= 414), t2)
+
+    t2 <- emr_extract("track0", keepref=TRUE, filter="lt")
+    expect_equal(t1 %>% dplyr::filter(track0 < 414), t2)
+
+    t2 <- emr_extract("track0", keepref=TRUE, filter="gte")
+    expect_equal(t1 %>% dplyr::filter(track0 >= 414), t2)
+
+    t2 <- emr_extract("track0", keepref=TRUE, filter="gt")
+    expect_equal(t1 %>% dplyr::filter(track0 > 414), t2)
+
+})
+
+test_that("emr_filter with operator works as expected on numerical tracks and keepref false", {
+
+    df <- data.frame(id=c(1, 1, 2), time=c(5, 5, 7), ref=c(0, 1, 0), value=c(100, 500, 300))
+
+    emr_track.import("t1", space="user", categorical=FALSE, src=df)
+    withr::defer(emr_track.rm("t1", force=TRUE))
+
+    emr_filter.create("lt.150", src="t1", val=150, keepref=FALSE, operator="<")
+    emr_filter.create("gt.150", src="t1", val=150, keepref=FALSE, operator=">")
+
+    lt <- emr_extract("t1", filter="lt.150")
+    gt <- emr_extract("t1", filter="gt.150")
+
+    expect_equal(data.frame(id=1, time=5, ref=-1, t1=300), lt)
+    expect_equal(data.frame(id=c(1, 2), time=c(5, 7), ref=c(-1, -1), t1=c(300, 300)), gt)
+
+})
+
+test_that("emr_filter with operator works as expected on numerical tracks and mix of keeprefs", {
+
+    df <- data.frame(id=c(1, 1, 2), time=c(5, 5, 7), ref=c(0, 1, 0), value=c(100, 500, 300))
+
+    emr_track.import("t1", space="user", categorical=FALSE, src=df)
+    withr::defer(emr_track.rm("t1", force=TRUE))
+
+    emr_filter.create("lt.150", src="t1", val=150, keepref=FALSE, operator="<")
+    emr_filter.create("gt.150", src="t1", val=150, keepref=FALSE, operator=">")
+
+    lt <- emr_extract("t1", filter="lt.150")
+    gt <- emr_extract("t1", filter="gt.150")
+
+    expect_equal(data.frame(id=1, time=5, ref=-1, t1=300), lt)
+    expect_equal(data.frame(id=c(1, 2), time=c(5, 7), ref=c(-1, -1), t1=c(300, 300)), gt)
+    
 })
