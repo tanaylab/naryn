@@ -323,6 +323,7 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const 
         SEXP rval = get_rvector_col(rfilter, "val", name, false);
         SEXP rexpiration = get_rvector_col(rfilter, "expiration", name, false);
         SEXP rsrc = get_rvector_col(rfilter, "src", name, true);
+        SEXP rop = get_rvector_col(rfilter, "operator", name, true);
 
         if (isString(rsrc)) { // track name
             if (Rf_length(rsrc) != 1)
@@ -330,6 +331,8 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const 
 
             const char *track_name = CHAR(STRING_ELT(rsrc, 0));
             EMRTrack *track = g_db->track(track_name);
+            const char *op = CHAR(STRING_ELT(rop, 0));
+            EMRTrack::Iterator::OPS op_enum;
 
             if (!track)
                 verror("Filter %s: track %s does not exist", name, track_name);
@@ -363,7 +366,21 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const 
                     verror("Filter %s: 'expiration' is out of range", name);
             }
 
-            filter->m_itr = new EMRTrackIterator(track, filter->m_keepref, _stime, _etime, move(vals), expiration);
+            if (strcmp(op, "=") == 0) {
+                op_enum = EMRTrack::Iterator::OPS::eq;
+            } else if (strcmp(op, "<") == 0) {
+                op_enum = EMRTrack::Iterator::OPS::lt;
+            } else if (strcmp(op, "<=") == 0) {
+                op_enum = EMRTrack::Iterator::OPS::lte;
+            } else if (strcmp(op, ">") == 0) {
+                op_enum = EMRTrack::Iterator::OPS::gt;
+            } else if (strcmp(op, ">=") == 0) {
+                op_enum = EMRTrack::Iterator::OPS::gte;
+            } else {
+                verror("Filter %s: operator of type %s is not supported", name, op);
+            }
+
+            filter->m_itr = new EMRTrackIterator(track, filter->m_keepref, _stime, _etime, move(vals), expiration, op_enum);
         } else {   // id-time list
             EMRPoints points;
             try {
@@ -458,8 +475,7 @@ void NRIteratorFilter::build_balanced_tree(EMRIteratorFilterItem *tree, EMRItera
     }
 }
 
-void NRIteratorFilter::check_named_filter(SEXP rfilter, const char *name)
-{
+void NRIteratorFilter::check_named_filter(SEXP rfilter, const char *name){
     EMRIteratorFilterItem *filter = create_filter_item(rfilter, name, false, 0, EMRTimeStamp::MAX_HOUR);
     delete filter;
 }

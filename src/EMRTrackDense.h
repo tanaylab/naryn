@@ -3,7 +3,7 @@
 
 #include <algorithm>
 #include <cmath>
-
+#include <iostream>
 #include "EMRDb.h"
 #include "EMRTrack.h"
 
@@ -57,18 +57,18 @@ protected:
     float    *m_percentiles{NULL};
     T        *m_sorted_unique_vals{NULL};
 
+
 	EMRTrackDense(const char *name, DataType data_type, unsigned flags, void *&mem, size_t &pos, size_t size,
                   unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime);
 
     EMRTrackDense(const char *name, EMRTrack *base_track, EMRTrackData<T> &track_data, DataType data_type,
                   bool build_percentiles, unsigned flags, unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime);
-
+                  
     unsigned data_size() const { return m_max_id - m_min_id + 1; }
     unsigned num_recs(unsigned dataidx) const;
     bool     data_empty(unsigned dataidx) const { return m_data[dataidx] == (unsigned)-1; }
     unsigned next_dataid(unsigned dataid) const { return next_dataidx(dataid + m_min_id); }
     unsigned next_dataidx(unsigned dataidx) const;
-    bool     passed_operator(int irec);
 
 	void serialize(const char *filename);
 
@@ -444,10 +444,6 @@ bool EMRTrackDense<T>::begin(Iterator &itr)
 	return next(itr);
 }
 
-template <class T>
-bool EMRTrackDense<T>::passed_operator(int irec, unordered_set<double> vals){
-    return vals.find(m_recs[irec].v()) == vals.end());
-}
 
 template <class T>
 bool EMRTrackDense<T>::next(Iterator &itr)
@@ -483,10 +479,8 @@ bool EMRTrackDense<T>::next(Iterator &itr)
 
 		// most of the chances are that this point is fine
 		if (hour >= itr.m_stime && hour <= itr.m_etime) {
-            // if (!itr.m_vals.empty() && itr.m_vals.find(m_recs[itr.m_rec_idx].v()) == itr.m_vals.end()) {
-            // in this case - we need not to pass the filter, the complementry
 
-            if (!itr.m_vals.empty() && passed_operator(itr.m_rec_idx, itr.m_vals)) {
+            if (!itr.m_vals.empty() && !itr.passed_operator(m_recs[itr.m_rec_idx].v())) {
                 ++itr.m_rec_idx;
                 continue;
             }
@@ -496,14 +490,8 @@ bool EMRTrackDense<T>::next(Iterator &itr)
 
                 for (int irec = (int)itr.m_rec_idx - 1; irec >= (int)m_data[itr.m_data_idx]; --irec) {
                     EMRTimeStamp::Hour prev_hour = m_recs[irec].timestamp.hour();
-                    if (prev_hour != hour && (itr.m_vals.empty() || itr.m_vals.find(m_recs[irec].v()) != itr.m_vals.end())) {
-                    // in this case - we need to pass the filter (checking for)
-
-                    // So m_recs is a vector Rec objects, they are initiated directly from the data in the nrtrack files - meaning there is no 
-                    // calculation going over them. therefore - we can either implement same thing that works for virtual tracks meaning only keepref
-
-
-                    // if (prev_hour != hour && (itr.m_vals.empty() || m_recs[irec].v() < *itr.m_vals.begin())) {
+                    
+                    if (prev_hour != hour && (itr.m_vals.empty() || itr.passed_operator(m_recs[irec].v()))) {
                         if (prev_hour + itr.m_expiration >= hour)
                             has_competitors = true;
                         break;
@@ -592,10 +580,8 @@ bool EMRTrackDense<T>::next(Iterator &itr, const EMRPoint &jumpto)
 
         // did we find the matching point?
 		if (hour >= itr.m_stime && hour <= itr.m_etime && (itr.m_data_idx != data_idx || hour >= jumpto_hour)) {
-            // if (!itr.m_vals.empty() && itr.m_vals.find(m_recs[itr.m_rec_idx].v()) == itr.m_vals.end()) {
-            // in this case - we need not to pass the filter, the complementry
 
-            if (!itr.m_vals.empty() && passed_iterator(itr.m_rec_idx, itr.m_vals)) {
+            if (!itr.m_vals.empty() && !itr.passed_operator(m_recs[itr.m_rec_idx].v())) {
                 ++itr.m_rec_idx;
                 continue;
             }
@@ -606,14 +592,10 @@ bool EMRTrackDense<T>::next(Iterator &itr, const EMRPoint &jumpto)
                 for (int irec = (int)itr.m_rec_idx - 1; irec >= (int)m_data[itr.m_data_idx]; --irec) {
                     EMRTimeStamp::Hour prev_hour = m_recs[irec].timestamp.hour();
 
-
-
-                    if (prev_hour != hour && (itr.m_vals.empty() || itr.m_vals.find(m_recs[irec].v()) != itr.m_vals.end())) {
-                    // in this case - we need to pass the filter (checking for)
-
-                    // if (prev_hour != hour && (itr.m_vals.empty() || m_recs[irec].v() < *itr.m_vals.begin())) {
-                        if (prev_hour + itr.m_expiration >= hour)
+                    if (prev_hour != hour && (itr.m_vals.empty() || itr.passed_operator(m_recs[irec].v()))) {
+                        if (prev_hour + itr.m_expiration >= hour) {
                             has_competitors = true;
+                        }
                         break;
                     }
                 }

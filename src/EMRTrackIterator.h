@@ -7,10 +7,10 @@
 class EMRTrackIterator : public EMRTrackExpressionIterator {
 public:
 	EMRTrackIterator() {}
-    EMRTrackIterator(EMRTrack *track, bool keepref, unsigned stime, unsigned etime, unordered_set<double> &&vals = unordered_set<double>(), EMRTimeStamp::Hour expiration = 0);
+    EMRTrackIterator(EMRTrack *track, bool keepref, unsigned stime, unsigned etime, unordered_set<double> &&vals = unordered_set<double>(), EMRTimeStamp::Hour expiration = 0, EMRTrack::Iterator::OPS = EMRTrack::Iterator::OPS::eq);
 	virtual ~EMRTrackIterator() {}
 
-    void init(EMRTrack *track, bool keepref, unsigned stime, unsigned etime, unordered_set<double> &&vals = unordered_set<double>(), EMRTimeStamp::Hour expiration = 0);
+    void init(EMRTrack *track, bool keepref, unsigned stime, unsigned etime, unordered_set<double> &&vals = unordered_set<double>(), EMRTimeStamp::Hour expiration = 0, EMRTrack::Iterator::OPS = EMRTrack::Iterator::OPS::eq);
 
 	virtual bool begin();
 	virtual bool next();
@@ -28,14 +28,13 @@ protected:
 
 //------------------------------ IMPLEMENTATION ----------------------------------------
 
-inline EMRTrackIterator::EMRTrackIterator(EMRTrack *track, bool keepref, unsigned stime, unsigned etime, unordered_set<double> &&vals, EMRTimeStamp::Hour expiration)
-{
-    init(track, keepref, stime, etime, move(vals), expiration);
+inline EMRTrackIterator::EMRTrackIterator(EMRTrack *track, bool keepref, unsigned stime, unsigned etime, unordered_set<double> &&vals, EMRTimeStamp::Hour expiration, EMRTrack::Iterator::OPS op){
+    init(track, keepref, stime, etime, move(vals), expiration, op);
 }
 
-inline void EMRTrackIterator::init(EMRTrack *track, bool keepref, unsigned stime, unsigned etime, unordered_set<double> &&vals, EMRTimeStamp::Hour expiration){
+inline void EMRTrackIterator::init(EMRTrack *track, bool keepref, unsigned stime, unsigned etime, unordered_set<double> &&vals, EMRTimeStamp::Hour expiration, EMRTrack::Iterator::OPS op){
     m_keepref = keepref;
-    m_itr.init(track, stime, etime, move(vals), expiration);
+    m_itr.init(track, stime, etime, move(vals), expiration, op);
 }
 
 inline bool EMRTrackIterator::begin()

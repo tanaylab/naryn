@@ -88,7 +88,7 @@
 #' emr_filter.create("f2", "dense_track", keepref = T)
 #' emr_extract("sparse_track", filter = "!f1 & f2")
 #' @export emr_filter.create
-emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val = NULL, expiration = NULL) {
+emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val = NULL, expiration = NULL, operator="=") {
     if (missing(filter) || missing(src)) {
         stop("Usage: emr_filter.create(filter, src, keepref = F, time.shift = NULL, val = NULL, expiration = NULL)", call. = F)
     }
@@ -148,7 +148,7 @@ emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val =
         }
     }
 
-    var <- list(src = src, time_shift = time.shift, keepref = keepref, val = val, expiration = expiration, logical = logical)
+    var <- list(src = src, time_shift = time.shift, keepref = keepref, val = val, expiration = expiration, logical = logical, operator = operator)
     .emr_call("emr_check_named_filter", var, filter, new.env(parent = parent.frame()))
     emr_filter.rm(filter)
     EMR_FILTERS[[root]][[filter]] <<- var
