@@ -165,8 +165,12 @@ emr_filter.create_from_name <- function(filter) {
 
     # vals
     vals_str <- stringr::str_match(filter, glue::glue("{parsed_str[, 1]}\\.vals_(.+)(?=\\.ts)"))
+
     if (is.na(vals_str[, 2])) {
         vals_str <- stringr::str_match(filter, glue::glue("{parsed_str[, 1]}\\.vals_(.+)(?=\\.exp)"))
+    }
+    if (is.na(vals_str[, 2])) {
+        vals_str <- stringr::str_match(filter, glue::glue("{parsed_str[, 1]}\\.vals_(.+)(?=\\.op)"))
     }
     if (is.na(vals_str[, 2])) {
         vals_str <- stringr::str_match(filter, glue::glue("{parsed_str[, 1]}\\.vals_(.+)$"))
@@ -186,6 +190,9 @@ emr_filter.create_from_name <- function(filter) {
 
     # time shift
     ts_str <- stringr::str_match(filter, glue::glue("{parsed_str[, 1]}\\.ts_(.+)(?=\\.exp)"))
+    if (is.na(ts_str[, 2])) {
+        ts_str <- stringr::str_match(filter, glue::glue("{parsed_str[, 1]}\\.ts_(.+)(?=\\.op)"))
+    }
     if (is.na(ts_str[, 2])) {
         ts_str <- stringr::str_match(filter, glue::glue("{parsed_str[, 1]}\\.ts_(.+)$"))
     }

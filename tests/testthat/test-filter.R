@@ -529,6 +529,16 @@ test_that("emr_filter.name works", {
         "f_track.kr.krT.krF.kr.krF.ts_10"
     )
 
+    expect_equal(
+        emr_filter.name("track0", keepref = FALSE, time.shift = 10, val=4, operator="<="),
+        "f_track0.krF.vals_4.ts_10.op_lte"
+    )
+
+    expect_equal(
+        emr_filter.name("track0", val=4, operator=">"),
+        "f_track0.krF.vals_4.op_gt"
+    )
+
     expect_error(emr_filter.name("track10", time.shift = 1:10))
 })
 
@@ -587,6 +597,10 @@ test_that("emr_filter.create_from_name works", {
     fname <- emr_filter.name("track2", keepref = FALSE, time.shift = c(-10, 20))
     emr_filter.create_from_name(fname)
     expect_equal(emr_filter.info("f1"), emr_filter.info(fname))
+    
+    fname <- emr_filter.create_from_name(emr_filter.name("track0", keepref=TRUE, val=414, operator="<"))
+    expect_equal(emr_extract("track0", keepref=TRUE) %>% dplyr::filter(track0 < 414), emr_extract("track0", keepref=TRUE, filter=fname))
+
 })
 
 test_that("emr_filter.create_from_name works when track name has '.'", {
@@ -723,7 +737,7 @@ test_that("emr_filter with operator works as expected on numerical tracks and ke
     expect_error(emr_filter.create("gte", src="track0", keepref=TRUE, val=414 , operator="~"))
     expect_error(emr_filter.create("gte", src="track0", keepref=TRUE, operator=">"))
     expect_error(emr_filter.create("gte", src="track0", keepref=TRUE, val=c(414, 888), operator=">="))
-    # time.shft only allowed when keepref is false
+    # time.shift is allowed when keepref is false
     expect_error(emr_filter.create("gte", src="track0", keepref=TRUE, time.shift=c(-5,5)*24, val=414, operator="<="))
 
     t2 <- emr_extract("track0", keepref=TRUE, filter="eq")
