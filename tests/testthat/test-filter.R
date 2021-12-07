@@ -493,6 +493,8 @@ test_that("emr_filter with operator works as expected on numerical tracks and ke
 
 test_that("emr_filter with operator works as expected on numerical tracks and keepref false", {
 
+    # This should work the same as the test bellow - keepref is ignored for filters with operators
+
     df <- data.frame(id=c(1, 1, 2), time=c(5, 5, 7), ref=c(0, 1, 0), value=c(100, 500, 300))
 
     emr_track.import("t1", space="user", categorical=FALSE, src=df)
@@ -511,6 +513,26 @@ test_that("emr_filter with operator works as expected on numerical tracks and ke
 
 test_that("emr_filter with operator works as expected on numerical tracks and mix of keeprefs", {
 
+    # This should work the same as the test above - keepref is ignored for filters with operators
+
+    df <- data.frame(id=c(1, 1, 2), time=c(5, 5, 7), ref=c(0, 1, 0), value=c(100, 500, 300))
+
+    emr_track.import("t1", space="user", categorical=FALSE, src=df)
+    withr::defer(emr_track.rm("t1", force=TRUE))
+
+    emr_filter.create("lt.150", src="t1", val=150, keepref=TRUE, operator="<")
+    emr_filter.create("gt.150", src="t1", val=150, keepref=TRUE, operator=">")
+
+    lt <- emr_extract("t1", keepref=FALSE, filter="lt.150")
+    gt <- emr_extract("t1", keepref=FALSE, filter="gt.150")
+
+    expect_equal(data.frame(id=1, time=5, ref=-1, t1=300), lt)
+    expect_equal(data.frame(id=c(1, 2), time=c(5, 7), ref=c(-1, -1), t1=c(300, 300)), gt)
+
+})
+
+test_that("emr_filter with operator works as expected on numerical tracks and mix of keeprefs", {
+
     df <- data.frame(id=c(1, 1, 2), time=c(5, 5, 7), ref=c(0, 1, 0), value=c(100, 500, 300))
 
     emr_track.import("t1", space="user", categorical=FALSE, src=df)
@@ -519,10 +541,63 @@ test_that("emr_filter with operator works as expected on numerical tracks and mi
     emr_filter.create("lt.150", src="t1", val=150, keepref=FALSE, operator="<")
     emr_filter.create("gt.150", src="t1", val=150, keepref=FALSE, operator=">")
 
-    lt <- emr_extract("t1", filter="lt.150")
-    gt <- emr_extract("t1", filter="gt.150")
+    lt <- emr_extract("t1", keepref=TRUE, filter="lt.150")
+    gt <- emr_extract("t1", keepref=TRUE, filter="gt.150")
 
-    expect_equal(data.frame(id=1, time=5, ref=-1, t1=300), lt)
-    expect_equal(data.frame(id=c(1, 2), time=c(5, 7), ref=c(-1, -1), t1=c(300, 300)), gt)
-    
+    # both 100 and 500 are returned when kr is TRUE, since keepref is ignored in the filter
+    # and 100 passes the filter for id,time = 1,5 therefore we get also 500 which has same id,time
+    expect_equal(data.frame(id=c(1, 1), time=c(5, 5), ref=c(0, 1), t1=c(100, 500)), lt)
+
+    # we ecpect to get everything back, same case as before, now 500 passes the filter for if,time = 1,5
+    # so we get also the other value of the point (100) which is lower than 150. 
+    expect_equal(data.frame(id=c(1, 1, 2), time=c(5, 5, 7), ref=c(0, 1, 0), t1=c(100, 500, 300)), gt)
+
 })
+
+
+test_that("emr_filter with operator works as expected on categorical tracks", {
+    df <- data.frame(id=c(1, 1, 2), time=c(5, 5, 7), ref=c(0, 1, 0), value=c(2, 4, 4))
+
+    emr_track.import("t1", space="user", categorical=TRUE, src=df)
+    withr::defer(emr_track.rm("t1", force=TRUE))
+
+    emr_filter.create("lt.150", src="t1", val=3, keepref=FALSE, operator="<")
+    emr_filter.create("gt.150", src="t1", val=3, keepref=FALSE, operator=">")
+
+    lt <- emr_extract("t1", keepref=FALSE, filter="lt.150")
+    gt <- emr_extract("t1", keepref=FALSE, filter="gt.150")
+
+    expect_equal(data.frame(id=c(1), time=c(5), ref=c(-1), t1=c(-1)), lt)
+    expect_equal(data.frame(id=c(1, 2), time=c(5, 7), ref=c(-1, -1), t1=c(-1, 4)), gt)
+
+    emr_filter.create("lt.150", src="t1", val=3, keepref=TRUE, operator="<")
+    emr_filter.create("gt.150", src="t1", val=3, keepref=TRUE, operator=">")
+
+    lt <- emr_extract("t1", keepref=TRUE, filter="lt.150")
+    gt <- emr_extract("t1", keepref=TRUE, filter="gt.150")
+
+    expect_equal(data.frame(id=c(1), time=c(5), ref=c(0), t1=c(2)), lt)
+    expect_equal(data.frame(id=c(1, 2), time=c(5, 7), ref=c(1, 0), t1=c(4, 4)), gt)
+
+    emr_filter.create("lt.150", src="t1", val=3, keepref=FALSE, operator="<")
+    emr_filter.create("gt.150", src="t1", val=3, keepref=FALSE, operator=">")
+
+    lt <- emr_extract("t1", keepref=TRUE, filter="lt.150")
+    gt <- emr_extract("t1", keepref=TRUE, filter="gt.150")
+
+    # are these case o.k? @Aviezer
+    expect_equal(data.frame(id=c(1, 1), time=c(5, 5), ref=c(0, 1), t1=c(2, 4)), lt)
+    expect_equal(data.frame(id=c(1, 1, 2), time=c(5, 5, 7), ref=c(0, 1, 0), t1=c(2, 4, 4)), gt)
+
+    emr_filter.create("lt.150", src="t1", val=3, keepref=TRUE, operator="<")
+    emr_filter.create("gt.150", src="t1", val=3, keepref=TRUE, operator=">")
+
+    lt <- emr_extract("t1", keepref=FALSE, filter="lt.150")
+    gt <- emr_extract("t1", keepref=FALSE, filter="gt.150")
+
+
+    expect_equal(data.frame(id=c(1), time=c(5), ref=c(-1), t1=c(-1)), lt)
+    expect_equal(data.frame(id=c(1, 2), time=c(5, 7), ref=c(-1, -1), t1=c(-1, 4)), gt)
+
+})
+
