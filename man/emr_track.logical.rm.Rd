@@ -9,7 +9,9 @@ emr_track.logical.rm(track, force = FALSE, rm_vars = TRUE)
 \arguments{
 \item{track}{the name of one or more tracks to delete}
 
-\item{force}{if 'TRUE', supresses user confirmation of a named track removal}
+\item{force}{if 'TRUE', suppresses user confirmation of a named track removal}
+
+\item{rm_vars}{remove track variables}
 }
 \value{
 None.

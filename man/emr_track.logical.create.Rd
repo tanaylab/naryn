@@ -29,7 +29,11 @@ in the global space.
 emr_track.logical.create("logical_track", "categorical_track", values = c(2, 3))
 
 # multiple tracks
-emr_track.logical.create(c("logical_track1", "logical_track2"), rep("categorical_track", 2), values = list(c(2, 3), c(1, 4)))
+emr_track.logical.create(
+    c("logical_track1", "logical_track2", "logical_track3"),
+    rep("categorical_track", 3),
+    values = list(c(2, 3), NULL, c(1, 4))
+)
 }
 
 }

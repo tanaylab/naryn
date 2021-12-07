@@ -10,7 +10,7 @@
 
 extern "C" {
 
-SEXP emr_import(SEXP _track, SEXP _space, SEXP _categorical, SEXP _src, SEXP _add, SEXP _envir)
+SEXP emr_import(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _src, SEXP _add, SEXP _override, SEXP _envir)
 {
     try {
         Naryn naryn(_envir);
@@ -22,9 +22,11 @@ SEXP emr_import(SEXP _track, SEXP _space, SEXP _categorical, SEXP _src, SEXP _ad
         string trackname = { CHAR(asChar(_track)) };
         string track_filename;
         bool categorical;
-        bool is_global;
+        bool has_overlap = false;
+        bool toverride = asLogical(_override);
+        string db_id;
         EMRTrackData<float> data;
-
+        
         if (do_add) {
             EMRTrack *track = g_db->track(trackname);
             const EMRDb::TrackInfo *track_info = g_db->track_info(trackname);
@@ -34,36 +36,55 @@ SEXP emr_import(SEXP _track, SEXP _space, SEXP _categorical, SEXP _src, SEXP _ad
 
             track_filename = track_info->filename;
             categorical = track->is_categorical();
-            is_global = track_info->is_global;
+            db_id = track_info->db_id;
             track->data_recs(data);
         } else {
+            
             if (!isLogical(_categorical) || Rf_length(_categorical) != 1 || asLogical(_categorical) == NA_LOGICAL)
                 verror("'categorical' argument must be logical");
 
+            if (!isString(_db_id) || Rf_length(_db_id) != 1)
+                verror("'db_id' (space) argument must be a string");
+
             categorical = asLogical(_categorical);
+            db_id = { CHAR(asChar(_db_id)) };
 
-            if (!isString(_space) || Rf_length(_space) != 1)
-                verror("'space' argument must be a string");
-
-            string space = { CHAR(asChar(_space)) };
-
-            if (space == "global")
-                is_global = true;
-            else {
-                if (space == "user") {
-                    if (g_db->urootdir().empty())
-                        verror("User space root directory is not set");
-                    is_global = false;
-                } else
-                    verror("Invalid value of 'space' argument");
+            if (g_db->get_db_idx(db_id) == -1) {
+                verror("%s directory is not set", db_id.c_str());
             }
 
-            if (g_db->track(trackname))
+            //Error only if exists in the same db, otherwise try overriding
+            if (g_db->track(trackname) && (g_db->track_info(trackname)->db_id == db_id)) {
                 verror("Track %s already exists", trackname.c_str());
+            }
+            //User must explicitly pass an overriding argument
+            if (g_db->track(trackname) && (g_db->track_info(trackname)->db_id != db_id) && !toverride) {
+                verror("Track %s already exists in db %s, see override argument", trackname.c_str(), g_db->track_info(trackname)->db_id.c_str());
+            }
+                
+            //Override was passed and a track to override was found
+            if (g_db->track(trackname) && (g_db->track_info(trackname)->db_id != db_id) && toverride) {
 
+                int curr_db_idx = g_db->get_db_idx(g_db->track_info(trackname)->db_id);
+                int req_db_idx = g_db->get_db_idx(db_id);
+
+                //Do not allowe writing a track with the same name to a db dir
+                //With lower priority. This will only confuse the user.
+                if (curr_db_idx > req_db_idx) {
+                    verror("Can not write track to %s the same track already exists in %s. This kind of write has no effect.", db_id, g_db->track_info(trackname)->db_id);
+                }
+
+                has_overlap = true;
+            }
+
+            //can not override patients.dob
+            if (g_db->track(trackname) && (strcmp(trackname.c_str(), g_db->dob_trackname()) == 0) && (g_db->get_db_idx(db_id) != 0)) {
+                verror("Can not override %s track", g_db->dob_trackname());
+            }
+                
             EMRDb::check_track_name(trackname);
 
-            track_filename = (is_global ? g_db->grootdir() : g_db->urootdir()) + string("/") + trackname + EMRDb::TRACK_FILE_EXT;
+            track_filename = db_id + string("/") + trackname + EMRDb::TRACK_FILE_EXT;
 
             if (access(track_filename.c_str(), F_OK) != -1)
                 verror("File %s already exists", track_filename.c_str());
@@ -108,11 +129,11 @@ SEXP emr_import(SEXP _track, SEXP _space, SEXP _categorical, SEXP _src, SEXP _ad
                     verror("%s, line %d: invalid id", filename, lineno);
 
                 hour = strtol(fields[NRPoint::TIME].c_str(), &endptr, 10);
-                if (*endptr || hour < 0 || hour > EMRTimeStamp::MAX_HOUR)
+                if (*endptr || hour < 0 || (EMRTimeStamp::Hour)hour > EMRTimeStamp::MAX_HOUR)
                     verror("%s, line %d: invalid time", filename, lineno);
 
                 ref = strtol(fields[NRPoint::REF].c_str(), &endptr, 10);
-                if (*endptr || ref < 0 && ref != -1 || ref > EMRTimeStamp::MAX_REFCOUNT)
+                if (*endptr || (ref < 0 && ref != -1) || ref > EMRTimeStamp::MAX_REFCOUNT)
                     verror("%s, line %d: invalid reference", filename, lineno);
 
                 val = strtod(fields[NRPoint::VALUE].c_str(), &endptr);
@@ -133,7 +154,12 @@ SEXP emr_import(SEXP _track, SEXP _space, SEXP _categorical, SEXP _src, SEXP _ad
             FileUtils::move_file(tmp_filename.c_str(), track_filename.c_str());
         } else
             EMRTrack::serialize(track_filename.c_str(), categorical, data);
-        g_db->load_track(trackname.c_str(), is_global);
+        
+        if (has_overlap){
+            g_db->unload_track(trackname.c_str(), true, true);
+        }
+        g_db->load_track(trackname.c_str(), db_id);
+        
     } catch (TGLException &e) {
         rerror("%s", e.msg());
     } catch (const bad_alloc &e) {

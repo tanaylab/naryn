@@ -291,9 +291,12 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
         SEXP rtime_shift = time_shift_used ? VECTOR_ELT(rid_map, TIME_SHIFT) : R_NilValue;
         unsigned num_ids = (unsigned)xlength(rids1);
 
-        if (!isReal(rids1) && !isInteger(rids1) || !isReal(rids2) && !isInteger(rids2) || xlength(rids1) != xlength(rids2) ||
-            time_shift_used && xlength(rids1) != xlength(rtime_shift))
+        if ((!isReal(rids1) && !isInteger(rids1)) || 
+            (!isReal(rids2) && !isInteger(rids2)) || 
+            (xlength(rids1) != xlength(rids2)) ||
+            (time_shift_used && xlength(rids1) != xlength(rtime_shift))){
             verror("Virtual track %s: invalid format of 'id.map'", vtrack.c_str());
+        }
 
         for (unsigned i = 0; i < num_ids; ++i) {
             double id1 = isReal(rids1) ? REAL(rids1)[i] : INTEGER(rids1)[i];
@@ -410,7 +413,7 @@ void NRTrackExpressionVars::define_r_vars(unsigned size)
         rprotect(ivar->rvar = RSaneAllocVector(REALSXP, size));
         defineVar(install(ivar->var_name.c_str()), ivar->rvar, g_naryn->env());
         ivar->var = REAL(ivar->rvar);
-        for (int i = 0; i < size; ++i)
+        for (int i = 0; i < (int)size; ++i)
             ivar->var[i] = numeric_limits<double>::quiet_NaN();
     }
 }

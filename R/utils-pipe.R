@@ -6,7 +6,6 @@
 #' @rdname pipe
 #' @keywords internal
 #' @export
-#' @noRd
 #' @importFrom magrittr %>%
 #' @usage lhs \%>\% rhs
 #' @param lhs A value or the magrittr placeholder.
@@ -25,7 +24,6 @@ NULL
 #'
 #' @param x,y If `x` is NULL, will return `y`; otherwise returns `x`.
 #' @noRd
-#' @export
 #' @name op-null-default
 #' @examples
 #' 1 %||% 2

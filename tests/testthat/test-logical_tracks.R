@@ -1,4 +1,3 @@
-
 clean_logical_tracks()
 
 logical_track_ok <- function(track, source, values = NULL) {
@@ -7,7 +6,7 @@ logical_track_ok <- function(track, source, values = NULL) {
     expect_true(track %in% emr_track.global.ls())
     expect_true(emr_track.logical.exists(track))
     expect_equal(emr_track.logical.info(track)$source, source)
-    if (is.null(values)) {
+    if (is.null(values) || length(values) == 0) {
         expect_null(emr_track.logical.info(track)$values)
     } else {
         expect_equal(emr_track.logical.info(track)$values, values)
@@ -45,6 +44,54 @@ test_that("emr_track.logical.create tracks works in batch mode", {
         logical_track_ok(tr, sr, v)
     })
 })
+
+test_that("emr_track.logical.create tracks works in batch mode when some ltracks have NULL values", {
+    withr::defer(clean_logical_tracks())
+    tracks <- c("logical_track1", "logical_track2", "logical_track3")
+    sources <- c(rep("ph1", 2), "physical_track_subset_15")
+    values <- list(
+        c(11, 12),
+        NULL,
+        15
+    )
+
+    emr_track.logical.create(tracks, sources, values)
+
+    purrr::pwalk(list(tracks, sources, values), function(tr, sr, v) {
+        logical_track_ok(tr, sr, v)
+    })
+})
+
+test_that("emr_track.logical.create tracks works in batch mode when some ltracks do not have values", {
+    withr::defer(clean_logical_tracks())
+    tracks <- c("logical_track1", "logical_track2", "logical_track3")
+    sources <- c(rep("ph1", 2), "physical_track_subset_15")
+    values <- list(
+        c(11, 12),
+        c(),
+        15
+    )
+
+    emr_track.logical.create(tracks, sources, values)
+
+    purrr::pwalk(list(tracks, sources, values), function(tr, sr, v) {
+        logical_track_ok(tr, sr, v)
+    })
+})
+
+test_that("emr_track.logical.create tracks works in batch mode length of values list is 1", {
+    withr::defer(clean_logical_tracks())
+    tracks <- c("logical_track1")
+    sources <- c("ph1")
+    values <- list(
+        c(11, 12)
+    )
+
+    emr_track.logical.create("logical_track1", "ph1", values)
+    logical_track_ok("logical_track1", "ph1", c(11, 12))
+})
+
+
 
 test_that("emr_track.logical.create fails when track length do not equal names length", {
     expect_error(emr_track.logical.create(c("a", "b"), c("ph1")))
@@ -181,6 +228,8 @@ test_that("emr_track.logical.rm fails when track is physical", {
 
 # test multiple processes
 test_that("logical tracks creation persists between R sessions", {
+    skip_on_cran()
+    skip_on_ci()
     withr::defer(clean_logical_tracks())
     emr_track.logical.create("logical_track_test1", "ph1", c(15, 16))
     emr_track.logical.create("logical_track_test2", "ph1")
@@ -188,7 +237,7 @@ test_that("logical tracks creation persists between R sessions", {
     res <- callr::r(
         function(root) {
             devtools::load_all()
-            emr_db.init(global.dir = root)
+            emr_db.connect(db_dirs = root)
             return(emr_track.logical.ls())
         },
         args = list(root = EMR_GROOT)
@@ -197,11 +246,13 @@ test_that("logical tracks creation persists between R sessions", {
 })
 
 test_that("logical tracks creation persists between R sessions for existing sessions", {
+    skip_on_cran()
+    skip_on_ci()
     withr::defer(clean_logical_tracks())
     callr::r(
         function(root) {
             devtools::load_all()
-            emr_db.init(global.dir = root)
+            emr_db.connect(db_dirs = root)
             emr_track.logical.create("logical_track_test1", "ph1", c(15, 16))
             emr_track.logical.create("logical_track_test2", "ph1")
             emr_track.logical.create("logical_track_test_numeric", "track0")
@@ -217,6 +268,8 @@ test_that("logical tracks creation persists between R sessions for existing sess
 })
 
 test_that("logical tracks creation persists between R sessions", {
+    skip_on_cran()
+    skip_on_ci()
     withr::defer(clean_logical_tracks())
     emr_track.logical.create("logical_track_test1", "ph1", c(15, 16))
     emr_track.logical.create("logical_track_test_numeric1", "track0")
@@ -227,7 +280,7 @@ test_that("logical tracks creation persists between R sessions", {
     res <- callr::r(
         function(root) {
             devtools::load_all()
-            emr_db.init(global.dir = root)
+            emr_db.connect(db_dirs = root)
             return(emr_track.logical.ls())
         },
         args = list(root = EMR_GROOT)
@@ -236,13 +289,15 @@ test_that("logical tracks creation persists between R sessions", {
 })
 
 test_that("logical tracks deletion persists between R sessions for existing sessions", {
+    skip_on_cran()
+    skip_on_ci()
     withr::defer(clean_logical_tracks())
     emr_track.logical.create("logical_track_test1", "ph1", c(15, 16))
     emr_track.logical.create("logical_track_test2", "ph1")
     res <- callr::r(
         function(root) {
             devtools::load_all()
-            emr_db.init(global.dir = root)
+            emr_db.connect(db_dirs = root)
             emr_track.logical.rm("logical_track_test1", force = TRUE)
         },
         args = list(root = EMR_GROOT)
@@ -319,7 +374,7 @@ test_that("logical track returns a valid vtrack R object without values", {
     emr_vtrack.create("vt", "ph1", keepref = TRUE)
     emr_vtrack.create("vt_numeric", "track0", keepref = TRUE)
     # commented because logical field was added to local R object
-    # vt <- EMR_VTRACKS[[1]]$vt
+    # vt <- EMR_VTRACKS$vt
     vt <- emr_vtrack.info("vt")
     vt_numeric <- emr_vtrack.info("vt_numeric")
     expect_equal(vt, res)
@@ -334,7 +389,7 @@ test_that("logical track returns a valid vtrack R object with values", {
     res <- .emr_call("logical_track_vtrack", "logical_track1", new.env(parent = parent.frame()), silent = TRUE)
     emr_vtrack.create("vt", "ph1", params = c(15, 16), keepref = TRUE)
     # commented because logical field was added to local R object
-    # vt <- EMR_VTRACKS[[1]]$vt
+    # vt <- EMR_VTRACKS$vt
     vt <- emr_vtrack.info("vt")
     expect_equal(vt, res)
 
@@ -1211,7 +1266,7 @@ test_that("numeric logical track can be used as filter", {
 
 # emr_filter.create
 test_that("emr_filter.create works as expected", {
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     withr::defer(clean_logical_tracks())
     emr_track.logical.create("ltrack", "ph1", c(15, 16))
 
@@ -1229,7 +1284,7 @@ test_that("emr_filter.create works as expected", {
 })
 
 test_that("emr_filter.create works when logical tracks are without values", {
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     withr::defer(clean_logical_tracks())
     emr_track.logical.create("ltrack", "ph1")
 
@@ -1245,7 +1300,7 @@ test_that("emr_filter.create works when logical tracks are without values", {
 
 
 test_that("emr_filter.create works on logical track", {
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     withr::defer(clean_logical_tracks())
 
     emr_track.logical.create("ltrack", "ph1", c(15, 16))
@@ -1272,7 +1327,7 @@ test_that("emr_filter.create works on logical track", {
 })
 
 test_that("empty emr_filter.create works on logical track", {
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     withr::defer(clean_logical_tracks())
 
     emr_track.logical.create("ltrack", "ph1", c(15, 16))
@@ -1286,7 +1341,7 @@ test_that("empty emr_filter.create works on logical track", {
 })
 
 test_that("multiple emr_filter.create works on logical track", {
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     withr::defer(clean_logical_tracks())
     emr_track.logical.create("ltrack", "ph1", seq(1, 16, 1))
 
@@ -1304,7 +1359,7 @@ test_that("multiple emr_filter.create works on logical track", {
 })
 
 test_that("emr_filter works on numeric logical tracks", {
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     withr::defer(clean_logical_tracks())
 
     emr_track.logical.create("ltrack", "track0")
@@ -1325,7 +1380,7 @@ test_that("emr_filter works on numeric logical tracks", {
 # emr_filter.info
 
 test_that("emr_filter.info works with filters on logical tracks", {
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     withr::defer(clean_logical_tracks())
 
     emr_track.logical.create("ltrack", "ph1", c(15, 16))
@@ -1350,7 +1405,7 @@ test_that("emr_filter.info works with filters on logical tracks", {
 })
 
 test_that("emr_filter.info works with filters on numeric logical tracks", {
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     withr::defer(clean_logical_tracks())
 
     emr_track.logical.create("ltrack", "track0")
@@ -1366,7 +1421,7 @@ test_that("emr_filter.info works with filters on numeric logical tracks", {
 # emr_filter.attr.src
 
 test_that("emr_filter.attr.src works no input", {
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     withr::defer(clean_logical_tracks())
 
     emr_track.logical.create("ltrack", "ph1", c(15, 16))
@@ -1377,7 +1432,7 @@ test_that("emr_filter.attr.src works no input", {
 })
 
 test_that("emr_filter.attr.src works change from logical to logical", {
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     withr::defer(clean_logical_tracks())
 
     emr_track.logical.create("l1", "ph1", c(15, 16))
@@ -1398,7 +1453,7 @@ test_that("emr_filter.attr.src works change from logical to logical", {
 })
 
 test_that("emr_filter.attr.src works change from logical to physical", {
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     withr::defer(clean_logical_tracks())
 
     emr_track.logical.create("l1", "ph1", c(15, 16))
@@ -1418,7 +1473,7 @@ test_that("emr_filter.attr.src works change from logical to physical", {
 })
 
 test_that("emr_filter.attr.src works when changed from physical to logical", {
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     withr::defer(clean_logical_tracks())
 
     emr_track.logical.create("l1", "ph1", c(15, 16))
@@ -1440,7 +1495,7 @@ test_that("emr_filter.attr.src works when changed from physical to logical", {
 # emr_filter.attr.val
 
 test_that("emr_filter.attr.val works no input", {
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     withr::defer(clean_logical_tracks())
 
     emr_track.logical.create("ltrack", "ph1", c(15, 16))
@@ -1451,7 +1506,7 @@ test_that("emr_filter.attr.val works no input", {
 })
 
 test_that("emr_filter.attr.val changes work on logical track", {
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
     withr::defer(clean_logical_tracks())
 
     emr_track.logical.create("l1", "ph1", c(15, 16))
@@ -1546,7 +1601,6 @@ test_that("emr_track.mv when physical track is moved, all dependent logical are 
 
     emr_track.logical.create("l1", "l1_ph", seq(4, 16, 1))
     emr_track.var.set("l1", "var", 1:10)
-
     emr_track.mv("l1_ph", "ph_l1")
 
     ltrack_info <- emr_track.logical.info("l1")

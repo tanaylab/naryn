@@ -36,12 +36,14 @@ void NRTimeIntervals::convert_rtime_intervals(SEXP rintervs, EMRTimeIntervals *i
             TGLError<NRTimeIntervals>(BAD_FORMAT, "%sInvalid format of time intervals", error_msg_prefix);
     }
 
-    if (!isReal(rstimes) && !isInteger(rstimes) || !isReal(retimes) && !isInteger(retimes))
+    if ((!isReal(rstimes) && !isInteger(rstimes)) || (!isReal(retimes) && !isInteger(retimes))){
         TGLError<NRTimeIntervals>(BAD_FORMAT, "%sInvalid format of time intervals", error_msg_prefix);
+    }
 
     for (unsigned i = 0; i < num_intervs; i++) {
-        if (isReal(rstimes) && std::isnan(REAL(rstimes)[i]) || isReal(retimes) && std::isnan(REAL(retimes)[i]))
+        if ((isReal(rstimes) && std::isnan(REAL(rstimes)[i])) || (isReal(retimes) && std::isnan(REAL(retimes)[i]))){
             TGLError<NRTimeIntervals>(BAD_VALUE, "%sInvalid format of time intervals, row %d", error_msg_prefix, i + 1);
+        }
 
         int stime = isReal(rstimes) ? REAL(rstimes)[i] : INTEGER(rstimes)[i];
         int etime = isReal(retimes) ? REAL(retimes)[i] : INTEGER(retimes)[i];

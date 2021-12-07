@@ -216,11 +216,15 @@ SEXP emr_ids_vals_dist(SEXP _ids, SEXP _tracks, SEXP _stime, SEXP _etime, SEXP _
             scanner.report_progress(false);
             for (scanner.begin(riterator, NRTrackExprScanner::REAL_T, _stime, _etime, riterator, ScalarLogical(true), _filter); !scanner.isend(); scanner.next()) {
                 double val = scanner.real();
-                if (val != -1 && ids.find(scanner.point().id) != ids.end() &&
-                    idval.find(pair<size_t, size_t>(*(size_t *)&val, (size_t)scanner.point().id)) == idval.end())
+                size_t val_size_t;                
+                memcpy(&val_size_t, &val, sizeof(val));                
+                if (val != -1 && ids.find(scanner.point().id) != ids.end() &&                    
+                    idval.find(pair<size_t, size_t>(val_size_t, (size_t)scanner.point().id)) == idval.end())
                 {
-                    ++val2count[*(int64_t *)&val];
-                    idval.insert(pair<size_t, size_t>(*(size_t *)&val, (size_t)scanner.point().id));
+                    int64_t val_int64_t;
+                    memcpy(&val_int64_t, &val, sizeof(val));
+                    ++val2count[val_int64_t];                    
+                    idval.insert(pair<size_t, size_t>(val_size_t, (size_t)scanner.point().id));
                 }
             }
             progress.report(1);
@@ -259,8 +263,11 @@ SEXP emr_ids_vals_dist(SEXP _ids, SEXP _tracks, SEXP _stime, SEXP _etime, SEXP _
             const Val2Count &val2count = *ires;
 
             valcounts.clear();
-            for (Val2Count::const_iterator ival2count = val2count.begin(); ival2count != val2count.end(); ++ival2count)
-                valcounts.push_back(ValCount(*(double *)&ival2count->first, ival2count->second));
+            for (Val2Count::const_iterator ival2count = val2count.begin(); ival2count != val2count.end(); ++ival2count){
+                double vc;
+                memcpy(&vc, &ival2count->first, sizeof(ival2count->first));                
+                valcounts.push_back(ValCount(vc, ival2count->second));
+            }
 
             sort(valcounts.begin(), valcounts.end());
 

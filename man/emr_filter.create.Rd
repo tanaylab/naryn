@@ -7,16 +7,16 @@
 emr_filter.create(
   filter,
   src,
-  keepref = F,
+  keepref = FALSE,
   time.shift = NULL,
   val = NULL,
   expiration = NULL
 )
 }
 \arguments{
-\item{filter}{filter name}
+\item{filter}{filter name. If NULL - a name would be generated automatically using \code{emr_filter.name}.}
 
-\item{src}{source (track name or id-time table)}
+\item{src}{source (track name or id-time table). Can be a vector of track names.}
 
 \item{keepref}{'TRUE' or 'FALSE'}
 
@@ -27,7 +27,7 @@ emr_filter.create(
 \item{expiration}{expiration period}
 }
 \value{
-Name of the filter (invisibly)
+Name of the filter (invisibly, if filter name wasn't generated automatically)
 }
 \description{
 Creates a new named filter.
@@ -61,11 +61,11 @@ Note: 'time.shift' can be used only when 'keepref' is 'FALSE'.
 
 emr_db.init_examples()
 emr_filter.create("f1", "dense_track", time.shift = c(2, 4))
-emr_filter.create("f2", "dense_track", keepref = T)
+emr_filter.create("f2", "dense_track", keepref = TRUE)
 emr_extract("sparse_track", filter = "!f1 & f2")
 }
 \seealso{
 \code{\link{emr_filter.attr.src}}, \code{\link{emr_filter.ls}},
-\code{\link{emr_filter.exists}}, \code{\link{emr_filter.rm}}
+\code{\link{emr_filter.exists}}, \code{\link{emr_filter.rm}}, \code{\link{emr_filter.create_from_name}}
 }
 \keyword{~filter}

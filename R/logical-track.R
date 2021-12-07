@@ -35,7 +35,11 @@
 #' emr_track.logical.create("logical_track", "categorical_track", values = c(2, 3))
 #'
 #' # multiple tracks
-#' emr_track.logical.create(c("logical_track1", "logical_track2"), rep("categorical_track", 2), values = list(c(2, 3), c(1, 4)))
+#' emr_track.logical.create(
+#'     c("logical_track1", "logical_track2", "logical_track3"),
+#'     rep("categorical_track", 3),
+#'     values = list(c(2, 3), NULL, c(1, 4))
+#' )
 #' }
 #'
 #' @keywords ~track ~create_logical
@@ -48,19 +52,25 @@ emr_track.logical.create <- function(track, src, values = NULL) {
     }
 
     if (length(track) != length(src)) {
-        stop("Number of tracks is not equal to the number of sources")
+        stop("Number of tracks is not equal to the number of sources", call. = FALSE)
     }
 
     if (length(track) > 1) {
         stopifnot(is.list(values))
         if (length(track) != length(values)) {
-            stop("Number of tracks is not equal to the number of entries in the values list")
+            stop("Number of tracks is not equal to the number of entries in the values list", call. = FALSE)
         }
         purrr::pwalk(list(track, src, values), function(tr, sr, v) {
             .emr_call("emr_create_logical", tr, sr, v, FALSE, new.env(parent = parent.frame()), silent = TRUE)
         })
         .emr_call("update_logical_tracks_file", new.env(parent = parent.frame()), silent = TRUE)
     } else {
+        if (is.list(values)) {
+            if (length(values) != 1) {
+                stop("Number of tracks is not equal to the number of entries in the values list")
+            }
+            values <- unlist(values)
+        }
         .emr_call("emr_create_logical", track, src, values, TRUE, new.env(parent = parent.frame()), silent = TRUE)
     }
 }
@@ -70,11 +80,11 @@ remove_logical_track <- function(track, force, rm_vars, update) {
         if (force) {
             return(invisible())
         }
-        stop(sprintf("Track %s does not exist", track), call. = F)
+        stop(sprintf("Track %s does not exist", track), call. = FALSE)
     }
 
     if (!emr_track.logical.exists(track)) {
-        stop(sprintf("Track %s is not a logical track", track), call. = F)
+        stop(sprintf("Track %s is not a logical track", track), call. = FALSE)
     }
 
     answer <- "N"
@@ -104,7 +114,8 @@ remove_logical_track <- function(track, force, rm_vars, update) {
 #' Deletes a logical track
 #'
 #' @param track the name of one or more tracks to delete
-#' @param force if 'TRUE', supresses user confirmation of a named track removal
+#' @param force if 'TRUE', suppresses user confirmation of a named track removal
+#' @param rm_vars remove track variables
 #' @return None.
 #'
 #' @keywords ~track ~create_logical
@@ -153,7 +164,7 @@ emr_track.logical.exists <- function(track) {
 #' @noRd
 emr_track.logical.info <- function(track) {
     if (missing(track)) {
-        stop("Usage: emr_track.logical.info(track)", call. = F)
+        stop("Usage: emr_track.logical.info(track)", call. = FALSE)
     }
     .emr_checkroot()
 
@@ -176,7 +187,6 @@ random_filter_name <- function(pattern) {
 #' @examples
 #'
 #' create_logical_track_filter("logical_track")
-#' @export
 #' @noRd
 create_logical_track_filter <- function(ltrack, filter = NULL, filter_name = NULL, env = parent.frame()) {
     ltrack <- emr_track.logical.info(ltrack)

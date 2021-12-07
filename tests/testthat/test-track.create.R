@@ -1,3 +1,4 @@
+
 test_that("emr_track.create works", {
     emr_track.rm("test_track1", TRUE)
     emr_track.create("test_track1", "user", FALSE, "track0", keepref = TRUE)
@@ -67,7 +68,7 @@ test_that("create categorical with filter", {
 
 test_that("emr_track.mv works", {
     emr_track.rm("test_track1", TRUE)
-    emr_track.create("test_track1", "user", F, "track0+2", keepref = F)
+    emr_track.create("test_track1", "user", FALSE, "track0+2", keepref = FALSE)
     emr_track.mv("test_track1", "test_track2")
     expect_false(emr_track.exists("test_track1"))
     expect_true(emr_track.exists("test_track2"))
@@ -76,7 +77,7 @@ test_that("emr_track.mv works", {
 
 test_that("emr_track.mv works with different values", {
     emr_track.rm("test_track1", TRUE)
-    emr_track.create("test_track1", "global", F, "track0+2", keepref = F)
+    emr_track.create("test_track1", "global", FALSE, "track0+2", keepref = FALSE)
     emr_track.mv("test_track1", "test_track2", "user")
     expect_false(emr_track.exists("test_track1"))
     expect_true(emr_track.exists("test_track2"))
