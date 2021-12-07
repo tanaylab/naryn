@@ -37,12 +37,12 @@
 }
 
 .str_to_operator <- function(str) {
-    convertor <- c("eq"="=", "lt"="<", "lte"="<=", "gt"=">", "gte"=">=")
+    convertor <- c("eq" = "=", "lt" = "<", "lte" = "<=", "gt" = ">", "gte" = ">=")
     return(convertor[str])
 }
 
 .operator_to_str <- function(op) {
-    convertor <- c("="="eq", "<"="lt", "<="="lte", ">"="gt", ">="="gte")
+    convertor <- c("=" = "eq", "<" = "lt", "<=" = "lte", ">" = "gt", ">=" = "gte")
     return(convertor[op])
 }
 
@@ -72,7 +72,7 @@
 #' emr_db.init_examples()
 #' emr_filter.name("dense_track", time.shift = c(2, 4))
 #' @export
-emr_filter.name <- function(src, keepref = FALSE, time.shift = NULL, val = NULL, expiration = NULL, operator="=") {
+emr_filter.name <- function(src, keepref = FALSE, time.shift = NULL, val = NULL, expiration = NULL, operator = "=") {
     if (missing(src)) {
         stop("Usage: emr_filter.name(src, keepref = FALSE, time.shift = NULL, val = NULL, expiration = NULL)", call. = FALSE)
     }
@@ -143,7 +143,6 @@ emr_filter.name <- function(src, keepref = FALSE, time.shift = NULL, val = NULL,
 #' emr_filter.create_from_name(name)
 #' @export
 emr_filter.create_from_name <- function(filter) {
-    
     if (missing(filter)) {
         stop("Usage: emr_filter.create_from_name(filter)", call. = FALSE)
     }
@@ -256,9 +255,9 @@ emr_filter.create_from_name <- function(filter) {
 #' at least one value from the vector of 'val'.
 #'
 #' 'val' is allowed to be used only when 'src' is a name of a track, when val is specified,
-#' the filter will filter the i.d, time points by applying the 'operator' argument on the 
-#' value of the point. 
-#' 
+#' the filter will filter the i.d, time points by applying the 'operator' argument on the
+#' value of the point.
+#'
 #' If 'expiration' is not 'NULL' and the filter window contains a value at time
 #' 't', the existence of previous values in the time window of [t-expiration,
 #' t-1] (aka: "expiration window") is checked. If no such values are found in
@@ -266,10 +265,10 @@ emr_filter.create_from_name <- function(filter) {
 #'
 #' 'expiration' is allowed to be used only when 'src' is a name of a
 #' categorical track and 'keepref' is 'FALSE'.
-#' 
-#' 'operator' corresponds to the 'val' argument, when the point, passes the filter
+#'
+#' 'operator' corresponds to the 'val' argument. The point passes the filter
 #' if the point's value passes the operator. For example if the point's value is 4,
-#' the operator is "<" and val is 5, the expressions evaluated is 4 < 5 (pass).
+#' the operator is "<" and val is 5, the expression evaluated is 4 < 5 (pass).
 #' When 'operator' is not "=", 'vals' must exist, and be of length 1.
 #'
 #' If both 'val' and 'expiration' are not 'NULL' then only values from 'val'
@@ -288,14 +287,14 @@ emr_filter.create_from_name <- function(filter) {
 #' @seealso \code{\link{emr_filter.attr.src}}, \code{\link{emr_filter.ls}},
 #' \code{\link{emr_filter.exists}}, \code{\link{emr_filter.rm}}, \code{\link{emr_filter.create_from_name}}
 #' @keywords ~filter
-#' @examples 
+#' @examples
 #'
 #' emr_db.init_examples()
 #' emr_filter.create("f1", "dense_track", time.shift = c(2, 4))
 #' emr_filter.create("f2", "dense_track", keepref = TRUE)
 #' emr_extract("sparse_track", filter = "!f1 & f2")
 #' @export emr_filter.create
-emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val = NULL, expiration = NULL, operator="=") {
+emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val = NULL, expiration = NULL, operator = "=") {
     if (missing(filter) || missing(src)) {
         stop("Usage: emr_filter.create(filter, src, keepref = FALSE, time.shift = NULL, val = NULL, expiration = NULL)", call. = FALSE)
     }
