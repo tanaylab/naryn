@@ -273,6 +273,7 @@ inline bool EMRTrack::Iterator::passed_operator(double val){
         case OPS::lte:
             return (val <= *m_vals.begin());
     }
+    return false;
 
 }
 

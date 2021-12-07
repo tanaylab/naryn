@@ -333,7 +333,7 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const 
             const char *track_name = CHAR(STRING_ELT(rsrc, 0));
             EMRTrack *track = g_db->track(track_name);
             const char *op = CHAR(STRING_ELT(rop, 0));
-            EMRTrack::Iterator::OPS op_enum;
+            EMRTrack::Iterator::OPS op_enum = EMRTrack::Iterator::OPS::eq;
 
             if (!track)
                 verror("Filter %s: track %s does not exist", name, track_name);
@@ -381,6 +381,10 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const 
                 verror("Filter %s: operator of type %s is not supported", name, op);
             }
 
+            if ((op_enum != EMRTrack::Iterator::OPS::eq) && isNull(rval)) {
+                verror("Filter %s: operator of type %s is must be passed with one 'val'", name, op);
+            }
+
             filter->m_itr = new EMRTrackIterator(track, filter->m_keepref, _stime, _etime, move(vals), expiration, op_enum);
         } else {   // id-time list
             EMRPoints points;
@@ -388,7 +392,7 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const 
                 NRPoint::convert_rpoints(rsrc, &points);
 
                 if (!isNull(rval))
-                    verror("'val' parameter can be used only with categorical tracks");
+                    verror("'val' parameter can not be used with dataframe as source");
 
                 if (!isNull(rexpiration))
                     verror("'expiration' parameter can be used only with tracks");

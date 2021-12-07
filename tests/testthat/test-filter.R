@@ -9,7 +9,7 @@ test_that("time.shift is not allowed when keepref is TRUE", {
     expect_error(emr_filter.create("f1", "track1", keepref = TRUE, time.shift = 10))
 })
 
-test_that("'val' parameter can be used only with categorical tracks", {
+test_that("'val' parameter of length greater than 1 can be used only with categorical tracks", {
     expect_error(emr_filter.create("f1", "track1", val = c(3, 5)))
 })
 
@@ -435,6 +435,16 @@ test_that("emr_filter.info works", {
     )
 })
 
+test_that("emr_filter.create works with -1 as val (kr issues)", {
+    emr_filter.clear()
+    df <- data.frame(id = 1, time = c(1, 2, 2), value = c(-1, 4, 3), ref = c(0, 0, 1))
+    emr_track.import("minusone", space=EMR_UROOT, categorical=TRUE, src=df)
+    withr::defer(emr_track.rm("minusone", force=TRUE))
+    emr_filter.create("f", "minusone", val = -1)
+    t <- emr_extract("minusone", filter = "f")
+    expect_equal(data.frame(id = 1, time = 1, ref = -1, minusone = -1), t)
+})
+
 test_that("emr_filter.ls works", {
     emr_filter.clear()
     emr_filter.create("f1", "track2", keepref = FALSE, time.shift = c(-10, 20))
@@ -468,6 +478,7 @@ test_that("emr_filter.clear works", {
 })
 
 test_that("emr_filter.name works", {
+    
     expect_equal(
         emr_filter.name("track10", keepref = FALSE, time.shift = c(-10, 20)),
         "f_track10.krF.ts_minus10_20"
@@ -700,8 +711,7 @@ test_that("emr_filter.create works when src is a vector (2)", {
 
 test_that("emr_filter with operator works as expected on numerical tracks and keepref true", {
 
-    EMR_FILTERS <<- list()
-
+    emr_filter.clear()
     t1 <- emr_extract("track0", keepref=TRUE)
 
     emr_filter.create("eq", src="track0", keepref=TRUE, val=414, operator="=")
@@ -711,6 +721,7 @@ test_that("emr_filter with operator works as expected on numerical tracks and ke
     emr_filter.create("gte", src="track0", keepref=TRUE, val=414, operator=">=")
 
     expect_error(emr_filter.create("gte", src="track0", keepref=TRUE, val=414 , operator="~"))
+    expect_error(emr_filter.create("gte", src="track0", keepref=TRUE, operator=">"))
     expect_error(emr_filter.create("gte", src="track0", keepref=TRUE, val=c(414, 888), operator=">="))
     expect_error(emr_filter.create("gte", src="track0", keepref=TRUE, time.shift=c(-5,5)*24, val=414, operator="<="))
 
@@ -733,6 +744,8 @@ test_that("emr_filter with operator works as expected on numerical tracks and ke
 
 test_that("emr_filter with operator works as expected on numerical tracks and keepref false", {
 
+    EMR_FILTERS <<- list()
+
     # This should work the same as the test bellow - keepref is ignored for filters with operators
 
     df <- data.frame(id=c(1, 1, 2), time=c(5, 5, 7), ref=c(0, 1, 0), value=c(100, 500, 300))
@@ -752,6 +765,8 @@ test_that("emr_filter with operator works as expected on numerical tracks and ke
 })
 
 test_that("emr_filter with operator works as expected on numerical tracks and mix of keeprefs", {
+
+    EMR_FILTERS <<- list()
 
     # This should work the same as the test above - keepref is ignored for filters with operators
 
@@ -773,6 +788,7 @@ test_that("emr_filter with operator works as expected on numerical tracks and mi
 
 test_that("emr_filter with operator works as expected on numerical tracks and mix of keeprefs", {
 
+    emr_filter.clear()
     df <- data.frame(id=c(1, 1, 2), time=c(5, 5, 7), ref=c(0, 1, 0), value=c(100, 500, 300))
 
     emr_track.import("t1", space="user", categorical=FALSE, src=df)
@@ -795,6 +811,8 @@ test_that("emr_filter with operator works as expected on numerical tracks and mi
 })
 
 test_that("emr_filter with operator works as expected on categorical tracks", {
+
+    emr_filter.clear()
     df <- data.frame(id=c(1, 1, 2), time=c(5, 5, 7), ref=c(0, 1, 0), value=c(2, 4, 4))
 
     emr_track.import("t1", space="user", categorical=TRUE, src=df)
@@ -824,7 +842,6 @@ test_that("emr_filter with operator works as expected on categorical tracks", {
     lt <- emr_extract("t1", keepref=TRUE, filter="lt.150")
     gt <- emr_extract("t1", keepref=TRUE, filter="gt.150")
 
-    # are these case o.k? @Aviezer
     expect_equal(data.frame(id=c(1, 1), time=c(5, 5), ref=c(0, 1), t1=c(2, 4)), lt)
     expect_equal(data.frame(id=c(1, 1, 2), time=c(5, 5, 7), ref=c(0, 1, 0), t1=c(2, 4, 4)), gt)
 
@@ -834,8 +851,24 @@ test_that("emr_filter with operator works as expected on categorical tracks", {
     lt <- emr_extract("t1", keepref=FALSE, filter="lt.150")
     gt <- emr_extract("t1", keepref=FALSE, filter="gt.150")
 
-
     expect_equal(data.frame(id=c(1), time=c(5), ref=c(-1), t1=c(-1)), lt)
     expect_equal(data.frame(id=c(1, 2), time=c(5, 7), ref=c(-1, -1), t1=c(-1, 4)), gt)
 
+})
+
+test_that("emr_filter on df with operator throws errors", {
+    emr_filter.clear()
+    # This should work the same as the test bellow - keepref is ignored for filters with operators
+
+    df <- data.frame(id=c(1, 1, 2), time=c(5, 5, 7), ref=c(0, 1, 0), value=c(100, 500, 300))
+
+    emr_track.import("t1", space="user", categorical=FALSE, src=df)
+    withr::defer(emr_track.rm("t1", force=TRUE))
+
+    #cant request filter with keepref FALSE on df with refs
+    expect_error(emr_filter.create("lt.150", src=df, val=150, keepref=FALSE, operator="<"))
+    expect_error(emr_filter.create("gt.150", src=df, val=150, keepref=FALSE, operator=">"))
+    #cant create filter with df as source and vals
+    expect_error(emr_filter.create("lt.150", src=df, val=150, keepref=TRUE, operator="<"))
+    expect_error(emr_filter.create("gt.150", src=df, val=150, keepref=TRUE, operator=">"))
 })
