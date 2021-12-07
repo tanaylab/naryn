@@ -723,6 +723,7 @@ test_that("emr_filter with operator works as expected on numerical tracks and ke
     expect_error(emr_filter.create("gte", src="track0", keepref=TRUE, val=414 , operator="~"))
     expect_error(emr_filter.create("gte", src="track0", keepref=TRUE, operator=">"))
     expect_error(emr_filter.create("gte", src="track0", keepref=TRUE, val=c(414, 888), operator=">="))
+    # time.shft only allowed when keepref is false
     expect_error(emr_filter.create("gte", src="track0", keepref=TRUE, time.shift=c(-5,5)*24, val=414, operator="<="))
 
     t2 <- emr_extract("track0", keepref=TRUE, filter="eq")

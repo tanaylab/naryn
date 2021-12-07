@@ -248,8 +248,10 @@ emr_filter.create_from_name <- function(filter) {
 #' If 'val' is not 'NULL', the time window of the filter is required to contain
 #' at least one value from the vector of 'val'.
 #'
-#' 'val' is paired with the 'operator' argument 
-#'
+#' 'val' is allowed to be used only when 'src' is a name of a track, when val is specified,
+#' the filter will filter the i.d, time points by applying the 'operator' argument on the 
+#' value of the point. 
+#' 
 #' If 'expiration' is not 'NULL' and the filter window contains a value at time
 #' 't', the existence of previous values in the time window of [t-expiration,
 #' t-1] (aka: "expiration window") is checked. If no such values are found in
@@ -257,6 +259,11 @@ emr_filter.create_from_name <- function(filter) {
 #'
 #' 'expiration' is allowed to be used only when 'src' is a name of a
 #' categorical track and 'keepref' is 'FALSE'.
+#' 
+#' 'operator' corresponds to the 'val' argument, when the point, passes the filter
+#' if the point's value passes the operator. For example if the point's value is 4,
+#' the operator is "<" and val is 5, the expressions evaluated is 4 < 5 (pass).
+#' When 'operator' is not "=", 'vals' must exist, and be of length 1.
 #'
 #' If both 'val' and 'expiration' are not 'NULL' then only values from 'val'
 #' vector are checked both in time window and expiration window.
@@ -269,7 +276,7 @@ emr_filter.create_from_name <- function(filter) {
 #' @param time.shift time shift and expansion for iterator time
 #' @param val selected values
 #' @param expiration expiration period
-#' @param operator operator for filtering
+#' @param operator for filtering
 #' @return Name of the filter (invisibly, if filter name wasn't generated automatically)
 #' @seealso \code{\link{emr_filter.attr.src}}, \code{\link{emr_filter.ls}},
 #' \code{\link{emr_filter.exists}}, \code{\link{emr_filter.rm}}, \code{\link{emr_filter.create_from_name}}
