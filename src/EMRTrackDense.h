@@ -3,7 +3,7 @@
 
 #include <algorithm>
 #include <cmath>
-#include <iostream>
+
 #include "EMRDb.h"
 #include "EMRTrack.h"
 
