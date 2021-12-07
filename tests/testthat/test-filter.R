@@ -754,7 +754,7 @@ test_that("emr_filter with operator works as expected on numerical tracks and ke
 })
 
 test_that("emr_filter with operator works as expected on numerical tracks and keepref false", {
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
 
     # This should work the same as the test bellow - keepref is ignored for filters with operators
 
@@ -774,7 +774,7 @@ test_that("emr_filter with operator works as expected on numerical tracks and ke
 })
 
 test_that("emr_filter with operator works as expected on numerical tracks and mix of keeprefs", {
-    EMR_FILTERS <<- list()
+    emr_filter.clear()
 
     # This should work the same as the test above - keepref is ignored for filters with operators
 
