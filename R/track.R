@@ -53,6 +53,9 @@
     paste0(.emr_track.dir(track), "/.", track, ".pyvar")
 }
 
+.emr_track.attrs.fname <- function(track) {
+    paste0(.emr_track.dir(track), "/.", track, ".attrs")
+}
 
 .emr_dir.mv <- function(src, tgt) {
     dir.create(tgt, mode = "0777")
@@ -227,7 +230,7 @@ emr_track.attr.export <- function(track = NULL, attr = NULL) {
     .emr_checkroot()
 
     if (is.null(track)) {
-        track <- .emr_call("emr_track_names", new.env(parent = parent.frame()), silent = TRUE)
+        track <- emr_track.ls()
     } else {
         track <- unique(track)
     }
@@ -898,6 +901,12 @@ emr_track.rm <- function(track, force = FALSE) {
     }
 
     if (answer == "Y" || answer == "YES") {
+        attr_fname <- .emr_track.attrs.fname(track)
+        if (file.exists(attr_fname)) {
+            unlink(attr_fname)
+        }
+
+
         dirname1 <- .emr_track.var.dir(track)
         dirname2 <- .emr_track.pyvar.dir(track)
 

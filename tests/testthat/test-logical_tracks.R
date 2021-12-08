@@ -1629,3 +1629,192 @@ test_that("emr_track.rm when physical track is removed, all dependent logical ar
 
     withr::defer(emr_track.rm("l1_ph", force = TRUE))
 })
+
+test_that("emr_track.attr.get returns correct output on a logical track", {
+    withr::defer(clean_attributes())
+    withr::defer(clean_logical_tracks())
+    emr_track.logical.create("l1", "track1")
+    emr_track.attr.set("l1", "var1", "val1")
+    expect_equal(emr_track.attr.get("l1", "var1"), "var1")
+})
+
+test_that("emr_track.attr.set works multiple times on logical tracks", {
+    withr::defer(clean_attributes())
+    withr::defer(clean_logical_tracks())
+    emr_track.logical.create("l1", "track1")
+    emr_track.logical.create("l2", "track2")
+    emr_track.logical.create("l7", "track7")
+    emr_track.attr.set("track1", "var1", "val1")
+    emr_track.attr.set("track1", "var2", "val2")
+    emr_track.attr.set("track1", "var3", "val3")
+    emr_track.attr.set("track2", "var2", "baba")
+    emr_track.attr.set("track7", "var1", "val3")
+    emr_track.attr.set("track7", "var2", "")
+    emr_track.attr.set("l1", "var1", "val1")
+    emr_track.attr.set("l1", "var2", "val2")
+    emr_track.attr.set("l1", "var3", "val3")
+    emr_track.attr.set("l2", "var2", "baba")
+    emr_track.attr.set("l7", "var1", "val3")
+    emr_track.attr.set("l7", "var2", "")
+    expect_equal(emr_track.attr.export(), data.frame(
+        track = c(
+            "l1", "l1", "l1", "l2", "l7", "l7",
+            "track1", "track1", "track1", "track2", "track7", "track7"
+        ),
+        attr = c(
+            "var1", "var2", "var3", "var2", "var1", "var2",
+            "var1", "var2", "var3", "var2", "var1", "var2"
+        ), value = c(
+            "val1",
+            "val2", "val3", "baba", "val3", "", "val1", "val2", "val3",
+            "baba", "val3", ""
+        )
+    ))
+})
+
+test_that("emr_track.attr.export works for multiple tracks on logical tracks", {
+    withr::defer(clean_attributes())
+    withr::defer(clean_logical_tracks())
+    emr_track.logical.create("l1", "track1")
+    emr_track.logical.create("l2", "track2")
+    emr_track.logical.create("l7", "track7")
+
+    emr_track.attr.set("track1", "var1", "val1")
+    emr_track.attr.set("track1", "var2", "val2")
+    emr_track.attr.set("track1", "var3", "val3")
+    emr_track.attr.set("track2", "var2", "baba")
+    emr_track.attr.set("track7", "var1", "val3")
+    emr_track.attr.set("track7", "var2", "")
+
+    emr_track.attr.set("l1", "var1", "val1")
+    emr_track.attr.set("l1", "var2", "val2")
+    emr_track.attr.set("l1", "var3", "val3")
+    emr_track.attr.set("l2", "var2", "baba")
+    emr_track.attr.set("l7", "var1", "val3")
+    emr_track.attr.set("l7", "var2", "")
+    expect_equal(
+        emr_track.attr.export(c("l1", "l7", "track1")),
+        structure(list(track = c(
+            "l1", "l1", "l1", "l7", "l7", "track1",
+            "track1", "track1"
+        ), attr = c(
+            "var1", "var2", "var3", "var1",
+            "var2", "var1", "var2", "var3"
+        ), value = c(
+            "val1", "val2", "val3",
+            "val3", "", "val1", "val2", "val3"
+        )), row.names = c(NA, 8L), class = "data.frame")
+    )
+})
+
+test_that("emr_track.attr.export works for multiple tracks and vars on logical tracks", {
+    withr::defer(clean_attributes())
+    withr::defer(clean_logical_tracks())
+    emr_track.logical.create("l1", "track1")
+    emr_track.logical.create("l2", "track2")
+    emr_track.logical.create("l7", "track7")
+
+    emr_track.attr.set("l1", "var1", "val1")
+    emr_track.attr.set("l1", "var2", "val2")
+    emr_track.attr.set("l1", "var3", "val3")
+    emr_track.attr.set("l2", "var2", "baba")
+    emr_track.attr.set("l7", "var1", "val3")
+    emr_track.attr.set("l7", "var2", "")
+    expect_equal(
+        emr_track.attr.export(c("l1", "l7"), c("var2", "var3")),
+        structure(list(track = c("l1", "l1", "l7"), attr = c(
+            "var2",
+            "var3", "var2"
+        ), value = c("val2", "val3", "")), row.names = c(
+            NA,
+            3L
+        ), class = "data.frame")
+    )
+})
+
+test_that("emr_track.attr.export works by attributes on logical tracks", {
+    withr::defer(clean_attributes())
+    withr::defer(clean_logical_tracks())
+    emr_track.logical.create("l1", "track1")
+    emr_track.logical.create("l2", "track2")
+    emr_track.logical.create("l7", "track7")
+
+    emr_track.attr.set("l1", "var1", "val1")
+    emr_track.attr.set("l1", "var2", "val2")
+    emr_track.attr.set("l1", "var3", "val3")
+    emr_track.attr.set("l2", "var2", "baba")
+    emr_track.attr.set("l7", "var1", "val3")
+    emr_track.attr.set("l7", "var2", "")
+
+    expect_equal(
+        emr_track.attr.export(attr = c("var2", "var3")),
+        structure(list(track = c("l1", "l1", "l2", "l7"), attr = c("var2", "var3", "var2", "var2"), value = c(
+            "val2",
+            "val3", "baba", ""
+        )), row.names = c(NA, 4L), class = "data.frame")
+    )
+})
+
+
+test_that("emr_track.ls finds tracks by var on logical tracks", {
+    withr::defer(clean_attributes())
+    withr::defer(clean_logical_tracks())
+    emr_track.logical.create("l1", "track1")
+    emr_track.logical.create("l2", "track2")
+    emr_track.logical.create("l7", "track7")
+
+    emr_track.attr.set("l1", "var1", "val1")
+    emr_track.attr.set("l1", "var2", "val2")
+    emr_track.attr.set("l1", "var3", "val3")
+    emr_track.attr.set("l2", "var2", "baba")
+    emr_track.attr.set("l7", "var1", "val3")
+    emr_track.attr.set("l7", "var2", "")
+    expect_equal(emr_track.ls(var1 = ""), c("l1", "l7"))
+})
+
+test_that("emr_track.ls finds tracks by var and value on logical tracks", {
+    withr::defer(clean_attributes())
+    withr::defer(clean_logical_tracks())
+    emr_track.logical.create("l1", "track1")
+    emr_track.logical.create("l2", "track2")
+    emr_track.logical.create("l7", "track7")
+
+    emr_track.attr.set("l1", "var1", "val1")
+    emr_track.attr.set("l1", "var2", "val2")
+    emr_track.attr.set("l1", "var3", "val3")
+    emr_track.attr.set("l2", "var2", "baba")
+    emr_track.attr.set("l7", "var1", "kuku")
+    emr_track.attr.set("l7", "var2", "")
+    expect_equal(emr_track.ls(var1 = "kuku"), "l7")
+})
+
+test_that("emr_track.ls finds tracks by multiple vars and values with regex on logical tracks", {
+    withr::defer(clean_attributes())
+    withr::defer(clean_logical_tracks())
+    emr_track.logical.create("l1", "track1")
+    emr_track.logical.create("l2", "track2")
+    emr_track.logical.create("l7", "track7")
+
+    emr_track.attr.set("l1", "var1", "val1")
+    emr_track.attr.set("l1", "var2", "val2")
+    emr_track.attr.set("l1", "var3", "val3")
+    emr_track.attr.set("l2", "var2", "baba")
+    emr_track.attr.set("l7", "var1", "val3")
+    emr_track.attr.set("l7", "var2", "")
+    expect_equal(emr_track.ls(var1 = "val*", var2 = ""), c("l1", "l7"))
+})
+
+test_that("emr_track.rm removes the track attributes for logical tracks", {
+    withr::defer(clean_attributes())
+    withr::defer(clean_logical_tracks())
+    initial_attrs <- emr_track.attr.export()
+    emr_track.logical.create("l1", "track1")
+    emr_track.attr.set("l1", "var1", "val1")
+    attrs_file <- file.path(EMR_GROOT, "logical", ".l1.attrs")
+    expect_true(file.exists(attrs_file))
+    expect_equal(emr_track.attr.get("l1", "var1"), "var1")
+    emr_track.rm("l1", force = TRUE)
+    expect_error(emr_track.attr.get("l1", "var1"))
+    expect_equal(emr_track.attr.export(), initial_attrs)
+    expect_false(file.exists(attrs_file))
+})
