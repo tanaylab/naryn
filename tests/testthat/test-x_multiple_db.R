@@ -1,5 +1,19 @@
 load_test_dbs()
 
+test_that("load_on_demand=FALSE loads tracks into shared memory", {
+    cmd <- glue::glue("lsof -ad mem {file}", file = file.path(EMR_UROOT, "track0.nrtrack"))
+    # in the beginning - track0 is not loaded to memory
+    expect_equal(system(cmd), 1)
+
+    # reload the db which contains track0
+    load_on_demand <- rep(TRUE, length(EMR_ROOTS))
+    load_on_demand[which(EMR_ROOTS == emr_track.dbs("track0"))] <- FALSE
+    emr_db.connect(EMR_ROOTS, load_on_demand = load_on_demand)
+
+    # now the track should be in shared memory
+    expect_equal(system(cmd), 0)
+})
+
 # At the beginning, track1 is in dbs 1, 2 and 4
 # At the beginning, track7 is in dbs 1, 2, 3, 4
 

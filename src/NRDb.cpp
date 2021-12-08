@@ -35,7 +35,7 @@ SEXP emr_dbinit(SEXP _dbdirs, SEXP _load_on_demand, SEXP _do_load, SEXP envir) {
 
         if (!isNull(_load_on_demand)) {
             for (int i = 0; i < Rf_length(_load_on_demand); i++){
-                load_on_demand.push_back(asLogical(STRING_ELT(_dbdirs, i)));
+                load_on_demand.push_back(LOGICAL_ELT(_load_on_demand, i));
             }
         }
 
