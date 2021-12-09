@@ -41,7 +41,6 @@ public:
 
     ~EMRDb();
     
-    //Only called by NRTest - here for compilation, should be removed
     const string &grootdir() { return m_rootdirs[0]; }
     const string &urootdir() { return m_rootdirs[0]; }
     const char* dob_trackname() { return DOB_TRACKNAME; }

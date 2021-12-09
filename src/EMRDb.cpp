@@ -81,8 +81,7 @@ const EMRDb::TrackInfo *EMRDb::track_info(const string &track) {
     return itrack == m_tracks.end() ? NULL : &itrack->second;
 }
 
-void EMRDb::check_track_name(const string &track)
-{
+void EMRDb::check_track_name(const string &track) {
     if (track.empty() || track[0] == '.' ||
         (track.length() >= TRACK_FILE_EXT.length() &&
          !track.compare(track.length() - TRACK_FILE_EXT.length(),
@@ -90,8 +89,7 @@ void EMRDb::check_track_name(const string &track)
         verror("Invalid track name: \"%s\"", track.c_str());
 }
 
-void EMRDb::cache_tracks()
-{
+void EMRDb::cache_tracks() {
     if (std::all_of(m_load_on_demand.begin(), m_load_on_demand.end(), [](bool v) { return v; })) {
         return;
     }
@@ -182,8 +180,7 @@ void EMRDb::lock_logical_track_list(BufferedFile &lock, const char *mode) {
     }
 }
 
-void EMRDb::load_logical_tracks_from_disk()
-{
+void EMRDb::load_logical_tracks_from_disk() {
     DIR *dir = NULL;
 
     clear_logical_tracks();
@@ -315,8 +312,7 @@ void EMRDb::remove_logical_track(const char *track_name, const bool &update) {
     }
 }
 
-void EMRDb::update_logical_tracks_file()
-{
+void EMRDb::update_logical_tracks_file() {
     BufferedFile bf;
     string filename = logical_tracks_filename();
 
@@ -357,13 +353,11 @@ void EMRDb::update_logical_tracks_file()
     bf.close();
 }
 
-void EMRDb::clear_logical_tracks()
-{
+void EMRDb::clear_logical_tracks() {
     m_logical_tracks.clear();
 }
 
-void EMRDb::load_logical_tracks()
-{
+void EMRDb::load_logical_tracks() {
     Name2LogicalTrack track_list;
 
     vdebug("Loading logical track list");
@@ -488,8 +482,7 @@ void EMRDb::load_logical_tracks()
     }
 }
 
-void EMRDb::clear_ids_subset(bool warn)
-{
+void EMRDb::clear_ids_subset(bool warn) {
     if (warn && !m_ids_subset.empty())
         vwarning("Current subset of ids will be reset");
 
@@ -499,8 +492,7 @@ void EMRDb::clear_ids_subset(bool warn)
 }
 
 void EMRDb::ids_subset(vector<unsigned> &ids, const char *src, double fraction,
-                       bool complementary)
-{
+                       bool complementary) {
     if (fraction < 0 || fraction > 1)
         verror("Invalid value of fraction, must be in [0,1] range.");
 
@@ -673,8 +665,7 @@ void EMRDb::load_ids() {
     }
 }
 
-void EMRDb::create_ids_file()
-{
+void EMRDb::create_ids_file() {
     int fd = -1;
 
     try
@@ -726,8 +717,7 @@ void EMRDb::create_ids_file()
     close(fd);
 }
 
-bool EMRDb::rebuild_ids_file_on_dob_change()
-{
+bool EMRDb::rebuild_ids_file_on_dob_change() {
     struct stat fs;
 
     if (stat((m_rootdirs[0] + "/" + DOB_TRACKNAME + TRACK_FILE_EXT).c_str(), &fs) == -1) {
@@ -770,8 +760,7 @@ int EMRDb::get_db_idx(const string& db_id) {
 
 
 
-void EMRDb::init(const vector<string>& rootdirs, const vector<bool>& dirs_load_on_demand, const bool& do_reload)
-{
+void EMRDb::init(const vector<string>& rootdirs, const vector<bool>& dirs_load_on_demand, const bool& do_reload) {
 
     vdebug("EMRDb::init()\n");
 
