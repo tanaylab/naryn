@@ -33,8 +33,13 @@ SEXP emr_create_logical(SEXP _track, SEXP _src, SEXP _values, SEXP _update, SEXP
 
         string sourcename = {CHAR(asChar(_src))};
         EMRTrack *source_track = g_db->track(sourcename);
-        if (!source_track)
+        if (!source_track){
             verror("Source track %s not found", sourcename.c_str());
+        }
+
+        if (g_db->get_db_idx(g_db->track_info(sourcename)->db_id) != 0) {
+            verror("Source track %s is not in the global db", sourcename.c_str());
+        }
 
         if (!source_track->is_categorical() && !isNull(_values)) {
             verror("Source track is not categorical and values were passed");

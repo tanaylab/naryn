@@ -514,3 +514,11 @@ test_that("logical tracks on non-global db are not shown at emr_track.ls", {
     emr_db.connect(old_roots)
     expect_equal(emr_track.ls("l1"), "l1")
 })
+
+
+test_that("cannot create a logical track pointing to non-global db track", {
+    df <- data.frame(id = 1, time = c(1, 2, 2), value = c(-1, 4, 3), ref = c(0, 0, 1))
+    emr_track.import("tmp", space = "user", categorical = TRUE, src = df)
+    withr::defer(emr_track.rm("tmp", force = TRUE))
+    expect_error(emr_track.logical.create("ltmp", "tmp"))
+})
