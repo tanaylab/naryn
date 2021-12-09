@@ -494,6 +494,12 @@ test_that("emr_ids_coverage works with filter and overriding", {
 
     withr::defer(emr_track.rm("track2_1", force = TRUE))
 
-    # track2_1 was overridden, noew coverage should change avcordingly
+    # track2_1 was overridden, new coverage should change accordingly
     expect_equal(emr_ids_coverage(data.frame(id = 0:999), c("track2"), filter = "track2_1"), c(track2 = 2L))
+})
+
+test_that("creating logical tracks happens only on the global db", {
+    withr::defer(clean_logical_tracks())
+    emr_track.logical.create("l1", "ph1", c(15, 16))
+    expect_true(logical_track_ok("l1", "ph1", c(15, 16)))
 })

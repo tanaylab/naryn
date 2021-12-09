@@ -88,7 +88,7 @@ public:
     // If track list file is missing => builds it.
     // Removes outdated tracks from the memory.
 
-    void init(vector<string> rootdirs, vector<bool> dirs_load_on_demand, bool do_reload);
+    void init(const vector<string>& rootdirs, const vector<bool>& dirs_load_on_demand, const bool& do_reload);
 
     // Same as init, but roots must be set already.
     // Intended to be called at the beginning of each transaction.
@@ -104,17 +104,17 @@ public:
     // with the tracks.
     void reload();
 
-    void load_track(const char *track_name, string db_id);
+    void load_track(const char *track_name, const string& db_id);
     
     // Unloads the track from internal state and updates .naryn file
     // If soft is set to true, unload track does not update .naryn file, used mainly for overriding mechanism
-    void unload_track(const char *track_name, bool overridden=true, bool soft=false);
+    void unload_track(const char *track_name, const bool& overridden=true, const bool& soft=false);
 
     // Add a logical track to the database
-    void add_logical_track(const char *track_name, const char *source_name, const vector<int> &values, bool create_file, bool update);
-    void add_logical_track(const char *track_name, const char *source_name, bool create_file, bool update);
+    void add_logical_track(const char *track_name, const char *source_name, const vector<int> &values, const bool& create_file, const bool& update);
+    void add_logical_track(const char *track_name, const char *source_name, const bool& create_file, const bool& update);
 
-    void remove_logical_track(const char *track_name, bool update);
+    void remove_logical_track(const char *track_name, const bool& update);
 
     // Writes the logical track list file. If the file doesn't exist - recreates it. 
     void update_logical_tracks_file();
@@ -147,7 +147,7 @@ public:
     void ids_subset(vector<unsigned> &ids, const char *src, double fraction, bool complementary);
     bool is_in_subset(unsigned id) const { return m_ids_subset.empty() || m_ids_subset.find(id) != m_ids_subset.end(); }
     void clear_ids_subset(bool warn);
-    int get_db_idx(string db_id);
+    int get_db_idx(const string& db_id);
 
 protected:
 	typedef unordered_map<string, TrackInfo> Name2Track;
