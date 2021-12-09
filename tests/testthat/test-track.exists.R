@@ -1,3 +1,5 @@
+load_test_db()
+
 
 test_that("emr_track.exists work", {
     expect_true(emr_track.exists("track1"))

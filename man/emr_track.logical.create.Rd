@@ -24,7 +24,7 @@ Creates a logical track
 This function creates a logical track based on an existing categorical track
 in the global space.
 
-Note: Both the logical track and source shuold be on the global db. If the logical track
+Note: Both the logical track and source should be on the global db. If the logical track
 would be created and afterwards the db would be loaded as non-global db the logical tracks
 would **not** be visible.
 }

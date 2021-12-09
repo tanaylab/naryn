@@ -35,7 +35,8 @@ Suggests:
 VignetteBuilder: 
     knitr
 Config/testthat/edition: 3
-Config/testthat/parallel: false
+Config/testthat/parallel: true
+Config/testthat/start-first: logical_tracks, w_test-options, x_multiple_db
 Encoding: UTF-8
 LazyLoad: yes
 NeedsCompilation: yes

@@ -1,3 +1,5 @@
+load_test_db()
+
 clean_logical_tracks()
 
 test_that("emr_track.logical.create tracks works", {

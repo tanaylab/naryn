@@ -1,3 +1,4 @@
+load_test_db()
 
 test_that("emr_extract works", {
     r1 <- emr_extract("track1", stime = 10, etime = 10000, keepref = TRUE)

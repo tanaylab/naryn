@@ -1,3 +1,5 @@
+load_test_db()
+
 load_test_dbs()
 
 # At the beginning, track1 is in dbs 1, 2 and 4

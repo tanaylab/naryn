@@ -151,6 +151,7 @@ emr_track.logical.rm <- function(track, force = FALSE, rm_vars = TRUE) {
 #' @examples
 #'
 #' emr_track.logical.exists("logical_track")
+#' @export
 #' @noRd
 emr_track.logical.exists <- function(track) {
     .emr_checkroot()
@@ -172,6 +173,7 @@ emr_track.logical.exists <- function(track) {
 #'
 #' emr_db.init_examples()
 #' emr_track.logical.info("logical_track")
+#' @export
 #' @noRd
 emr_track.logical.info <- function(track) {
     if (missing(track)) {

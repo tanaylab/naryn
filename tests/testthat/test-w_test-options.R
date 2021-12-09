@@ -1,3 +1,5 @@
+load_test_db()
+
 
 test_that("emr_multitasking works", {
     withr::local_options(emr_multitasking = TRUE)
