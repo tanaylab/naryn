@@ -500,12 +500,13 @@ test_that("emr_ids_coverage works with filter and overriding", {
 
 test_that("creating logical tracks happens only on the global db", {
     withr::defer(clean_logical_tracks())
-    emr_track.logical.create("l1", "ph1", c(15, 16))
-    expect_true(logical_track_ok("l1", "ph1", c(15, 16)))
+    emr_track.logical.create("l1", "track0_1")
+    expect_true(logical_track_ok("l1", "track0_1"))
 })
 
 test_that("logical tracks on non-global db are not shown at emr_track.ls", {
-    emr_track.logical.create("l1", "ph1", c(15, 16))
+    withr::defer(clean_logical_tracks())
+    emr_track.logical.create("l1", "track0_1")
     old_roots <- EMR_ROOTS
     withr::defer(emr_db.connect(old_roots))
     new_roots <- EMR_ROOTS[c(4, 2, 3, 1)]
@@ -517,6 +518,7 @@ test_that("logical tracks on non-global db are not shown at emr_track.ls", {
 
 
 test_that("cannot create a logical track pointing to non-global db track", {
+    withr::defer(clean_logical_tracks())
     df <- data.frame(id = 1, time = c(1, 2, 2), value = c(-1, 4, 3), ref = c(0, 0, 1))
     emr_track.import("tmp", space = "user", categorical = TRUE, src = df)
     withr::defer(emr_track.rm("tmp", force = TRUE))

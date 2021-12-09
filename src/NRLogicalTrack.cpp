@@ -2,6 +2,7 @@
 #include <unistd.h>
 
 #include <algorithm>
+#include <iostream>
 
 #include "EMRDb.h"
 #include "EMRLogicalTrack.h"
@@ -37,7 +38,9 @@ SEXP emr_create_logical(SEXP _track, SEXP _src, SEXP _values, SEXP _update, SEXP
             verror("Source track %s not found", sourcename.c_str());
         }
 
-        if (g_db->get_db_idx(g_db->track_info(sourcename)->db_id) != 0) {
+        // check if the source exists in the global db
+        const vector<string> global_names = g_db->track_names(g_db->grootdir());        
+        if(std::find(global_names.begin(), global_names.end(), sourcename) == global_names.end()){
             verror("Source track %s is not in the global db", sourcename.c_str());
         }
 

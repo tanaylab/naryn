@@ -1,6 +1,10 @@
 # naryn 2.6.3
 
 * Added support for track attributes to logical tracks. 
+* Bug fix: dbs order was changed to lexicographical order on emr_db.connect.
+* Bug fix: stray logical tracks on non-global dbs where shown.
+* Make sure logical tracks cannot be created on non-global db. 
+* Removed cpp11 package dependency
 
 # naryn 2.6.2
 
