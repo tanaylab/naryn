@@ -33,6 +33,7 @@ EMRDb *g_db = NULL;
 
 EMRDb::~EMRDb()
 {
+    clear_ids();
     for (Name2Track::iterator itrack = m_tracks.begin();
          itrack != m_tracks.end(); ++itrack)
         delete itrack->second.track;

@@ -6,12 +6,12 @@ load_test_db()
 
 # Clean examples db
 withr::defer(
-    {
-        emr_db.init_examples()
+    {        
+        .emr_call("emr_dbunload", silent = TRUE)
         testdb_dir <- test_path("../testdb")
-        system(glue("rm -rf {testdb_dir}"))
+        unlink(testdb_dir, recursive = TRUE)
         purrr::walk(c(1:4), ~ {
-            system(glue("rm -rf {testdb_dir}_{.x}"))
+            unlink(glue("{testdb_dir}_{.x}"), recursive = TRUE)
         })
     },
     teardown_env()
