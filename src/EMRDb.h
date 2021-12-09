@@ -190,6 +190,7 @@ protected:
     
     string track_filename(string db_id, const string &track_name) const { return db_id + string("/") + track_name + TRACK_FILE_EXT; }
     string track_attrs_filename(string db_id, const string &track_name) const { return db_id + string("/.") + track_name + TRACK_ATTRS_FILE_EXT; }
+    string logical_track_attrs_filename(const string &track_name) const { return logical_tracks_dir() + string("/.") + track_name + TRACK_ATTRS_FILE_EXT; }
     string logical_tracks_dir() const { return m_rootdirs[0] + string("/logical"); }    
     string track_list_filename(string db_id) const { return db_id + "/" + TRACK_LIST_FILENAME; }
     string tracks_attrs_filename(string db_id) const { return db_id + "/" + TRACKS_ATTRS_FILENAME; }    

@@ -1283,6 +1283,8 @@ EMRDb::Track2Attrs EMRDb::get_tracks_attrs(const vector<string> &tracks, vector<
     vector<BufferedFile> locks(m_rootdirs.size());
 
     lock_track_lists(locks, "r+");
+    string db_id; 
+    int db_idx;
 
     for (const auto &trackname : tracks) {
         Name2Track::iterator itrack = m_tracks.find(trackname);
@@ -1291,14 +1293,13 @@ EMRDb::Track2Attrs EMRDb::get_tracks_attrs(const vector<string> &tracks, vector<
             Name2LogicalTrack::iterator itrackLogical = m_logical_tracks.find(trackname);
             if (itrackLogical == m_logical_tracks.end()) {
                 verror("Track %s does not exist", trackname.c_str());
-            }
-            else {
-                verror("Track %s is a logical track", trackname.c_str());
-            }
+            }           
+            db_id = m_rootdirs[0]; // logical tracks are allowed only on the global db
+            db_idx = 0;
+        } else {
+            db_id = itrack->second.db_id;
+            db_idx = get_db_idx(db_id);
         }
-
-        string db_id = itrack->second.db_id;
-        bool db_idx = get_db_idx(db_id);
 
         if (!tracks_attrs_loaded[db_idx]) {
             load_tracks_attrs(db_id, true);
@@ -1333,25 +1334,29 @@ void EMRDb::set_track_attr(const char *trackname, const char *attr,
 
     Name2Track::iterator itrack = m_tracks.find(trackname);
 
+    string db_id; 
+    int db_idx;
+    string track_attrs_fname;
+
     if (itrack == m_tracks.end()) {
         Name2LogicalTrack::iterator itrackLogical = m_logical_tracks.find(trackname);
         if (itrackLogical == m_logical_tracks.end()) {
             verror("Track %s does not exist", trackname);
-        } else {
-            verror("Track %s is a logical track", trackname);
-        }
+        } 
+        db_id = m_rootdirs[0]; // logical tracks are allowed only on the global db
+        db_idx = 0;
+        track_attrs_fname = logical_track_attrs_filename(trackname);
+    } else {
+        db_id = itrack->second.db_id;
+        db_idx = get_db_idx(db_id);
+        track_attrs_fname = track_attrs_filename(db_id, trackname);
     }
-
-    string db_id = itrack->second.db_id;
-    int db_idx = get_db_idx(db_id);
     
     for (int i=0; i < (int)m_rootdirs.size(); i++) {
         if (i != db_idx) {
             locks[i].close(); // release lock for the other spaces
         }
-    }
-
-    string track_attrs_fname(track_attrs_filename(db_id, trackname));
+    }  
 
     TrackAttrs track_attrs = EMRTrack::load_attrs(trackname, track_attrs_fname.c_str());
 
@@ -1379,9 +1384,14 @@ void EMRDb::set_track_attr(const char *trackname, const char *attr,
 void EMRDb::load_tracks_attrs(string db_id, bool locked)
 {
     BufferedFile lock;
-
-    if (!locked)
-        lock_track_list(db_id, lock, "r+");
+    int db_idx = get_db_idx(db_id);
+    if (!locked){
+        lock_track_list(db_id, lock, "r+");            
+        if (db_idx == 0){
+            BufferedFile lock1;
+            lock_logical_track_list(lock1, "r+");
+        }
+    }
 
     while (1)
     {
@@ -1485,12 +1495,23 @@ void EMRDb::load_tracks_attrs(string db_id, bool locked)
 void EMRDb::create_tracks_attrs_file(string db_id, bool locked)
 {
     BufferedFile lock;
+    int db_idx = get_db_idx(db_id);
 
-    if (!locked)
+    if (!locked){
         lock_track_list(db_id, lock, "r+");
+        if (db_idx == 0){
+            BufferedFile lock1;
+            lock_logical_track_list(lock1, "r+");
+        }
+    }
 
-    EMRProgressReporter progress;
-    progress.init(m_tracks.size(), 1);
+    EMRProgressReporter progress;    
+    if (db_idx == 0){ // logical tracks are allowed only on the global db
+        progress.init(m_tracks.size() + m_logical_tracks.size(), 1);
+    } else {
+        progress.init(m_tracks.size(), 1);
+    }
+    
     m_track2attrs[db_id].clear();
 
     vdebug("Scanning tracks in %s space for attributes\n", db_id.c_str());
@@ -1507,6 +1528,20 @@ void EMRDb::create_tracks_attrs_file(string db_id, bool locked)
         check_interrupt();
         progress.report(1);
     }
+
+    if (db_idx == 0){
+        for (const auto &name2track_info : m_logical_tracks){
+            const string &trackname = name2track_info.first;
+            string filename = logical_track_attrs_filename(trackname);
+            EMRTrack::TrackAttrs attrs =
+                EMRTrack::load_attrs(trackname.c_str(), filename.c_str());
+            if (!attrs.empty())
+                m_track2attrs[db_id].emplace(trackname, attrs);
+            check_interrupt();
+            progress.report(1);
+        }
+    }
+
     progress.report_last();
 
     vdebug("Found %lu tracks with attributes\n",
@@ -1518,7 +1553,13 @@ void EMRDb::update_tracks_attrs_file(string db_id, bool locked) {
     BufferedFile lock;
     if (!locked){
         lock_track_list(db_id, lock, "r+");
+        int db_idx = get_db_idx(db_id);
+        if (db_idx == 0){
+            BufferedFile lock1;
+            lock_logical_track_list(lock1, "r+");
+        }
     }
+
     BufferedFile bf;
     string filename = tracks_attrs_filename(db_id);
 
