@@ -32,8 +32,6 @@ Suggests:
     testthat (>= 3.0.4),
     tools,
     withr
-LinkingTo: 
-    cpp11
 VignetteBuilder: 
     knitr
 Config/testthat/edition: 3
