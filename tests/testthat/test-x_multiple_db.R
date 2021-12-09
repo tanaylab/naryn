@@ -503,3 +503,14 @@ test_that("creating logical tracks happens only on the global db", {
     emr_track.logical.create("l1", "ph1", c(15, 16))
     expect_true(logical_track_ok("l1", "ph1", c(15, 16)))
 })
+
+test_that("logical tracks on non-global db are not shown at emr_track.ls", {
+    emr_track.logical.create("l1", "ph1", c(15, 16))
+    old_roots <- EMR_ROOTS
+    withr::defer(emr_db.connect(old_roots))
+    new_roots <- EMR_ROOTS[c(4, 2, 3, 1)]
+    emr_db.connect(new_roots)
+    expect_length(emr_track.ls("l1"), 0)
+    emr_db.connect(old_roots)
+    expect_equal(emr_track.ls("l1"), "l1")
+})

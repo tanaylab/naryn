@@ -777,6 +777,11 @@ void EMRDb::init(const vector<string>& rootdirs, const vector<bool>& dirs_load_o
 
     ++m_transact_id;
 
+    // if changed the global db - clear logical tracks
+    if (m_rootdirs.size() > 0 && rootdirs.size() > 0 && m_rootdirs[0] != rootdirs[0]){
+        clear_logical_tracks();
+    }
+
     vector<string> m_rootdirs_copy = m_rootdirs;
     vector<string> rootdirs_copy = rootdirs;
     vector<string> dirs_keep;
