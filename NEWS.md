@@ -1,3 +1,7 @@
+# naryn 2.6.3
+
+* Added support for track attributes to logical tracks. 
+
 # naryn 2.6.2
 
 * Added support for multiple databases. 

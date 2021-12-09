@@ -15,6 +15,10 @@
     paste0(.emr_track.logical.dir(), "/.", track, ".pyvar")
 }
 
+.emr_track.logical.attrs.fname <- function(track) {
+    paste0(.emr_track.logical.dir(), "/.", track, ".attrs")
+}
+
 #' Creates a logical track
 #'
 #' Creates a logical track
@@ -97,6 +101,11 @@ remove_logical_track <- function(track, force, rm_vars, update) {
     }
 
     if (answer == "Y" || answer == "YES") {
+        attr_fname <- .emr_track.logical.attrs.fname(track)
+        if (file.exists(attr_fname)) {
+            unlink(attr_fname)
+        }
+
         dirname1 <- .emr_track.logical.var.dir(track)
         dirname2 <- .emr_track.logical.pyvar.dir(track)
         .emr_call("emr_remove_logical", track, update, new.env(parent = parent.frame()), silent = TRUE)

@@ -1,8 +1,7 @@
 Type: Package
 Package: naryn
 Title: Toolkit for analysis of medical records
-Version: 2.6.2
-Date: 2020-11-09
+Version: 2.6.3
 Authors@R: c(
     person("Misha", "Hoichman", , "misha@hoichman.com", role = "aut"),
     person("Aviezer", "Lifshitz", , "aviezer.lifshitz@weizmann.ac.il", role = c("aut", "cre")),
@@ -33,8 +32,6 @@ Suggests:
     testthat (>= 3.0.4),
     tools,
     withr
-LinkingTo: 
-    cpp11
 VignetteBuilder: 
     knitr
 Config/testthat/edition: 3
