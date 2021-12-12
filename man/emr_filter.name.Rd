@@ -24,7 +24,7 @@ emr_filter.name(
 
 \item{expiration}{expiration period}
 
-\item{operator}{for filtering}
+\item{operator}{operator for filtering. Accepts one of: "=", "<", "<=", ">", ">="}
 }
 \value{
 a default name for the filter

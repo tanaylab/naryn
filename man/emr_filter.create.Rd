@@ -27,7 +27,7 @@ emr_filter.create(
 
 \item{expiration}{expiration period}
 
-\item{operator}{for filtering}
+\item{operator}{operator for filtering. Accepts one of: "=", "<", "<=", ">", ">="}
 }
 \value{
 Name of the filter (invisibly, if filter name wasn't generated automatically)
@@ -45,8 +45,8 @@ If 'val' is not 'NULL', the time window of the filter is required to contain
 at least one value from the vector of 'val'.
 
 'val' is allowed to be used only when 'src' is a name of a track, when val is specified,
-the filter will filter the i.d, time points by applying the 'operator' argument on the 
-value of the point. 
+the filter will filter the i.d, time points by applying the 'operator' argument on the
+value of the point.
 
 If 'expiration' is not 'NULL' and the filter window contains a value at time
 't', the existence of previous values in the time window of [t-expiration,
@@ -72,6 +72,7 @@ emr_db.init_examples()
 emr_filter.create("f1", "dense_track", time.shift = c(2, 4))
 emr_filter.create("f2", "dense_track", keepref = TRUE)
 emr_extract("sparse_track", filter = "!f1 & f2")
+
 }
 \seealso{
 \code{\link{emr_filter.attr.src}}, \code{\link{emr_filter.ls}},
