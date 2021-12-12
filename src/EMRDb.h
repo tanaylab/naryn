@@ -27,8 +27,8 @@ public:
         EMRTrack        *track;
         string           filename;
         struct timespec  timestamp;
-        string           db_id;
-        vector<string>   dbs;
+        string           db_id; // holds the current db which holds the track data.
+        vector<string>   dbs; // holds the ids of all the other dbs in which the track appears. 
         bool             overridden;
 
         TrackInfo(EMRTrack *_track, const string &_filename, const struct timespec &_timestamp, string db_id) :

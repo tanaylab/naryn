@@ -10,7 +10,6 @@
 
 #include <fstream>
 #include <iomanip>
-#include <iostream>
 #include <numeric>
 #include <algorithm>
 
@@ -772,19 +771,19 @@ void EMRDb::init(const vector<string>& rootdirs, const vector<bool>& dirs_load_o
         clear_logical_tracks();
     }
 
-    vector<string> m_rootdirs_copy = m_rootdirs;
-    vector<string> rootdirs_copy = rootdirs;
+    vector<string> current_rootdirs = m_rootdirs;
+    vector<string> new_rootdirs = rootdirs;
     vector<string> dirs_keep;
 
-    sort(rootdirs_copy.begin(), rootdirs_copy.end());
-    sort(m_rootdirs_copy.begin(), m_rootdirs_copy.end());
+    sort(new_rootdirs.begin(), new_rootdirs.end());
+    sort(current_rootdirs.begin(), current_rootdirs.end());
 
     // find dbs to keep (do not unload)
     set_intersection(
-        rootdirs_copy.begin(),
-        rootdirs_copy.end(),
-        m_rootdirs_copy.begin(),
-        m_rootdirs_copy.end(),
+        new_rootdirs.begin(),
+        new_rootdirs.end(),
+        current_rootdirs.begin(),
+        current_rootdirs.end(),
         back_inserter(dirs_keep));
 
     for (auto db_id = m_rootdirs.begin(); db_id != m_rootdirs.end(); db_id++)
