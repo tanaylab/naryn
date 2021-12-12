@@ -756,7 +756,7 @@ test_that("emr_filter with operator works as expected on numerical tracks and ke
 test_that("emr_filter with operator works as expected on numerical tracks and keepref false", {
     emr_filter.clear()
 
-    # This should work the same as the test bellow - keepref is ignored for filters with operators
+    # This should work the same as the test below - keepref is ignored for filters with operators
 
     df <- data.frame(id = c(1, 1, 2), time = c(5, 5, 7), ref = c(0, 1, 0), value = c(100, 500, 300))
 
@@ -810,7 +810,7 @@ test_that("emr_filter with operator works as expected on numerical tracks and mi
     # and 100 passes the filter for id,time = 1,5 therefore we get also 500 which has same id,time
     expect_equal(data.frame(id = c(1, 1), time = c(5, 5), ref = c(0, 1), t1 = c(100, 500)), lt)
 
-    # we ecpect to get everything back, same case as before, now 500 passes the filter for if,time = 1,5
+    # we expect to get everything back, same case as before, now 500 passes the filter for if,time = 1,5
     # so we get also the other value of the point (100) which is lower than 150.
     expect_equal(data.frame(id = c(1, 1, 2), time = c(5, 5, 7), ref = c(0, 1, 0), t1 = c(100, 500, 300)), gt)
 })

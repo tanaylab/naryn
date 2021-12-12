@@ -115,7 +115,7 @@ emr_filter.name <- function(src, keepref = FALSE, time.shift = NULL, val = NULL,
     }
 
     if (operator != "=") {
-        operator <- formatC(.operator_to_str(operator), format = "fg") # do not use scientific notation
+        operator <- .operator_to_str(operator)
         operator_str <- glue::glue("op_{operator}")
     } else {
         operator_str <- ""
@@ -282,7 +282,7 @@ emr_filter.create_from_name <- function(filter) {
 #' @param time.shift time shift and expansion for iterator time
 #' @param val selected values
 #' @param expiration expiration period
-#' @param operator for filtering
+#' @param operator operator for filtering. Accepts one of: "=", "<", "<=", ">", ">="
 #' @return Name of the filter (invisibly, if filter name wasn't generated automatically)
 #' @seealso \code{\link{emr_filter.attr.src}}, \code{\link{emr_filter.ls}},
 #' \code{\link{emr_filter.exists}}, \code{\link{emr_filter.rm}}, \code{\link{emr_filter.create_from_name}}
