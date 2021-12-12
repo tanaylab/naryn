@@ -32,10 +32,22 @@ SEXP emr_create_logical(SEXP _track, SEXP _src, SEXP _values, SEXP _update, SEXP
         }
 
         string sourcename = {CHAR(asChar(_src))};
-        EMRTrack *source_track = g_db->track(sourcename);
-        if (!source_track)
+        const EMRDb::TrackInfo *source_track_info = g_db->track_info(sourcename);
+        if (!source_track_info){
             verror("Source track %s not found", sourcename.c_str());
+        }       
+        
+        // check if the source exists in the global db
+        if (source_track_info->db_id != g_db->grootdir()) {
+            if (std::find(source_track_info->dbs.begin(),
+                          source_track_info->dbs.end(),
+                          g_db->grootdir()) == source_track_info->dbs.end()) {
+                verror("Source track %s is not in the global db",
+                       sourcename.c_str());
+            }
+        }
 
+        EMRTrack *source_track = g_db->track(sourcename);
         if (!source_track->is_categorical() && !isNull(_values)) {
             verror("Source track is not categorical and values were passed");
         }

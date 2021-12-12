@@ -1,3 +1,4 @@
+load_test_db()
 
 test_that("emr_date2time fails with invalid dates", {
     expect_error(emr_date2time(0, 0, 0, 0))

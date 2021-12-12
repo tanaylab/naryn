@@ -1,3 +1,5 @@
+load_test_db()
+
 
 test_that("emr_track.create works", {
     emr_track.rm("test_track1", TRUE)

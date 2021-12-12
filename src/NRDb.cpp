@@ -256,7 +256,7 @@ SEXP emr_track_db_names(SEXP _db_id, SEXP envir) {
 
         rprotect(answer = RSaneAllocVector(STRSXP, g_db->track_names(db_id).size()));
         for (auto itrack_name = g_db->track_names(db_id).begin();
-             itrack_name < g_db->track_names(db_id).end(); ++itrack_name)
+            itrack_name < g_db->track_names(db_id).end(); ++itrack_name)
             SET_STRING_ELT(answer,
                            itrack_name - g_db->track_names(db_id).begin(),
                            mkChar(itrack_name->c_str()));

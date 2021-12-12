@@ -1,3 +1,5 @@
+load_test_db()
+
 
 test_that("error when track doesn't exist", {
     expect_error(emr_track.info("blabla"))
