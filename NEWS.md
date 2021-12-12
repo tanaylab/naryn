@@ -1,4 +1,5 @@
 # naryn 2.6.3
+
 * Added support for operator based filtering, see 'operator' argument in `emr_filter.create`
 # naryn 2.6.2
 
