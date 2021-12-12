@@ -36,13 +36,23 @@
     return(intersect(val, ltrack_info$values))
 }
 
+.str_to_operator <- function(str) {
+    convertor <- c("eq" = "=", "lt" = "<", "lte" = "<=", "gt" = ">", "gte" = ">=")
+    return(convertor[str])
+}
+
+.operator_to_str <- function(op) {
+    convertor <- c("=" = "eq", "<" = "lt", "<=" = "lte", ">" = "gt", ">=" = "gte")
+    return(convertor[op])
+}
+
 
 #' Generate a default name for a naryn filter
 #'
 #' Generate a default name for a naryn filter
 #'
 #' Given filter parameters, generate a name with the following format:
-#' "f_{src}.kr{keepref}.vals_{val}.ts_{time.shift}.exp_{expiration}"
+#' "f_{src}.kr{keepref}.vals_{val}.ts_{time.shift}.exp_{expiration}.op_{operator}"
 #' Where for 'val' and 'time.shift' the values are separated by an
 #' underscore.
 #'
@@ -62,7 +72,7 @@
 #' emr_db.init_examples()
 #' emr_filter.name("dense_track", time.shift = c(2, 4))
 #' @export
-emr_filter.name <- function(src, keepref = FALSE, time.shift = NULL, val = NULL, expiration = NULL) {
+emr_filter.name <- function(src, keepref = FALSE, time.shift = NULL, val = NULL, expiration = NULL, operator = "=") {
     if (missing(src)) {
         stop("Usage: emr_filter.name(src, keepref = FALSE, time.shift = NULL, val = NULL, expiration = NULL)", call. = FALSE)
     }
@@ -99,17 +109,24 @@ emr_filter.name <- function(src, keepref = FALSE, time.shift = NULL, val = NULL,
 
     if (!is.null(expiration)) {
         expiration <- formatC(expiration, format = "fg") # do not use scientific notation
-        expiration_str <- glue::glue("exp_{expiration}")
+        expiration_str <- glue::glue("exp_{expiration}.")
     } else {
         expiration_str <- ""
     }
 
-    filter_name <- glue::glue("f_{src}.{keepref_str}{val_str}{time.shift_str}{expiration_str}")
+    if (operator != "=") {
+        operator <- .operator_to_str(operator)
+        operator_str <- glue::glue("op_{operator}")
+    } else {
+        operator_str <- ""
+    }
+
+    filter_name <- glue::glue("f_{src}.{keepref_str}{val_str}{time.shift_str}{expiration_str}{operator_str}")
 
     filter_name <- gsub("-", "minus", filter_name)
     filter_name <- gsub("\\.$", "", filter_name)
 
-    return(filter_name)
+    return(as.character(filter_name))
 }
 
 
@@ -134,7 +151,6 @@ emr_filter.create_from_name <- function(filter) {
         return(purrr::map_chr(filter, emr_filter.create_from_name))
     }
 
-
     # src
     parsed_str <- stringr::str_match(filter, "f_(.+)\\.kr")
     src <- parsed_str[, 2]
@@ -148,8 +164,12 @@ emr_filter.create_from_name <- function(filter) {
 
     # vals
     vals_str <- stringr::str_match(filter, glue::glue("{parsed_str[, 1]}\\.vals_(.+)(?=\\.ts)"))
+
     if (is.na(vals_str[, 2])) {
         vals_str <- stringr::str_match(filter, glue::glue("{parsed_str[, 1]}\\.vals_(.+)(?=\\.exp)"))
+    }
+    if (is.na(vals_str[, 2])) {
+        vals_str <- stringr::str_match(filter, glue::glue("{parsed_str[, 1]}\\.vals_(.+)(?=\\.op)"))
     }
     if (is.na(vals_str[, 2])) {
         vals_str <- stringr::str_match(filter, glue::glue("{parsed_str[, 1]}\\.vals_(.+)$"))
@@ -170,9 +190,11 @@ emr_filter.create_from_name <- function(filter) {
     # time shift
     ts_str <- stringr::str_match(filter, glue::glue("{parsed_str[, 1]}\\.ts_(.+)(?=\\.exp)"))
     if (is.na(ts_str[, 2])) {
+        ts_str <- stringr::str_match(filter, glue::glue("{parsed_str[, 1]}\\.ts_(.+)(?=\\.op)"))
+    }
+    if (is.na(ts_str[, 2])) {
         ts_str <- stringr::str_match(filter, glue::glue("{parsed_str[, 1]}\\.ts_(.+)$"))
     }
-
     if (is.na(ts_str[, 2])) {
         time.shift <- NULL
     } else {
@@ -186,7 +208,10 @@ emr_filter.create_from_name <- function(filter) {
     }
 
     # expiration
-    exp_str <- stringr::str_match(filter, glue::glue("{parsed_str[, 1]}\\.exp_([^.]+)$"))
+    exp_str <- stringr::str_match(filter, glue::glue("{parsed_str[, 1]}\\.exp_([^.]+)(?=\\.op)"))
+    if (is.na(exp_str[, 2])) {
+        exp_str <- stringr::str_match(filter, glue::glue("{parsed_str[, 1]}\\.exp_(.+)$"))
+    }
     if (is.na(exp_str[, 2])) {
         expiration <- NULL
     } else {
@@ -199,7 +224,21 @@ emr_filter.create_from_name <- function(filter) {
         }
     }
 
-    emr_filter.create(filter, src = src, keepref = keepref, time.shift = time.shift, val = val, expiration = expiration)
+    # operator
+    op_str <- stringr::str_match(filter, glue::glue("{parsed_str[, 1]}\\.op_([^.]+)$"))
+    if (is.na(op_str[, 2])) {
+        operator <- "="
+    } else {
+        parsed_str <- op_str
+        operator <- stringr::str_split(op_str[, 2], "_")[[1]]
+        operator <- .str_to_operator(operator)
+
+        if (any(is.na(operator))) {
+            stop("Couldn't parse operator. Did you create the name using emr_track.name?", call. = FALSE)
+        }
+    }
+
+    emr_filter.create(filter, src = src, keepref = keepref, time.shift = time.shift, val = val, expiration = expiration, operator = operator)
 }
 
 
@@ -215,8 +254,9 @@ emr_filter.create_from_name <- function(filter) {
 #' If 'val' is not 'NULL', the time window of the filter is required to contain
 #' at least one value from the vector of 'val'.
 #'
-#' 'val' is allowed to be used only when 'src' is a name of a categorical
-#' track.
+#' 'val' is allowed to be used only when 'src' is a name of a track, when val is specified,
+#' the filter will filter the i.d, time points by applying the 'operator' argument on the
+#' value of the point.
 #'
 #' If 'expiration' is not 'NULL' and the filter window contains a value at time
 #' 't', the existence of previous values in the time window of [t-expiration,
@@ -225,6 +265,11 @@ emr_filter.create_from_name <- function(filter) {
 #'
 #' 'expiration' is allowed to be used only when 'src' is a name of a
 #' categorical track and 'keepref' is 'FALSE'.
+#'
+#' 'operator' corresponds to the 'val' argument. The point passes the filter
+#' if the point's value passes the operator. For example if the point's value is 4,
+#' the operator is "<" and val is 5, the expression evaluated is 4 < 5 (pass).
+#' When 'operator' is not "=", 'vals' must exist, and be of length 1.
 #'
 #' If both 'val' and 'expiration' are not 'NULL' then only values from 'val'
 #' vector are checked both in time window and expiration window.
@@ -237,6 +282,7 @@ emr_filter.create_from_name <- function(filter) {
 #' @param time.shift time shift and expansion for iterator time
 #' @param val selected values
 #' @param expiration expiration period
+#' @param operator operator for filtering. Accepts one of: "=", "<", "<=", ">", ">="
 #' @return Name of the filter (invisibly, if filter name wasn't generated automatically)
 #' @seealso \code{\link{emr_filter.attr.src}}, \code{\link{emr_filter.ls}},
 #' \code{\link{emr_filter.exists}}, \code{\link{emr_filter.rm}}, \code{\link{emr_filter.create_from_name}}
@@ -247,8 +293,9 @@ emr_filter.create_from_name <- function(filter) {
 #' emr_filter.create("f1", "dense_track", time.shift = c(2, 4))
 #' emr_filter.create("f2", "dense_track", keepref = TRUE)
 #' emr_extract("sparse_track", filter = "!f1 & f2")
+#' 
 #' @export emr_filter.create
-emr_filter.create <- function(filter, src, keepref = FALSE, time.shift = NULL, val = NULL, expiration = NULL) {
+emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val = NULL, expiration = NULL, operator = "=") {
     if (missing(filter) || missing(src)) {
         stop("Usage: emr_filter.create(filter, src, keepref = FALSE, time.shift = NULL, val = NULL, expiration = NULL)", call. = FALSE)
     }
@@ -320,7 +367,7 @@ emr_filter.create <- function(filter, src, keepref = FALSE, time.shift = NULL, v
         }
     }
 
-    var <- list(src = src, time_shift = time.shift, keepref = keepref, val = val, expiration = expiration, logical = logical)
+    var <- list(src = src, time_shift = time.shift, keepref = keepref, val = val, expiration = expiration, logical = logical, operator = operator)
     .emr_call("emr_check_named_filter", var, filter, new.env(parent = parent.frame()))
     emr_filter.rm(filter)
     EMR_FILTERS[[filter]] <<- var

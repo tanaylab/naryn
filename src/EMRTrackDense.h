@@ -57,12 +57,13 @@ protected:
     float    *m_percentiles{NULL};
     T        *m_sorted_unique_vals{NULL};
 
+
 	EMRTrackDense(const char *name, DataType data_type, unsigned flags, void *&mem, size_t &pos, size_t size,
                   unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime);
 
     EMRTrackDense(const char *name, EMRTrack *base_track, EMRTrackData<T> &track_data, DataType data_type,
                   bool build_percentiles, unsigned flags, unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime);
-
+                  
     unsigned data_size() const { return m_max_id - m_min_id + 1; }
     unsigned num_recs(unsigned dataidx) const;
     bool     data_empty(unsigned dataidx) const { return m_data[dataidx] == (unsigned)-1; }
@@ -357,8 +358,7 @@ void EMRTrackDense<T>::ids(vector<unsigned> &ids,
 }
 
 template <class T>
-void EMRTrackDense<T>::data_recs(EMRTrackData<double> &data_recs)
-{
+void EMRTrackDense<T>::data_recs(EMRTrackData<double> &data_recs) {
     unsigned idrange = data_size();
 
     data_recs.data.clear();
@@ -444,6 +444,7 @@ bool EMRTrackDense<T>::begin(Iterator &itr)
 	return next(itr);
 }
 
+
 template <class T>
 bool EMRTrackDense<T>::next(Iterator &itr)
 {
@@ -478,7 +479,8 @@ bool EMRTrackDense<T>::next(Iterator &itr)
 
 		// most of the chances are that this point is fine
 		if (hour >= itr.m_stime && hour <= itr.m_etime) {
-            if (!itr.m_vals.empty() && itr.m_vals.find(m_recs[itr.m_rec_idx].v()) == itr.m_vals.end()) {
+
+            if (!itr.m_vals.empty() && !itr.passed_operator(m_recs[itr.m_rec_idx].v())) {
                 ++itr.m_rec_idx;
                 continue;
             }
@@ -488,7 +490,8 @@ bool EMRTrackDense<T>::next(Iterator &itr)
 
                 for (int irec = (int)itr.m_rec_idx - 1; irec >= (int)m_data[itr.m_data_idx]; --irec) {
                     EMRTimeStamp::Hour prev_hour = m_recs[irec].timestamp.hour();
-                    if (prev_hour != hour && (itr.m_vals.empty() || itr.m_vals.find(m_recs[irec].v()) != itr.m_vals.end())) {
+                    
+                    if (prev_hour != hour && (itr.m_vals.empty() || itr.passed_operator(m_recs[irec].v()))) {
                         if (prev_hour + itr.m_expiration >= hour)
                             has_competitors = true;
                         break;
@@ -577,7 +580,8 @@ bool EMRTrackDense<T>::next(Iterator &itr, const EMRPoint &jumpto)
 
         // did we find the matching point?
 		if (hour >= itr.m_stime && hour <= itr.m_etime && (itr.m_data_idx != data_idx || hour >= jumpto_hour)) {
-            if (!itr.m_vals.empty() && itr.m_vals.find(m_recs[itr.m_rec_idx].v()) == itr.m_vals.end()) {
+
+            if (!itr.m_vals.empty() && !itr.passed_operator(m_recs[itr.m_rec_idx].v())) {
                 ++itr.m_rec_idx;
                 continue;
             }
@@ -587,9 +591,11 @@ bool EMRTrackDense<T>::next(Iterator &itr, const EMRPoint &jumpto)
 
                 for (int irec = (int)itr.m_rec_idx - 1; irec >= (int)m_data[itr.m_data_idx]; --irec) {
                     EMRTimeStamp::Hour prev_hour = m_recs[irec].timestamp.hour();
-                    if (prev_hour != hour && (itr.m_vals.empty() || itr.m_vals.find(m_recs[irec].v()) != itr.m_vals.end())) {
-                        if (prev_hour + itr.m_expiration >= hour)
+
+                    if (prev_hour != hour && (itr.m_vals.empty() || itr.passed_operator(m_recs[irec].v()))) {
+                        if (prev_hour + itr.m_expiration >= hour) {
                             has_competitors = true;
+                        }
                         break;
                     }
                 }
