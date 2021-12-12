@@ -75,7 +75,7 @@
 
     if (lspace == "user") {
         if ((!exists("EMR_UROOT", envir = .GlobalEnv) || is.null(get("EMR_UROOT", envir = .GlobalEnv)))) {
-            stop("User space root directory is not set. Please call see emr_db.connect", call. = FALSE)
+            stop("User space root directory is not set. Please call emr_db.connect", call. = FALSE)
         }
         db_id <- EMR_UROOT
     } else if (lspace == "global") {

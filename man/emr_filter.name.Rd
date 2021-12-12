@@ -9,7 +9,8 @@ emr_filter.name(
   keepref = FALSE,
   time.shift = NULL,
   val = NULL,
-  expiration = NULL
+  expiration = NULL,
+  operator = "="
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ emr_filter.name(
 \item{val}{selected values}
 
 \item{expiration}{expiration period}
+
+\item{operator}{operator for filtering. Accepts one of: "=", "<", "<=", ">", ">="}
 }
 \value{
 a default name for the filter
@@ -31,7 +34,7 @@ Generate a default name for a naryn filter
 }
 \details{
 Given filter parameters, generate a name with the following format:
-"f_{src}.kr{keepref}.vals_{val}.ts_{time.shift}.exp_{expiration}"
+"f_{src}.kr{keepref}.vals_{val}.ts_{time.shift}.exp_{expiration}.op_{operator}"
 Where for 'val' and 'time.shift' the values are separated by an
 underscore.
 

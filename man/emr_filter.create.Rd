@@ -7,10 +7,11 @@
 emr_filter.create(
   filter,
   src,
-  keepref = FALSE,
+  keepref = F,
   time.shift = NULL,
   val = NULL,
-  expiration = NULL
+  expiration = NULL,
+  operator = "="
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ emr_filter.create(
 \item{val}{selected values}
 
 \item{expiration}{expiration period}
+
+\item{operator}{operator for filtering. Accepts one of: "=", "<", "<=", ">", ">="}
 }
 \value{
 Name of the filter (invisibly, if filter name wasn't generated automatically)
@@ -41,8 +44,9 @@ first columns named "id", "time" and an optional "ref".
 If 'val' is not 'NULL', the time window of the filter is required to contain
 at least one value from the vector of 'val'.
 
-'val' is allowed to be used only when 'src' is a name of a categorical
-track.
+'val' is allowed to be used only when 'src' is a name of a track, when val is specified,
+the filter will filter the i.d, time points by applying the 'operator' argument on the
+value of the point.
 
 If 'expiration' is not 'NULL' and the filter window contains a value at time
 't', the existence of previous values in the time window of [t-expiration,
@@ -51,6 +55,11 @@ the expiration window, the filter returns 'TRUE', otherwise 'FALSE'.
 
 'expiration' is allowed to be used only when 'src' is a name of a
 categorical track and 'keepref' is 'FALSE'.
+
+'operator' corresponds to the 'val' argument. The point passes the filter
+if the point's value passes the operator. For example if the point's value is 4,
+the operator is "<" and val is 5, the expression evaluated is 4 < 5 (pass).
+When 'operator' is not "=", 'vals' must exist, and be of length 1.
 
 If both 'val' and 'expiration' are not 'NULL' then only values from 'val'
 vector are checked both in time window and expiration window.
@@ -63,6 +72,7 @@ emr_db.init_examples()
 emr_filter.create("f1", "dense_track", time.shift = c(2, 4))
 emr_filter.create("f2", "dense_track", keepref = TRUE)
 emr_extract("sparse_track", filter = "!f1 & f2")
+
 }
 \seealso{
 \code{\link{emr_filter.attr.src}}, \code{\link{emr_filter.ls}},

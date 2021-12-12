@@ -486,7 +486,7 @@ bool EMRTrackSparse<T>::next(Iterator &itr)
 
 		// most of the chances are that this point is fine
         if (hour >= itr.m_stime && hour <= itr.m_etime) {
-            if (!itr.m_vals.empty() && itr.m_vals.find(m_recs[itr.m_rec_idx].v()) == itr.m_vals.end()) {
+            if (!itr.m_vals.empty() && !itr.passed_operator(m_recs[itr.m_rec_idx].v())) {
                 ++itr.m_rec_idx;
                 continue;
             }
@@ -496,7 +496,7 @@ bool EMRTrackSparse<T>::next(Iterator &itr)
 
                 for (int irec = (int)itr.m_rec_idx - 1; irec >= (int)m_data[itr.m_data_idx].rec_idx; --irec) {
                     EMRTimeStamp::Hour prev_hour = m_recs[irec].timestamp.hour();
-                    if (prev_hour != hour && (itr.m_vals.empty() || itr.m_vals.find(m_recs[irec].v()) != itr.m_vals.end())) {
+                    if (prev_hour != hour && (itr.m_vals.empty() || itr.passed_operator(m_recs[irec].v()))) {
                         if (prev_hour + itr.m_expiration >= hour)
                             has_competitors = true;
                         break;
@@ -571,7 +571,7 @@ bool EMRTrackSparse<T>::next(Iterator &itr, const EMRPoint &jumpto)
 
 		// did we find the matching point?
 		if (hour >= itr.m_stime && hour <= itr.m_etime && (m_data[itr.m_data_idx].id != jumpto.id || hour >= jumpto_hour)) {
-            if (!itr.m_vals.empty() && itr.m_vals.find(m_recs[itr.m_rec_idx].v()) == itr.m_vals.end()) {
+            if (!itr.m_vals.empty() && !itr.passed_operator(m_recs[itr.m_rec_idx].v())) {
                 ++itr.m_rec_idx;
                 continue;
             }
@@ -581,7 +581,7 @@ bool EMRTrackSparse<T>::next(Iterator &itr, const EMRPoint &jumpto)
 
                 for (int irec = (int)itr.m_rec_idx - 1; irec >= (int)m_data[itr.m_data_idx].rec_idx; --irec) {
                     EMRTimeStamp::Hour prev_hour = m_recs[irec].timestamp.hour();
-                    if (prev_hour != hour && (itr.m_vals.empty() || itr.m_vals.find(m_recs[irec].v()) != itr.m_vals.end())) {
+                    if (prev_hour != hour && (itr.m_vals.empty() || itr.passed_operator(m_recs[irec].v()))) {
                         if (prev_hour + itr.m_expiration >= hour)
                             has_competitors = true;
                         break;
