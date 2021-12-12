@@ -136,7 +136,7 @@ emr_track.logical.rm <- function(track, force = FALSE, rm_vars = TRUE) {
     if (length(track) > 1) {
         purrr::walk(track, remove_logical_track, force = force, rm_vars = rm_vars, update = FALSE)
         .emr_call("update_logical_tracks_file", new.env(parent = parent.frame()), silent = TRUE)
-    } else {
+    } else if (length(track) == 1) {
         remove_logical_track(track, force = force, rm_vars = rm_vars, update = TRUE)
     }
 }
