@@ -1,3 +1,5 @@
+load_test_db()
+
 test_that("filter works", {
     emr_filter.clear()
     fname <- emr_filter.create("f1", "track1", keepref = TRUE)

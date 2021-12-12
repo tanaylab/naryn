@@ -189,7 +189,13 @@ emr_db.reload <- function() {
     return(NULL)
 }
 
-
+#' Unload all tracks from naryn database
+#'
+#' @export
+#' @noRd
+emr_db.unload <- function() {
+    .emr_call("emr_dbunload", new.env(parent = parent.frame()), silent = TRUE)
+}
 
 #' Defines an ids subset
 #'

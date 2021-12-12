@@ -1,3 +1,5 @@
+load_test_db()
+
 
 test_that("emr_track.ls works", {
     expect_equal(

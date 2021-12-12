@@ -1,3 +1,5 @@
+load_test_db()
+
 
 test_that("emr_track.percentile works", {
     expect_equal(

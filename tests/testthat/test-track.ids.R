@@ -1,3 +1,5 @@
+load_test_db()
+
 test_that("emr_track.ids works", {
     a <- emr_extract("track1", keepref = TRUE) %>%
         dplyr::distinct(id)

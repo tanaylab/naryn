@@ -2,7 +2,6 @@ Type: Package
 Package: naryn
 Title: Toolkit for analysis of medical records
 Version: 2.6.3
-Date: 2020-11-09
 Authors@R: c(
     person("Misha", "Hoichman", , "misha@hoichman.com", role = "aut"),
     person("Aviezer", "Lifshitz", , "aviezer.lifshitz@weizmann.ac.il", role = c("aut", "cre")),
@@ -33,12 +32,11 @@ Suggests:
     testthat (>= 3.0.4),
     tools,
     withr
-LinkingTo: 
-    cpp11
 VignetteBuilder: 
     knitr
 Config/testthat/edition: 3
-Config/testthat/parallel: false
+Config/testthat/parallel: true
+Config/testthat/start-first: logical_tracks, w_test-options, x_multiple_db
 Encoding: UTF-8
 LazyLoad: yes
 NeedsCompilation: yes

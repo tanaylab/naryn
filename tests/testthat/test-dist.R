@@ -1,3 +1,4 @@
+load_test_db()
 
 test_that("emr_dist works", {
     dst <- emr_dist("track2", c(100, 300, 500, 900, 2000, 3000))
