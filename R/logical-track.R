@@ -26,7 +26,9 @@
 #' This function creates a logical track based on an existing categorical track
 #' in the global space.
 #'
-#'
+#' Note: Both the logical track and source should be on the global db. If the logical track
+#' would be created and afterwards the db would be loaded as non-global db the logical tracks
+#' would **not** be visible.
 #'
 #' @param track one or more names of the newly created logical tracks.
 #' @param src name of the physical tracks for each logical \code{track}
@@ -134,7 +136,7 @@ emr_track.logical.rm <- function(track, force = FALSE, rm_vars = TRUE) {
     if (length(track) > 1) {
         purrr::walk(track, remove_logical_track, force = force, rm_vars = rm_vars, update = FALSE)
         .emr_call("update_logical_tracks_file", new.env(parent = parent.frame()), silent = TRUE)
-    } else {
+    } else if (length(track) == 1) {
         remove_logical_track(track, force = force, rm_vars = rm_vars, update = TRUE)
     }
 }
@@ -149,6 +151,7 @@ emr_track.logical.rm <- function(track, force = FALSE, rm_vars = TRUE) {
 #' @examples
 #'
 #' emr_track.logical.exists("logical_track")
+#' @export
 #' @noRd
 emr_track.logical.exists <- function(track) {
     .emr_checkroot()
@@ -170,6 +173,7 @@ emr_track.logical.exists <- function(track) {
 #'
 #' emr_db.init_examples()
 #' emr_track.logical.info("logical_track")
+#' @export
 #' @noRd
 emr_track.logical.info <- function(track) {
     if (missing(track)) {

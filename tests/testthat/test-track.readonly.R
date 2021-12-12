@@ -1,3 +1,5 @@
+load_test_db()
+
 
 test_that("user tracks are not readonly", {
     expect_false(emr_track.readonly("track0"))

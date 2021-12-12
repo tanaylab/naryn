@@ -1,3 +1,5 @@
+load_test_db()
+
 clean_logical_tracks()
 
 # emr_vtrack.info

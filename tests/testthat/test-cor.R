@@ -1,3 +1,4 @@
+load_test_db()
 
 test_that("emr_cor works", {
     # The warning is due to the bit iterator

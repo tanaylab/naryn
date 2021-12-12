@@ -1,20 +1,6 @@
+load_test_db()
+
 clean_logical_tracks()
-
-logical_track_ok <- function(track, source, values = NULL) {
-    expect_true(track %in% emr_track.logical.ls())
-    expect_true(track %in% emr_track.ls())
-    expect_true(track %in% emr_track.global.ls())
-    expect_true(emr_track.logical.exists(track))
-    expect_equal(emr_track.logical.info(track)$source, source)
-    if (is.null(values) || length(values) == 0) {
-        expect_null(emr_track.logical.info(track)$values)
-    } else {
-        expect_equal(emr_track.logical.info(track)$values, values)
-    }
-
-    expect_true(emr_track.exists(track))
-    expect_true(file.exists(logical_track_path(track)))
-}
 
 test_that("emr_track.logical.create tracks works", {
     withr::defer(clean_logical_tracks())

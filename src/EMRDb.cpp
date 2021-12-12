@@ -10,7 +10,6 @@
 
 #include <fstream>
 #include <iomanip>
-#include <iostream>
 #include <numeric>
 #include <algorithm>
 
@@ -33,6 +32,7 @@ EMRDb *g_db = NULL;
 
 EMRDb::~EMRDb()
 {
+    clear_ids();
     for (Name2Track::iterator itrack = m_tracks.begin();
          itrack != m_tracks.end(); ++itrack)
         delete itrack->second.track;
@@ -81,8 +81,7 @@ const EMRDb::TrackInfo *EMRDb::track_info(const string &track) {
     return itrack == m_tracks.end() ? NULL : &itrack->second;
 }
 
-void EMRDb::check_track_name(const string &track)
-{
+void EMRDb::check_track_name(const string &track) {
     if (track.empty() || track[0] == '.' ||
         (track.length() >= TRACK_FILE_EXT.length() &&
          !track.compare(track.length() - TRACK_FILE_EXT.length(),
@@ -90,8 +89,7 @@ void EMRDb::check_track_name(const string &track)
         verror("Invalid track name: \"%s\"", track.c_str());
 }
 
-void EMRDb::cache_tracks()
-{
+void EMRDb::cache_tracks() {
     if (std::all_of(m_load_on_demand.begin(), m_load_on_demand.end(), [](bool v) { return v; })) {
         return;
     }
@@ -182,8 +180,7 @@ void EMRDb::lock_logical_track_list(BufferedFile &lock, const char *mode) {
     }
 }
 
-void EMRDb::load_logical_tracks_from_disk()
-{
+void EMRDb::load_logical_tracks_from_disk() {
     DIR *dir = NULL;
 
     clear_logical_tracks();
@@ -262,7 +259,7 @@ void EMRDb::load_logical_tracks_from_disk()
 }
 
 void EMRDb::add_logical_track(const char *track_name, const char *source_name,
-                              const vector<int> &values, bool create_file, bool update) {
+                              const vector<int> &values, const bool& create_file, const bool& update) {
     EMRLogicalTrack ltrack(source_name, values);    
 
     m_logical_tracks.emplace(track_name, ltrack);
@@ -280,7 +277,7 @@ void EMRDb::add_logical_track(const char *track_name, const char *source_name,
 }
 
 void EMRDb::add_logical_track(const char *track_name, const char *source_name,
-                              bool create_file, bool update) {
+                              const bool& create_file, const bool& update) {
     EMRLogicalTrack ltrack(source_name);    
 
     m_logical_tracks.emplace(track_name, ltrack);     
@@ -297,8 +294,7 @@ void EMRDb::add_logical_track(const char *track_name, const char *source_name,
     }
 }
 
-void EMRDb::remove_logical_track(const char *track_name, bool update)
-{
+void EMRDb::remove_logical_track(const char *track_name, const bool &update) {
     m_logical_tracks.erase(track_name);
     string filename = logical_track_filename(string(track_name));
     if (unlink(filename.c_str()) == -1)
@@ -316,9 +312,7 @@ void EMRDb::remove_logical_track(const char *track_name, bool update)
     }
 }
 
-
-void EMRDb::update_logical_tracks_file()
-{
+void EMRDb::update_logical_tracks_file() {
     BufferedFile bf;
     string filename = logical_tracks_filename();
 
@@ -359,13 +353,11 @@ void EMRDb::update_logical_tracks_file()
     bf.close();
 }
 
-void EMRDb::clear_logical_tracks()
-{
+void EMRDb::clear_logical_tracks() {
     m_logical_tracks.clear();
 }
 
-void EMRDb::load_logical_tracks()
-{
+void EMRDb::load_logical_tracks() {
     Name2LogicalTrack track_list;
 
     vdebug("Loading logical track list");
@@ -490,8 +482,7 @@ void EMRDb::load_logical_tracks()
     }
 }
 
-void EMRDb::clear_ids_subset(bool warn)
-{
+void EMRDb::clear_ids_subset(bool warn) {
     if (warn && !m_ids_subset.empty())
         vwarning("Current subset of ids will be reset");
 
@@ -501,8 +492,7 @@ void EMRDb::clear_ids_subset(bool warn)
 }
 
 void EMRDb::ids_subset(vector<unsigned> &ids, const char *src, double fraction,
-                       bool complementary)
-{
+                       bool complementary) {
     if (fraction < 0 || fraction > 1)
         verror("Invalid value of fraction, must be in [0,1] range.");
 
@@ -675,8 +665,7 @@ void EMRDb::load_ids() {
     }
 }
 
-void EMRDb::create_ids_file()
-{
+void EMRDb::create_ids_file() {
     int fd = -1;
 
     try
@@ -728,8 +717,7 @@ void EMRDb::create_ids_file()
     close(fd);
 }
 
-bool EMRDb::rebuild_ids_file_on_dob_change()
-{
+bool EMRDb::rebuild_ids_file_on_dob_change() {
     struct stat fs;
 
     if (stat((m_rootdirs[0] + "/" + DOB_TRACKNAME + TRACK_FILE_EXT).c_str(), &fs) == -1) {
@@ -758,7 +746,7 @@ bool EMRDb::rebuild_ids_file_on_dob_change()
     return false;
 }
 
-int EMRDb::get_db_idx(string db_id) {
+int EMRDb::get_db_idx(const string& db_id) {
     
     vector<string>::iterator itr = std::find(m_rootdirs.begin(), m_rootdirs.end(), db_id);
 
@@ -772,37 +760,43 @@ int EMRDb::get_db_idx(string db_id) {
 
 
 
-void EMRDb::init(vector<string> rootdirs, vector<bool> dirs_load_on_demand, bool do_reload)
-{
+void EMRDb::init(const vector<string>& rootdirs, const vector<bool>& dirs_load_on_demand, const bool& do_reload) {
 
     vdebug("EMRDb::init()\n");
 
     ++m_transact_id;
 
-    vector<string> m_rootdirs_copy = m_rootdirs;
+    // if changed the global db - clear logical tracks
+    if (m_rootdirs.size() > 0 && rootdirs.size() > 0 && m_rootdirs[0] != rootdirs[0]){
+        clear_logical_tracks();
+    }
+
+    vector<string> current_rootdirs = m_rootdirs;
+    vector<string> new_rootdirs = rootdirs;
     vector<string> dirs_keep;
 
-    sort(rootdirs.begin(), rootdirs.end());
-    sort(m_rootdirs_copy.begin(), m_rootdirs_copy.end());
+    sort(new_rootdirs.begin(), new_rootdirs.end());
+    sort(current_rootdirs.begin(), current_rootdirs.end());
 
-    //find dbs to keep (do not unload)
+    // find dbs to keep (do not unload)
     set_intersection(
-        rootdirs.begin(),
-        rootdirs.end(),
-        m_rootdirs_copy.begin(),
-        m_rootdirs_copy.end(),
+        new_rootdirs.begin(),
+        new_rootdirs.end(),
+        current_rootdirs.begin(),
+        current_rootdirs.end(),
         back_inserter(dirs_keep));
 
     for (auto db_id = m_rootdirs.begin(); db_id != m_rootdirs.end(); db_id++)
     {
-        //if we dont need the db any more
+        // if we don't need the db any more
         if (count(dirs_keep.begin(), dirs_keep.end(), *db_id) == 0){
 
             clear(*db_id);
 
-            //current global db
-            if (get_db_idx(*db_id) == 0)
+            // current global db
+            if (get_db_idx(*db_id) == 0){
                 clear_ids_subset(true);
+            }
         }
     }
 
@@ -1196,7 +1190,7 @@ void EMRDb::load_track_list(string db_id, BufferedFile *_pbf, bool force){
 }
 
 
-void EMRDb::load_track(const char *track_name, string db_id){
+void EMRDb::load_track(const char *track_name, const string& db_id){
 
     string filename = track_filename(db_id, track_name);
     Name2Track::iterator itrack = m_tracks.find(track_name);
@@ -1226,7 +1220,7 @@ void EMRDb::load_track(const char *track_name, string db_id){
     update_track_list_file(m_tracks, db_id, bf);
 }
 
-void EMRDb::unload_track(const char *track_name, bool overridden, bool soft){
+void EMRDb::unload_track(const char *track_name, const bool& overridden, const bool& soft){
     
     Name2Track::iterator itrack = m_tracks.find(track_name);
 

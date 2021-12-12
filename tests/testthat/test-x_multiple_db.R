@@ -1,3 +1,5 @@
+load_test_db()
+
 load_test_dbs()
 
 # At the beginning, track1 is in dbs 1, 2 and 4
@@ -494,6 +496,33 @@ test_that("emr_ids_coverage works with filter and overriding", {
 
     withr::defer(emr_track.rm("track2_1", force = TRUE))
 
-    # track2_1 was overridden, noew coverage should change avcordingly
+    # track2_1 was overridden, new coverage should change accordingly
     expect_equal(emr_ids_coverage(data.frame(id = 0:999), c("track2"), filter = "track2_1"), c(track2 = 2L))
+})
+
+test_that("creating logical tracks happens only on the global db", {
+    withr::defer(clean_logical_tracks())
+    emr_track.logical.create("l1", "track0_1")
+    expect_true(logical_track_ok("l1", "track0_1"))
+})
+
+test_that("logical tracks on non-global db are not shown at emr_track.ls", {
+    withr::defer(clean_logical_tracks())
+    emr_track.logical.create("l1", "track0_1")
+    old_roots <- EMR_ROOTS
+    withr::defer(emr_db.connect(old_roots))
+    new_roots <- EMR_ROOTS[c(4, 2, 3, 1)]
+    emr_db.connect(new_roots)
+    expect_length(emr_track.ls("l1"), 0)
+    emr_db.connect(old_roots)
+    expect_equal(emr_track.ls("l1"), "l1")
+})
+
+
+test_that("cannot create a logical track pointing to non-global db track", {
+    withr::defer(clean_logical_tracks())
+    df <- data.frame(id = 1, time = c(1, 2, 2), value = c(-1, 4, 3), ref = c(0, 0, 1))
+    emr_track.import("tmp", space = "user", categorical = TRUE, src = df)
+    withr::defer(emr_track.rm("tmp", force = TRUE))
+    expect_error(emr_track.logical.create("ltmp", "tmp"))
 })
