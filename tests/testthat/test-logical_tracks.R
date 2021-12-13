@@ -453,10 +453,22 @@ test_that("emr_track.addto works with logical tracks", {
 })
 
 # percentile
-test_that("emr_track.percentile fails on logical tracks", {
+test_that("emr_track.percentile fails on logical tracks with values", {
     withr::defer(clean_logical_tracks())
     emr_track.logical.create("logical_track1", "ph1", c(15, 16))
     expect_error(emr_track.percentile("logical_track1"))
+})
+
+test_that("emr_track.percentile fails on logical tracks with categorical source", {
+    withr::defer(clean_logical_tracks())
+    emr_track.logical.create("logical_track1", "ph1")
+    expect_error(emr_track.percentile("logical_track1"))
+})
+
+test_that("emr_track.percentile works on numerical logical tracks", {
+    withr::defer(clean_logical_tracks())
+    emr_track.logical.create("logical_track1", "track0")
+    expect_equal(emr_track.percentile("logical_track1", 0.5), emr_track.percentile("track0", 0.5))
 })
 
 # attributes
@@ -925,16 +937,20 @@ test_that("emr_summary works with logical track", {
 # emr_track.unique
 test_that("emr_track.unique works on logical tracks", {
     withr::defer(clean_logical_tracks())
+    emr_track.logical.create("l", "ph1")
     emr_track.logical.create("logical_track1", "ph1", c(15, 16))
     expect_equal(emr_track.unique("logical_track1"), c(15, 16))
 
     emr_track.logical.create("logical_track2", "ph1")
     expect_equal(emr_track.unique("logical_track2"), emr_track.unique("ph1"))
+
+    expect_equal(emr_track.unique("l"), emr_track.unique("ph1"))
 })
 
 # ids_coverage
 test_that("emr_ids_coverage works", {
     withr::defer(clean_logical_tracks())
+    emr_track.logical.create("l", "ph1")
     emr_track.logical.create("l15", "ph1", 15)
     emr_track.logical.create("l18", "ph1", 18)
 
@@ -946,6 +962,11 @@ test_that("emr_ids_coverage works", {
 
     set.seed(60427)
     ids <- data.frame(id = sample(df$id, 300))
+
+    a <- emr_ids_coverage(ids, c("l"))
+    b <- emr_ids_coverage(ids, c("ph1"))
+    names(b) <- c("l")
+    expect_equal(a, b)
 
     a <- emr_ids_coverage(ids, c("l15", "track4"))
     expect_equal(names(a), c("l15", "track4"))
@@ -1005,6 +1026,7 @@ test_that("emr_ids_coverage works", {
 
 test_that("emr_ids_vals_coverage works", {
     withr::defer(clean_logical_tracks())
+    emr_track.logical.create("l", "ph1")
     emr_track.logical.create("l15", "ph1", 15)
     emr_track.logical.create("l18", "ph1", 18)
 
@@ -1016,6 +1038,11 @@ test_that("emr_ids_vals_coverage works", {
 
     set.seed(60427)
     ids <- data.frame(id = sample(df$id, 300))
+
+    a <- emr_ids_vals_coverage(ids, c("l"))
+    b <- emr_ids_vals_coverage(ids, c("ph1")) %>%
+        mutate(track = forcats::fct_recode(track, l = "ph1"))
+    expect_equal(a, b)
 
     a <- emr_ids_vals_coverage(ids, c("l15", "track7"))
     b <- emr_ids_vals_coverage(ids, c("p15", "track7")) %>%
@@ -1083,6 +1110,14 @@ test_that("emr_track.ids works on logical tracks", {
 
     a1 <- emr_track.ids("p18")
     b1 <- emr_track.ids("l18")
+    expect_equal(a1, b1)
+})
+
+test_that("emr_track.ids works on logical track with no values", {
+    withr::defer(clean_logical_tracks())
+    emr_track.logical.create("l", "ph1")
+    a1 <- emr_track.ids("ph1")
+    b1 <- emr_track.ids("l")
     expect_equal(a1, b1)
 })
 
@@ -1303,7 +1338,6 @@ test_that("emr_filter.create works on logical track", {
     t2 <- emr_extract("ltrack", names = c("vals"), filter = "f2", keepref = TRUE)
     expect_equal(t1, t2)
 
-    # currently fails until cpp fix
     emr_filter.create("f3", src = "ltrack", val = c(17), keepref = TRUE)
     t1 <- emr_extract("ltrack", names = c("vals"), keepref = TRUE) %>%
         dplyr::filter(vals == 17) %>%
