@@ -367,7 +367,14 @@ emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val =
         }
     }
 
-    var <- list(src = src, time_shift = time.shift, keepref = keepref, val = val, expiration = expiration, logical = logical, operator = operator)
+    categorical <- NULL
+
+    if (emr_vtrack.exists(src)) {
+         src <- emr_extract(src)
+         categorical <- emr_track.info(src)$categorical
+    }
+
+    var <- list(src = src, time_shift = time.shift, keepref = keepref, val = val, expiration = expiration, logical = logical, operator = operator, categorical = categorical)
     .emr_call("emr_check_named_filter", var, filter, new.env(parent = parent.frame()))
     emr_filter.rm(filter)
     EMR_FILTERS[[filter]] <<- var
