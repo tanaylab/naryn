@@ -435,7 +435,9 @@ emr_ids_vals_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filte
                 etime = etime
             )
             res$track <- track
-            res <- res %>% dplyr::filter(val %in% ltrack$values)
+            if (!is.null(ltrack$values)) {
+                res <- res %>% dplyr::filter(val %in% ltrack$values)
+            }
             return(res)
         })
     }

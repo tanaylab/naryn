@@ -293,7 +293,6 @@ emr_filter.create_from_name <- function(filter) {
 #' emr_filter.create("f1", "dense_track", time.shift = c(2, 4))
 #' emr_filter.create("f2", "dense_track", keepref = TRUE)
 #' emr_extract("sparse_track", filter = "!f1 & f2")
-#' 
 #' @export emr_filter.create
 emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val = NULL, expiration = NULL, operator = "=") {
     if (missing(filter) || missing(src)) {

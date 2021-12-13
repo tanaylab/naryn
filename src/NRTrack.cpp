@@ -222,9 +222,13 @@ SEXP emr_track_ids(SEXP _track, SEXP _envir)
 
         if (logical_track){
             track = g_db->track(logical_track->source.c_str());
-            unordered_set<double> vals(logical_track->values.begin(),
-                                       logical_track->values.end());            
-            track->ids(ids, vals);
+            if (logical_track->has_values()){
+                unordered_set<double> vals(logical_track->values.begin(),
+                                           logical_track->values.end());
+                track->ids(ids, vals);
+            } else {
+                track->ids(ids);
+            }                
         } else {
             track->ids(ids);
         }
