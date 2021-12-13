@@ -765,7 +765,11 @@ emr_track.percentile <- function(track, val, lower = TRUE) {
     .emr_checkroot()
 
     if (emr_track.logical.exists(track)) {
-        stop(sprintf("Track %s is categorical: percentile queries are not supported", track))
+        ltrack <- emr_track.logical.info(track)
+        if (!is.null(ltrack$values) || emr_track.info(ltrack$source)$categorical) {
+            stop(sprintf("Track %s is categorical: percentile queries are not supported", track))
+        }
+        track <- ltrack$source
     }
 
     .emr_call("emr_track_percentile", track, val, lower, new.env(parent = parent.frame()))
