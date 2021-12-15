@@ -556,35 +556,77 @@ emr_track.info <- function(track) {
     }
 }
 
+.emr_track_dbs <- function(track, dataframe, func, c_func) {
+    .emr_checkroot()
+    if (length(track) > 1) {
+        if (!dataframe) {
+            return(purrr::map(track, func, dataframe = FALSE) %>% do.call(c, .))
+        } else {
+            return(purrr::map_dfr(track, func, dataframe = TRUE))
+        }
+    }
+
+    if (is.character(track) && emr_track.logical.exists(track)) {
+        dbs <- EMR_GROOT
+    } else {
+        dbs <- .emr_call(c_func, track, new.env(parent = parent.frame()))
+    }
+
+    if (!dataframe) {
+        names(dbs) <- rep(track, length(dbs))
+        return(dbs)
+    } else {
+        return(data.frame(track = track, db = dbs))
+    }
+}
+
 #' Returns a vector of db ids which have a
 #' version of the track
 #'
-#' @param track track name
-#' @return A vector of db ids
+#' @param track one or more track names
+#' @param dataframe return a data frame with with columns
+#' called 'track' and 'db' instead of a vector of database ids.
+#' @return A named vector of db ids for each track. If \code{dataframe} is TRUE - returns a data frame with columns
+#' called 'track' and 'db' with the track and database ids (multiple rows per track in the case of
+#' \code{emr_track.dbs}).
 #' @seealso \code{\link{emr_track.info}}
 #' @keywords ~track ~info ~property ~db ~db_id ~connect
+#'
+#' @description
+#' \code{emr_track.dbs} returns all the databases which have a version of the track,
+#' while \code{emr_track.current_db} returns the database from which `naryn` currently takes
+#' the track according to the override rules.
+#'
 #' @examples
 #'
 #' # both db1 and db2 have a track named track1
 #' \dontrun{
 #' emr_db.connect(c("/db1", "/db2"))
 #' emr_track.dbs("track1")
+#' emr_track.dbs(emr_track.ls())
+#'
+#' emr_track.current_db("track1")
+#' emr_track.current_db(emr_track.ls())
 #' }
 #' @export emr_track.dbs
-emr_track.dbs <- function(track) {
+emr_track.dbs <- function(track, dataframe = FALSE) {
     if (missing(track)) {
         stop("Usage: emr_track.dbs(track)", call. = FALSE)
     }
-    .emr_checkroot
-
-    if (is.character(track) && emr_track.logical.exists(track)) {
-        return(EMR_GROOT)
-    }
-
-    return(.emr_call("emr_track_dbs", track, new.env(parent = parent.frame())))
+    return(.emr_track_dbs(track, dataframe, emr_track.dbs, "emr_track_dbs"))
 }
 
-
+#' Returns current database of a track
+#'
+#'
+#' @rdname emr_track.dbs
+#' @export
+emr_track.current_db <- function(track, dataframe = FALSE) {
+    if (missing(track)) {
+        stop("Usage: emr_track.current_db(track)", call. = FALSE)
+    }
+    return(.emr_track_dbs(track, dataframe, emr_track.current_db, "emr_track_db"))
+}
 
 #' Returns a list of track names
 #'

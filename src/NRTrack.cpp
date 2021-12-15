@@ -423,6 +423,8 @@ SEXP emr_set_track_attr(SEXP _track, SEXP _attr, SEXP _value, SEXP _envir) {
 	return R_NilValue;
 }
 
+
+// returns all the databases of a track
 SEXP emr_track_dbs(SEXP _track, SEXP _envir) {
     try {
 
@@ -461,5 +463,36 @@ SEXP emr_track_dbs(SEXP _track, SEXP _envir) {
     return R_NilValue;
 }
 
+
+// returns the current database of a track
+SEXP emr_track_db(SEXP _track, SEXP _envir) {
+    try {
+        Naryn naryn(_envir);
+
+        if (!isString(_track) || Rf_length(_track) != 1)
+            verror("Track argument is not a string");
+
+        const char *trackname = CHAR(STRING_ELT(_track, 0));
+
+        SEXP answer;
+        EMRTrack *track = g_db->track(trackname);
+
+        const EMRDb::TrackInfo *track_info = g_db->track_info(trackname);
+
+        if (!track) verror("Track %s does not exist", trackname);
+
+        rprotect(answer = RSaneAllocVector(STRSXP, 1));
+
+        SET_STRING_ELT(answer, 0, mkChar(track_info->db_id.c_str()));
+
+        return answer;
+    } catch (TGLException &e) {
+        rerror("%s", e.msg());
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
+
+    return R_NilValue;
+}
 }
 
