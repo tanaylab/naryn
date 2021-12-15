@@ -9,6 +9,7 @@
 \usage{
 emr_track.ls(
   ...,
+  db_id = NULL,
   ignore.case = FALSE,
   perl = FALSE,
   fixed = FALSE,
@@ -43,6 +44,9 @@ emr_track.logical.ls(
 \item{...}{these arguments are of either form 'pattern' or 'attribute =
 pattern'}
 
+\item{db_id}{db dir string (path), one of the paths supplied in emr_db.connect. If NULL - all track names would be 
+returned.}
+
 \item{ignore.case, perl, fixed, useBytes}{see 'grep'}
 }
 \value{
@@ -64,6 +68,8 @@ track attribute is matched against the pattern.
 
 Multiple patterns are applied one after another. The resulted list of tracks
 should match all the patterns.
+
+If \code{db_id} parameter is set, only tracks within the specific db would be shown. 
 
 'emr_track.global.ls', 'emr_track.user.ls', 'emr_track.logical.ls' work similarly to
 'emr_track.ls' but instead of returning all track names, each of them

@@ -602,6 +602,10 @@ emr_track.dbs <- function(track) {
 #' Multiple patterns are applied one after another. The resulted list of tracks
 #' should match all the patterns.
 #'
+#' If \code{db_id} parameter is set, only tracks within the specific db would be shown.
+#' Note that tracks which were overriden by other databases would not be shown, even if
+#' their files exist within the database. See \code{emr_db.connect} for more details.
+#'
 #' 'emr_track.global.ls', 'emr_track.user.ls', 'emr_track.logical.ls' work similarly to
 #' 'emr_track.ls' but instead of returning all track names, each of them
 #' returns either global, local or logical tracks accordingly.
@@ -609,6 +613,8 @@ emr_track.dbs <- function(track) {
 #' @aliases emr_track.ls emr_track.global.ls emr_track.user.ls emr_track.logical.ls
 #' @param ... these arguments are of either form 'pattern' or 'attribute =
 #' pattern'
+#' @param db_id db dir string (path), one of the paths supplied in emr_db.connect. If NULL - all track names would be
+#' returned.
 #' @param ignore.case,perl,fixed,useBytes see 'grep'
 #' @return An array that contains the names of tracks that match the supplied
 #' patterns.
@@ -631,12 +637,61 @@ emr_track.dbs <- function(track) {
 #' emr_track.ls(gender = "female")
 #' emr_track.ls(gender = "^male")
 #' @export emr_track.ls
-emr_track.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
+emr_track.ls <- function(..., db_id = NULL, ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
     .emr_checkroot()
+    if (!is.null(db_id)) {
+        if (db_id == EMR_GROOT) {
+            return(emr_track.global.ls(..., ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes))
+        } else {
+            return(emr_track.db.ls(..., db_id = db_id, ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes))
+        }
+    }
     tracks <- .emr_call("emr_track_names", new.env(parent = parent.frame()), silent = TRUE)
     logical_tracks <- .emr_call("emr_logical_track_names", new.env(parent = parent.frame()), silent = TRUE)
     .emr_tracks_filter(..., tracks = sort(c(tracks, logical_tracks)), ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes)
 }
+
+#' emr_track.ls for global db
+#'
+#' @export
+#' @rdname emr_track.ls
+emr_track.global.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
+    .emr_checkroot()
+    tracks <- .emr_call("emr_track_db_names", EMR_GROOT, new.env(parent = parent.frame()), silent = TRUE)
+    logical_tracks <- .emr_call("emr_logical_track_names", new.env(parent = parent.frame()), silent = TRUE)
+    .emr_tracks_filter(..., tracks = sort(c(tracks, logical_tracks)), ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes)
+}
+
+#' emr_track.ls for user db
+#'
+#' @export
+#' @rdname emr_track.ls
+emr_track.user.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
+    .emr_checkroot()
+    tracks <- .emr_call("emr_track_db_names", EMR_UROOT, new.env(parent = parent.frame()), silent = TRUE)
+    .emr_tracks_filter(..., tracks = tracks, ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes)
+}
+
+#' emr_track.ls for specific db
+#'
+#' @noRd
+emr_track.db.ls <- function(..., db_id, ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
+    .emr_checkroot()
+    tracks <- .emr_call("emr_track_db_names", db_id, new.env(parent = parent.frame()), silent = TRUE)
+    .emr_tracks_filter(..., tracks = tracks, ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes)
+}
+
+#' emr_track.ls for logical tracks
+#'
+#' @export
+#' @rdname emr_track.ls
+emr_track.logical.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
+    .emr_checkroot()
+    tracks <- .emr_call("emr_logical_track_names", new.env(parent = parent.frame()), silent = TRUE)
+    tracks <- .emr_tracks_filter(..., tracks = tracks, ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes)
+    return(sort(tracks))
+}
+
 
 
 
@@ -930,38 +985,6 @@ emr_track.rm <- function(track, force = FALSE) {
     }
 
     return(NULL)
-}
-
-#' emr_track.ls for global db
-#'
-#' @export
-#' @rdname emr_track.ls
-emr_track.global.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
-    .emr_checkroot()
-    tracks <- .emr_call("emr_track_db_names", EMR_GROOT, new.env(parent = parent.frame()), silent = TRUE)
-    logical_tracks <- .emr_call("emr_logical_track_names", new.env(parent = parent.frame()), silent = TRUE)
-    .emr_tracks_filter(..., tracks = sort(c(tracks, logical_tracks)), ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes)
-}
-
-#' emr_track.ls for user db
-#'
-#' @export
-#' @rdname emr_track.ls
-emr_track.user.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
-    .emr_checkroot()
-    tracks <- .emr_call("emr_track_db_names", EMR_UROOT, new.env(parent = parent.frame()), silent = TRUE)
-    .emr_tracks_filter(..., tracks = tracks, ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes)
-}
-
-#' emr_track.ls for logical tracks
-#'
-#' @export
-#' @rdname emr_track.ls
-emr_track.logical.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
-    .emr_checkroot()
-    tracks <- .emr_call("emr_logical_track_names", new.env(parent = parent.frame()), silent = TRUE)
-    tracks <- .emr_tracks_filter(..., tracks = tracks, ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes)
-    return(sort(tracks))
 }
 
 
