@@ -1,3 +1,10 @@
+template:
+  bootstrap: 5
+
+home:
+  sidebar:
+    structure: [links, license, authors, dev]
+  
 navbar:
   structure:
     left:
