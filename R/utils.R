@@ -16,6 +16,16 @@
     }
 }
 
+#' Get a vector of variables inside an expression
+#'
+#' @param expr string with a naryn expression
+#'
+#' @noRd
+#' @export
+.emr_expr_vars <- function(expr) {
+    all.vars(as.list(parse(text = expr))[[1]])
+}
+
 .emr_getOption <- function(x, default = NULL) {
     if (missing(default)) {
         return(options(x)[[1L]])

@@ -861,3 +861,18 @@ string get_bound_colname(const char *str, unsigned maxlen)
 	return colname;
 }
 
+void get_expression_vars(const string &expr, vector<string>& vars){
+    SEXP e;
+    SEXP r_expr = mkString(expr.c_str());
+
+    PROTECT(e = lang2(install(".emr_expr_vars"), r_expr));
+    SEXP res = R_tryEval(e, g_naryn->env(), NULL);
+    UNPROTECT(1);
+
+    size_t num_vars = Rf_length(res);    
+    vars.reserve(num_vars);
+
+    for (size_t i = 0; i < num_vars; ++i){        
+        vars.push_back(CHAR(STRING_ELT(res, i)));
+    }    
+}
