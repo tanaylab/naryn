@@ -169,6 +169,13 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, et
     return(res)
 }
 
+.emr_parse_exprs <- function(expr){
+    res <- c()
+    if (!is.null(expr)) {
+        res <- all.vars(as.list(parse(text = expr))[[1]])
+    }
+    return(res)
+}
 
 
 #' Returns evaluated track expression
@@ -288,7 +295,29 @@ emr_extract <- function(expr, tidy = FALSE, sort = FALSE, names = NULL, stime = 
         stop("Usage: emr_extract(expr, tidy = FALSE, sort = FALSE, names = NULL, tidy = FALSE, stime = NULL, etime = NULL, iterator = NULL, keepref = FALSE, filter = NULL)", call. = FALSE)
     }
     .emr_checkroot()
+    
+    parsed_filters <- .emr_parse_exprs(filter)
+    vtrack_filter_names <- purrr::keep(parsed_filters, ~{ emr_filter.exists(.x) && !is.null(emr_filter.info(.x)$vtrack) })
+    vtracks <- purrr::map_chr(vtrack_filter_names, ~{ emr_filter.info(.x)$src })
 
+    if (length(vtracks) > 0 && is.null(iterator)) {
+        stop("NULL iterator is not allowed when there are filters on vtracks") 
+    }
+
+    if (length(vtracks) > 0) {
+        vtrack_filters <- emr_extract(vtracks, iterator = iterator, keepref = keepref, stime = stime, etime = etime)
+    }
+    
+    purrr::walk2(vtrack_filter_names, vtracks, ~{
+        orig_filter <- emr_filter.info(.x)
+        emr_filter.create(filter=.x, 
+                          src=vtrack_filters %>% dplyr::select(id, time, ref, value=!!.y) %>% na.omit(), 
+                          time.shift=orig_filter$time_shift, 
+                          val=orig_filter$val, 
+                          expiration=orig_filter$expiration, 
+                          operator=orig_filter$operator)
+    })
+    # on exit bring back original filter
     .emr_call("emr_extract", expr, names, tidy, sort, stime, etime, iterator, keepref, filter, new.env(parent = parent.frame()))
 }
 

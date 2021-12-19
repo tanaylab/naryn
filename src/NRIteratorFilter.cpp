@@ -9,6 +9,7 @@
 #include "NRIteratorFilter.h"
 #include "NRTimeInterval.h"
 #include "NRPoint.h"
+#include <iostream>
 
 void NRIteratorFilter::init(SEXP filter, unsigned stime, unsigned etime)
 {
@@ -367,7 +368,8 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const 
         SEXP rexpiration = get_rvector_col(rfilter, "expiration", name, false);
         SEXP rsrc = get_rvector_col(rfilter, "src", name, true);
         SEXP rop = get_rvector_col(rfilter, "operator", name, true);
-        SEXP rcategorical = get_rvector_col(rfilter, "categorical", name, true);
+
+        const char *op = CHAR(STRING_ELT(rop, 0));
 
         if (isString(rsrc)) { // track name
             if (Rf_length(rsrc) != 1)
@@ -375,11 +377,11 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const 
 
             const char *track_name = CHAR(STRING_ELT(rsrc, 0));
             EMRTrack *track = g_db->track(track_name);
-            const char *op = CHAR(STRING_ELT(rop, 0));
 
-            if (!track)
+            if (!track){
                 verror("Filter %s: track %s does not exist", name, track_name);
-
+            }
+                
             if (Rf_length(rval) > 1 && !track->is_categorical())
                 verror("Filter %s: 'val' parameter must be a single value with numerical tracks", name);
 
@@ -400,28 +402,28 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const 
             }
 
             filter->m_itr = new EMRTrackIterator(track, filter->m_keepref, _stime, _etime, move(vals), expiration, op_enum);
-        } else {   // id-time list
+        } else {   // id-time or id-time-value
 
             bool found_format = false;
             EMRTrackData<float> data;
             EMRTrack* track_from_df;
 
             try {
+                
                 NRPoint::convert_rpoints_vals(rsrc, data, "'src': "); 
 
-                if (!isLogical(rcategorical)) {
-                    verror("'categorical' must be a logical value when id-time-value is used");
-                }
-
-                track_from_df = EMRTrack::construct("some name", EMRTrack::Func::VALUE, asLogical(rcategorical) ? EMRTrack::IS_CATEGORICAL : 0, data);
+                track_from_df = EMRTrack::construct(name, EMRTrack::Func::VALUE, 0, data);
                 unordered_set<double> vals;
                 for (int i = 0; i < Rf_length(rval); ++i){
                     // The track might contain its data as float and not double. In this case a track value might not be equal to its double representation,
                     // like (float)0.3 != (double)0.3. So let's "downgrade" all our values to the least precise type.
                     vals.insert(isReal(rval) ? (float)REAL(rval)[i] : (float)INTEGER(rval)[i]);
                 }
-                double expiration = check_expiration(rexpiration, filter->m_keepref, asLogical(rcategorical), name);
-                filter->m_itr = new EMRTrackIterator(track_from_df, filter->m_keepref, _stime, _etime, move(vals), expiration); //add opp enum
+
+                double expiration = check_expiration(rexpiration, filter->m_keepref, 0, name);
+                EMRTrack::Iterator::OPS op_enum = check_op(op, name);
+
+                filter->m_itr = new EMRTrackIterator(track_from_df, filter->m_keepref, _stime, _etime, move(vals), expiration, op_enum); //add opp enum
 
                 found_format = true;
             } catch (TGLException &e) {
@@ -545,6 +547,53 @@ void NRIteratorFilter::debug_print(EMRIteratorFilterItem *tree, int depth)
 }
 
 extern "C" {
+
+// SEXP emr_parse_filter_expr(SEXP _filter, SEXP _envir){
+//     try {
+//         Naryn naryn(_envir);
+
+//         if (!isString(_filter))
+//             verror("Filter expression is not a string");
+
+//         string filter = CHAR(STRING_ELT(_filter, 0));
+//         vector<string> filters;
+//         SEXP answer;
+
+//         // go over all substrings
+//         for (size_t start = 0; start < filter.length(); start++) {
+//             for (size_t len = filter.length() - start; len >= 1; len--) {            
+//                 string substring = filter.substr(start, len);
+
+//                 // look for filters using emr_filter.exists R function
+//                 SEXP e;
+//                 PROTECT(e = lang2(install("emr_filter.exists"), mkString(substring.c_str())));
+//                 bool filter_exists = asLogical(R_tryEval(e, g_naryn->env(), NULL));
+//                 UNPROTECT(1);
+
+//                 if (filter_exists) {
+//                     filters.push_back(substring);
+//                 }
+//             }
+//         }
+
+//         rprotect(answer = RSaneAllocVector(STRSXP, filters.size()));
+
+//         for (size_t ifilter = 0; ifilter < filters.size(); ifilter++ ){
+//             SET_STRING_ELT(answer, ifilter, mkChar(filters[ifilter].c_str()));
+//         }
+
+//         return answer;
+
+//     } catch (TGLException &e) {
+//         rerror("%s", e.msg());
+//     } catch (const bad_alloc &e) {
+//         rerror("Out of memory");
+//     }
+
+//     return R_NilValue;
+
+// }
+
 
 SEXP emr_check_named_filter(SEXP _filter, SEXP _name, SEXP _envir)
 {

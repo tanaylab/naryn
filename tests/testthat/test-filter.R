@@ -861,19 +861,19 @@ test_that("emr_filter with operator works as expected on categorical tracks", {
     expect_equal(data.frame(id = c(1, 2), time = c(5, 7), ref = c(-1, -1), t1 = c(-1, 4)), gt)
 })
 
-test_that("emr_filter on df with operator throws errors", {
-    emr_filter.clear()
-    # This should work the same as the test bellow - keepref is ignored for filters with operators
+# test_that("emr_filter on df with operator throws errors", {
+#     emr_filter.clear()
+#     # This should work the same as the test bellow - keepref is ignored for filters with operators
 
-    df <- data.frame(id = c(1, 1, 2), time = c(5, 5, 7), ref = c(0, 1, 0), value = c(100, 500, 300))
+#     df <- data.frame(id = c(1, 1, 2), time = c(5, 5, 7), ref = c(0, 1, 0), value = c(100, 500, 300))
 
-    emr_track.import("t1", space = "user", categorical = FALSE, src = df)
-    withr::defer(emr_track.rm("t1", force = TRUE))
+#     emr_track.import("t1", space = "user", categorical = FALSE, src = df)
+#     withr::defer(emr_track.rm("t1", force = TRUE))
 
-    # cant request filter with keepref FALSE on df with refs
-    expect_error(emr_filter.create("lt.150", src = df, val = 150, keepref = FALSE, operator = "<"))
-    expect_error(emr_filter.create("gt.150", src = df, val = 150, keepref = FALSE, operator = ">"))
-    # cant create filter with df as source and vals
-    expect_error(emr_filter.create("lt.150", src = df, val = 150, keepref = TRUE, operator = "<"))
-    expect_error(emr_filter.create("gt.150", src = df, val = 150, keepref = TRUE, operator = ">"))
-})
+#     # cant request filter with keepref FALSE on df with refs
+#     expect_error(emr_filter.create("lt.150", src = df, val = 150, keepref = FALSE, operator = "<"))
+#     expect_error(emr_filter.create("gt.150", src = df, val = 150, keepref = FALSE, operator = ">"))
+#     # cant create filter with df as source and vals
+#     expect_error(emr_filter.create("lt.150", src = df, val = 150, keepref = TRUE, operator = "<"))
+#     expect_error(emr_filter.create("gt.150", src = df, val = 150, keepref = TRUE, operator = ">"))
+# })

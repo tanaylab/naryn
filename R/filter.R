@@ -19,7 +19,8 @@
         filter$val <- filter$logical$val
     }
     filter$logical <- NULL
-
+    filter$vtrack <- NULL
+    
     filter
 }
 
@@ -300,7 +301,6 @@ emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val =
         stop("Usage: emr_filter.create(filter, src, keepref = FALSE, time.shift = NULL, val = NULL, expiration = NULL)", call. = FALSE)
     }
     .emr_checkroot()
-
     if (is.character(src) && length(src) > 1 || (!is.null(filter) && length(filter) > 1)) {
         if (is.null(filter)) {
             return(purrr::map_chr(src, ~ emr_filter.create(filter = NULL, src = .x, keepref = keepref, time.shift = time.shift, val = val, expiration = expiration)))
@@ -351,7 +351,6 @@ emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val =
             # to be filtered. which are then applied on
             # the source track.
             val <- .emr_filter_calc_val_logical(src, val)
-
             src <- ltrack_info$source
 
             # when the user requests a filter with values
@@ -367,16 +366,18 @@ emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val =
         }
     }
 
-    categorical <- NULL
-
-    if (emr_vtrack.exists(src)) {
-         src <- emr_extract(src)
-         categorical <- emr_track.info(src)$categorical
+    vtrack <- NULL
+    
+    if (is.character(src) && emr_vtrack.exists(src)) {
+         vtrack <- emr_vtrack.info(src)
     }
-
-    var <- list(src = src, time_shift = time.shift, keepref = keepref, val = val, expiration = expiration, logical = logical, operator = operator, categorical = categorical)
-    .emr_call("emr_check_named_filter", var, filter, new.env(parent = parent.frame()))
-    emr_filter.rm(filter)
+    
+    var <- list(src = src, time_shift = time.shift, keepref = keepref, val = val, expiration = expiration, logical = logical, operator = operator, vtrack = vtrack)
+    
+    if (is.null(vtrack)){
+        .emr_call("emr_check_named_filter", var, filter, new.env(parent = parent.frame()))
+        emr_filter.rm(filter)
+    }
     EMR_FILTERS[[filter]] <<- var
 
     if (auto_filter) {
