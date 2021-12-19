@@ -29,6 +29,7 @@ Suggests:
     knitr,
     readr,
     rmarkdown,
+    tibble,
     testthat (>= 3.0.4),
     tools,
     withr

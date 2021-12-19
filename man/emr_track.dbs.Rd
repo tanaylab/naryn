@@ -2,20 +2,29 @@
 % Please edit documentation in R/track.R
 \name{emr_track.dbs}
 \alias{emr_track.dbs}
+\alias{emr_track.current_db}
 \title{Returns a vector of db ids which have a
 version of the track}
 \usage{
-emr_track.dbs(track)
+emr_track.dbs(track, dataframe = FALSE)
+
+emr_track.current_db(track, dataframe = FALSE)
 }
 \arguments{
-\item{track}{track name}
+\item{track}{one or more track names}
+
+\item{dataframe}{return a data frame with with columns
+called 'track' and 'db' instead of a vector of database ids.}
 }
 \value{
-A vector of db ids
+A named vector of db ids for each track. If \code{dataframe} is TRUE - returns a data frame with columns
+called 'track' and 'db' with the track and database ids (multiple rows per track in the case of
+\code{emr_track.dbs}).
 }
 \description{
-Returns a vector of db ids which have a
-version of the track
+\code{emr_track.dbs} returns all the databases which have a version of the track,
+while \code{emr_track.current_db} returns the database from which `naryn` currently takes
+the track according to the override rules.
 }
 \examples{
 
@@ -23,6 +32,10 @@ version of the track
 \dontrun{
 emr_db.connect(c("/db1", "/db2"))
 emr_track.dbs("track1")
+emr_track.dbs(emr_track.ls())
+
+emr_track.current_db("track1")
+emr_track.current_db(emr_track.ls())
 }
 }
 \seealso{
