@@ -1,5 +1,3 @@
-load_test_db()
-
 load_test_dbs()
 
 test_that("load_on_demand=FALSE loads tracks into shared memory", {
@@ -16,8 +14,115 @@ test_that("load_on_demand=FALSE loads tracks into shared memory", {
     expect_equal(system(cmd), 0)
 })
 
+test_that("emr_track.ls works with multiple dbs", {
+    expect_equal(
+        emr_track.ls(),
+        c(
+            "patients.dob", "ph1", "ph1_3", "physical_track_subset_15",
+            "physical_track_subset_15_3", "stam1", "stam1_1", "stam1_2",
+            "stam1_3", "track0", "track0_1", "track0_2", "track0_3", "track0_sparse",
+            "track0_sparse_1", "track0_sparse_2", "track0_sparse_3", "track1",
+            "track1_3", "track1_sparse", "track1_sparse_1", "track1_sparse_2",
+            "track1_sparse_3", "track2", "track2_1", "track2_2", "track2_3",
+            "track2_sparse", "track2_sparse_1", "track2_sparse_2", "track2_sparse_3",
+            "track3", "track3_1", "track3_2", "track3_3", "track4", "track4_1",
+            "track4_2", "track4_3", "track4_sparse", "track4_sparse_1", "track4_sparse_2",
+            "track4_sparse_3", "track5", "track5_1", "track5_2", "track5_3",
+            "track5_sparse", "track5_sparse_1", "track5_sparse_2", "track5_sparse_3",
+            "track6", "track6_1", "track6_2", "track6_3", "track7", "track7_sparse",
+            "track7_sparse_1", "track7_sparse_2", "track7_sparse_3", "track8",
+            "track8_1", "track8_2", "track8_3", "track8_sparse", "track8_sparse_1",
+            "track8_sparse_2", "track8_sparse_3"
+        )
+    )
+})
+
+test_that("emr_track.ls works with db_id", {
+    ls_tracks <- emr_track.ls(db_id = EMR_ROOTS[2])
+    tracks <- gsub(".nrtrack$", "", list.files(EMR_ROOTS[2], pattern = ".nrtrack"))
+
+    # remove overriden tracks
+    files_tracks <- purrr::discard(tracks, ~ {
+        dbs <- emr_track.dbs(.x)
+        dbs[length(dbs)] != EMR_ROOTS[2]
+    })
+
+    expect_setequal(ls_tracks, files_tracks)
+})
+
+test_that("emr_track.ls works with db_id which is the global db", {
+    ls_tracks <- emr_track.ls(db_id = EMR_GROOT)
+    tracks <- gsub(".nrtrack$", "", list.files(EMR_GROOT, pattern = ".nrtrack"))
+
+    # remove overriden tracks
+    files_tracks <- purrr::discard(tracks, ~ {
+        dbs <- emr_track.dbs(.x)
+        dbs[length(dbs)] != EMR_GROOT
+    })
+
+    expect_setequal(ls_tracks, files_tracks)
+})
+
+test_that("emr_track.ls works with db_id which is the user db", {
+    ls_tracks <- emr_track.ls(db_id = EMR_UROOT)
+    tracks <- gsub(".nrtrack$", "", list.files(EMR_UROOT, pattern = ".nrtrack"))
+
+    # remove overriden tracks
+    files_tracks <- purrr::discard(tracks, ~ {
+        dbs <- emr_track.dbs(.x)
+        dbs[length(dbs)] != EMR_UROOT
+    })
+
+    expect_setequal(ls_tracks, files_tracks)
+})
+
 # At the beginning, track1 is in dbs 1, 2 and 4
 # At the beginning, track7 is in dbs 1, 2, 3, 4
+
+test_that("emr_track.dbs works", {
+    track_dbs <- c(
+        track1 = EMR_ROOTS[1],
+        track1 = EMR_ROOTS[2],
+        track1 = EMR_ROOTS[4],
+        track7 = EMR_ROOTS[1],
+        track7 = EMR_ROOTS[2],
+        track7 = EMR_ROOTS[3],
+        track7 = EMR_ROOTS[4],
+        track0_1 = EMR_ROOTS[1]
+    )
+    expect_equal(emr_track.dbs(c("track1", "track7", "track0_1")), track_dbs)
+    expect_equal(
+        emr_track.dbs(c("track1", "track7", "track0_1"), dataframe = TRUE),
+        as.data.frame(tibble::enframe(track_dbs, "track", "db"))
+    )
+
+    # a single track
+    expect_equal(emr_track.dbs("track0_1"), track_dbs[8])
+    expect_equal(
+        emr_track.dbs("track0_1", dataframe = TRUE),
+        as.data.frame(tibble::enframe(track_dbs[8], "track", "db"))
+    )
+})
+
+test_that("emr_track.current_db works", {
+    track_dbs <- c(
+        track1 = EMR_ROOTS[4],
+        track7 = EMR_ROOTS[4],
+        track0_2 = EMR_ROOTS[2]
+    )
+    expect_equal(emr_track.current_db(c("track1", "track7", "track0_2")), track_dbs)
+    expect_equal(
+        emr_track.current_db(c("track1", "track7", "track0_2"), dataframe = TRUE),
+        as.data.frame(tibble::enframe(track_dbs, "track", "db"))
+    )
+
+    # a single track
+    expect_equal(emr_track.current_db("track1"), track_dbs[1])
+    expect_equal(
+        emr_track.current_db("track1", dataframe = TRUE),
+        as.data.frame(tibble::enframe(track_dbs[1], "track", "db"))
+    )
+})
 
 test_that("db.connect works with overlapping namespace", {
     expect_true("track1" %in% emr_track.ls())
@@ -26,10 +131,10 @@ test_that("db.connect works with overlapping namespace", {
 })
 
 test_that("emr_track.dbs works as expected", {
-    expect_equal(emr_track.dbs("track0_1"), EMR_GROOT)
-    expect_equal(emr_track.dbs("track0"), EMR_UROOT)
-    expect_equal(emr_track.dbs("track7"), EMR_ROOTS)
-    expect_equal(emr_track.dbs("track1"), EMR_ROOTS[-3])
+    expect_equal(emr_track.dbs("track0_1"), EMR_GROOT, ignore_attr = TRUE)
+    expect_equal(emr_track.dbs("track0"), EMR_UROOT, ignore_attr = TRUE)
+    expect_equal(emr_track.dbs("track7"), EMR_ROOTS, ignore_attr = TRUE)
+    expect_equal(emr_track.dbs("track1"), EMR_ROOTS[-3], ignore_attr = TRUE)
 })
 
 test_that("deletion of overriding track loads back the overridden track", {
@@ -150,14 +255,14 @@ test_that("overriding hierarchy on connect works as expected", {
 
     expect_true(emr_track.exists("track7"))
     expect_true(emr_track.exists("track7", original_roots[1]))
-    expect_equal(emr_track.dbs("track7"), original_roots[1])
+    expect_equal(emr_track.dbs("track7"), original_roots[1], ignore_attr = TRUE)
 
     emr_db.connect(original_roots[1:2])
 
     expect_true(emr_track.exists("track7"))
     expect_false(emr_track.exists("track7", original_roots[1]))
     expect_true(emr_track.exists("track7", original_roots[2]))
-    expect_equal(emr_track.dbs("track7"), original_roots[1:2])
+    expect_equal(emr_track.dbs("track7"), original_roots[1:2], ignore_attr = TRUE)
 
     emr_db.connect(original_roots[1:3])
 
@@ -165,7 +270,7 @@ test_that("overriding hierarchy on connect works as expected", {
     expect_false(emr_track.exists("track7", original_roots[1]))
     expect_false(emr_track.exists("track7", original_roots[2]))
     expect_true(emr_track.exists("track7", original_roots[3]))
-    expect_equal(emr_track.dbs("track7"), original_roots[1:3])
+    expect_equal(emr_track.dbs("track7"), original_roots[1:3], ignore_attr = TRUE)
 
     emr_db.connect(original_roots[1:4])
 
@@ -174,7 +279,7 @@ test_that("overriding hierarchy on connect works as expected", {
     expect_false(emr_track.exists("track7", original_roots[2]))
     expect_false(emr_track.exists("track7", original_roots[3]))
     expect_true(emr_track.exists("track7", original_roots[4]))
-    expect_equal(emr_track.dbs("track7"), original_roots)
+    expect_equal(emr_track.dbs("track7"), original_roots, ignore_attr = TRUE)
 })
 
 test_that("overriding mechanism works with mv, when a track is renamed it is no longer overriding/overridden", {
@@ -187,21 +292,21 @@ test_that("overriding mechanism works with mv, when a track is renamed it is no 
     expect_true(emr_track.exists("track7"))
     expect_true(emr_track.exists("track7_4"))
 
-    expect_equal(emr_track.dbs("track7"), EMR_ROOTS[-4])
+    expect_equal(emr_track.dbs("track7"), EMR_ROOTS[-4], ignore_attr = TRUE)
 
     emr_track.mv("track7", "track7_3")
 
     expect_true(emr_track.exists("track7"))
     expect_true(emr_track.exists("track7_3"))
 
-    expect_equal(emr_track.dbs("track7"), EMR_ROOTS[-c(3, 4)])
+    expect_equal(emr_track.dbs("track7"), EMR_ROOTS[-c(3, 4)], ignore_attr = TRUE)
 
     emr_track.mv("track7", "track7_2")
 
     expect_true(emr_track.exists("track7"))
     expect_true(emr_track.exists("track7_2"))
 
-    expect_equal(emr_track.dbs("track7"), EMR_ROOTS[1])
+    expect_equal(emr_track.dbs("track7"), EMR_ROOTS[1], ignore_attr = TRUE)
 
     emr_track.mv("track7", "track7_1")
 
@@ -218,18 +323,18 @@ test_that("mv to override works as expected", {
     expect_error(emr_track.mv("track8_3", "track8_2", EMR_ROOTS[2]))
 
     emr_track.mv("track8_2", "track8_1")
-    expect_equal(emr_track.dbs("track8_1"), EMR_ROOTS[1:2])
+    expect_equal(emr_track.dbs("track8_1"), EMR_ROOTS[1:2], ignore_attr = TRUE)
 
     emr_track.mv("track8_3", "track8_1")
-    expect_equal(emr_track.dbs("track8_1"), EMR_ROOTS[1:3])
+    expect_equal(emr_track.dbs("track8_1"), EMR_ROOTS[1:3], ignore_attr = TRUE)
 
     # mv to reveal underlying track
     emr_track.mv("track8_1", "track8_3")
-    expect_equal(emr_track.dbs("track8_1"), EMR_ROOTS[1:2])
+    expect_equal(emr_track.dbs("track8_1"), EMR_ROOTS[1:2], ignore_attr = TRUE)
 
     # mv two levels up
     emr_track.mv("track5_3", "track5_1")
-    expect_equal(emr_track.dbs("track5_1"), EMR_ROOTS[c(1, 3)])
+    expect_equal(emr_track.dbs("track5_1"), EMR_ROOTS[c(1, 3)], ignore_attr = TRUE)
 })
 
 

@@ -5,6 +5,7 @@
 * Bug fix: dbs order was changed to lexicographical order on emr_db.connect.
 * Bug fix: stray logical tracks on non-global dbs were shown.
 * Make sure logical tracks cannot be created on non-global db. 
+* Added `db_id` parameter to `emr_track.ls`
 * Removed cpp11 package dependency
 
 
