@@ -42,15 +42,21 @@ Choosing between the two modes depends on the specific needs. While `load_on_dem
 
 ### Maintaining Database
 
-Naryn caches certain data on the disk to maintain fast run-times. In particular two files (`.naryn` and `.ids`) are created in a global root directory and one file (`.ids`}) in a user root directory.
+Naryn caches certain data on the disk to maintain fast run-times. In particular two files (`.naryn` and `.ids`) are created in any database, and another file called `.logical_tracks` is created in global databases. 
 
 `.naryn` file contains a list of all tracks in the current root directory and their last modification dates. This file spares a full root directory rescan when `emr_db.connect` is called. The recorded modification dates allow to efficiently synchronize the track changes induced by synchronously running R sessions.
+
+`.logical_tracks` implements the same mechanism for logical tracks, which store their properties (source and values) under a folder called `logical`. 
 
 `.ids` file contains available ids that are used to run certain types of *track expression iterators* (see below). The source of these ids comes from a `patients.dob} (i.e. Date Of Birth) track, which must be present in the global root directory before these iterators may be utilized.
 
 Various functions such as `emr_track.import` modify these files according to the changes that DB undergoes (addition / removal / modification of tracks). Thus manual (outside of Naryn) modification, replacement, addition or deletion of track files cause the cache files to go out of sync. Various problems might arise as a consequence, such as run-time errors, out-dated data from modified tracks and sub-optimal run-time performance.
 
 Manual modifications of the database files can still be performed, yet they must be ratified by running `emr_db.reload`.
+
+#### File and directory permissions
+
+Naryn creates files and directories with a umask of `007` (except for read-only tracks), which means that files and directories would have permissions of `660 (rw-rw----)` and `770 (rwxrwx---)` respectively. This means that in order to access a database that someone outside the group created, the file and folder permissions need to be changed first. 
 
 ### Tracks
 

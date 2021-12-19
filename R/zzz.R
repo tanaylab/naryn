@@ -2,7 +2,7 @@
 }
 
 .onAttach <- function(lib, pkg) {
-    Sys.umask("0002")
+    Sys.umask("007")
 
     assign(".EMR_FUNCS", getNamespaceExports("naryn"), envir = .GlobalEnv)
 
