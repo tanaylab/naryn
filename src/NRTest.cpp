@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <iostream>
 
 #include "EMRDb.h"
 #include "EMRProgressReporter.h"
@@ -20,6 +21,25 @@
 typedef unordered_map<int, EMRTrackData<float> *> Datasets;
 
 extern "C" {
+
+SEXP test_parse_expr(SEXP r_expr, SEXP envir) {
+    try {
+        Naryn naryn(envir);
+        string expr = CHAR(STRING_ELT(r_expr, 0));
+        vector<string> vars;
+        get_expression_vars(expr, vars);        
+        for (size_t i = 0; i < vars.size(); ++i) {            
+            vdebug(vars[i].c_str());
+        }
+        return R_NilValue;
+    } catch (TGLException &e) {
+        rerror("%s", e.msg());
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
+
+    return R_NilValue;
+}
 
 SEXP logical_track_vtrack(SEXP _track, SEXP envir){
     try {
