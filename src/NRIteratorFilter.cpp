@@ -9,7 +9,6 @@
 #include "NRIteratorFilter.h"
 #include "NRTimeInterval.h"
 #include "NRPoint.h"
-#include <iostream>
 
 void NRIteratorFilter::init(SEXP filter, unsigned stime, unsigned etime)
 {
@@ -316,8 +315,8 @@ enum EMRTrack::Iterator::OPS NRIteratorFilter::check_op(const char *op,const cha
 
 }
 
-EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const char *name, bool operator_not, unsigned stime, unsigned etime)
-{
+EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const char *name, bool operator_not, unsigned stime, unsigned etime){
+
     EMRIteratorFilterItem *filter = NULL;
 
     try {
@@ -344,8 +343,9 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const 
             }
 
             if (filter->m_sshift < -(int)EMRTimeStamp::MAX_HOUR || filter->m_sshift > (int)EMRTimeStamp::MAX_HOUR ||
-                filter->m_eshift < -(int)EMRTimeStamp::MAX_HOUR || filter->m_eshift > (int)EMRTimeStamp::MAX_HOUR)
-                verror("Filter %s: 'time.shift' is out of range", name);
+                filter->m_eshift < -(int)EMRTimeStamp::MAX_HOUR || filter->m_eshift > (int)EMRTimeStamp::MAX_HOUR){
+                    verror("Filter %s: 'time.shift' is out of range", name);
+                }
         }
 
         int _stime = filter->m_stime + filter->m_sshift;
@@ -357,17 +357,21 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const 
 
         SEXP rkeepref = get_rvector_col(rfilter, "keepref", name, true);
 
-        if (!isLogical(rkeepref) || Rf_length(rkeepref) != 1 || asLogical(rkeepref) == NA_LOGICAL)
+        if (!isLogical(rkeepref) || Rf_length(rkeepref) != 1 || asLogical(rkeepref) == NA_LOGICAL){
             verror("Filter %s: 'keepref' must be a logical value", name);
+        }
+            
         filter->m_keepref = asLogical(rkeepref);
 
-        if (filter->m_keepref && (filter->m_sshift || filter->m_eshift))
+        if (filter->m_keepref && (filter->m_sshift || filter->m_eshift)){
             verror("Filter %s: 'time.shift' is not allowed when keepref is 'TRUE'", name);
+        }
 
         SEXP rval = get_rvector_col(rfilter, "val", name, false);
         SEXP rexpiration = get_rvector_col(rfilter, "expiration", name, false);
         SEXP rsrc = get_rvector_col(rfilter, "src", name, true);
         SEXP rop = get_rvector_col(rfilter, "operator", name, true);
+        SEXP use_values = get_rvector_col(rfilter, "use_values", name, true);
 
         const char *op = CHAR(STRING_ELT(rop, 0));
 
@@ -402,21 +406,20 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const 
             }
 
             filter->m_itr = new EMRTrackIterator(track, filter->m_keepref, _stime, _etime, move(vals), expiration, op_enum);
-        } else {   // id-time or id-time-value
+        } else if (asLogical(use_values)) {   // id-time or id-time-value
 
-            bool found_format = false;
             EMRTrackData<float> data;
             EMRTrack* track_from_df;
 
             try {
-                
                 NRPoint::convert_rpoints_vals(rsrc, data, "'src': "); 
-
                 track_from_df = EMRTrack::construct(name, EMRTrack::Func::VALUE, 0, data);
+
+                if (isNull(rval))
+                    verror("Can not set 'use_value' to TRUE, when 'val' parameter is NULL");
+
                 unordered_set<double> vals;
                 for (int i = 0; i < Rf_length(rval); ++i){
-                    // The track might contain its data as float and not double. In this case a track value might not be equal to its double representation,
-                    // like (float)0.3 != (double)0.3. So let's "downgrade" all our values to the least precise type.
                     vals.insert(isReal(rval) ? (float)REAL(rval)[i] : (float)INTEGER(rval)[i]);
                 }
 
@@ -425,35 +428,33 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const 
 
                 filter->m_itr = new EMRTrackIterator(track_from_df, filter->m_keepref, _stime, _etime, move(vals), expiration, op_enum); //add opp enum
 
-                found_format = true;
             } catch (TGLException &e) {
-                vdebug("Trying to convert df to rpoints_vals, if fails, try to to rpoints");
+                verror("Unable to create filter from data frame with values when 'use_values' is TRUE");
             }
             
+        } else {
             EMRPoints points;
-            if (!found_format) {
-                try {
-                    NRPoint::convert_rpoints(rsrc, &points);
+
+            try {
+                NRPoint::convert_rpoints(rsrc, &points);
                 
-                    if (!isNull(rval))
-                        verror("'val' parameter can not be used with dataframe as source");
+                if (!isNull(rval))
+                    verror("'val' parameter can not be used with dataframe without values as source");
 
-                    if (!isNull(rexpiration))
-                        verror("'expiration' parameter can be used only with tracks");
+                if (!isNull(rexpiration))
+                    verror("'expiration' parameter can be used only with tracks");
 
-                    filter->m_itr = new EMRPointsIterator(points, filter->m_keepref, _stime, _etime);
+                filter->m_itr = new EMRPointsIterator(points, filter->m_keepref, _stime, _etime);
+
                 } catch (TGLException &e) {
+
                     if (e.type() == typeid(NRPoint) && e.code() != NRPoint::BAD_FORMAT)
-                        verror(
-                            "Filter %s: 'src' is neither a track, id-time nor an id-time-value "
-                            "data frame",
-                            name);
+                        verror( "Filter %s: Unable to create filter from data frame without values when 'use_values' is FALSE",name);
 
                     verror("Filter item %s: %s", name, e.msg());
                 }
-            }
-            
-        }
+            }            
+
     }
     catch (...) {
         delete filter;
@@ -547,53 +548,6 @@ void NRIteratorFilter::debug_print(EMRIteratorFilterItem *tree, int depth)
 }
 
 extern "C" {
-
-// SEXP emr_parse_filter_expr(SEXP _filter, SEXP _envir){
-//     try {
-//         Naryn naryn(_envir);
-
-//         if (!isString(_filter))
-//             verror("Filter expression is not a string");
-
-//         string filter = CHAR(STRING_ELT(_filter, 0));
-//         vector<string> filters;
-//         SEXP answer;
-
-//         // go over all substrings
-//         for (size_t start = 0; start < filter.length(); start++) {
-//             for (size_t len = filter.length() - start; len >= 1; len--) {            
-//                 string substring = filter.substr(start, len);
-
-//                 // look for filters using emr_filter.exists R function
-//                 SEXP e;
-//                 PROTECT(e = lang2(install("emr_filter.exists"), mkString(substring.c_str())));
-//                 bool filter_exists = asLogical(R_tryEval(e, g_naryn->env(), NULL));
-//                 UNPROTECT(1);
-
-//                 if (filter_exists) {
-//                     filters.push_back(substring);
-//                 }
-//             }
-//         }
-
-//         rprotect(answer = RSaneAllocVector(STRSXP, filters.size()));
-
-//         for (size_t ifilter = 0; ifilter < filters.size(); ifilter++ ){
-//             SET_STRING_ELT(answer, ifilter, mkChar(filters[ifilter].c_str()));
-//         }
-
-//         return answer;
-
-//     } catch (TGLException &e) {
-//         rerror("%s", e.msg());
-//     } catch (const bad_alloc &e) {
-//         rerror("Out of memory");
-//     }
-
-//     return R_NilValue;
-
-// }
-
 
 SEXP emr_check_named_filter(SEXP _filter, SEXP _name, SEXP _envir)
 {

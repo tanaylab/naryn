@@ -432,7 +432,7 @@ test_that("emr_filter.info works", {
         emr_filter.info("f1"),
         list(
             src = "track2", time_shift = c(-10, 20), keepref = FALSE,
-            val = NULL, expiration = NULL, operator = "="
+            val = NULL, expiration = NULL, operator = "=", use_values=FALSE
         )
     )
 })
@@ -861,19 +861,24 @@ test_that("emr_filter with operator works as expected on categorical tracks", {
     expect_equal(data.frame(id = c(1, 2), time = c(5, 7), ref = c(-1, -1), t1 = c(-1, 4)), gt)
 })
 
-# test_that("emr_filter on df with operator throws errors", {
-#     emr_filter.clear()
-#     # This should work the same as the test bellow - keepref is ignored for filters with operators
+test_that("test filter on vtrack with avg", {
+    emr_filter.clear()
+    emr_vtrack.clear()
 
-#     df <- data.frame(id = c(1, 1, 2), time = c(5, 5, 7), ref = c(0, 1, 0), value = c(100, 500, 300))
+    df <- data.frame(id=c(1, 1, 3, 3), time=c(1, 3, 5, 7), value=c(1, 3, 5, 7))
 
-#     emr_track.import("t1", space = "user", categorical = FALSE, src = df)
-#     withr::defer(emr_track.rm("t1", force = TRUE))
+    emr_track.import("t", src=df, categorical=FALSE)
+    withr::defer(emr_track.rm("t", force=TRUE))
 
-#     # cant request filter with keepref FALSE on df with refs
-#     expect_error(emr_filter.create("lt.150", src = df, val = 150, keepref = FALSE, operator = "<"))
-#     expect_error(emr_filter.create("gt.150", src = df, val = 150, keepref = FALSE, operator = ">"))
-#     # cant create filter with df as source and vals
-#     expect_error(emr_filter.create("lt.150", src = df, val = 150, keepref = TRUE, operator = "<"))
-#     expect_error(emr_filter.create("gt.150", src = df, val = 150, keepref = TRUE, operator = ">"))
-# })
+    emr_vtrack.create("vt", src="t", func="avg", time.shift=c(-2,0))
+    withr::defer(emr_vtrack.rm("vt"))
+
+    expect_error(emr_filter.create("fvt", src="vt", operator=">", use_values=TRUE))
+    emr_filter.create("fvt", src="vt", val=3, operator=">", use_values=TRUE)
+
+    withr::defer(emr_filter.rm("fvt"))
+    
+    t <- emr_extract("vt", iterator="t", filter="fvt")
+
+    expect_equal(t, data.frame(id=c(3, 3), time=c(5, 7), ref=c(-1, -1), vt=c(5, 6)))
+})
