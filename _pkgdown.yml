@@ -1,5 +1,7 @@
 template:
-  bootstrap: 5
+  params:
+    bootstrap: 5
+    bootswatch: cosmo
 
 home:
   sidebar:
