@@ -31,7 +31,7 @@
     <loc>/reference/emr_date2time.html</loc>
   </url>
   <url>
-    <loc>/reference/emr_db.init.html</loc>
+    <loc>/reference/emr_db.connect.html</loc>
   </url>
   <url>
     <loc>/reference/emr_db.reload.html</loc>
@@ -55,7 +55,13 @@
     <loc>/reference/emr_filter.attr.src.html</loc>
   </url>
   <url>
+    <loc>/reference/emr_filter.clear.html</loc>
+  </url>
+  <url>
     <loc>/reference/emr_filter.create.html</loc>
+  </url>
+  <url>
+    <loc>/reference/emr_filter.create_from_name.html</loc>
   </url>
   <url>
     <loc>/reference/emr_filter.exists.html</loc>
@@ -65,6 +71,9 @@
   </url>
   <url>
     <loc>/reference/emr_filter.ls.html</loc>
+  </url>
+  <url>
+    <loc>/reference/emr_filter.name.html</loc>
   </url>
   <url>
     <loc>/reference/emr_filter.rm.html</loc>
@@ -127,6 +136,9 @@
     <loc>/reference/emr_track.create.html</loc>
   </url>
   <url>
+    <loc>/reference/emr_track.dbs.html</loc>
+  </url>
+  <url>
     <loc>/reference/emr_track.exists.html</loc>
   </url>
   <url>
@@ -178,6 +190,9 @@
     <loc>/reference/emr_vtrack.attr.src.html</loc>
   </url>
   <url>
+    <loc>/reference/emr_vtrack.clear.html</loc>
+  </url>
+  <url>
     <loc>/reference/emr_vtrack.create.html</loc>
   </url>
   <url>
@@ -197,5 +212,8 @@
   </url>
   <url>
     <loc>/reference/naryn-package.html</loc>
+  </url>
+  <url>
+    <loc>/reference/pipe.html</loc>
   </url>
 </urlset>

@@ -6,11 +6,11 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
     
 
-    <nav class="navbar fixed-top navbar-light navbar-expand-lg bg-light"><div class="container">
+    <nav class="navbar fixed-top navbar-dark navbar-expand-lg bg-primary"><div class="container">
     
     <a class="navbar-brand me-2" href="../index.html">naryn</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.6.3</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -66,16 +66,17 @@
   keepref <span class="op">=</span> <span class="cn">F</span>,
   time.shift <span class="op">=</span> <span class="cn">NULL</span>,
   val <span class="op">=</span> <span class="cn">NULL</span>,
-  expiration <span class="op">=</span> <span class="cn">NULL</span>
+  expiration <span class="op">=</span> <span class="cn">NULL</span>,
+  operator <span class="op">=</span> <span class="st">"="</span>
 <span class="op">)</span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>filter</dt>
-<dd><p>filter name</p></dd>
+<dd><p>filter name. If NULL - a name would be generated automatically using <code>emr_filter.name</code>.</p></dd>
 <dt>src</dt>
-<dd><p>source (track name or id-time table)</p></dd>
+<dd><p>source (track name or id-time table). Can be a vector of track names.</p></dd>
 <dt>keepref</dt>
 <dd><p>'TRUE' or 'FALSE'</p></dd>
 <dt>time.shift</dt>
@@ -84,10 +85,12 @@
 <dd><p>selected values</p></dd>
 <dt>expiration</dt>
 <dd><p>expiration period</p></dd>
+<dt>operator</dt>
+<dd><p>operator for filtering. Accepts one of: "=", "&lt;", "&lt;=", "&gt;", "&gt;="</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>Name of the filter (invisibly)</p>
+    <p>Name of the filter (invisibly, if filter name wasn't generated automatically)</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -96,14 +99,19 @@
 first columns named "id", "time" and an optional "ref".</p>
 <p>If 'val' is not 'NULL', the time window of the filter is required to contain
 at least one value from the vector of 'val'.</p>
-<p>'val' is allowed to be used only when 'src' is a name of a categorical
-track.</p>
+<p>'val' is allowed to be used only when 'src' is a name of a track, when val is specified,
+the filter will filter the i.d, time points by applying the 'operator' argument on the
+value of the point.</p>
 <p>If 'expiration' is not 'NULL' and the filter window contains a value at time
 't', the existence of previous values in the time window of [t-expiration,
 t-1] (aka: "expiration window") is checked. If no such values are found in
 the expiration window, the filter returns 'TRUE', otherwise 'FALSE'.</p>
 <p>'expiration' is allowed to be used only when 'src' is a name of a
 categorical track and 'keepref' is 'FALSE'.</p>
+<p>'operator' corresponds to the 'val' argument. The point passes the filter
+if the point's value passes the operator. For example if the point's value is 4,
+the operator is "&lt;" and val is 5, the expression evaluated is 4 &lt; 5 (pass).
+When 'operator' is not "=", 'vals' must exist, and be of length 1.</p>
 <p>If both 'val' and 'expiration' are not 'NULL' then only values from 'val'
 vector are checked both in time window and expiration window.</p>
 <p>Note: 'time.shift' can be used only when 'keepref' is 'FALSE'.</p>
@@ -111,15 +119,16 @@ vector are checked both in time window and expiration window.</p>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p><code><a href="emr_filter.attr.src.html">emr_filter.attr.src</a></code>, <code><a href="emr_filter.ls.html">emr_filter.ls</a></code>,
-<code><a href="emr_filter.exists.html">emr_filter.exists</a></code>, <code><a href="emr_filter.rm.html">emr_filter.rm</a></code></p></div>
+<code><a href="emr_filter.exists.html">emr_filter.exists</a></code>, <code><a href="emr_filter.rm.html">emr_filter.rm</a></code>, <code><a href="emr_filter.create_from_name.html">emr_filter.create_from_name</a></code></p></div>
     </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"></span>
-<span class="r-in"><span class="fu"><a href="emr_db.init.html">emr_db.init_examples</a></span><span class="op">(</span><span class="op">)</span></span>
+<span class="r-in"><span class="fu"><a href="emr_db.connect.html">emr_db.init_examples</a></span><span class="op">(</span><span class="op">)</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
 <span class="r-in"><span class="fu">emr_filter.create</span><span class="op">(</span><span class="st">"f1"</span>, <span class="st">"dense_track"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-in"><span class="fu">emr_filter.create</span><span class="op">(</span><span class="st">"f2"</span>, <span class="st">"dense_track"</span>, keepref <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span>
+<span class="r-in"><span class="fu">emr_filter.create</span><span class="op">(</span><span class="st">"f2"</span>, <span class="st">"dense_track"</span>, keepref <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span class="r-in"><span class="fu"><a href="emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"sparse_track"</span>, filter <span class="op">=</span> <span class="st">"!f1 &amp; f2"</span><span class="op">)</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   id time ref sparse_track</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1 25   12  -1          124</span>

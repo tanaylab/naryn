@@ -6,11 +6,11 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
     
 
-    <nav class="navbar fixed-top navbar-light navbar-expand-lg bg-light"><div class="container">
+    <nav class="navbar fixed-top navbar-dark navbar-expand-lg bg-primary"><div class="container">
     
     <a class="navbar-brand me-2" href="../index.html">naryn</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.6.3</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -54,6 +54,25 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.6.3" id="naryn-2-6-3">naryn 2.6.3<a class="anchor" aria-label="anchor" href="#naryn-2-6-3"></a></h2>
+<ul><li>Added support for operator based filtering, see ‘operator’ argument in <code>emr_filter.create</code>
+</li>
+<li>Added support for track attributes to logical tracks.</li>
+<li>Bug fix: dbs order was changed to lexicographical order on emr_db.connect.</li>
+<li>Bug fix: stray logical tracks on non-global dbs were shown.</li>
+<li>Make sure logical tracks cannot be created on non-global db.</li>
+<li>Added <code>db_id</code> parameter to <code>emr_track.ls</code>
+</li>
+<li>Removed cpp11 package dependency</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.6.2" id="naryn-2-6-2">naryn 2.6.2<a class="anchor" aria-label="anchor" href="#naryn-2-6-2"></a></h2>
+<ul><li>Added support for multiple databases.</li>
+<li>New functions: <code>emr_filter.name</code> and <code>emr_filter.create_from_name</code> allow creating filters with standard names.</li>
+<li>Bug fix: allow calling <code>emr_track.logical.create</code> when values are a list of length 1.</li>
+<li>Bug fix: wrong results when creating virtual track where the source is a logical track without parameters.</li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.6.1" id="naryn-2-6-1">naryn 2.6.1<a class="anchor" aria-label="anchor" href="#naryn-2-6-1"></a></h2>
 <ul><li>Added support for logical tracks.</li>
 <li>
@@ -68,7 +87,8 @@
 <li>Use the <code>devtools</code> ecosystem: <code>roxygen</code> documentation and <code>testthat</code> for tests.</li>
 <li>Added a <code>NEWS.md</code> file to track changes to the package.</li>
 </ul></div>
-  </main></div>
+  </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
+    </nav></aside></div>
 
 
     <footer><div class="pkgdown-footer-left">

@@ -22,11 +22,11 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
     
 
-    <nav class="navbar fixed-top navbar-light navbar-expand-lg bg-light"><div class="container">
+    <nav class="navbar fixed-top navbar-dark navbar-expand-lg bg-primary"><div class="container">
     
     <a class="navbar-brand me-2" href="../index.html">naryn</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.6.3</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -90,32 +90,38 @@
 <h2 id="database">Database<a class="anchor" aria-label="anchor" href="#database"></a>
 </h2>
 <div class="section level3">
-<h3 id="global-and-user-space-read-only-tracks">Global and User Space, Read-Only Tracks<a class="anchor" aria-label="anchor" href="#global-and-user-space-read-only-tracks"></a>
+<h3 id="db-dirs-namespaces-and-read-only-tracks">DB dirs, Namespaces and Read-Only Tracks<a class="anchor" aria-label="anchor" href="#db-dirs-namespaces-and-read-only-tracks"></a>
 </h3>
-<p>Naryn allows accessing the data that resides in <em>tracks</em> where each track holds certain type of medical data such as patients' diagnoses or their hemoglobin level at certain points of time. The track files are aggregated in a directory. Before the tracks can be accessed, Naryn needs to establish connection to this directory, also referred as a <em>global root</em> or <em>global space root</em>. Call <code>emr_db.init</code> function to establish the access to the tracks in the global root directory. Optionally <code>emr_db.init</code> accepts an additional <em>user root</em> (or <em>user space root</em>) directory which can also constains additional tracks.</p>
-<p>Even though both global and user root directories may contain track files their designation is different. The global root directory is intended to stay mainly read-only. The user root directory on the other hand is intended to store volatile data like the results of intermediate calculations. New tracks can be created in both user or global space using <code>emr_track.import</code> or <code>emr_track.create</code> yet the creation of tracks in the global space should be done for a well justified reason.</p>
-<p>A track may be marked as read-only to prevent its accidential deletion or modification. Use <code>emr_track.readonly</code> to set or get read-only property of the track. A newly created tracks is always writable. If you wish to mark it as "read-only", please do it in a separate call.</p>
+<p>Naryn allows accessing the data that resides in <em>tracks</em> where each track holds certain type of medical data such as patients' diagnoses or their hemoglobin level at certain points of time. The track files can be aggregated from one or more directories. Before the tracks can be accessed, Naryn needs to establish connection to the directories, also referred as <em>db dirs</em>. Call <code>emr_db.connect</code> function to establish the access to the tracks in the db_dirs. To establish a connection using <code>emr_db.connect</code>, Naryn requires to specify at-least one db dir. Optionally, <code>emr_db.connect</code> accepts additional db dirs which can also contain additional tracks. In a case where 2 or more db dirs contain the same track name (namespace collision), the track will be taken from the db dir which was passed <em>last</em> in the order of connections. For example, if we have 2 db dirs <code>/db1</code> and <code>/db2</code> which both contain a track named <code>track1</code>, the call <code>emr_db.connect(c('/db1', '/db2'))</code> will result with Naryn using <code>track1</code> from <code>/db2</code>. As you might expect the overriding is consistent not only for the track's data itself, but also for any other Naryn entity using or pointing to the track.</p>
+<p>Even though all db directories may contain track files, their designation is different. All the db dirs except for the last dir in the order of connections are mainly read-only. The directory which was connected last in the order, is termed <em>user dir</em>, and is intended to store volatile data like the results of intermediate calculations. New tracks can be created only in the db dir which was last in the order of connections, using <code>emr_track.import</code> or <code>emr_track.create</code>. In order to write tracks to a db dir which is not last in the connection order, you must explicitly pass the path to the required db dir, and this should be done for a well justified reason.</p>
+<p>A track may be marked as read-only to prevent its accidental deletion or modification. Use <code>emr_track.readonly</code> to set or get read-only property of the track. A newly created tracks is always writable. If you wish to mark it as "read-only", please do it in a separate call.</p>
 </div>
 <div class="section level3">
 <h3 id="load-on-demand-vs--pre-load-modes">Load-on-demand vs. Pre-load Modes<a class="anchor" aria-label="anchor" href="#load-on-demand-vs--pre-load-modes"></a>
 </h3>
-<p><code>emr_db.init</code> supports two modes of work - 'load on demand' and 'pre-load'. In 'load on demand' mode tracks are loaded into memory only when they are accessed. Tracks stay in the memory up until R sessions ends or the package is unloaded (Python: since modules cannot be forced to unload, <code>db_unload</code> is introduced).</p>
-<p>In 'pre-load' mode, all the tracks are pre-loaded into memory making subsequent track access significantly faster. As loaded tracks reside in shared memory, other R sessions running on the same machine may also enjoy significant run-time boost. On the flip side, pre-loading all the tracks prolongs the execution of <code>emr_db.init</code> and requires enough memory to accommodate all the data.</p>
-<p>Choosing between the two modes depends on the specific needs. While <code>load.on.demand=TRUE</code> seems to be a solid default choice, in an environment where there are frequent short-living R sessions, each accessing a track, one might opt for running a "daemon" - an additional permanent R session. The daemon would pre-load all the tracks in advance and stay alive thus boosting the run-time of the later emerging sessions.</p>
+<p><code>emr_db.connect</code> supports two modes of work - 'load on demand' and 'pre-load'. In 'load on demand' mode tracks are loaded into memory only when they are accessed. Tracks stay in the memory up until R sessions ends or the package is unloaded (Python: since modules cannot be forced to unload, <code>db_unload</code> is introduced).</p>
+<p>In 'pre-load' mode, all the tracks are pre-loaded into memory making subsequent track access significantly faster. As loaded tracks reside in shared memory, other R sessions running on the same machine may also enjoy significant run-time boost. On the flip side, pre-loading all the tracks prolongs the execution of <code>emr_db.connect</code> and requires enough memory to accommodate all the data.</p>
+<p>Choosing between the two modes depends on the specific needs. While <code>load_on_demand=TRUE</code> seems to be a solid default choice, in an environment where there are frequent short-living R sessions, each accessing a track, one might opt for running a "daemon" - an additional permanent R session. The daemon would pre-load all the tracks in advance and stay alive thus boosting the run-time of the later emerging sessions.</p>
 </div>
 <div class="section level3">
 <h3 id="maintaining-database">Maintaining Database<a class="anchor" aria-label="anchor" href="#maintaining-database"></a>
 </h3>
-<p>Naryn caches certain data on the disk to maintain fast run-times. In particular two files (<code>.naryn</code> and <code>.ids</code>) are created in a global root directory and one file (<code>.ids</code>}) in a user root directory.</p>
-<p><code>.naryn</code> file contains a list of all tracks in the current root directory and their last modification dates. This file spares a full root directory rescan when <code>emr_db.init</code> is called. The recorded modification dates allow to efficiently synchronize the track changes induced by synchronically running R sessions.</p>
+<p>Naryn caches certain data on the disk to maintain fast run-times. In particular two files (<code>.naryn</code> and <code>.ids</code>) are created in any database, and another file called <code>.logical_tracks</code> is created in global databases.</p>
+<p><code>.naryn</code> file contains a list of all tracks in the current root directory and their last modification dates. This file spares a full root directory rescan when <code>emr_db.connect</code> is called. The recorded modification dates allow to efficiently synchronize the track changes induced by synchronously running R sessions.</p>
+<p><code>.logical_tracks</code> implements the same mechanism for logical tracks, which store their properties (source and values) under a folder called <code>logical</code>.</p>
 <p><code>.ids</code> file contains available ids that are used to run certain types of <em>track expression iterators</em> (see below). The source of these ids comes from a `patients.dob} (i.e. Date Of Birth) track, which must be present in the global root directory before these iterators may be utilized.</p>
 <p>Various functions such as <code>emr_track.import</code> modify these files according to the changes that DB undergoes (addition / removal / modification of tracks). Thus manual (outside of Naryn) modification, replacement, addition or deletion of track files cause the cache files to go out of sync. Various problems might arise as a consequence, such as run-time errors, out-dated data from modified tracks and sub-optimal run-time performance.</p>
 <p>Manual modifications of the database files can still be performed, yet they must be ratified by running <code>emr_db.reload</code>.</p>
+<div class="section level4">
+<h4 id="file-and-directory-permissions">File and directory permissions<a class="anchor" aria-label="anchor" href="#file-and-directory-permissions"></a>
+</h4>
+<p>Naryn creates files and directories with a umask of <code>007</code> (except for read-only tracks), which means that files and directories would have permissions of <code>660 (rw-rw----)</code> and <code>770 (rwxrwx---)</code> respectively. This means that in order to access a database that someone outside the group created, the file and folder permissions need to be changed first.</p>
+</div>
 </div>
 <div class="section level3">
 <h3 id="tracks">Tracks<a class="anchor" aria-label="anchor" href="#tracks"></a>
 </h3>
-<p>Each track is stored in a binary file with <code>.nrtrack</code> file extention. One of the two internal formats, <em>dense</em> or <em>sparse</em>, is automatically selected during the track creation. The choice of the exact format is based on the optimal run-time performance.</p>
+<p>Each track is stored in a binary file with <code>.nrtrack</code> file extension. One of the two internal formats, <em>dense</em> or <em>sparse</em>, is automatically selected during the track creation. The choice of the exact format is based on the optimal run-time performance.</p>
 <div class="section level4">
 <h4 id="records-and-references">Records and References<a class="anchor" aria-label="anchor" href="#records-and-references"></a>
 </h4>
@@ -127,7 +133,7 @@
 <h4 id="categorical-and-quantitative-tracks">Categorical and Quantitative Tracks<a class="anchor" aria-label="anchor" href="#categorical-and-quantitative-tracks"></a>
 </h4>
 <p>Tracks store numerical values assigned to the patients and times. The numerical data however can have different meaning and hence impose different set of operations to be applied to it. Laboratory codes, diagnosis codes, binary information such as date of birth or doctor visits are one type of data which we call <em>categorical</em>. Another type of data indicate usually the readings of different instruments such as the heartbeat rate or glucose level. This type of data is called <em>quantitative</em>.</p>
-<p>The operations that can be applied to both of these types can be very different. One might want to search for the specific diagnosis code, yet it makes little sense to search for the very specific heartbeat rate, say "68". On contrary hearbeat rate readings from different times can be averaged or a mean value might be calculated - something that has no meaning in case of categorical data.</p>
+<p>The operations that can be applied to both of these types can be very different. One might want to search for the specific diagnosis code, yet it makes little sense to search for the very specific heartbeat rate, say "68". On contrary heartbeat rate readings from different times can be averaged or a mean value might be calculated - something that has no meaning in case of categorical data.</p>
 <p>During the track creation one must specify the type of the track: categorical or quantitative. Various operations that can be later applied to the track are bound to the track type.</p>
 </div>
 <div class="section level4">
@@ -227,8 +233,8 @@
 <div class="section level4">
 <h4 id="subsets">Subsets<a class="anchor" aria-label="anchor" href="#subsets"></a>
 </h4>
-<p>The analysis of data often involves dividing the data to train and test sets. Naryn allows to subset the data via <code>emr_db.subset</code> function. <code>emr_db.subset</code> accepts a list of ids or samples the ids randomally. These ids constitute the subset. The ids that are not in the subset are skipped by all the <em>iterators</em>, <em>filters</em> and various functions.</p>
-<p>One may think of a subset as an additonal layer, a "viewport", that filters out some of the ids. Some lower-level functions such as <code>emr_track.info</code> or <code>emr_track.unique</code> ignore the subsets. Same applies to <code>percentile.*</code> functions of the virtual tracks.</p>
+<p>The analysis of data often involves dividing the data to train and test sets. Naryn allows to subset the data via <code>emr_db.subset</code> function. <code>emr_db.subset</code> accepts a list of ids or samples the ids randomly. These ids constitute the subset. The ids that are not in the subset are skipped by all the <em>iterators</em>, <em>filters</em> and various functions.</p>
+<p>One may think of a subset as an additional layer, a "viewport", that filters out some of the ids. Some lower-level functions such as <code>emr_track.info</code> or <code>emr_track.unique</code> ignore the subsets. Same applies to <code>percentile.*</code> functions of the virtual tracks.</p>
 </div>
 </div>
 </div>
@@ -250,7 +256,7 @@
 <h4 id="run-time-track-variable-is-a-vector">Run-time Track Variable is a Vector<a class="anchor" aria-label="anchor" href="#run-time-track-variable-is-a-vector"></a>
 </h4>
 <p>To boost the performance of the track expression evaluation, run-time track variables are actually defined as vectors in R rather than scalars. The result of the evaluation is expected to be also a vector of a similar size. One should always keep in his mind the vectorial notation and write the track expressions accordingly.</p>
-<p>For example, at first glance a track expression <code>"min(mytrack, 10)"</code> seems to be perfectly fine. However the evaluation of this expression produces always a scalar, i.e. a signle number even if <code>mytrack</code> is actually a vector. The way to correct the specific track expression so that it works on vectors, is to use <code>pmin</code> function instead of <code>min</code>.</p>
+<p>For example, at first glance a track expression <code>"min(mytrack, 10)"</code> seems to be perfectly fine. However the evaluation of this expression produces always a scalar, i.e. a single number even if <code>mytrack</code> is actually a vector. The way to correct the specific track expression so that it works on vectors, is to use <code>pmin</code> function instead of <code>min</code>.</p>
 <p><strong>Python</strong></p>
 <p>Similarly to R, a track variable in Python is not a scalar but rather an instance of <code>numpy.ndarray</code>. The evaluation of a track expression must therefore produce a <code>numpy.ndarray</code> as well. Various operations on numpy arrays indeed work the same way as with scalars, however logical operations require different syntax. For instance:</p>
 <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python">screen(<span class="st">"mytrack1 &gt; 1 and mytrack2 &lt; 2"</span>, iterator <span class="op">=</span> <span class="st">"mytrack1"</span>)</code></pre></div>
@@ -267,7 +273,7 @@
 <div class="section level4">
 <h4 id="virtual-tracks">Virtual Tracks<a class="anchor" aria-label="anchor" href="#virtual-tracks"></a>
 </h4>
-<p>So far we have shown that in some situations <code>mytrack</code> variable can be set to the average of the matching track values. But what if we do not want to average the values but rather pick up the maximal, minimal or median value? What if we want to use the percentile of a track value rather than the value itself? And maybe we even want to alter the time of the iterator point: shift it or expand to a time window and by that look at the different set of track values? For instance: given an iterator point we might want to know what was the maximal level of glucose during the last year that preceeded the time of the point.</p>
+<p>So far we have shown that in some situations <code>mytrack</code> variable can be set to the average of the matching track values. But what if we do not want to average the values but rather pick up the maximal, minimal or median value? What if we want to use the percentile of a track value rather than the value itself? And maybe we even want to alter the time of the iterator point: shift it or expand to a time window and by that look at the different set of track values? For instance: given an iterator point we might want to know what was the maximal level of glucose during the last year that preceded the time of the point.</p>
 <p>This is where virtual tracks come in use.</p>
 <p>Virtual track is a named set of rules that describe how the track should be proceeded, and how the time of the iterator point should be modified. Virtual tracks are created by <code>emr_vtrack.create</code> function:</p>
 <div class="sourceCode"><pre class="downlit sourceCode r">
@@ -280,7 +286,7 @@
 <p>Once a virtual track is created it can be used in a track expression:</p>
 <div class="sourceCode"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"annual_glucose"</span>, iterator <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="../reference/emr_time.html">year</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"patients.dob"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
-<p>This would give us a median of an annual glucose level in year-steps starting from the patient's birthday. (This example makes use of an <em>Extended Beat Iterator</em> that would be expalained later.)</p>
+<p>This would give us a median of an annual glucose level in year-steps starting from the patient's birthday. (This example makes use of an <em>Extended Beat Iterator</em> that would be explained later.)</p>
 <p>Let's expand our example further and ignore in our calculations the glucose readings that had been made within a week after steroids had been prescribed. We can use an additional <code>filter</code> parameter to do that.</p>
 <div class="sourceCode"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/emr_filter.create.html">emr_filter.create</a></span><span class="op">(</span><span class="st">"steroids_filter"</span>, <span class="st">"steroids_track"</span>, time.shift<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="../reference/emr_time.html">week</a></span><span class="op">(</span><span class="op">)</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span>
@@ -405,7 +411,7 @@
 <div class="section level3">
 <h3 id="filters">Filters<a class="anchor" aria-label="anchor" href="#filters"></a>
 </h3>
-<p><em>Filter</em> is used to approve / reject an ID-Time point. It can be applied to an iterator, in which case the iterator points are required to be approved by the filter before they are passed further to the track expression. Filter may also be used by a virtual track. In this case the virtual track function (see <code>func</code> parameter of <code>emr_vitrack.create</code>) is applied only to the points from the source track (<code>src</code> parameter) that pass the filter.</p>
+<p><em>Filter</em> is used to approve / reject an ID-Time point. It can be applied to an iterator, in which case the iterator points are required to be approved by the filter before they are passed further to the track expression. Filter may also be used by a virtual track. In this case the virtual track function (see <code>func</code> parameter of <code>emr_vtrack.create</code>) is applied only to the points from the source track (<code>src</code> parameter) that pass the filter.</p>
 <p>Filter has a form of a logical expression consisting of <em>named</em> or <em>unnamed</em> <em>elementary filters</em> (the "building bricks" of the filter) connected with the logical operators: <code>&amp;</code>, <code>|</code>, <code>!</code> (<code>and</code>, <code>or</code> and <code>not</code> in Python) and brackets <code>()</code>.</p>
 <div class="section level4">
 <h4 id="named-filters">Named Filters<a class="anchor" aria-label="anchor" href="#named-filters"></a>
@@ -416,6 +422,13 @@
 <span class="fu"><a href="../reference/emr_filter.create.html">emr_filter.create</a></span><span class="op">(</span><span class="st">"filterY"</span>, <span class="st">"drugY"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="../reference/emr_time.html">week</a></span><span class="op">(</span><span class="op">)</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span>
 <span class="fu"><a href="../reference/emr_filter.create.html">emr_filter.create</a></span><span class="op">(</span><span class="st">"filterZ"</span>, <span class="st">"drugZ"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="../reference/emr_time.html">week</a></span><span class="op">(</span><span class="op">)</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span>
 <span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"hemoglobin"</span>, filter <span class="op">=</span> <span class="st">"(filterX | filterY) &amp; !filterZ"</span><span class="op">)</span></code></pre></div>
+<p>We can further expand the example above by specifying the 'operator' argument on filter creation. If we wish to extract, the same information as before, but in this case we are interested only in patients which have an hemoglobin level of atleast 16 (in addition to our drug treatment requirments). Under the same assumptions in the previous example, our code would look like:</p>
+<div class="sourceCode"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="../reference/emr_filter.create.html">emr_filter.create</a></span><span class="op">(</span><span class="st">"filterX"</span>, <span class="st">"drugX"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="../reference/emr_time.html">week</a></span><span class="op">(</span><span class="op">)</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span>
+<span class="fu"><a href="../reference/emr_filter.create.html">emr_filter.create</a></span><span class="op">(</span><span class="st">"filterY"</span>, <span class="st">"drugY"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="../reference/emr_time.html">week</a></span><span class="op">(</span><span class="op">)</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span>
+<span class="fu"><a href="../reference/emr_filter.create.html">emr_filter.create</a></span><span class="op">(</span><span class="st">"filterZ"</span>, <span class="st">"drugZ"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="../reference/emr_time.html">week</a></span><span class="op">(</span><span class="op">)</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span>
+<span class="fu"><a href="../reference/emr_filter.create.html">emr_filter.create</a></span><span class="op">(</span><span class="st">"hemoglobin_gt_16"</span>, <span class="st">"hemoglobin"</span>, val<span class="op">=</span><span class="fl">16</span>, operator<span class="op">=</span><span class="st">"&gt;"</span><span class="op">)</span>
+<span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"hemoglobin"</span>, filter <span class="op">=</span> <span class="st">"(filterX | filterY) &amp; !filterZ &amp; hemoglobin_gt_16"</span><span class="op">)</span></code></pre></div>
 <p><strong>Python</strong></p>
 <p>Filter with logical conditions will use Python's notation like:</p>
 <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python">extract(<span class="st">"hemoglobin"</span>, <span class="bu">filter</span> <span class="op">=</span> <span class="st">"(filterX or filterY) and not filterZ"</span>)</code></pre></div>
@@ -444,7 +457,7 @@
 <div class="section level3">
 <h3 id="random-algorithms">Random Algorithms<a class="anchor" aria-label="anchor" href="#random-algorithms"></a>
 </h3>
-<p>Various functions in the library such as <code>emr_quantiles</code> make use of pseudo-random number generator. Each time the function is invoked a unique series of random numbers is issued. Hence two identical calls might produce different results. To guarantee reproducible results call <code>set.seed</code> (Python: texttt{seed`) before invoking the function.</p>
+<p>Various functions in the library such as <code>emr_quantiles</code> make use of pseudo-random number generator. Each time the function is invoked a unique series of random numbers is issued. Hence two identical calls might produce different results. To guarantee reproducible results call <code>set.seed</code> (Python: <code>seed</code>) before invoking the function.</p>
 <p>Note: R and Python implementations of Naryn use different pseudo-random number generator algorithms. Sadly it means that the result achieved in R cannot be reproducible in Python if random is used, even if identical seed is shared between the two platforms.</p>
 </div>
 <div class="section level3">
@@ -480,7 +493,7 @@
 <td><code>xxx_yyy_zzz</code></td>
 </tr>
 <tr class="even">
-<td>Varibales</td>
+<td>Variables</td>
 <td>Defined in global environment: <br><code>EMR_GROOT</code><br><code>EMR_UROOT</code>
 </td>
 <td>Defined in module's environment:<br><code>_GROOT</code><br><code>_UROOT</code>

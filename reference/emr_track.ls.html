@@ -6,11 +6,11 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
     
 
-    <nav class="navbar fixed-top navbar-light navbar-expand-lg bg-light"><div class="container">
+    <nav class="navbar fixed-top navbar-dark navbar-expand-lg bg-primary"><div class="container">
     
     <a class="navbar-brand me-2" href="../index.html">naryn</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.6.3</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -62,6 +62,7 @@
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">emr_track.ls</span><span class="op">(</span>
   <span class="va">...</span>,
+  db_id <span class="op">=</span> <span class="cn">NULL</span>,
   ignore.case <span class="op">=</span> <span class="cn">FALSE</span>,
   perl <span class="op">=</span> <span class="cn">FALSE</span>,
   fixed <span class="op">=</span> <span class="cn">FALSE</span>,
@@ -98,6 +99,9 @@
     <dl><dt>...</dt>
 <dd><p>these arguments are of either form 'pattern' or 'attribute =
 pattern'</p></dd>
+<dt>db_id</dt>
+<dd><p>db dir string (path), one of the paths supplied in emr_db.connect. If NULL - all track names would be
+returned.</p></dd>
 <dt>ignore.case, perl, fixed, useBytes</dt>
 <dd><p>see 'grep'</p></dd>
 </dl></div>
@@ -117,20 +121,24 @@ supplied with a track attribute (i.e. in the form of 'name = pattern') then
 track attribute is matched against the pattern.</p>
 <p>Multiple patterns are applied one after another. The resulted list of tracks
 should match all the patterns.</p>
+<p>If <code>db_id</code> parameter is set, only tracks within the specific db would be shown.
+Note that tracks which were overriden by other databases would not be shown, even if
+their files exist within the database. See <code>emr_db.connect</code> for more details.</p>
 <p>'emr_track.global.ls', 'emr_track.user.ls', 'emr_track.logical.ls' work similarly to
 'emr_track.ls' but instead of returning all track names, each of them
 returns either global, local or logical tracks accordingly.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code><a href="https://rdrr.io/r/base/grep.html" class="external-link">grep</a></code>, <code><a href="emr_db.init.html">emr_db.init</a></code>,
+    <div class="dont-index"><p><code><a href="https://rdrr.io/r/base/grep.html" class="external-link">grep</a></code>, <code><a href="emr_db.connect.html">emr_db.init</a></code>,
 <code><a href="emr_track.exists.html">emr_track.exists</a></code></p></div>
     </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"></span>
-<span class="r-in"><span class="fu"><a href="emr_db.init.html">emr_db.init_examples</a></span><span class="op">(</span><span class="op">)</span></span>
+<span class="r-in"><span class="fu"><a href="emr_db.connect.html">emr_db.init_examples</a></span><span class="op">(</span><span class="op">)</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
 <span class="r-in"></span>
 <span class="r-in"><span class="co"># get all track names</span></span>
 <span class="r-in"><span class="fu">emr_track.ls</span><span class="op">(</span><span class="op">)</span></span>

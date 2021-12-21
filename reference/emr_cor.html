@@ -6,11 +6,11 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
     
 
-    <nav class="navbar fixed-top navbar-light navbar-expand-lg bg-light"><div class="container">
+    <nav class="navbar fixed-top navbar-dark navbar-expand-lg bg-primary"><div class="container">
     
     <a class="navbar-brand me-2" href="../index.html">naryn</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.6.3</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -68,7 +68,7 @@
   stime <span class="op">=</span> <span class="cn">NULL</span>,
   etime <span class="op">=</span> <span class="cn">NULL</span>,
   iterator <span class="op">=</span> <span class="cn">NULL</span>,
-  keepref <span class="op">=</span> <span class="cn">F</span>,
+  keepref <span class="op">=</span> <span class="cn">FALSE</span>,
   filter <span class="op">=</span> <span class="cn">NULL</span>,
   dataframe <span class="op">=</span> <span class="cn">FALSE</span>,
   names <span class="op">=</span> <span class="cn">NULL</span>
@@ -77,12 +77,13 @@
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
-    <dl><dt>cor.exprs</dt>
+    <dl><dt>...</dt>
+<dd><p>pairs of [factor.expr, breaks], where <code>factor.expr</code> is the  track expression and breaks are the breaks that determine the bin or 'NULL'.</p></dd>
+<dt>cor.exprs</dt>
 <dd><p>vector of track expressions for which correlation
 statistics is calculated.</p></dd>
 <dt>include.lowest</dt>
-<dd><p>if 'TRUE', the lowest (or highest, for ‘right =
-FALSE’) value of the range determined by breaks is included.</p></dd>
+<dd><p>if 'TRUE', the lowest (or highest, for 'right = FALSE') value of the range determined by breaks is included.</p></dd>
 <dt>right</dt>
 <dd><p>if 'TRUE' the intervals are closed on the right (and open on
 the left), otherwise vice versa.</p></dd>
@@ -101,10 +102,6 @@ implicitly based on track expressions. See also 'iterator' section.</p></dd>
 <dd><p>return a data frame instead of an N-dimensional vector.</p></dd>
 <dt>names</dt>
 <dd><p>names for track expressions in the returned dataframe (only relevant when <code>dataframe == TRUE</code>)</p></dd>
-<dt>expr</dt>
-<dd><p>track expression.</p></dd>
-<dt>breaks</dt>
-<dd><p>breaks that determine the bin or 'NULL'.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -201,12 +198,16 @@ emr_extract("emr_time2dayofmonth(EMR_TIME)", iterator = "sparse_track") <br></p>
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"></span>
-<span class="r-in"><span class="fu"><a href="emr_db.init.html">emr_db.init_examples</a></span><span class="op">(</span><span class="op">)</span></span>
+<span class="r-in"><span class="fu"><a href="emr_db.connect.html">emr_db.init_examples</a></span><span class="op">(</span><span class="op">)</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
 <span class="r-in"><span class="fu">emr_cor</span><span class="op">(</span><span class="st">"categorical_track"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">5</span><span class="op">)</span>,</span>
 <span class="r-in">    cor.exprs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sparse_track"</span>, <span class="st">"1/dense_track"</span><span class="op">)</span>,</span>
-<span class="r-in">    include.lowest <span class="op">=</span> <span class="cn">T</span>, iterator <span class="op">=</span> <span class="st">"categorical_track"</span>,</span>
-<span class="r-in">    keepref <span class="op">=</span> <span class="cn">T</span></span>
+<span class="r-in">    include.lowest <span class="op">=</span> <span class="cn">TRUE</span>, iterator <span class="op">=</span> <span class="st">"categorical_track"</span>,</span>
+<span class="r-in">    keepref <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span class="r-in"><span class="op">)</span></span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Track categorical_track seems to be modified outside of naryn.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> This might slow down the performance.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> Please call emr_db.reload to fix the problem</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $n</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> , , sparse_track</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
@@ -283,8 +284,8 @@ emr_extract("emr_time2dayofmonth(EMR_TIME)", iterator = "sparse_track") <br></p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span class="fu">emr_cor</span><span class="op">(</span><span class="st">"categorical_track"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">5</span><span class="op">)</span>,</span>
 <span class="r-in">    cor.exprs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sparse_track"</span>, <span class="st">"1/dense_track"</span><span class="op">)</span>,</span>
-<span class="r-in">    include.lowest <span class="op">=</span> <span class="cn">T</span>, iterator <span class="op">=</span> <span class="st">"categorical_track"</span>,</span>
-<span class="r-in">    keepref <span class="op">=</span> <span class="cn">T</span>,</span>
+<span class="r-in">    include.lowest <span class="op">=</span> <span class="cn">TRUE</span>, iterator <span class="op">=</span> <span class="st">"categorical_track"</span>,</span>
+<span class="r-in">    keepref <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span class="r-in">    dataframe <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span class="r-in"><span class="op">)</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   categorical_track             i             j n            e          var</span>

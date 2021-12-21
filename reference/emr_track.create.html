@@ -6,11 +6,11 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
     
 
-    <nav class="navbar fixed-top navbar-light navbar-expand-lg bg-light"><div class="container">
+    <nav class="navbar fixed-top navbar-dark navbar-expand-lg bg-primary"><div class="container">
     
     <a class="navbar-brand me-2" href="../index.html">naryn</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.6.3</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -62,14 +62,15 @@
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">emr_track.create</span><span class="op">(</span>
   <span class="va">track</span>,
-  <span class="va">space</span>,
+  space <span class="op">=</span> <span class="va">EMR_UROOT</span>,
   <span class="va">categorical</span>,
   <span class="va">expr</span>,
   stime <span class="op">=</span> <span class="cn">NULL</span>,
   etime <span class="op">=</span> <span class="cn">NULL</span>,
   iterator <span class="op">=</span> <span class="cn">NULL</span>,
-  keepref <span class="op">=</span> <span class="cn">F</span>,
-  filter <span class="op">=</span> <span class="cn">NULL</span>
+  keepref <span class="op">=</span> <span class="cn">FALSE</span>,
+  filter <span class="op">=</span> <span class="cn">NULL</span>,
+  override <span class="op">=</span> <span class="cn">FALSE</span>
 <span class="op">)</span></code></pre></div>
     </div>
 
@@ -78,7 +79,7 @@
     <dl><dt>track</dt>
 <dd><p>the name of the newly created track</p></dd>
 <dt>space</dt>
-<dd><p>"user" or "global" space</p></dd>
+<dd><p>db path, one of the paths supplied in emr_db.connect</p></dd>
 <dt>categorical</dt>
 <dd><p>if 'TRUE' track is marked as categorical</p></dd>
 <dt>expr</dt>
@@ -94,6 +95,8 @@ implicitly based on track expressions. See also 'iterator' section.</p></dd>
 <dd><p>If 'TRUE' references are preserved in the iterator</p></dd>
 <dt>filter</dt>
 <dd><p>Iterator filter</p></dd>
+<dt>override</dt>
+<dd><p>Boolean indicating whether the creation intends to override an existing track (default FALSE)</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -101,9 +104,9 @@ implicitly based on track expressions. See also 'iterator' section.</p></dd>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>This function creates a new user or global track based on the values from
+    <p>This function creates a new track based on the values from
 the track expression. The location of the track is controlled via 'space'
-parameter which can be either "user" or to "global".</p>
+parameter which can be any of the db_dirs supplied in emr_db.connect</p>
     </div>
     <div class="section level2">
     <h2 id="iterator">iterator<a class="anchor" aria-label="anchor" href="#iterator"></a></h2>

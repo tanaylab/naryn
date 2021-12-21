@@ -6,11 +6,11 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
     
 
-    <nav class="navbar fixed-top navbar-light navbar-expand-lg bg-light"><div class="container">
+    <nav class="navbar fixed-top navbar-dark navbar-expand-lg bg-primary"><div class="container">
     
     <a class="navbar-brand me-2" href="../index.html">naryn</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.6.3</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -65,7 +65,7 @@
   <span class="va">src</span>,
   func <span class="op">=</span> <span class="cn">NULL</span>,
   params <span class="op">=</span> <span class="cn">NULL</span>,
-  keepref <span class="op">=</span> <span class="cn">F</span>,
+  keepref <span class="op">=</span> <span class="cn">FALSE</span>,
   time.shift <span class="op">=</span> <span class="cn">NULL</span>,
   id.map <span class="op">=</span> <span class="cn">NULL</span>,
   filter <span class="op">=</span> <span class="cn">NULL</span>
@@ -169,7 +169,8 @@ can be used in 'func'.</p>
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"></span>
-<span class="r-in"><span class="fu"><a href="emr_db.init.html">emr_db.init_examples</a></span><span class="op">(</span><span class="op">)</span></span>
+<span class="r-in"><span class="fu"><a href="emr_db.connect.html">emr_db.init_examples</a></span><span class="op">(</span><span class="op">)</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
 <span class="r-in"></span>
 <span class="r-in"><span class="fu">emr_vtrack.create</span><span class="op">(</span><span class="st">"vtrack1"</span>, <span class="st">"dense_track"</span>,</span>
 <span class="r-in">    time.shift <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -178,13 +179,13 @@ can be used in 'func'.</p>
 <span class="r-in"><span class="fu">emr_vtrack.create</span><span class="op">(</span><span class="st">"vtrack2"</span>, <span class="st">"dense_track"</span>,</span>
 <span class="r-in">    time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">5</span>, <span class="fl">10</span><span class="op">)</span>, func <span class="op">=</span> <span class="st">"min"</span></span>
 <span class="r-in"><span class="op">)</span></span>
-<span class="r-in"><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"dense_track"</span>, keepref <span class="op">=</span> <span class="cn">T</span>, names <span class="op">=</span> <span class="st">"value"</span><span class="op">)</span></span>
-<span class="r-in"><span class="fu">emr_vtrack.create</span><span class="op">(</span><span class="st">"vtrack3"</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">res</span>, <span class="cn">F</span><span class="op">)</span>,</span>
+<span class="r-in"><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"dense_track"</span>, keepref <span class="op">=</span> <span class="cn">TRUE</span>, names <span class="op">=</span> <span class="st">"value"</span><span class="op">)</span></span>
+<span class="r-in"><span class="fu">emr_vtrack.create</span><span class="op">(</span><span class="st">"vtrack3"</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">res</span>, <span class="cn">FALSE</span><span class="op">)</span>,</span>
 <span class="r-in">    time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">5</span>, <span class="fl">10</span><span class="op">)</span>,</span>
 <span class="r-in">    func <span class="op">=</span> <span class="st">"min"</span></span>
 <span class="r-in"><span class="op">)</span></span>
 <span class="r-in"><span class="fu"><a href="emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"dense_track"</span>, <span class="st">"vtrack1"</span>, <span class="st">"vtrack2"</span>, <span class="st">"vtrack3"</span><span class="op">)</span>,</span>
-<span class="r-in">    keepref <span class="op">=</span> <span class="cn">T</span>, iterator <span class="op">=</span> <span class="st">"dense_track"</span></span>
+<span class="r-in">    keepref <span class="op">=</span> <span class="cn">TRUE</span>, iterator <span class="op">=</span> <span class="st">"dense_track"</span></span>
 <span class="r-in"><span class="op">)</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    id time ref dense_track vtrack1 vtrack2 vtrack3</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1  22    1   3          13     NaN      13      13</span>

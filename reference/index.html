@@ -6,11 +6,11 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
     
 
-    <nav class="navbar fixed-top navbar-light navbar-expand-lg bg-light"><div class="container">
+    <nav class="navbar fixed-top navbar-dark navbar-expand-lg bg-primary"><div class="container">
     
     <a class="navbar-brand me-2" href="../index.html">naryn</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.6.3</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -126,9 +126,9 @@
 
       <dl><dt>
           
-          <code><a href="emr_db.init.html">emr_db.init()</a></code> 
+          <code><a href="emr_db.connect.html">emr_db.init()</a></code> <code><a href="emr_db.connect.html">emr_db.connect()</a></code> 
         </dt>
-        <dd>Initializes connection with Naryn Database</dd>
+        <dd>Deprecated - please user emr_db.connect</dd>
       </dl><dl><dt>
           
           <code><a href="emr_db.reload.html">emr_db.reload()</a></code> 
@@ -192,6 +192,12 @@
         <dd>Creates a track from a track expression</dd>
       </dl><dl><dt>
           
+          <code><a href="emr_track.dbs.html">emr_track.dbs()</a></code> <code><a href="emr_track.dbs.html">emr_track.current_db()</a></code> 
+        </dt>
+        <dd>Returns a vector of db ids which have a
+version of the track</dd>
+      </dl><dl><dt>
+          
           <code><a href="emr_track.exists.html">emr_track.exists()</a></code> 
         </dt>
         <dd>Checks whether the track exists</dd>
@@ -209,7 +215,7 @@
           
           <code><a href="emr_track.info.html">emr_track.info()</a></code> 
         </dt>
-        <dd>Returns information about the track</dd>
+        <dd>Returns information about the track.</dd>
       </dl><dl><dt>
           
           <code><a href="emr_track.logical.create.html">emr_track.logical.create()</a></code> 
@@ -283,9 +289,14 @@
 
       <dl><dt>
           
-          <code><a href="emr_vtrack.attr.src.html">emr_vtrack.attr.src()</a></code> 
+          <code><a href="emr_vtrack.attr.src.html">emr_vtrack.attr.src()</a></code> <code><a href="emr_vtrack.attr.src.html">emr_vtrack.attr.func()</a></code> <code><a href="emr_vtrack.attr.src.html">emr_vtrack.attr.params()</a></code> <code><a href="emr_vtrack.attr.src.html">emr_vtrack.attr.keepref()</a></code> <code><a href="emr_vtrack.attr.src.html">emr_vtrack.attr.time.shift()</a></code> <code><a href="emr_vtrack.attr.src.html">emr_vtrack.attr.id.map()</a></code> <code><a href="emr_vtrack.attr.src.html">emr_vtrack.attr.filter()</a></code> 
         </dt>
         <dd>Get or set attributes of a virtual track</dd>
+      </dl><dl><dt>
+          
+          <code><a href="emr_vtrack.clear.html">emr_vtrack.clear()</a></code> 
+        </dt>
+        <dd>Clear all virtual tracks from the current environment</dd>
       </dl><dl><dt>
           
           <code><a href="emr_vtrack.create.html">emr_vtrack.create()</a></code> 
@@ -324,14 +335,24 @@
 
       <dl><dt>
           
-          <code><a href="emr_filter.attr.src.html">emr_filter.attr.src()</a></code> 
+          <code><a href="emr_filter.attr.src.html">emr_filter.attr.src()</a></code> <code><a href="emr_filter.attr.src.html">emr_filter.attr.keepref()</a></code> <code><a href="emr_filter.attr.src.html">emr_filter.attr.time.shift()</a></code> <code><a href="emr_filter.attr.src.html">emr_filter.attr.val()</a></code> <code><a href="emr_filter.attr.src.html">emr_filter.attr.expiration()</a></code> 
         </dt>
         <dd>Get or set attributes of a named filter</dd>
+      </dl><dl><dt>
+          
+          <code><a href="emr_filter.clear.html">emr_filter.clear()</a></code> 
+        </dt>
+        <dd>Clear all filters from the current environment</dd>
       </dl><dl><dt>
           
           <code><a href="emr_filter.create.html">emr_filter.create()</a></code> 
         </dt>
         <dd>Creates a new named filter</dd>
+      </dl><dl><dt>
+          
+          <code><a href="emr_filter.create_from_name.html">emr_filter.create_from_name()</a></code> 
+        </dt>
+        <dd>Create a filter from an automatically generated name</dd>
       </dl><dl><dt>
           
           <code><a href="emr_filter.exists.html">emr_filter.exists()</a></code> 
@@ -347,6 +368,11 @@
           <code><a href="emr_filter.ls.html">emr_filter.ls()</a></code> 
         </dt>
         <dd>Returns a list of named filters</dd>
+      </dl><dl><dt>
+          
+          <code><a href="emr_filter.name.html">emr_filter.name()</a></code> 
+        </dt>
+        <dd>Generate a default name for a naryn filter</dd>
       </dl><dl><dt>
           
           <code><a href="emr_filter.rm.html">emr_filter.rm()</a></code> 

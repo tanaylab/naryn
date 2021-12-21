@@ -8,11 +8,11 @@ bins."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathj
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
     
 
-    <nav class="navbar fixed-top navbar-light navbar-expand-lg bg-light"><div class="container">
+    <nav class="navbar fixed-top navbar-dark navbar-expand-lg bg-primary"><div class="container">
     
     <a class="navbar-brand me-2" href="../index.html">naryn</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.6.3</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -79,9 +79,10 @@ bins.</p>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
-    <dl><dt>include.lowest</dt>
-<dd><p>if 'TRUE', the lowest (or highest, for ‘right =
-FALSE’) value of the range determined by breaks is included</p></dd>
+    <dl><dt>...</dt>
+<dd><p>pairs of [expr, breaks], where <code>expr</code> is the  track expression and breaks are the breaks that determine the bin or 'NULL'.</p></dd>
+<dt>include.lowest</dt>
+<dd><p>if 'TRUE', the lowest (or highest, for 'right = FALSE') value of the range determined by breaks is included</p></dd>
 <dt>right</dt>
 <dd><p>if 'TRUE' the intervals are closed on the right (and open on
 the left), otherwise vice versa.</p></dd>
@@ -100,10 +101,6 @@ implicitly based on track expressions. See also 'iterator' section.</p></dd>
 <dd><p>return a data frame instead of an N-dimensional vector.</p></dd>
 <dt>names</dt>
 <dd><p>names for track expressions in the returned dataframe (only relevant when <code>dataframe == TRUE</code>)</p></dd>
-<dt>expr</dt>
-<dd><p>track expression</p></dd>
-<dt>breaks</dt>
-<dd><p>breaks that determine the bin or 'NULL'</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -192,15 +189,16 @@ emr_extract("emr_time2dayofmonth(EMR_TIME)", iterator = "sparse_track") <br></p>
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"></span>
-<span class="r-in"><span class="fu"><a href="emr_db.init.html">emr_db.init_examples</a></span><span class="op">(</span><span class="op">)</span></span>
-<span class="r-in"><span class="fu">emr_dist</span><span class="op">(</span><span class="st">"sparse_track"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">15</span>, <span class="fl">20</span>, <span class="fl">30</span>, <span class="fl">40</span>, <span class="fl">50</span><span class="op">)</span>, keepref <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span>
+<span class="r-in"><span class="fu"><a href="emr_db.connect.html">emr_db.init_examples</a></span><span class="op">(</span><span class="op">)</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
+<span class="r-in"><span class="fu">emr_dist</span><span class="op">(</span><span class="st">"sparse_track"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">15</span>, <span class="fl">20</span>, <span class="fl">30</span>, <span class="fl">40</span>, <span class="fl">50</span><span class="op">)</span>, keepref <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  (0,15] (15,20] (20,30] (30,40] (40,50] </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       4       1       4       1       0 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"breaks")</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"breaks")[[1]]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1]  0 15 20 30 40 50</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-in"><span class="fu">emr_dist</span><span class="op">(</span><span class="st">"sparse_track"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">15</span>, <span class="fl">20</span>, <span class="fl">30</span>, <span class="fl">40</span>, <span class="fl">50</span><span class="op">)</span>, keepref <span class="op">=</span> <span class="cn">T</span>, dataframe <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span class="r-in"><span class="fu">emr_dist</span><span class="op">(</span><span class="st">"sparse_track"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">15</span>, <span class="fl">20</span>, <span class="fl">30</span>, <span class="fl">40</span>, <span class="fl">50</span><span class="op">)</span>, keepref <span class="op">=</span> <span class="cn">TRUE</span>, dataframe <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   sparse_track n</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1       (0,15] 4</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2      (15,20] 1</span>

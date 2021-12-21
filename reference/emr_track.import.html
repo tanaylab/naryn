@@ -6,11 +6,11 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
     
 
-    <nav class="navbar fixed-top navbar-light navbar-expand-lg bg-light"><div class="container">
+    <nav class="navbar fixed-top navbar-dark navbar-expand-lg bg-primary"><div class="container">
     
     <a class="navbar-brand me-2" href="../index.html">naryn</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.6.3</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -60,7 +60,7 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">emr_track.import</span><span class="op">(</span><span class="va">track</span>, <span class="va">space</span>, <span class="va">categorical</span>, <span class="va">src</span><span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">emr_track.import</span><span class="op">(</span><span class="va">track</span>, <span class="va">space</span>, <span class="va">categorical</span>, <span class="va">src</span>, override <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -68,11 +68,13 @@
     <dl><dt>track</dt>
 <dd><p>the name of the newly created track</p></dd>
 <dt>space</dt>
-<dd><p>"user" or "global" space</p></dd>
+<dd><p>db dir string (path), one of the paths supplied in emr_db.connect</p></dd>
 <dt>categorical</dt>
 <dd><p>if 'TRUE' track is marked as categorical</p></dd>
 <dt>src</dt>
 <dd><p>file name or data-frame containing the track records</p></dd>
+<dt>override</dt>
+<dd><p>Boolean indicating whether the creation intends to override an existing track (default FALSE)</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -80,9 +82,9 @@
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>This function creates a new track from a text file or a data-frame. The
-location of the track is controlled via 'space' parameter which can be
-either "user" or to "global".</p>
+    <p>This function creates a new track from a text file or a data-frame.
+The location of the track is controlled via 'space' parameter which
+can be any of the db_dirs supplied in emr_db.connect.</p>
 <p>If 'src' is a file name, the latter must be constituted of four columns
 separated by spaces or 'TAB' characters: ID, time, reference and value. The
 file might contain lines of comments which should start with a '#'
@@ -95,7 +97,7 @@ file should not contain a header.</p>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p><code><a href="emr_track.addto.html">emr_track.addto</a></code>, <code><a href="emr_track.create.html">emr_track.create</a></code>,
-<code><a href="emr_track.readonly.html">emr_track.readonly</a></code>, <code><a href="emr_db.init.html">emr_db.init</a></code>,
+<code><a href="emr_track.readonly.html">emr_track.readonly</a></code>, <code><a href="emr_db.connect.html">emr_db.init</a></code>,
 <code><a href="emr_track.ls.html">emr_track.ls</a></code></p></div>
     </div>
 
