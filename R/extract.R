@@ -205,14 +205,14 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, et
         info$filter <- .x
         return(info)
     })
-    vtrack_filter_names_value <- purrr::keep(vtrack_filters, ~ {
-        !is.null(emr_filter.info(.x)$val)
-    })
-    vtrack_filter_names_no_value <- purrr::keep(vtrack_filters, ~ {
-        is.null(emr_filter.info(.x)$val)
+
+    vtrack_filters_to_extract <- purrr::keep(vtrack_filters, ~ {
+        !is.null(emr_filter.info(.x)$val) | !is.null(emr_vtrack.info(emr_filter.info(.x)$src)$filter)
     })
 
-    vtracks <- purrr::map_chr(vtrack_filter_names_value, ~ {
+    other_vtrack_filters <- setdiff(vtrack_filters, vtrack_filters_to_extract)
+
+    vtracks <- purrr::map_chr(vtrack_filters_to_extract, ~ {
         emr_filter.info(.x)$src
     })
 
@@ -224,9 +224,9 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, et
         vtrack_filters <- emr_extract(vtracks, iterator = iterator, keepref = keepref, stime = stime, etime = etime)
     }
 
-    purrr::walk2(vtrack_filter_names_value, vtracks, ~ {
+    purrr::walk2(vtrack_filters_to_extract, vtracks, ~ {
         orig_filter <- emr_filter.info(.x)
-        # If we get here use_values is TRUE since otherwise we wouldn't have to extract
+
         emr_filter.create(
             filter = .x,
             src = vtrack_filters %>% dplyr::select(id, time, ref, value = !!.y) %>% na.omit(),
@@ -234,11 +234,11 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, et
             val = orig_filter$val,
             expiration = orig_filter$expiration,
             operator = orig_filter$operator,
-            use_values = TRUE
+            use_values = !is.null(orig_filter$val) # we use the values only if the original filter had values
         )
     })
 
-    purrr::walk(vtrack_filter_names_no_value, ~ {
+    purrr::walk(other_vtrack_filters, ~ {
         orig_filter <- emr_filter.info(.x)
         vtrack <- emr_vtrack.info(orig_filter$src)
         emr_filter.create(.x,
