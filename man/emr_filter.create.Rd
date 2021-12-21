@@ -11,7 +11,8 @@ emr_filter.create(
   time.shift = NULL,
   val = NULL,
   expiration = NULL,
-  operator = "="
+  operator = "=",
+  use_values = FALSE
 )
 }
 \arguments{
@@ -72,7 +73,6 @@ emr_db.init_examples()
 emr_filter.create("f1", "dense_track", time.shift = c(2, 4))
 emr_filter.create("f2", "dense_track", keepref = TRUE)
 emr_extract("sparse_track", filter = "!f1 & f2")
-
 }
 \seealso{
 \code{\link{emr_filter.attr.src}}, \code{\link{emr_filter.ls}},

@@ -175,7 +175,7 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, et
     return(res)
 }
 
-.emr_parse_exprs <- function(expr){
+.emr_parse_exprs <- function(expr) {
     res <- c()
     if (!is.null(expr)) {
         res <- all.vars(as.list(parse(text = expr))[[1]])
@@ -186,53 +186,66 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, et
 #' The function overrides the filters which are applied on vtracks,
 #' It uses the queries iterator to extract the vtrack expression and
 #' creates a new operator filter based on the extract result.
-#' The function returns the original information of filters passed, 
-#' the original filters can be later sent to .emr_recreate_vtrack_filters, 
+#' The function returns the original information of filters passed,
+#' the original filters can be later sent to .emr_recreate_vtrack_filters,
 #' as the name suggests, the function recreates the original filters.
-#' 
+#'
 #' @noRd
 .emr_gen_vtrack_filters <- function(filter, iterator, keepref, stime, etime) {
     parsed_filters <- .emr_parse_exprs(filter)
-    
-    vtrack_filters <- purrr::keep(parsed_filters, ~{ emr_filter.exists(.x) && 
-                                                     is.character(emr_filter.info(.x)$src) && 
-                                                     emr_vtrack.exists(emr_filter.info(.x)$src)
-                                                    })
-                                                    
-    orig_vt_filters <- purrr::map(vtrack_filters, ~{info <- emr_filter.info(.x); info$filter <- .x; return(info)})                                                
-    vtrack_filter_names_value <- purrr::keep(vtrack_filters, ~{ !is.null(emr_filter.info(.x)$val) }) 
-    vtrack_filter_names_no_value <- purrr::keep(vtrack_filters, ~{ is.null(emr_filter.info(.x)$val) })
 
-    vtracks <- purrr::map_chr(vtrack_filter_names_value, ~{ emr_filter.info(.x)$src })
+    vtrack_filters <- purrr::keep(parsed_filters, ~ {
+        emr_filter.exists(.x) &&
+            is.character(emr_filter.info(.x)$src) &&
+            emr_vtrack.exists(emr_filter.info(.x)$src)
+    })
+
+    orig_vt_filters <- purrr::map(vtrack_filters, ~ {
+        info <- emr_filter.info(.x)
+        info$filter <- .x
+        return(info)
+    })
+    vtrack_filter_names_value <- purrr::keep(vtrack_filters, ~ {
+        !is.null(emr_filter.info(.x)$val)
+    })
+    vtrack_filter_names_no_value <- purrr::keep(vtrack_filters, ~ {
+        is.null(emr_filter.info(.x)$val)
+    })
+
+    vtracks <- purrr::map_chr(vtrack_filter_names_value, ~ {
+        emr_filter.info(.x)$src
+    })
 
     if (length(vtracks) > 0 && is.null(iterator)) {
-        stop("NULL iterator is not allowed when there are filters on vtracks") 
+        stop("NULL iterator is not allowed when there are filters on vtracks")
     }
 
     if (length(vtracks) > 0) {
         vtrack_filters <- emr_extract(vtracks, iterator = iterator, keepref = keepref, stime = stime, etime = etime)
     }
-    
-    purrr::walk2(vtrack_filter_names_value, vtracks, ~{
+
+    purrr::walk2(vtrack_filter_names_value, vtracks, ~ {
         orig_filter <- emr_filter.info(.x)
         # If we get here use_values is TRUE since otherwise we wouldn't have to extract
-        emr_filter.create(filter=.x, 
-                          src=vtrack_filters %>% dplyr::select(id, time, ref, value=!!.y) %>% na.omit(), 
-                          time.shift=orig_filter$time_shift, 
-                          val=orig_filter$val, 
-                          expiration=orig_filter$expiration, 
-                          operator=orig_filter$operator,
-                          use_values=TRUE
-                    )
+        emr_filter.create(
+            filter = .x,
+            src = vtrack_filters %>% dplyr::select(id, time, ref, value = !!.y) %>% na.omit(),
+            time.shift = orig_filter$time_shift,
+            val = orig_filter$val,
+            expiration = orig_filter$expiration,
+            operator = orig_filter$operator,
+            use_values = TRUE
+        )
     })
 
-    purrr::walk(vtrack_filter_names_no_value, ~{
+    purrr::walk(vtrack_filter_names_no_value, ~ {
         orig_filter <- emr_filter.info(.x)
         vtrack <- emr_vtrack.info(orig_filter$src)
-        emr_filter.create(.x, 
-                          src=vtrack$src, 
-                          time.shift=orig_filter$time_shift, 
-                          expiration=orig_filter$expiration)
+        emr_filter.create(.x,
+            src = vtrack$src,
+            time.shift = orig_filter$time_shift,
+            expiration = orig_filter$expiration
+        )
     })
 
     return(orig_vt_filters)
@@ -240,19 +253,20 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, et
 
 #' The function receives the output of .emr_gen_vtrack_filters
 #' and reverts the filters to there old, original form.
-#' 
+#'
 #' @noRd
 .emr_recreate_vtrack_filters <- function(orig_filters) {
-    purrr::walk(orig_filters, ~{
+    purrr::walk(orig_filters, ~ {
         emr_filter.create(
-        filter = .x$filter,
-        src = .x$src,
-        time.shift = .x$time_shift,
-        val = .x$val,
-        expiration = .x$expiration,
-        operator = .x$operator,
-        use_values = .x$use_values
-    )})
+            filter = .x$filter,
+            src = .x$src,
+            time.shift = .x$time_shift,
+            val = .x$val,
+            expiration = .x$expiration,
+            operator = .x$operator,
+            use_values = .x$use_values
+        )
+    })
 }
 
 #' Returns evaluated track expression
@@ -375,7 +389,7 @@ emr_extract <- function(expr, tidy = FALSE, sort = FALSE, names = NULL, stime = 
 
     orig_filters <- .emr_gen_vtrack_filters(filter, iterator, keepref, stime, etime)
     on.exit(.emr_recreate_vtrack_filters(orig_filters))
-    
+
     .emr_call("emr_extract", expr, names, tidy, sort, stime, etime, iterator, keepref, filter, new.env(parent = parent.frame()))
 }
 

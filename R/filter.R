@@ -295,9 +295,8 @@ emr_filter.create_from_name <- function(filter) {
 #' emr_filter.create("f1", "dense_track", time.shift = c(2, 4))
 #' emr_filter.create("f2", "dense_track", keepref = TRUE)
 #' emr_extract("sparse_track", filter = "!f1 & f2")
-#' 
 #' @export emr_filter.create
-emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val = NULL, expiration = NULL, operator = "=", use_values=FALSE) {
+emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val = NULL, expiration = NULL, operator = "=", use_values = FALSE) {
     if (missing(filter) || missing(src)) {
         stop("Usage: emr_filter.create(filter, src, keepref = FALSE, time.shift = NULL, val = NULL, expiration = NULL)", call. = FALSE)
     }
@@ -365,20 +364,20 @@ emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val =
             }
         }
     }
-    
+
     vtrack <- NULL
-    
+
     if (is.character(src) && emr_vtrack.exists(src)) {
         if (use_values && is.null(val)) {
             stop("Can not set 'use_values' to TRUE, when 'val' is set to NULL")
         }
         vtrack <- emr_vtrack.info(src)
     }
-    
+
     var <- list(src = src, time_shift = time.shift, keepref = keepref, val = val, expiration = expiration, logical = logical, operator = operator, vtrack = vtrack, use_values = use_values)
-    
+
     # filters on vtracks are created lazily on extract
-    if (is.null(vtrack)){
+    if (is.null(vtrack)) {
         .emr_call("emr_check_named_filter", var, filter, new.env(parent = parent.frame()))
         emr_filter.rm(filter)
     }
