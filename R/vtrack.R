@@ -178,12 +178,13 @@
 #' can be used in 'func'.
 #'
 #' @param vtrack virtual track name.
-#' @param src data source.
+#' @param src data source. either a track name or a list of two members: ID-Time Values table (see "User
+#' Manual") and a logical. If the logical is 'TRUE', the data in the table is treated as categorical, otherwise as quantitative.
 #' @param func,params see below.
 #' @param keepref see below.
 #' @param time.shift time shift and expansion for iterator time.
 #' @param id.map id mapping.
-#' @param filter virtual track filter.
+#' @param filter virtual track filter. Note that filters with a source of another virtual track are not allowed in order to avoid loops.
 #' @return Name of the virtual track (invisibly)
 #' @seealso \code{\link{emr_vtrack.attr.src}}, \code{\link{emr_vtrack.ls}},
 #' \code{\link{emr_vtrack.exists}}, \code{\link{emr_vtrack.rm}}

@@ -18,7 +18,8 @@ emr_vtrack.create(
 \arguments{
 \item{vtrack}{virtual track name.}
 
-\item{src}{data source.}
+\item{src}{data source. either a track name or a list of two members: ID-Time Values table (see "User
+Manual") and a logical. If the logical is 'TRUE', the data in the table is treated as categorical, otherwise as quantitative.}
 
 \item{func, params}{see below.}
 
@@ -28,7 +29,7 @@ emr_vtrack.create(
 
 \item{id.map}{id mapping.}
 
-\item{filter}{virtual track filter.}
+\item{filter}{virtual track filter. Note that filters with a source of another virtual track are not allowed in order to avoid loops.}
 }
 \value{
 Name of the virtual track (invisibly)

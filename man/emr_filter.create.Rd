@@ -18,7 +18,7 @@ emr_filter.create(
 \arguments{
 \item{filter}{filter name. If NULL - a name would be generated automatically using \code{emr_filter.name}.}
 
-\item{src}{source (track name or id-time table). Can be a vector of track names.}
+\item{src}{source (track name, virtual track name or id-time table). Can be a vector of track names.}
 
 \item{keepref}{'TRUE' or 'FALSE'}
 
@@ -39,11 +39,11 @@ Creates a new named filter.
 \details{
 This function creates a new named filter.
 
-'src' can be either a track name or an id-time table - data frame with the
+'src' can be either a track name, a virtual track name, or an id-time table - data frame with the
 first columns named "id", "time" and an optional "ref".
 
 If 'val' is not 'NULL', the time window of the filter is required to contain
-at least one value from the vector of 'val'.
+at least one value from the vector of 'val' which passes the 'operator' (see below).
 
 'val' is allowed to be used only when 'src' is a name of a track, when val is specified,
 the filter will filter the i.d, time points by applying the 'operator' argument on the

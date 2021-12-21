@@ -14,7 +14,7 @@ emr_filter.name(
 )
 }
 \arguments{
-\item{src}{source (track name or id-time table). Can be a vector of track names.}
+\item{src}{source (track name, virtual track name or id-time table). Can be a vector of track names.}
 
 \item{keepref}{'TRUE' or 'FALSE'}
 
