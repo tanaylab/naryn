@@ -296,7 +296,7 @@ emr_filter.create_from_name <- function(filter) {
 #' emr_filter.create("f2", "dense_track", keepref = TRUE)
 #' emr_extract("sparse_track", filter = "!f1 & f2")
 #' @export emr_filter.create
-emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val = NULL, expiration = NULL, operator = "=", use_values = FALSE) {
+emr_filter.create <- function(filter, src, keepref = FALSE, time.shift = NULL, val = NULL, expiration = NULL, operator = "=", use_values = FALSE) {
     if (missing(filter) || missing(src)) {
         stop("Usage: emr_filter.create(filter, src, keepref = FALSE, time.shift = NULL, val = NULL, expiration = NULL)", call. = FALSE)
     }
@@ -322,16 +322,26 @@ emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val =
         stop(sprintf("\"%s\" is not a syntactically valid name for a variable", filter), call. = FALSE)
     }
 
-    if (!exists("EMR_FILTERS", envir = .GlobalEnv)) {
-        EMR_FILTERS <<- list()
-    }
-
     if (emr_track.exists(filter)) {
-        stop(sprintf("Track %s already exists", filter), call. = FALSE)
+        stop(sprintf("Track %s already exists (you cannot create a filter named as an existing track)", filter), call. = FALSE)
     }
 
     if (emr_vtrack.exists(filter)) {
-        stop(sprintf("Virtual track %s already exists", filter), call. = FALSE)
+        stop(sprintf("Virtual track %s already exists (you cannot create a filter named as an existing virtual track)", filter), call. = FALSE)
+    }
+
+    .create_named_filter(filter, src, keepref, time.shift, val, expiration, operator, use_values)
+
+    if (auto_filter) {
+        return(filter)
+    } else {
+        invisible(filter)
+    }
+}
+
+.create_named_filter <- function(filter, src, keepref = FALSE, time.shift = NULL, val = NULL, expiration = NULL, operator = "=", use_values = FALSE) {
+    if (!exists("EMR_FILTERS", envir = .GlobalEnv)) {
+        EMR_FILTERS <<- list()
     }
 
     logical <- NULL
@@ -383,15 +393,7 @@ emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val =
     }
 
     EMR_FILTERS[[filter]] <<- var
-
-    if (auto_filter) {
-        return(filter)
-    } else {
-        invisible(filter)
-    }
 }
-
-
 
 #' Get or set attributes of a named filter
 #'

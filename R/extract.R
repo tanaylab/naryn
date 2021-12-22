@@ -186,9 +186,11 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, et
 #' The function overrides the filters which are applied on vtracks,
 #' It uses the queries iterator to extract the vtrack expression and
 #' creates a new operator filter based on the extract result.
-#' The function returns the original information of filters passed,
-#' the original filters can be later sent to .emr_recreate_vtrack_filters,
-#' as the name suggests, the function recreates the original filters.
+#' The function returns the original information of filters passed
+#' as a named list with the 'new' and 'updated' filters that were created / changed
+#' during the operation. This list can be later sent to .emr_recreate_vtrack_filters,
+#' which, as the name suggests, removes the 'new' filters and restores the 'updated'
+#' filters to their original state.
 #'
 #' @noRd
 .emr_gen_vtrack_filters <- function(filter, iterator, keepref, stime, etime) {
@@ -200,10 +202,23 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, et
             emr_vtrack.exists(emr_filter.info(.x)$src)
     })
 
-    orig_vt_filters <- purrr::map(vtrack_filters, ~ {
-        info <- emr_filter.info(.x)
-        info$filter <- .x
-        return(info)
+    orig_vt_filters <- vtrack_filters %>%
+        purrr::map(~ {
+            info <- emr_filter.info(.x)
+            info$filter <- .x
+            return(info)
+        })
+
+    # look for vtrack names that were given as a filter
+    explicit_vtracks <- purrr::keep(parsed_filters, emr_vtrack.exists)
+    vtrack_filters <- c(vtrack_filters, explicit_vtracks)
+
+    # filters we want to remove after the operation is finished
+    rm_filters <- purrr::discard(explicit_vtracks, emr_filter.exists)
+
+    # create a filter with the same name as the virtual track
+    purrr::walk(explicit_vtracks, ~ {
+        .create_named_filter(filter = .x, src = .x)
     })
 
     vtrack_filters_to_extract <- purrr::keep(vtrack_filters, ~ {
@@ -227,7 +242,7 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, et
     purrr::walk2(vtrack_filters_to_extract, vtracks, ~ {
         orig_filter <- emr_filter.info(.x)
 
-        emr_filter.create(
+        .create_named_filter(
             filter = .x,
             src = vtrack_filters %>% dplyr::select(id, time, ref, value = !!.y) %>% na.omit(),
             time.shift = orig_filter$time_shift,
@@ -248,7 +263,7 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, et
         )
     })
 
-    return(orig_vt_filters)
+    return(list(new = rm_filters, updated = orig_vt_filters))
 }
 
 #' The function receives the output of .emr_gen_vtrack_filters
@@ -256,7 +271,7 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, et
 #'
 #' @noRd
 .emr_recreate_vtrack_filters <- function(orig_filters) {
-    purrr::walk(orig_filters, ~ {
+    purrr::walk(orig_filters$updated, ~ {
         emr_filter.create(
             filter = .x$filter,
             src = .x$src,
@@ -267,6 +282,8 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, et
             use_values = .x$use_values
         )
     })
+
+    purrr::walk(orig_filters$new, emr_filter.rm)
 }
 
 #' Returns evaluated track expression

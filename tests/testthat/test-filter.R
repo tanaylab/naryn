@@ -683,12 +683,11 @@ test_that("emr_filter.create_from_name works when arguments have a '.'", {
 
 
 test_that("emr_filter.create_from_name works with very large numbers", {
-    withr::with_options(list(scipen = 1), {
-        fname <- emr_filter.name("ph1", keepref = TRUE, val = 1e9)
-        expect_equal(fname, "f_ph1.krT.vals_1000000000")
-        emr_filter.create_from_name(fname)
-        expect_equal(emr_filter.info(fname)$val, 1e9)
-    })
+    withr::local_options(list(scipen = 1))
+    fname <- emr_filter.name("ph1", keepref = TRUE, val = 1e9)
+    expect_equal(fname, "f_ph1.krT.vals_1000000000")
+    emr_filter.create_from_name(fname)
+    expect_equal(emr_filter.info(fname)$val, 1e9)
 })
 
 test_that("emr_filter.create_from_name works when src is a vector", {
@@ -1001,6 +1000,22 @@ test_that("filter on vtrack works with combination of filters", {
     expect_equal(t, data.frame(id = c(3, 3), time = c(5, 7), ref = c(-1, -1), vt = c(5, 5)))
 })
 
-test_that("emr_dist works on vtrack with filters", {
+# test_that("emr_dist works on vtrack with filters", {
 
-})
+# })
+
+# test_that("emr_track.create works with value filters", {
+#     abnormal_glucose <- emr_screen('track0 > 700')
+#     emr_track.create('abnormal_glucose', categorical=FALSE, expr='track0', iterator=abnormal_glucose)
+#     f <- emr_filter.create(filter = NULL, src = "track0", val = 125, operator = ">")
+#     emr_track.create('abnormal_glucose1', categorical=FALSE, expr='track0', filter = f)
+#     withr::defer({
+#         emr_filter.clear()
+#         emr_vtrack.clear()
+#         emr_track.rm("abnormal_glucose", force = TRUE)
+#         emr_track.rm("abnormal_glucose1", force = TRUE)
+#     })
+#     a <- emr_extract("abnormal_glucose", names = "v")
+#     b <- emr_extract("abnormal_glucose1", names = "v")
+#     expect_equal(a, b)
+# })

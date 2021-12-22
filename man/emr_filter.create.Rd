@@ -7,7 +7,7 @@
 emr_filter.create(
   filter,
   src,
-  keepref = F,
+  keepref = FALSE,
   time.shift = NULL,
   val = NULL,
   expiration = NULL,

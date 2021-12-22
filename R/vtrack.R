@@ -224,11 +224,11 @@ emr_vtrack.create <- function(vtrack, src, func = NULL, params = NULL, keepref =
     }
 
     if (emr_track.exists(vtrack)) {
-        stop(sprintf("Track %s already exists", vtrack), call. = FALSE)
+        stop(sprintf("Track %s already exists (you cannot create a virtual track named as am existing track)", vtrack), call. = FALSE)
     }
 
     if (emr_filter.exists(vtrack)) {
-        stop(sprintf("Filter %s already exists", vtrack), call. = FALSE)
+        stop(sprintf("Filter %s already exists (you cannot create a virtual track named as an existing filter)", vtrack), call. = FALSE)
     }
 
     if (!length(params) == 1 && any(is.na(params))) {
