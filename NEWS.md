@@ -1,3 +1,7 @@
+# naryn 2.6.4 
+
+* Added support for filters which are based on virtual tracks. 
+
 # naryn 2.6.3
 
 * Added support for operator based filtering, see 'operator' argument in `emr_filter.create`
