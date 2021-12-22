@@ -429,7 +429,7 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const 
                 filter->m_itr = new EMRTrackIterator(track_from_df, filter->m_keepref, _stime, _etime, move(vals), expiration, op_enum); //add opp enum
 
             } catch (TGLException &e) {
-                verror("Unable to create filter from data frame with values when 'use_values' is TRUE");
+                verror("Failed to create filter from data frame with values");
             }
             
         } else {
