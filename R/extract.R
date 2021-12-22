@@ -190,7 +190,11 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, et
     # In the future we would want to add another optimization and apply the original iterator
     # filters, excluding those which are virtual tracks.
     vtrack_filters <- vtracks %>%
-        purrr::keep(~ !is.null(emr_vtrack.info(.x)$filter) && iterator == emr_vtrack.info(.x)$src) %>%
+        purrr::keep(~
+        !is.null(emr_vtrack.info(.x)$filter) &&
+            is.character(iterator) &&
+            is.character(emr_vtrack.info(.x)$src) &&
+            iterator == emr_vtrack.info(.x)$src) %>%
         purrr::map_chr(~ deparse(emr_vtrack.info(.x)$filter))
 
     if (length(vtrack_filters) > 0) {
