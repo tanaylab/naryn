@@ -183,6 +183,27 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, et
     return(res)
 }
 
+.extract_vtrack_filters <- function(vtracks, iterator, keepref, stime, etime) {
+    # if the iterator is the same as the virtual track iterator and the
+    # virtual track has a filter, we can optimize the extract call by applying
+    # that filter.
+    # In the future we would want to add another optimization and apply the original iterator
+    # filters, excluding those which are virtual tracks.
+    vtrack_filters <- vtracks %>%
+        purrr::keep(~ !is.null(emr_vtrack.info(.x)$filter) && iterator == emr_vtrack.info(.x)$src) %>%
+        purrr::map_chr(~ deparse(emr_vtrack.info(.x)$filter))
+
+    if (length(vtrack_filters) > 0) {
+        extract_filter <- paste(glue::glue("({vtrack_filters})"), collapse = " | ")
+    } else {
+        extract_filter <- NULL
+    }
+
+    vtrack_filters_result <- emr_extract(vtracks, iterator = iterator, keepref = keepref, stime = stime, etime = etime, filter = extract_filter)
+
+    return(vtrack_filters_result)
+}
+
 #' The function overrides the filters which are applied on vtracks,
 #' It uses the queries iterator to extract the vtrack expression and
 #' creates a new operator filter based on the extract result.
@@ -236,7 +257,7 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, et
     }
 
     if (length(vtracks) > 0) {
-        vtrack_filters <- emr_extract(vtracks, iterator = iterator, keepref = keepref, stime = stime, etime = etime)
+        vtrack_filters_result <- .extract_vtrack_filters(vtracks, iterator, keepref, stime, etime)
     }
 
     purrr::walk2(vtrack_filters_to_extract, vtracks, ~ {
@@ -244,7 +265,7 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, et
 
         .create_named_filter(
             filter = .x,
-            src = vtrack_filters %>% dplyr::select(id, time, ref, value = !!.y) %>% na.omit(),
+            src = vtrack_filters_result %>% dplyr::select(id, time, ref, value = !!.y) %>% na.omit(),
             time.shift = orig_filter$time_shift,
             val = orig_filter$val,
             expiration = orig_filter$expiration,
