@@ -22,6 +22,8 @@ Assigns a value to the track attribute.
 \details{
 This function creates a track attribute and assigns 'value' to it. If the
 attribute already exists its value is overwritten.
+
+Note that both attributes and values sould be in ASCII encoding.
 }
 \examples{
 
