@@ -1655,7 +1655,7 @@ test_that("emr_track.attr.get returns correct output on a logical track", {
     withr::defer(clean_logical_tracks())
     emr_track.logical.create("l1", "track1")
     emr_track.attr.set("l1", "var1", "val1")
-    expect_equal(emr_track.attr.get("l1", "var1"), "var1")
+    expect_equal(emr_track.attr.get("l1", "var1"), "val1")
 })
 
 test_that("emr_track.attr.set works multiple times on logical tracks", {
@@ -1832,7 +1832,7 @@ test_that("emr_track.rm removes the track attributes for logical tracks", {
     emr_track.attr.set("l1", "var1", "val1")
     attrs_file <- file.path(EMR_GROOT, "logical", ".l1.attrs")
     expect_true(file.exists(attrs_file))
-    expect_equal(emr_track.attr.get("l1", "var1"), "var1")
+    expect_equal(emr_track.attr.get("l1", "var1"), "val1")
     emr_track.rm("l1", force = TRUE)
     expect_error(emr_track.attr.get("l1", "var1"))
     expect_equal(emr_track.attr.export(), initial_attrs)
