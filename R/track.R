@@ -270,7 +270,7 @@ emr_track.attr.get <- function(track = NULL, attr = NULL) {
 
     res <- emr_track.attr.export(track, attr)
     if (nrow(res)) {
-        res[1, 2]
+        res$value[1]
     } else {
         NULL
     }
