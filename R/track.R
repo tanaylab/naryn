@@ -270,7 +270,7 @@ emr_track.attr.get <- function(track = NULL, attr = NULL) {
 
     res <- emr_track.attr.export(track, attr)
     if (nrow(res)) {
-        res[1, 2]
+        res$value[1]
     } else {
         NULL
     }
@@ -1078,11 +1078,11 @@ emr_track.unique <- function(track) {
 #' Returns value of a track variable.
 #'
 #' This function returns the value of a track variable. If the variable does
-#' not exist an error is reported.
+#' not exist NULL is returned.
 #'
 #' @param track track name
 #' @param var track variable name
-#' @return Track variable value.
+#' @return Track variable value. If the variable does not exists, NULL is returned.
 #' @seealso \code{\link{emr_track.var.set}}, \code{\link{emr_track.var.ls}},
 #' \code{\link{emr_track.var.rm}}
 #' @keywords ~variable
@@ -1112,7 +1112,7 @@ emr_track.var.get <- function(track, var) {
     filename <- paste(dirname, var, sep = "/")
 
     if (!file.exists(filename)) {
-        stop(sprintf("Track variable %s does not exist", var), call. = FALSE)
+        return(NULL)
     }
 
     f <- file(filename, "rb")

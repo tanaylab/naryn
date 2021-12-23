@@ -1,6 +1,5 @@
 load_test_db()
 
-
 clean_attributes()
 
 test_that("emr_track.attr.set fails when track doesn't exist", {
@@ -16,7 +15,14 @@ test_that("emr_track.attr.export returns correct output", {
 test_that("emr_track.attr.get returns correct output", {
     withr::defer(clean_attributes())
     emr_track.attr.set("track1", "var1", "val1")
-    expect_equal(emr_track.attr.get("track1", "var1"), "var1")
+    expect_equal(emr_track.attr.get("track1", "var1"), "val1")
+})
+
+test_that("emr_track.attr.get returns correct output", {
+    withr::defer(clean_attributes())
+    emr_track.attr.set("track1", "var1", "val1")
+    emr_track.attr.set("track1", "var2", "val2")
+    expect_equal(emr_track.attr.get("track1", "var1"), "val1")
 })
 
 test_that("emr_track.attr.set works multiple times", {
@@ -147,7 +153,7 @@ test_that("emr_track.rm removes the track attributes", {
     emr_track.attr.set("tmp", "var1", "val1")
     attrs_file <- file.path(EMR_GROOT, "utest", ".tmp.attrs")
     expect_true(file.exists(attrs_file))
-    expect_equal(emr_track.attr.get("tmp", "var1"), "var1")
+    expect_equal(emr_track.attr.get("tmp", "var1"), "val1")
     emr_track.rm("tmp", force = TRUE)
     expect_error(emr_track.attr.get("tmp", "var1"))
     expect_equal(emr_track.attr.export(), initial_attrs)
