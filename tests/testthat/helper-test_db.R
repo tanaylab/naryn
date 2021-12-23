@@ -27,3 +27,9 @@ load_test_dbs <- function() {
 
     emr_db.connect(db_dirs = testdb_dirs, do_reload = TRUE)
 }
+
+copy_test_db <- function(db, new_db = tempfile(pattern = "testdb_", tmpdir = test_path(".."))) {
+    dir.create(new_db)
+    system(glue::glue("cp -rf {db}/* {new_db}/"))
+    return(normalizePath(new_db))
+}
