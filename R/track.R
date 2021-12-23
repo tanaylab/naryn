@@ -317,6 +317,8 @@ emr_track.attr.rm <- function(track = NULL, attr = NULL) {
 #' This function creates a track attribute and assigns 'value' to it. If the
 #' attribute already exists its value is overwritten.
 #'
+#' Note that both attributes and values sould be in ASCII encoding.
+#'
 #' @param track track name
 #' @param attr attribute name
 #' @param value value
