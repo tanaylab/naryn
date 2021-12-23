@@ -12,14 +12,14 @@ emr_track.var.get(track, var)
 \item{var}{track variable name}
 }
 \value{
-Track variable value.
+Track variable value. If the variable does not exists, NULL is returned.
 }
 \description{
 Returns value of a track variable.
 }
 \details{
 This function returns the value of a track variable. If the variable does
-not exist an error is reported.
+not exist NULL is returned.
 }
 \examples{
 
