@@ -6,8 +6,8 @@ test_that("error is returned when track doesn't exist", {
     expect_error(emr_track.var.get("aaa", "blablablabla", 5))
 })
 
-test_that("error is returned when track variable doesn't exist", {
-    expect_error(emr_track.var.get("track1", "blablablabla"))
+test_that("null is returned when track variable doesn't exist", {
+    expect_null(emr_track.var.get("track1", "blablablabla"))
 })
 
 test_that("emr_track.var.set works", {

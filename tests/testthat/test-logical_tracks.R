@@ -1595,7 +1595,7 @@ test_that("emr_track.var rm works on logical tracks", {
 
     emr_track.var.rm("l1", "var")
 
-    expect_error(emr_track.var.get("l1", "var"))
+    expect_null(emr_track.var.get("l1", "var"))
     expect_false("var" %in% emr_track.var.ls("l1"))
 })
 
