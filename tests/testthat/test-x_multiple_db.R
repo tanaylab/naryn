@@ -14,6 +14,11 @@ test_that("load_on_demand=FALSE loads tracks into shared memory", {
     expect_equal(system(cmd), 0)
 })
 
+test_that("emr_db.connect recycles load_on_demand parameter", {
+    emr_db.connect(EMR_ROOTS, load_on_demand = TRUE)
+    expect_error(emr_db.connect(EMR_ROOTS, load_on_demand = c(TRUE, TRUE)))
+})
+
 test_that("emr_track.ls works with multiple dbs", {
     expect_equal(
         emr_track.ls(),

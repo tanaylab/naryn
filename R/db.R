@@ -90,7 +90,7 @@ emr_db.init <- function(global.dir = NULL, user.dir = NULL, global.load.on.deman
 #'
 #' @aliases emr_db.connect emr_db.init_examples
 #' @param db_dirs vector of db directories
-#' @param load_on_demand vector of booleans, same length as db_dirs, if load_on_demand[i] is FALSE, tracks from db_dirs[i] will be pre-loaded. If NULL is passed, \code{load_on_demand} is set to TRUE on all the databases
+#' @param load_on_demand vector of booleans, same length as db_dirs, if load_on_demand[i] is FALSE, tracks from db_dirs[i] will be pre-loaded, or a single 'TRUE' or 'FALSE' to set \code{load_on_demand} for all the datatbases. If NULL is passed, \code{load_on_demand} is set to TRUE on all the databases
 #' @param do_reload If \code{TRUE}, rebuilds DB index files.
 #' @param global.dir,user.dir,global.load.on.demand,user.load.on.demand,do.reload old parameters of the deprecated function \code{emr_db.init}
 #' @return None.
@@ -111,8 +111,14 @@ emr_db.connect <- function(db_dirs = NULL, load_on_demand = NULL, do_reload = FA
         stop("DB directories should differ from one another", call. = FALSE)
     }
 
-    if (!is.null(load_on_demand) && (length(db_dirs) != length(load_on_demand))) {
-        stop("load_on_demand must be in the same length of db_dirs", call. = FALSE)
+    if (!is.null(load_on_demand)) {
+        if (length(load_on_demand) == 1) {
+            load_on_demand <- rep(load_on_demand, length(db_dirs))
+        }
+
+        if (length(db_dirs) != length(load_on_demand)) {
+            stop("load_on_demand must be in the same length of db_dirs", call. = FALSE)
+        }
     }
 
     # We set the groot to be the first

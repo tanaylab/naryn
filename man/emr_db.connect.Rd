@@ -21,7 +21,7 @@ emr_db.connect(db_dirs = NULL, load_on_demand = NULL, do_reload = FALSE)
 
 \item{db_dirs}{vector of db directories}
 
-\item{load_on_demand}{vector of booleans, same length as db_dirs, if load_on_demand[i] is FALSE, tracks from db_dirs[i] will be pre-loaded. If NULL is passed, \code{load_on_demand} is set to TRUE on all the databases}
+\item{load_on_demand}{vector of booleans, same length as db_dirs, if load_on_demand[i] is FALSE, tracks from db_dirs[i] will be pre-loaded, or a single 'TRUE' or 'FALSE' to set \code{load_on_demand} for all the datatbases. If NULL is passed, \code{load_on_demand} is set to TRUE on all the databases}
 
 \item{do_reload}{If \code{TRUE}, rebuilds DB index files.}
 }

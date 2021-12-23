@@ -23,7 +23,7 @@ emr_filter.create(
 
 \item{time.shift}{time shift and expansion for iterator time}
 
-\item{val}{selected values.}
+\item{val}{selected values}
 
 \item{expiration}{expiration period}
 
