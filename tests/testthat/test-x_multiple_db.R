@@ -645,3 +645,60 @@ test_that("cannot create a logical track pointing to non-global db track", {
     withr::defer(emr_track.rm("tmp", force = TRUE))
     expect_error(emr_track.logical.create("ltmp", "tmp"))
 })
+
+
+test_that("emr_db.connect fails when directory doesn't have read permissions", {
+    prev_roots <- EMR_ROOTS
+    db <- copy_test_db(EMR_ROOTS[1])
+    system(glue::glue("chmod a-r {db}"))
+    withr::defer({
+        system(glue::glue("chmod a+r {db}"))
+        emr_db.connect(prev_roots)
+    })
+    expect_error(emr_db.connect(db))
+})
+
+test_that("emr_db.connect fails when directory doesn't have search permissions", {
+    prev_roots <- EMR_ROOTS
+    db <- copy_test_db(EMR_ROOTS[1])
+    system(glue::glue("chmod a-x {db}"))
+    withr::defer({
+        system(glue::glue("chmod a+x {db}"))
+        emr_db.connect(prev_roots)
+    })
+    expect_error(emr_db.connect(db))
+})
+
+test_that("emr_db.connect fails when db_id is a file instead of directory", {
+    prev_roots <- EMR_ROOTS
+    fn <- tempfile()
+    file.create(fn)
+    expect_error(emr_db.connect(fn), glue::glue("{fn} is not a directory"))
+    withr::defer({
+        emr_db.connect(prev_roots)
+    })
+})
+
+test_that("emr_db.connect fails when .naryn doesn't have read permissions", {
+    prev_roots <- EMR_ROOTS
+    db <- copy_test_db(EMR_ROOTS[1])
+    file.create(file.path(db, ".naryn"))
+    system(glue::glue("chmod a-r {db}/.naryn"))
+    withr::defer({
+        system(glue::glue("chmod a+r {db}/.naryn"))
+        emr_db.connect(prev_roots)
+    })
+    expect_error(emr_db.connect(db))
+})
+
+test_that("emr_db.connect fails when .naryn doesn't have write permissions", {
+    prev_roots <- EMR_ROOTS
+    db <- copy_test_db(EMR_ROOTS[1])
+    file.create(file.path(db, ".naryn"))
+    system(glue::glue("chmod a-w {db}/.naryn"))
+    withr::defer({
+        system(glue::glue("chmod a+w {db}/.naryn"))
+        emr_db.connect(prev_roots)
+    })
+    expect_error(emr_db.connect(db))
+})

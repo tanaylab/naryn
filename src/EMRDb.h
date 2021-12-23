@@ -197,7 +197,8 @@ protected:
     string logical_tracks_filename() const { return m_rootdirs[0] + "/" + LOGICAL_TRACKS_FILENAME;}
     string ids_filename() const { return m_rootdirs[0] + "/" + IDS_FILENAME; }
 
-    
+    // make sure that rootdirs are readable
+    void validate_rootdirs(const vector<string> &rootdirs);
 
     // clear tracks from irrelevant resources by resource idx
     void clear(string db_id);

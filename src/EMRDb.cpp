@@ -758,11 +758,56 @@ int EMRDb::get_db_idx(const string& db_id) {
     
 }
 
+void EMRDb::validate_rootdirs(const vector<string>& rootdirs){
+    struct stat fs;
+    int fd1 = -1;
+    int fd2 = -1;
+    for (auto db : rootdirs){
+        // make sure that the directory has read and search permissions        
+        try {
+            if ((fd1 = open(db.c_str(), O_RDONLY, 0)) == -1) {
+                verror("Opening directory %s failed: %s", db.c_str(), strerror(errno));
+            }
+            if (stat(db.c_str(), &fs)){
+                verror("Failed to stat directory %s: %s", db.c_str(),
+                       strerror(errno));
+            }
+            if (!S_ISDIR(fs.st_mode)){
+                verror("%s is not a directory", db.c_str());
+            }
+            if (!(fs.st_mode & S_IXUSR)){
+                verror("%s is not searchable ('x' permissions)", db.c_str());
+            }
+        } catch (...) {
+            if (fd1 != -1) {
+                close(fd1);
+            }
+            throw;
+        }
 
+        // make sure that .naryn file has r/w permissions
+        string filename = track_list_filename(db);
+        try {
+            if (access(filename.c_str(), F_OK) == 0){
+                if ((fd2 = open(filename.c_str(), O_RDWR, 0)) == -1) {
+                    verror("Opening file %s failed: %s", filename.c_str(),
+                        strerror(errno));
+                }
+            }            
+        } catch (...) {
+            if (fd2 != -1) {
+                close(fd2);
+            }
+            throw;
+        }
+    }
+}
 
 void EMRDb::init(const vector<string>& rootdirs, const vector<bool>& dirs_load_on_demand, const bool& do_reload) {
 
     vdebug("EMRDb::init()\n");
+
+    validate_rootdirs(rootdirs);
 
     ++m_transact_id;
 
@@ -917,11 +962,11 @@ void EMRDb::create_track_list_file(string db_id, BufferedFile *_pbf) {
         Name2Track track_list;
         char filename[PATH_MAX + 100];
 
-        //db_id currently rerisents the db path
+        // db_id currently represents the db path
         dir = opendir(db_id.c_str());
 
         if (!dir){
-            verror("Failed to open directory %s: %s", db_id, strerror(errno));
+            verror("Failed to open directory %s: %s", db_id.c_str(), strerror(errno));
         }
 
         while ((dirp = readdir(dir))) {

@@ -18,8 +18,7 @@ struct FD {
     }
 };
 
-void FileUtils::copy_file(const char *src, const char *tgt)
-{
+void FileUtils::copy_file(const char *src, const char *tgt) {
     FD srcfd;
     FD tgtfd;
     struct stat srcstat;
@@ -34,8 +33,7 @@ void FileUtils::copy_file(const char *src, const char *tgt)
         TGLError(errno, "Error copying file %s to %s: %s\n", src, tgt, strerror(errno));
 }
 
-void FileUtils::move_file(const char *src, const char *tgt)
-{
+void FileUtils::move_file(const char *src, const char *tgt) {
     if (rename(src, tgt) == -1) {
         if (errno == EXDEV) {
             FileUtils::copy_file(src, tgt);
