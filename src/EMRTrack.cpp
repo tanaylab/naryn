@@ -193,10 +193,10 @@ EMRTrack::TrackAttrs EMRTrack::load_attrs(const char *, const char *filename)
 		} else {
 			if (idx) {
 				if (name.empty() || val.empty())
-					TGLError<EMRTrack>(BAD_FORMAT, "Invalid format of attributes file %s", filename); 
+					TGLError<EMRTrack>(BAD_FORMAT, "Invalid format of attributes file %s (1)", filename); 
 
 				if (attrs.find(name) != attrs.end()) // duplicated attributes
-					TGLError<EMRTrack>(BAD_FORMAT, "Invalid format of attributes file %s", filename); 
+					TGLError<EMRTrack>(BAD_FORMAT, "Invalid format of attributes file %s (2)", filename); 
 
 				attrs[name] = val;
 				name.clear();
@@ -210,7 +210,7 @@ EMRTrack::TrackAttrs EMRTrack::load_attrs(const char *, const char *filename)
 		TGLError<EMRTrack>(FILE_ERROR, "Failed to read attributes file %s: %s", filename, strerror(errno));
 
 	if (idx) 
-		TGLError<EMRTrack>(BAD_FORMAT, "Invalid format of attributes file %s", filename); 
+		TGLError<EMRTrack>(BAD_FORMAT, "Invalid format of attributes file %s (3)", filename); 
     return attrs;
 }
 
