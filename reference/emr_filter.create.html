@@ -116,7 +116,9 @@ the operator is "&lt;" and val is 5, the expression evaluated is 4 &lt; 5 (pass)
 When 'operator' is not "=", 'vals' must exist, and be of length 1.</p>
 <p>If both 'val' and 'expiration' are not 'NULL' then only values from 'val'
 vector are checked both in time window and expiration window.</p>
-<p>Note: 'time.shift' can be used only when 'keepref' is 'FALSE'.</p>
+<p>Note: 'time.shift' can be used only when 'keepref' is 'FALSE'.
+Note:  A zero length vector is interpeted by R as NULL, so <code>val=c()</code> would create
+a filter which returns all the values of <code>src</code></p>
     </div>
     <div id="see-also">
     <h2>See also</h2>

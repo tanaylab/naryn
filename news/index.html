@@ -63,6 +63,9 @@
 <li>Added support for track attributes to logical tracks.</li>
 <li>Bug fix: dbs order was changed to lexicographical order on emr_db.connect.</li>
 <li>Bug fix: stray logical tracks on non-global dbs were shown.</li>
+<li>Bug fix: <code>emr_track.attr.get</code> returned attribute name instead of value.</li>
+<li>
+<code>emr_track.var.get</code> now returns <code>NULL</code> when variable doesn’t exist.</li>
 <li>Make sure logical tracks cannot be created on non-global db.</li>
 <li>Added <code>db_id</code> parameter to <code>emr_track.ls</code>
 </li>
