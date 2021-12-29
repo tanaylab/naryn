@@ -1000,6 +1000,28 @@ test_that("filter on vtrack works with combination of filters", {
     expect_equal(t, data.frame(id = c(3, 3), time = c(5, 7), ref = c(-1, -1), vt = c(5, 5)))
 })
 
+test_that("filter on vtrack retores the original filter", {
+    emr_filter.clear()
+    emr_vtrack.clear()
+
+    df <- data.frame(id = c(1, 1, 3, 3), time = c(1, 3, 5, 7), value = c(1, 3, 5, 7))
+
+    emr_track.import("t", src = df, categorical = FALSE)
+    withr::defer(emr_track.rm("t", force = TRUE))
+
+    emr_vtrack.create("vt", src = "t", func = "avg", time.shift = c(-2, 0))
+    orig_vt <- emr_vtrack.info("vt")
+    withr::defer(emr_vtrack.rm("vt"))
+    
+    emr_filter.create("fvt", src = "vt", val = 3, operator = ">", use_values = TRUE)
+    orig_filter <- emr_filter.info("fvt")
+    withr::defer(emr_filter.rm("fvt"))
+
+    t <- emr_extract("vt", iterator = "t", filter = "fvt")
+    expect_equal(orig_vt, emr_vtrack.info("vt"))
+    expect_equal(orig_filter, emr_filter.info("fvt"))
+})
+
 # test_that("emr_dist works on vtrack with filters", {
 
 # })
