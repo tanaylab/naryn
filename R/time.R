@@ -6,7 +6,7 @@
 #' range.
 #'
 #' @param time vector of times in internal format
-#' @return Vector of converted times.
+#' @return Vector of converted times. NA values in the vector would be returned as NA's.
 #' @seealso \code{\link{emr_time2dayofmonth}}, \code{\link{emr_time2month}},
 #' \code{\link{emr_time2year}}, \code{\link{emr_date2time}}
 #' @keywords ~time
@@ -39,7 +39,7 @@ emr_time2hour <- function(time) {
 #' 31] range.
 #'
 #' @param time vector of times in internal format
-#' @return Vector of converted times.
+#' @return Vector of converted times. NA values in the vector would be returned as NA's.
 #' @seealso \code{\link{emr_time2hour}}, \code{\link{emr_time2month}},
 #' \code{\link{emr_time2year}}, \code{\link{emr_date2time}}
 #' @keywords ~time
@@ -72,7 +72,7 @@ emr_time2dayofmonth <- function(time) {
 #' range.
 #'
 #' @param time vector of times in internal format
-#' @return Vector of converted times.
+#' @return Vector of converted times. NA values in the vector would be returned as NA's.
 #' @seealso \code{\link{emr_time2hour}}, \code{\link{emr_time2dayofmonth}},
 #' \code{\link{emr_time2year}}, \code{\link{emr_date2time}}
 #' @keywords ~time
@@ -104,7 +104,7 @@ emr_time2month <- function(time) {
 #' This function converts time from internal format to a year.
 #'
 #' @param time vector of times in internal format
-#' @return Vector of converted times.
+#' @return Vector of converted times. NA values in the vector would be returned as NA's.
 #' @seealso \code{\link{emr_time2hour}}, \code{\link{emr_time2dayofmonth}},
 #' \code{\link{emr_time2month}}, \code{\link{emr_date2time}}
 #' @keywords ~time

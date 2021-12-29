@@ -4,6 +4,7 @@
 * Added support for track attributes to logical tracks. 
 * Bug fix: dbs order was changed to lexicographical order on emr_db.connect.
 * Bug fix: stray logical tracks on non-global dbs were shown.
+* Bug fix: `emr_time` funtions failed when there was an `NA` in an integer vector.
 * Bug fix: `emr_track.attr.get` returned attribute name instead of value.
 * `emr_track.var.get` now returns `NULL` when variable doesn't exist.
 * Make sure logical tracks cannot be created on non-global db. 
