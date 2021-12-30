@@ -1058,7 +1058,7 @@ test_that("emr_extract with filter on vtrack is equivalent to emr_screen + emr_e
     expect_equal(a, b)
 })
 
-test_that("emr_dist works with vtrack filters", {
+test_that("emr_dist works with filters on vtrack", {
     emr_filter.clear()
     emr_vtrack.clear()
 
@@ -1079,7 +1079,7 @@ test_that("emr_dist works with vtrack filters", {
     expect_equal(a, b)
 })
 
-test_that("emr_cor works with vtrack filters", {
+test_that("emr_cor works with filters on vtrack", {
     emr_filter.clear()
     emr_vtrack.clear()
 
@@ -1106,7 +1106,7 @@ test_that("emr_quantiles works with vtrack with filters", {
     expect_equal(a, b)
 })
 
-test_that("emr_summary works with vtrack filters", {
+test_that("emr_summary works with filters on vtrack", {
     emr_filter.clear()
     emr_vtrack.clear()
 
@@ -1119,7 +1119,7 @@ test_that("emr_summary works with vtrack filters", {
     expect_equal(a, b)
 })
 
-test_that("emr_screen works with vtrack filters", {
+test_that("emr_screen works with filters on vtrack", {
     emr_filter.clear()
     emr_vtrack.clear()
 
@@ -1132,7 +1132,7 @@ test_that("emr_screen works with vtrack filters", {
     expect_equal(a, b)
 })
 
-test_that("emr_ids_coverage works with vtrack filters", {
+test_that("emr_ids_coverage works with filters on vtrack", {
     emr_filter.clear()
     emr_vtrack.clear()
 
@@ -1160,7 +1160,7 @@ test_that("emr_ids_coverage works with vtrack filters", {
     })
 })
 
-test_that("emr_ids_vals_coverage works with vtrack filters", {
+test_that("emr_ids_vals_coverage works with filters on vtrack", {
     emr_filter.clear()
     emr_vtrack.clear()
 
@@ -1191,4 +1191,187 @@ test_that("emr_ids_vals_coverage works with vtrack filters", {
     })
 
     expect_equal(a, b)
+})
+
+test_that("explicit virtual tracks can be used as filters", {
+    emr_filter.clear()
+    emr_vtrack.clear()
+
+    emr_vtrack.create("vt", src = "track0", time.shift = c(-30, 0))
+
+    iter <- emr_extract(c("track6", "vt"), iterator = "track6") %>%
+        dplyr::filter(!is.na(vt))
+    a <- emr_extract(c("track6", "vt"), iterator = iter)
+    b <- emr_extract(c("track6", "vt"), iterator = "track6", filter = "vt")
+    expect_equal(a, b)
+
+    # without a time shift
+    emr_vtrack.create("vt", src = "track0")
+    iter <- emr_extract(c("track6", "vt"), iterator = "track6") %>%
+        dplyr::filter(!is.na(vt))
+    a <- emr_extract(c("track6", "vt"), iterator = iter)
+    b <- emr_extract(c("track6", "vt"), iterator = "track6", filter = "vt")
+    expect_equal(a, b)
+})
+
+test_that("filters on vtracks when vtrack and filter have different time.shift", {
+    emr_filter.clear()
+    emr_vtrack.clear()
+
+    emr_vtrack.create("vt", src = "track0", func = "avg", time.shift = c(-30, 0))
+    emr_track.create("vt_track", categorical = FALSE, expr = "vt", iterator = "track0", keepref = TRUE)
+    withr::defer(emr_track.rm("vt_track", force = TRUE))
+    f_screen <- emr_filter.create("f_screen", src = "vt_track", val = 700, operator = ">", time.shift = c(-15, 0))
+    a <- emr_extract(c("track0", "vt"), iterator = "track0", filter = f_screen)
+    f <- emr_filter.create(filter = NULL, src = "vt", val = 700, operator = ">", time.shift = c(-15, 0))
+    b <- emr_extract(c("track0", "vt"), iterator = "track0", filter = f)
+    expect_equal(a, b)
+
+    # without values
+    f_screen <- emr_filter.create("f_screen", src = "vt_track", time.shift = c(-15, 0))
+    a <- emr_extract(c("track0", "vt"), iterator = "track0", filter = f_screen)
+    f <- emr_filter.create(filter = NULL, src = "vt", time.shift = c(-15, 0))
+    b <- emr_extract(c("track0", "vt"), iterator = "track0", filter = f)
+    expect_equal(a, b)
+})
+
+test_that("filters on vtracks when vtrack and filter have the same time.shift", {
+    emr_filter.clear()
+    emr_vtrack.clear()
+
+    emr_vtrack.create("vt", src = "track0", func = "avg", time.shift = c(-30, 0))
+    emr_track.create("vt_track", categorical = FALSE, expr = "vt", iterator = "track0", keepref = TRUE)
+    withr::defer(emr_track.rm("vt_track", force = TRUE))
+    f_screen <- emr_filter.create("f_screen", src = "vt_track", val = 700, operator = ">", time.shift = c(-30, 0))
+    a <- emr_extract(c("track0", "vt"), iterator = "track0", filter = f_screen)
+    f <- emr_filter.create(filter = NULL, src = "vt", val = 700, operator = ">", time.shift = c(-30, 0))
+    b <- emr_extract(c("track0", "vt"), iterator = "track0", filter = f)
+    expect_equal(a, b)
+
+    # without values
+    f_screen <- emr_filter.create("f_screen", src = "vt_track", time.shift = c(-30, 0))
+    a <- emr_extract(c("track0", "vt"), iterator = "track0", filter = f_screen)
+    f <- emr_filter.create(filter = NULL, src = "vt", time.shift = c(-30, 0))
+    b <- emr_extract(c("track0", "vt"), iterator = "track0", filter = f)
+    expect_equal(a, b)
+})
+
+test_that("filters on vtracks when only vtrack has time.shift", {
+    emr_filter.clear()
+    emr_vtrack.clear()
+
+    emr_vtrack.create("vt", src = "track0", func = "avg", time.shift = c(-30, 0))
+    emr_track.create("vt_track", categorical = FALSE, expr = "vt", iterator = "track0", keepref = TRUE)
+    withr::defer(emr_track.rm("vt_track", force = TRUE))
+    f_screen <- emr_filter.create("f_screen", src = "vt_track", val = 700, operator = ">")
+    a <- emr_extract(c("track0", "vt"), iterator = "track0", filter = f_screen)
+    f <- emr_filter.create(filter = NULL, src = "vt", val = 700, operator = ">")
+    b <- emr_extract(c("track0", "vt"), iterator = "track0", filter = f)
+    expect_equal(a, b)
+
+    # without values
+    f_screen <- emr_filter.create("f_screen", src = "vt_track")
+    a <- emr_extract(c("track0", "vt"), iterator = "track0", filter = f_screen)
+    f <- emr_filter.create(filter = NULL, src = "vt")
+    b <- emr_extract(c("track0", "vt"), iterator = "track0", filter = f)
+    expect_equal(a, b)
+})
+
+test_that("filters on vtracks when only filter has time.shift", {
+    emr_filter.clear()
+    emr_vtrack.clear()
+
+    emr_vtrack.create("vt", src = "track0", func = "avg")
+    emr_track.create("vt_track", categorical = FALSE, expr = "vt", iterator = "track0", keepref = TRUE)
+    withr::defer(emr_track.rm("vt_track", force = TRUE))
+    f_screen <- emr_filter.create("f_screen", src = "vt_track", val = 700, operator = ">", time.shift = c(-30, 0))
+    a <- emr_extract(c("track0", "vt"), iterator = "track0", filter = f_screen)
+    f <- emr_filter.create(filter = NULL, src = "vt", val = 700, operator = ">", time.shift = c(-30, 0))
+    b <- emr_extract(c("track0", "vt"), iterator = "track0", filter = f)
+    expect_equal(a, b)
+
+    # without values
+    f_screen <- emr_filter.create("f_screen", src = "vt_track", time.shift = c(-30, 0))
+    a <- emr_extract(c("track0", "vt"), iterator = "track0", filter = f_screen)
+    f <- emr_filter.create(filter = NULL, src = "vt", time.shift = c(-30, 0))
+    b <- emr_extract(c("track0", "vt"), iterator = "track0", filter = f)
+    expect_equal(a, b)
+})
+
+test_that("filters on vtracks when source virtual track has a filter", {
+    emr_filter.clear()
+    emr_vtrack.clear()
+
+    emr_filter.create("vt_f", src = "track7", time.shift = c(-5, 0))
+
+    emr_vtrack.create("vt", src = "track0", func = "avg", filter = "vt_f")
+    emr_track.create("vt_track", categorical = FALSE, expr = "vt", iterator = "track0", keepref = TRUE, filter = "vt_f")
+    withr::defer(emr_track.rm("vt_track", force = TRUE))
+    f_screen <- emr_filter.create("f_screen", src = "vt_track", val = 700, operator = ">")
+    a <- emr_extract(c("track0", "vt"), iterator = "track0", filter = f_screen)
+    f <- emr_filter.create(filter = NULL, src = "vt", val = 700, operator = ">")
+    b <- emr_extract(c("track0", "vt"), iterator = "track0", filter = f)
+    expect_equal(a, b)
+
+    # without values
+    f_screen <- emr_filter.create("f_screen", src = "vt_track")
+    a <- emr_extract(c("track0", "vt"), iterator = "track0", filter = f_screen)
+    f <- emr_filter.create(filter = NULL, src = "vt")
+    b <- emr_extract(c("track0", "vt"), iterator = "track0", filter = f)
+    expect_equal(a, b)
+})
+
+test_that("filters on vtracks when there is a combination of filters", {
+    emr_filter.clear()
+    emr_vtrack.clear()
+
+    emr_filter.create("f1", src = "track5", time.shift = c(-20, 0))
+    emr_filter.create("f2", src = "track0", time.shift = c(-30, 0), val = 700, operator = ">")
+
+    emr_vtrack.create("vt1", src = "track1", func = "latest", time.shift = c(-5, 0))
+    emr_vtrack.create("vt2", src = "track6", func = "earliest", time.shift = c(-10, 0))
+    emr_vtrack.create("vt3", src = "track6", time.shift = c(-5, 0), filter = "f1")
+    emr_vtrack.create("vt4", src = "track2", func = "min", time.shift = c(-5, 0), filter = "f2")
+    emr_vtrack.create("vt5", src = "track3", func = "max")
+    emr_vtrack.create("vt6", src = "track4")
+
+    emr_filter.create("fvt_1", src = "vt1", time.shift = c(-5, 0), val = 3, operator = "<=")
+    emr_filter.create("fvt_5", src = "vt5", time.shift = c(-20, 0))
+    emr_filter.create("fvt_6", src = "vt1", val = 2, operator = "<=")
+
+    f <- "fvt_1 | fvt_5 | vt2 & (vt3 | vt4) | (fvt_6 & f1) | (f2 & track1) | vt6"
+
+    itr0 <- emr_extract("vt6", iterator = "track0") %>%
+        dplyr::filter(!is.na(vt6)) %>%
+        dplyr::distinct(id, time) # filter: vt6
+    itr1 <- emr_extract("track0", iterator = "track0", filter = "f2 & track1") %>%
+        dplyr::distinct(id, time) # filter: (f2 & track1)
+    itr2 <- emr_extract("vt1", iterator = "track0", filter = "f1") %>%
+        dplyr::filter(!is.na(vt1), vt1 <= 2) %>%
+        dplyr::distinct(id, time) # filter: (fvt_6 & f1)
+    itr3 <- emr_extract(c("vt2", "vt3", "vt4"), iterator = "track0") %>%
+        dplyr::filter(!is.na(vt2) & (!is.na(vt3) | !is.na(vt4))) %>%
+        dplyr::distinct(id, time) # filter: vt2 & (vt3 | vt4)
+
+    # filter: fvt_1 & fvt_5
+    emr_track.create("vt1_track", categorical = FALSE, expr = "vt1", iterator = "track0", keepref = TRUE)
+    emr_filter.create("fvt1_track", src = "vt1_track", time.shift = c(-5, 0), val = 3, operator = "<=")
+    emr_track.create("vt5_track", categorical = FALSE, expr = "vt5", iterator = "track3", keepref = TRUE)
+    emr_filter.create("fvt5_track", src = "vt5_track", time.shift = c(-20, 0))
+    withr::defer(emr_track.rm("vt1_track", force = TRUE))
+    withr::defer(emr_track.rm("vt5_track", force = TRUE))
+
+
+    a <- emr_extract("track0", iterator = "track0", filter = "fvt1_track | fvt5_track | itr3 | itr2 | itr1 | itr0")
+    b <- emr_extract("track0", iterator = "track0", filter = f)
+    expect_equal(a, b)
+})
+
+test_that("Cannot apply virtual track filters on virtual tracks (in order to avoid loops)", {
+    emr_filter.clear()
+    emr_vtrack.clear()
+
+    emr_vtrack.create("vt", "track0")
+    emr_filter.create("fvt", "vt")
+    expect_error(emr_vtrack.create("vt", "track0", filter = "fvt"))
 })
