@@ -2,6 +2,7 @@
 #define NRITERATORFILTER_H_INCLUDED
 
 #include "EMRIteratorFilterItem.h"
+#include "EMRTrack.h"
 
 class NRIteratorFilter {
 public:
@@ -23,6 +24,9 @@ protected:
 
     void build_subtree(vector<SEXP> &filters, vector<SEXP> &rfilter_names, SEXP filter, EMRIteratorFilterItem **tree,
                        bool operator_not, unsigned stime, unsigned etime, int depth);
+
+    static int check_expiration(SEXP rexpiration, bool keepref, bool categorical,const char* name);
+    static enum EMRTrack::Iterator::OPS check_op(const char *op,const char* name);
 
     // create filter item from a string
     static EMRIteratorFilterItem *create_filter_item(vector<SEXP> &filters, vector<SEXP> &rfilter_names, const char *str, bool operator_not, unsigned stime, unsigned etime);

@@ -595,3 +595,35 @@ test_that("emr_vtrack.attr.params works on logical tracks", {
 
     withr::defer(emr_track.rm("l1_ph", force = TRUE))
 })
+
+test_that("filter on vtrack based on logical track", {
+    emr_filter.clear()
+    emr_vtrack.clear()
+    withr::defer(clean_logical_tracks())
+
+    emr_track.logical.create("l1", src = "track0")
+
+    emr_vtrack.create("vt", src = "l1", func = "min", time.shift = c(-30, 0))
+    f <- emr_filter.create(filter = NULL, src = "vt", val = 700, operator = ">")
+    iter <- emr_screen("vt > 700")
+    a <- emr_extract(c("l1", "vt"), iterator = iter)
+    d <- emr_extract(c("track0", "vt"), iterator = iter, names = c("l1", "vt"))
+    b <- emr_extract(c("l1", "vt"), iterator = "l1", filter = f)
+    expect_equal(a, b)
+    expect_equal(b, d)
+})
+
+test_that("filter on vtrack based on logical track with values", {
+    emr_filter.clear()
+    emr_vtrack.clear()
+    withr::defer(clean_logical_tracks())
+
+    emr_track.logical.create("l1", src = "ph1", values = c(15, 16))
+
+    emr_vtrack.create("vt", src = "l1", time.shift = c(-30, 0))
+    f <- emr_filter.create(filter = NULL, src = "vt", val = 15)
+    iter <- emr_screen("vt == 15")
+    a <- emr_extract(c("l1", "vt"), iterator = iter)
+    b <- emr_extract(c("l1", "vt"), iterator = "l1", filter = f)
+    expect_equal(a, b)
+})

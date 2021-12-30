@@ -18,7 +18,9 @@
         filter$src <- filter$logical$src
         filter$val <- filter$logical$val
     }
+
     filter$logical <- NULL
+    filter$vtrack <- NULL
 
     filter
 }
@@ -45,6 +47,186 @@
     convertor <- c("=" = "eq", "<" = "lt", "<=" = "lte", ">" = "gt", ">=" = "gte")
     return(convertor[op])
 }
+
+
+.emr_parse_exprs <- function(expr) {
+    res <- c()
+    if (!is.null(expr)) {
+        res <- all.vars(as.list(parse(text = expr))[[1]])
+    }
+    return(res)
+}
+
+.extract_vtrack_filters <- function(vtracks, iterator, keepref, stime, etime) {
+    # if the iterator is the same as the virtual track iterator and the
+    # virtual track has a filter, we can optimize the extract call by applying
+    # that filter.
+    # In the future we would want to add another optimization and apply the original iterator
+    # filters, excluding those which are virtual tracks.
+    vtrack_filters <- vtracks %>%
+        purrr::keep(~
+        !is.null(emr_vtrack.info(.x)$filter) &&
+            is.character(iterator) &&
+            is.character(emr_vtrack.info(.x)$src) &&
+            iterator == emr_vtrack.info(.x)$src) %>%
+        purrr::map_chr(~ deparse(emr_vtrack.info(.x)$filter))
+
+    if (length(vtrack_filters) > 0) {
+        extract_filter <- paste(glue::glue("({vtrack_filters})"), collapse = " | ")
+    } else {
+        extract_filter <- NULL
+    }
+
+    vtrack_filters_result <- emr_extract(vtracks, iterator = iterator, keepref = keepref, stime = stime, etime = etime, filter = extract_filter)
+
+    return(vtrack_filters_result)
+}
+
+.emr_detect_vtrack_filters <- function(filter) {
+    parsed_filters <- .emr_parse_exprs(filter)
+
+    vtrack_filters <- purrr::keep(parsed_filters, ~ {
+        emr_filter.exists(.x) &&
+            is.character(emr_filter.info(.x)$src) &&
+            emr_vtrack.exists(emr_filter.info(.x)$src)
+    })
+
+    # look for vtrack names that were given as a filter
+    explicit_vtracks <- purrr::keep(parsed_filters, emr_vtrack.exists)
+
+    return(list(vtrack_filters = vtrack_filters, explicit_vtracks = explicit_vtracks))
+}
+
+#' The function overrides the filters which are applied on vtracks,
+#' It uses the queries iterator to extract the vtrack expression and
+#' creates a new operator filter based on the extract result.
+#' The function returns the original information of filters passed
+#' as a named list with the 'new' and 'updated' filters that were created / changed
+#' during the operation. This list can be later sent to .emr_recreate_vtrack_filters,
+#' which, as the name suggests, removes the 'new' filters and restores the 'updated'
+#' filters to their original state.
+#'
+#' @noRd
+.emr_gen_vtrack_filters <- function(filter, iterator, keepref, stime, etime) {
+    query_vt_f <- .emr_detect_vtrack_filters(filter)
+    vtrack_filters <- query_vt_f$vtrack_filters
+    explicit_vtracks <- query_vt_f$explicit_vtracks
+
+    orig_vt_filters <- vtrack_filters %>%
+        purrr::map(~ {
+            info <- emr_filter.info(.x)
+            info$filter <- .x
+            return(info)
+        })
+
+    vtrack_filters <- c(vtrack_filters, explicit_vtracks)
+
+    # filters we want to remove after the operation is finished
+    rm_filters <- purrr::discard(explicit_vtracks, emr_filter.exists)
+
+    orig_filters <- list(new = rm_filters, updated = orig_vt_filters)
+
+    tryCatch(
+        {
+            # create a filter with the same name as the virtual track
+            purrr::walk(explicit_vtracks, ~ {
+                vtrack <- emr_vtrack.info(.x)
+                .create_named_filter(
+                    filter = .x,
+                    src = .x,
+                    time.shift = vtrack$time_shift
+                )
+            })
+
+            # We only need to extract filters which either:
+            # 1. Have a value parameter, i.e. filter the result of the virtual track extraction.
+            # 2. Their source virtual track has a filter.
+            # 3. Have a different time shift than the virtual track.
+            # In all other cases we can just create a new filter based on the source virtual track,
+            # with the same time.shift and expiration
+            vtrack_filters_to_extract <- purrr::keep(vtrack_filters, ~ {
+                filter_i <- emr_filter.info(.x)
+                vtrack_i <- emr_vtrack.info(filter_i$src)
+                return(
+                    !is.null(filter_i$val) ||
+                        !is.null(vtrack_i$filter) ||
+                        (
+                            !is.null(filter_i$time_shift) &&
+                                !is.null(vtrack_i$time_shift) &&
+                                !(all(filter_i$time_shift == vtrack_i$time_shift))
+                        )
+                )
+            })
+
+            other_vtrack_filters <- setdiff(vtrack_filters, vtrack_filters_to_extract)
+
+            vtracks <- purrr::map_chr(vtrack_filters_to_extract, ~ {
+                emr_filter.info(.x)$src
+            })
+
+            if (length(vtracks) > 0 && is.null(iterator)) {
+                stop("Please specify an iterator. NULL iterator is not allowed when there are filters on vtracks.")
+            }
+
+            if (length(vtracks) > 0) {
+                vtrack_filters_result <- .extract_vtrack_filters(vtracks, iterator, keepref, stime, etime)
+            }
+
+            # create new filters based on the extraction result
+            purrr::walk2(vtrack_filters_to_extract, vtracks, ~ {
+                orig_filter <- emr_filter.info(.x)
+
+                .create_named_filter(
+                    filter = .x,
+                    src = vtrack_filters_result %>% dplyr::select(id, time, ref, value = !!.y) %>% na.omit(),
+                    time.shift = orig_filter$time_shift,
+                    val = orig_filter$val,
+                    expiration = orig_filter$expiration,
+                    operator = orig_filter$operator,
+                    use_values = !is.null(orig_filter$val) # we use the values only if the original filter had values
+                )
+            })
+
+            # For the rest of the filters - translate the time shift and
+            # expiration virtual track paramters to filter paramters
+            purrr::walk(other_vtrack_filters, ~ {
+                orig_filter <- emr_filter.info(.x)
+                vtrack <- emr_vtrack.info(orig_filter$src)
+                .create_named_filter(.x,
+                    src = vtrack$src,
+                    time.shift = orig_filter$time_shift,
+                    expiration = orig_filter$expiration
+                )
+            })
+        },
+        error = {
+            .emr_recreate_vtrack_filters(orig_filters)
+        }
+    )
+
+    return(orig_filters)
+}
+
+#' The function receives the output of .emr_gen_vtrack_filters
+#' and reverts the filters to there old, original form.
+#'
+#' @noRd
+.emr_recreate_vtrack_filters <- function(orig_filters) {
+    purrr::walk(orig_filters$updated, ~ {
+        emr_filter.create(
+            filter = .x$filter,
+            src = .x$src,
+            time.shift = .x$time_shift,
+            val = .x$val,
+            expiration = .x$expiration,
+            operator = .x$operator,
+            use_values = .x$use_values
+        )
+    })
+
+    purrr::walk(orig_filters$new, emr_filter.rm)
+}
+
 
 
 #' Generate a default name for a naryn filter
@@ -248,13 +430,13 @@ emr_filter.create_from_name <- function(filter) {
 #'
 #' This function creates a new named filter.
 #'
-#' 'src' can be either a track name or an id-time table - data frame with the
+#' 'src' can be either a track name, a virtual track name, or an id-time table - data frame with the
 #' first columns named "id", "time" and an optional "ref".
 #'
 #' If 'val' is not 'NULL', the time window of the filter is required to contain
-#' at least one value from the vector of 'val'.
+#' at least one value from the vector of 'val' which passes the 'operator' (see below).
 #'
-#' 'val' is allowed to be used only when 'src' is a name of a track, when val is specified,
+#' 'val' is allowed to be used only when 'src' is a name of a track. When val is specified,
 #' the filter will filter the i.d, time points by applying the 'operator' argument on the
 #' value of the point.
 #'
@@ -279,7 +461,7 @@ emr_filter.create_from_name <- function(filter) {
 #' a filter which returns all the values of \code{src}
 #'
 #' @param filter filter name. If NULL - a name would be generated automatically using \code{emr_filter.name}.
-#' @param src source (track name or id-time table). Can be a vector of track names.
+#' @param src source (track name, virtual track name or id-time table). Can be a vector of track names.
 #' @param keepref 'TRUE' or 'FALSE'
 #' @param time.shift time shift and expansion for iterator time
 #' @param val selected values
@@ -296,12 +478,11 @@ emr_filter.create_from_name <- function(filter) {
 #' emr_filter.create("f2", "dense_track", keepref = TRUE)
 #' emr_extract("sparse_track", filter = "!f1 & f2")
 #' @export emr_filter.create
-emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val = NULL, expiration = NULL, operator = "=") {
+emr_filter.create <- function(filter, src, keepref = FALSE, time.shift = NULL, val = NULL, expiration = NULL, operator = "=", use_values = FALSE) {
     if (missing(filter) || missing(src)) {
         stop("Usage: emr_filter.create(filter, src, keepref = FALSE, time.shift = NULL, val = NULL, expiration = NULL)", call. = FALSE)
     }
     .emr_checkroot()
-
     if (is.character(src) && length(src) > 1 || (!is.null(filter) && length(filter) > 1)) {
         if (is.null(filter)) {
             return(purrr::map_chr(src, ~ emr_filter.create(filter = NULL, src = .x, keepref = keepref, time.shift = time.shift, val = val, expiration = expiration)))
@@ -323,18 +504,31 @@ emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val =
         stop(sprintf("\"%s\" is not a syntactically valid name for a variable", filter), call. = FALSE)
     }
 
-    if (!exists("EMR_FILTERS", envir = .GlobalEnv)) {
-        EMR_FILTERS <<- list()
+    if (startsWith(filter, "..emr")) {
+        stop("Filters with an '..emr' prefix are reserved for internal 'naryn' usage. Please rename your filter.", call. = FALSE)
     }
 
     if (emr_track.exists(filter)) {
-        stop(sprintf("Track %s already exists", filter), call. = FALSE)
+        stop(sprintf("Track %s already exists (you cannot create a filter named as an existing track)", filter), call. = FALSE)
     }
 
     if (emr_vtrack.exists(filter)) {
-        stop(sprintf("Virtual track %s already exists", filter), call. = FALSE)
+        stop(sprintf("Virtual track %s already exists (you cannot create a filter named as an existing virtual track)", filter), call. = FALSE)
     }
 
+    .create_named_filter(filter, src, keepref, time.shift, val, expiration, operator, use_values)
+
+    if (auto_filter) {
+        return(filter)
+    } else {
+        invisible(filter)
+    }
+}
+
+.create_named_filter <- function(filter, src, keepref = FALSE, time.shift = NULL, val = NULL, expiration = NULL, operator = "=", use_values = FALSE) {
+    if (!exists("EMR_FILTERS", envir = .GlobalEnv)) {
+        EMR_FILTERS <<- list()
+    }
 
     logical <- NULL
 
@@ -352,7 +546,6 @@ emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val =
             # to be filtered. which are then applied on
             # the source track.
             val <- .emr_filter_calc_val_logical(src, val)
-
             src <- ltrack_info$source
 
             # when the user requests a filter with values
@@ -368,19 +561,25 @@ emr_filter.create <- function(filter, src, keepref = F, time.shift = NULL, val =
         }
     }
 
-    var <- list(src = src, time_shift = time.shift, keepref = keepref, val = val, expiration = expiration, logical = logical, operator = operator)
-    .emr_call("emr_check_named_filter", var, filter, new.env(parent = parent.frame()))
-    emr_filter.rm(filter)
-    EMR_FILTERS[[filter]] <<- var
+    vtrack <- NULL
 
-    if (auto_filter) {
-        return(filter)
-    } else {
-        invisible(filter)
+    if (is.character(src) && emr_vtrack.exists(src)) {
+        if (use_values && is.null(val)) {
+            stop("Can not set 'use_values' to TRUE, when 'val' is set to NULL")
+        }
+        vtrack <- emr_vtrack.info(src)
     }
+
+    var <- list(src = src, time_shift = time.shift, keepref = keepref, val = val, expiration = expiration, logical = logical, operator = operator, vtrack = vtrack, use_values = use_values)
+
+    # filters on vtracks are created lazily on extract
+    if (is.null(vtrack)) {
+        .emr_call("emr_check_named_filter", var, filter, new.env(parent = parent.frame()))
+        emr_filter.rm(filter)
+    }
+
+    EMR_FILTERS[[filter]] <<- var
 }
-
-
 
 #' Get or set attributes of a named filter
 #'

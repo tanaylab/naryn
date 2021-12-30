@@ -80,6 +80,9 @@ emr_cor <- function(..., cor.exprs = NULL, include.lowest = FALSE, right = TRUE,
     first_exprs <- exprs
     exprs <- append(exprs, cor.exprs)
 
+    orig_filters <- .emr_gen_vtrack_filters(filter, iterator, keepref, stime, etime)
+    on.exit(.emr_recreate_vtrack_filters(orig_filters), add = TRUE)
+
     res <- .emr_call("emr_covariance", exprs, breaks, include.lowest, right, stime, etime, iterator, keepref, filter, new.env(parent = parent.frame()))
 
     if (dataframe) {
@@ -158,6 +161,9 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, et
         breaks[length(breaks) + 1] <- list(args[[i * 2 + 2]])
     }
 
+    orig_filters <- .emr_gen_vtrack_filters(filter, iterator, keepref, stime, etime)
+    on.exit(.emr_recreate_vtrack_filters(orig_filters), add = TRUE)
+
     res <- .emr_call("emr_dist", exprs, breaks, include.lowest, right, stime, etime, iterator, keepref, filter, new.env(parent = parent.frame()))
 
     if (dataframe) {
@@ -168,8 +174,6 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, et
 
     return(res)
 }
-
-
 
 #' Returns evaluated track expression
 #'
@@ -289,6 +293,9 @@ emr_extract <- function(expr, tidy = FALSE, sort = FALSE, names = NULL, stime = 
     }
     .emr_checkroot()
 
+    orig_filters <- .emr_gen_vtrack_filters(filter, iterator, keepref, stime, etime)
+    on.exit(.emr_recreate_vtrack_filters(orig_filters), add = TRUE)
+
     .emr_call("emr_extract", expr, names, tidy, sort, stime, etime, iterator, keepref, filter, new.env(parent = parent.frame()))
 }
 
@@ -327,9 +334,32 @@ emr_ids_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filter = N
     }
     .emr_checkroot()
 
+    query_vt_f <- .emr_detect_vtrack_filters(filter)
+    has_vtrack_filters <- length(query_vt_f$vtrack_filters) > 0 || length(query_vt_f$explicit_vtracks) > 0
+
+    # If we have virtual track filters, we run 'emr_ids_coverage' on each track separately
+    if (length(tracks) > 1 && has_vtrack_filters) {
+        res <- purrr::map(tracks, ~
+        emr_ids_coverage(
+            ids,
+            .x,
+            stime = stime,
+            etime = etime,
+            filter = filter
+        )) %>% purrr::flatten_dbl()
+
+        return(res)
+    }
+
     orig_tracks <- tracks
     res_logical <- list()
     res <- list()
+
+    if (has_vtrack_filters) {
+        stopifnot(length(tracks) == 1)
+        orig_filters <- .emr_gen_vtrack_filters(filter, iterator = tracks, keepref = TRUE, stime = stime, etime = etime)
+        on.exit(.emr_recreate_vtrack_filters(orig_filters), add = TRUE)
+    }
 
     for (track in tracks) {
         if (emr_track.logical.exists(track)) {
@@ -338,7 +368,8 @@ emr_ids_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filter = N
                 emr_ids_coverage(
                     ids,
                     ltrack$source,
-                    filter = create_logical_track_filter(track, filter), stime = stime,
+                    filter = create_logical_track_filter(track, filter),
+                    stime = stime,
                     etime = etime
                 )[[1]]
         }
@@ -419,6 +450,29 @@ emr_ids_vals_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filte
     }
     .emr_checkroot()
 
+    query_vt_f <- .emr_detect_vtrack_filters(filter)
+    has_vtrack_filters <- length(query_vt_f$vtrack_filters) > 0 || length(query_vt_f$explicit_vtracks) > 0
+
+    # If we have virtual track filters, we run 'emr_ids_coverage' on each track separately
+    if (length(tracks) > 1 && has_vtrack_filters) {
+        res <- purrr::map_dfr(tracks, ~
+        emr_ids_vals_coverage(
+            ids,
+            .x,
+            stime = stime,
+            etime = etime,
+            filter = filter
+        ))
+
+        return(res)
+    }
+
+    if (has_vtrack_filters) {
+        stopifnot(length(tracks) == 1)
+        orig_filters <- .emr_gen_vtrack_filters(filter, iterator = tracks, keepref = TRUE, stime = stime, etime = etime)
+        on.exit(.emr_recreate_vtrack_filters(orig_filters), add = TRUE)
+    }
+
     logical_tracks <- tracks[purrr::map_lgl(tracks, emr_track.logical.exists)]
     physical_tracks <- tracks[!(tracks %in% logical_tracks)]
 
@@ -431,7 +485,8 @@ emr_ids_vals_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filte
             res <- emr_ids_vals_coverage(
                 ids,
                 ltrack$source,
-                filter = create_logical_track_filter(track, filter), stime = stime,
+                filter = create_logical_track_filter(track, filter),
+                stime = stime,
                 etime = etime
             )
             res$track <- track
@@ -512,6 +567,9 @@ emr_quantiles <- function(expr, percentiles = 0.5, stime = NULL, etime = NULL, i
     }
     .emr_checkroot()
 
+    orig_filters <- .emr_gen_vtrack_filters(filter, iterator, keepref, stime, etime)
+    on.exit(.emr_recreate_vtrack_filters(orig_filters), add = TRUE)
+
     .emr_call("emr_quantiles", expr, percentiles, stime, etime, iterator, keepref, filter, new.env(parent = parent.frame()))
 }
 
@@ -555,6 +613,9 @@ emr_screen <- function(expr, sort = FALSE, stime = NULL, etime = NULL, iterator 
     }
     .emr_checkroot()
 
+    orig_filters <- .emr_gen_vtrack_filters(filter, iterator, keepref, stime, etime)
+    on.exit(.emr_recreate_vtrack_filters(orig_filters), add = TRUE)
+
     .emr_call("emr_screen", expr, sort, stime, etime, iterator, keepref, filter, new.env(parent = parent.frame()))
 }
 
@@ -590,6 +651,9 @@ emr_summary <- function(expr, stime = NULL, etime = NULL, iterator = NULL, keepr
         stop("Usage: emr_summary(expr, stime = NULL, etime = NULL, iterator = NULL, keepref = FALSE, filter = NULL)", call. = FALSE)
     }
     .emr_checkroot()
+
+    orig_filters <- .emr_gen_vtrack_filters(filter, iterator, keepref, stime, etime)
+    on.exit(.emr_recreate_vtrack_filters(orig_filters), add = TRUE)
 
     .emr_call("emr_summary", expr, stime, etime, iterator, keepref, filter, new.env(parent = parent.frame()))
 }

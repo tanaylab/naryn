@@ -329,7 +329,7 @@ SEXP emr_expr_virtual_tracks(SEXP _expr, SEXP _envir) {
         vector<SEXP> rvtracknames;
         vector<SEXP> vtracks;
 
-        // retrieve virtual track names (named filters are at a global variable
+        // retrieve virtual track names (virtual tracks are at a global variable
         // called EMR_VTRACKS)
         rprotect(emr_vtracks = findVar(install("EMR_VTRACKS"), g_naryn->env()));
 
