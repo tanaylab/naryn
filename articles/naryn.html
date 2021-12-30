@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>naryn • naryn</title>
-<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.4.0/cosmo/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
@@ -33,7 +33,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">naryn</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">2.6.3</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">2.6.4</span>
       </span>
     </div>
 
@@ -111,17 +111,11 @@
 <div class="section level3">
 <h3 id="maintaining-database">Maintaining Database<a class="anchor" aria-label="anchor" href="#maintaining-database"></a>
 </h3>
-<p>Naryn caches certain data on the disk to maintain fast run-times. In particular two files (<code>.naryn</code> and <code>.ids</code>) are created in any database, and another file called <code>.logical_tracks</code> is created in global databases.</p>
+<p>Naryn caches certain data on the disk to maintain fast run-times. In particular two files (<code>.naryn</code> and <code>.ids</code>) are created in a global root directory and one file (<code>.ids</code>}) in a user root directory.</p>
 <p><code>.naryn</code> file contains a list of all tracks in the current root directory and their last modification dates. This file spares a full root directory rescan when <code>emr_db.connect</code> is called. The recorded modification dates allow to efficiently synchronize the track changes induced by synchronously running R sessions.</p>
-<p><code>.logical_tracks</code> implements the same mechanism for logical tracks, which store their properties (source and values) under a folder called <code>logical</code>.</p>
 <p><code>.ids</code> file contains available ids that are used to run certain types of <em>track expression iterators</em> (see below). The source of these ids comes from a `patients.dob} (i.e. Date Of Birth) track, which must be present in the global root directory before these iterators may be utilized.</p>
 <p>Various functions such as <code>emr_track.import</code> modify these files according to the changes that DB undergoes (addition / removal / modification of tracks). Thus manual (outside of Naryn) modification, replacement, addition or deletion of track files cause the cache files to go out of sync. Various problems might arise as a consequence, such as run-time errors, out-dated data from modified tracks and sub-optimal run-time performance.</p>
 <p>Manual modifications of the database files can still be performed, yet they must be ratified by running <code>emr_db.reload</code>.</p>
-<div class="section level4">
-<h4 id="file-and-directory-permissions">File and directory permissions<a class="anchor" aria-label="anchor" href="#file-and-directory-permissions"></a>
-</h4>
-<p>Naryn creates files and directories with a umask of <code>007</code> (except for read-only tracks), which means that files and directories would have permissions of <code>660 (rw-rw----)</code> and <code>770 (rwxrwx---)</code> respectively. This means that in order to access a database that someone outside the group created, the file and folder permissions need to be changed first.</p>
-</div>
 </div>
 <div class="section level3">
 <h3 id="tracks">Tracks<a class="anchor" aria-label="anchor" href="#tracks"></a>
