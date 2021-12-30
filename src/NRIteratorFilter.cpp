@@ -273,8 +273,50 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(vector<SEXP> &filter
     return filter;
 }
 
-EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const char *name, bool operator_not, unsigned stime, unsigned etime)
-{
+int NRIteratorFilter::check_expiration(SEXP rexpiration, bool keepref, bool categorical,const char *name) {
+    double expiration = 0;
+    if (isNull(rexpiration))
+        expiration = 0;
+    else if ((!isReal(rexpiration) && !isInteger(rexpiration)) || Rf_length(rexpiration) != 1)
+        verror("Filter %s: 'expiration' must be a positive integer", name);
+    else if (keepref)
+        verror("Filter %s: 'expiration' cannot be used when keepref is 'TRUE'", name);
+    else if (!categorical)
+        verror("Filter %s: 'expiration' can be used only with categorical tracks", name);
+    else {
+        expiration = asReal(rexpiration);
+        if (expiration < 1 || expiration != (int)expiration)
+            verror("Filter %s: 'expiration' must be a positive integer", name);
+        if (expiration > EMRTimeStamp::MAX_HOUR)
+            verror("Filter %s: 'expiration' is out of range", name);
+    }
+    return expiration;
+}
+
+enum EMRTrack::Iterator::OPS NRIteratorFilter::check_op(const char *op,const char *name) {
+
+    EMRTrack::Iterator::OPS op_enum = EMRTrack::Iterator::OPS::eq;
+
+    if (strcmp(op, "=") == 0) {
+        op_enum = EMRTrack::Iterator::OPS::eq;
+    } else if (strcmp(op, "<") == 0) {
+        op_enum = EMRTrack::Iterator::OPS::lt;
+    } else if (strcmp(op, "<=") == 0) {
+        op_enum = EMRTrack::Iterator::OPS::lte;
+    } else if (strcmp(op, ">") == 0) {
+        op_enum = EMRTrack::Iterator::OPS::gt;
+    } else if (strcmp(op, ">=") == 0) {
+        op_enum = EMRTrack::Iterator::OPS::gte;
+    } else {
+        verror("Filter %s: operator of type %s is not supported", name, op);
+    }
+
+    return op_enum;
+
+}
+
+EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const char *name, bool operator_not, unsigned stime, unsigned etime){
+
     EMRIteratorFilterItem *filter = NULL;
 
     try {
@@ -301,8 +343,9 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const 
             }
 
             if (filter->m_sshift < -(int)EMRTimeStamp::MAX_HOUR || filter->m_sshift > (int)EMRTimeStamp::MAX_HOUR ||
-                filter->m_eshift < -(int)EMRTimeStamp::MAX_HOUR || filter->m_eshift > (int)EMRTimeStamp::MAX_HOUR)
-                verror("Filter %s: 'time.shift' is out of range", name);
+                filter->m_eshift < -(int)EMRTimeStamp::MAX_HOUR || filter->m_eshift > (int)EMRTimeStamp::MAX_HOUR){
+                    verror("Filter %s: 'time.shift' is out of range", name);
+                }
         }
 
         int _stime = filter->m_stime + filter->m_sshift;
@@ -314,17 +357,23 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const 
 
         SEXP rkeepref = get_rvector_col(rfilter, "keepref", name, true);
 
-        if (!isLogical(rkeepref) || Rf_length(rkeepref) != 1 || asLogical(rkeepref) == NA_LOGICAL)
+        if (!isLogical(rkeepref) || Rf_length(rkeepref) != 1 || asLogical(rkeepref) == NA_LOGICAL){
             verror("Filter %s: 'keepref' must be a logical value", name);
+        }
+            
         filter->m_keepref = asLogical(rkeepref);
 
-        if (filter->m_keepref && (filter->m_sshift || filter->m_eshift))
+        if (filter->m_keepref && (filter->m_sshift || filter->m_eshift)){
             verror("Filter %s: 'time.shift' is not allowed when keepref is 'TRUE'", name);
+        }
 
         SEXP rval = get_rvector_col(rfilter, "val", name, false);
         SEXP rexpiration = get_rvector_col(rfilter, "expiration", name, false);
         SEXP rsrc = get_rvector_col(rfilter, "src", name, true);
         SEXP rop = get_rvector_col(rfilter, "operator", name, true);
+        SEXP use_values = get_rvector_col(rfilter, "use_values", name, true);
+
+        const char *op = CHAR(STRING_ELT(rop, 0));
 
         if (isString(rsrc)) { // track name
             if (Rf_length(rsrc) != 1)
@@ -332,12 +381,11 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const 
 
             const char *track_name = CHAR(STRING_ELT(rsrc, 0));
             EMRTrack *track = g_db->track(track_name);
-            const char *op = CHAR(STRING_ELT(rop, 0));
-            EMRTrack::Iterator::OPS op_enum = EMRTrack::Iterator::OPS::eq;
 
-            if (!track)
+            if (!track){
                 verror("Filter %s: track %s does not exist", name, track_name);
-
+            }
+                
             if (Rf_length(rval) > 1 && !track->is_categorical())
                 verror("Filter %s: 'val' parameter must be a single value with numerical tracks", name);
 
@@ -350,64 +398,63 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const 
                 // like (float)0.3 != (double)0.3. So let's "downgrade" all our values to the least precise type.
                 vals.insert(isReal(rval) ? (float)REAL(rval)[i] : (float)INTEGER(rval)[i]);
 
-            double expiration = 0;
-            if (isNull(rexpiration))
-                expiration = 0;
-            else if ((!isReal(rexpiration) && !isInteger(rexpiration)) || Rf_length(rexpiration) != 1)
-                verror("Filter %s: 'expiration' must be a positive integer", name);
-            else if (filter->m_keepref)
-                verror("Filter %s: 'expiration' cannot be used when keepref is 'TRUE'", name);
-            else if (!track->is_categorical())
-                verror("Filter %s: 'expiration' can be used only with categorical tracks", name);
-            else {
-                expiration = asReal(rexpiration);
-                if (expiration < 1 || expiration != (int)expiration)
-                    verror("Filter %s: 'expiration' must be a positive integer", name);
-                if (expiration > EMRTimeStamp::MAX_HOUR)
-                    verror("Filter %s: 'expiration' is out of range", name);
-            }
-
-            if (strcmp(op, "=") == 0) {
-                op_enum = EMRTrack::Iterator::OPS::eq;
-            } else if (strcmp(op, "<") == 0) {
-                op_enum = EMRTrack::Iterator::OPS::lt;
-            } else if (strcmp(op, "<=") == 0) {
-                op_enum = EMRTrack::Iterator::OPS::lte;
-            } else if (strcmp(op, ">") == 0) {
-                op_enum = EMRTrack::Iterator::OPS::gt;
-            } else if (strcmp(op, ">=") == 0) {
-                op_enum = EMRTrack::Iterator::OPS::gte;
-            } else {
-                verror("Filter %s: operator of type %s is not supported", name, op);
-            }
+            double expiration = check_expiration(rexpiration, filter->m_keepref, track->is_categorical(), name);
+            EMRTrack::Iterator::OPS op_enum = check_op(op, name);
 
             if ((op_enum != EMRTrack::Iterator::OPS::eq) && isNull(rval)) {
                 verror("Filter %s: operator of type %s is must be passed with one 'val'", name, op);
             }
 
             filter->m_itr = new EMRTrackIterator(track, filter->m_keepref, _stime, _etime, move(vals), expiration, op_enum);
-        } else {   // id-time list
+        } else if (asLogical(use_values)) {   // id-time or id-time-value
+
+            EMRTrackData<float> data;
+            EMRTrack* track_from_df;
+
+            try {
+                NRPoint::convert_rpoints_vals(rsrc, data, "'src': "); 
+                track_from_df = EMRTrack::construct(name, EMRTrack::Func::VALUE, 0, data);
+
+                if (isNull(rval))
+                    verror("Can not set 'use_value' to TRUE, when 'val' parameter is NULL");
+
+                unordered_set<double> vals;
+                for (int i = 0; i < Rf_length(rval); ++i){
+                    vals.insert(isReal(rval) ? (float)REAL(rval)[i] : (float)INTEGER(rval)[i]);
+                }
+
+                double expiration = check_expiration(rexpiration, filter->m_keepref, 0, name);
+                EMRTrack::Iterator::OPS op_enum = check_op(op, name);
+
+                filter->m_itr = new EMRTrackIterator(track_from_df, filter->m_keepref, _stime, _etime, move(vals), expiration, op_enum); //add opp enum
+
+            } catch (TGLException &e) {
+                verror("Failed to create filter from data frame with values");
+            }
+            
+        } else {
             EMRPoints points;
+
             try {
                 NRPoint::convert_rpoints(rsrc, &points);
-
+                
                 if (!isNull(rval))
-                    verror("'val' parameter can not be used with dataframe as source");
+                    verror("'val' parameter can not be used with dataframe without values as source");
 
                 if (!isNull(rexpiration))
                     verror("'expiration' parameter can be used only with tracks");
 
                 filter->m_itr = new EMRPointsIterator(points, filter->m_keepref, _stime, _etime);
-            } catch (TGLException &e) {
-                if (e.type() == typeid(NRPoint) && e.code() != NRPoint::BAD_FORMAT)
-                    verror(
-                        "Filter %s: 'src' is neither a track nor an id-time "
-                        "data frame",
-                        name);
 
-                verror("Filter item %s: %s", name, e.msg());
-            }
-        }
+                } catch (TGLException &e) {
+
+                    if (e.type() == typeid(NRPoint) && e.code() != NRPoint::BAD_FORMAT)
+                        verror( "Filter %s: Unable to create filter from data frame without values when 'use_values' is FALSE",name);
+
+                    verror("Filter item %s: %s", name, e.msg());
+                }
+            }            
+
     }
     catch (...) {
         delete filter;

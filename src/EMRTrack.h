@@ -147,7 +147,7 @@ protected:
 public:
 	class Iterator {
 	public:
-        enum OPS { eq, gt, lt, lte, gte };
+        enum OPS { eq, gt, lt, lte, gte } ops;
 		Iterator() : m_track(NULL), m_isend(true) {}
         Iterator(EMRTrack *track, unsigned stime = 0, unsigned etime = (unsigned)-1, unordered_set<double> &&vals = unordered_set<double>(), EMRTimeStamp::Hour expiration = 0, Iterator::OPS op = OPS::eq);
 

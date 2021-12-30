@@ -1219,7 +1219,6 @@ test_that("emr_track.info ignores current subset with logical tracks", {
     expect_equal(a, b)
 })
 
-
 # filters
 
 test_that("logical track can be used as filter", {
