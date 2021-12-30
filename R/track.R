@@ -396,7 +396,7 @@ emr_track.create <- function(track, space = EMR_UROOT, categorical, expr, stime 
     db_id <- ._emr_backward_comp_space(space)
 
     orig_filters <- .emr_gen_vtrack_filters(filter, iterator, keepref, stime, etime)
-    on.exit(.emr_recreate_vtrack_filters(orig_filters))
+    on.exit(.emr_recreate_vtrack_filters(orig_filters), add = TRUE)
 
     .emr_call("emr_track_create", track, db_id, categorical, expr, stime, etime, iterator, keepref, .emr_filter(filter), override, new.env(parent = parent.frame()))
     return(NULL)
