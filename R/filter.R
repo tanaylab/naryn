@@ -436,7 +436,7 @@ emr_filter.create_from_name <- function(filter) {
 #' If 'val' is not 'NULL', the time window of the filter is required to contain
 #' at least one value from the vector of 'val' which passes the 'operator' (see below).
 #'
-#' 'val' is allowed to be used only when 'src' is a name of a track, when val is specified,
+#' 'val' is allowed to be used only when 'src' is a name of a track. When val is specified,
 #' the filter will filter the i.d, time points by applying the 'operator' argument on the
 #' value of the point.
 #'
