@@ -479,6 +479,14 @@ test_that("emr_filter.clear works", {
     expect_equal(emr_filter.ls(), character(0))
 })
 
+test_that("cannot create filters with invalid names", {
+    expect_error(emr_filter.create("..emr_savta", "track0"))
+    expect_error(emr_filter.create(".. savta", "track0"))
+    expect_error(emr_filter.create("savta?", "track0"))
+    expect_error(emr_filter.create("saba!", "track0"))
+    expect_error(emr_filter.create("bamba+bissli", "track0"))
+})
+
 test_that("emr_filter.name works", {
     expect_equal(
         emr_filter.name("track10", keepref = FALSE, time.shift = c(-10, 20)),
@@ -1012,7 +1020,7 @@ test_that("filter on vtrack retores the original filter", {
     emr_vtrack.create("vt", src = "t", func = "avg", time.shift = c(-2, 0))
     orig_vt <- emr_vtrack.info("vt")
     withr::defer(emr_vtrack.rm("vt"))
-    
+
     emr_filter.create("fvt", src = "vt", val = 3, operator = ">", use_values = TRUE)
     orig_filter <- emr_filter.info("fvt")
     withr::defer(emr_filter.rm("fvt"))
@@ -1022,22 +1030,165 @@ test_that("filter on vtrack retores the original filter", {
     expect_equal(orig_filter, emr_filter.info("fvt"))
 })
 
-# test_that("emr_dist works on vtrack with filters", {
+test_that("emr_track.create works with value filters", {
+    abnormal_glucose <- emr_screen("track0 > 700", keepref = TRUE) %>% dplyr::distinct(id, time)
+    emr_track.create("abnormal_glucose", categorical = FALSE, expr = "track0", iterator = abnormal_glucose)
+    f <- emr_filter.create(filter = NULL, src = "track0", val = 700, operator = ">")
+    emr_track.create("abnormal_glucose1", categorical = FALSE, expr = "track0", filter = f)
+    withr::defer({
+        emr_filter.clear()
+        emr_vtrack.clear()
+        emr_track.rm("abnormal_glucose", force = TRUE)
+        emr_track.rm("abnormal_glucose1", force = TRUE)
+    })
+    a <- emr_extract("abnormal_glucose", names = "v")
+    b <- emr_extract("abnormal_glucose1", names = "v")
+    expect_equal(a, b)
+})
 
-# })
+test_that("emr_extract with filter on vtrack is equivalent to emr_screen + emr_extract call", {
+    emr_filter.clear()
+    emr_vtrack.clear()
 
-# test_that("emr_track.create works with value filters", {
-#     abnormal_glucose <- emr_screen('track0 > 700')
-#     emr_track.create('abnormal_glucose', categorical=FALSE, expr='track0', iterator=abnormal_glucose)
-#     f <- emr_filter.create(filter = NULL, src = "track0", val = 125, operator = ">")
-#     emr_track.create('abnormal_glucose1', categorical=FALSE, expr='track0', filter = f)
-#     withr::defer({
-#         emr_filter.clear()
-#         emr_vtrack.clear()
-#         emr_track.rm("abnormal_glucose", force = TRUE)
-#         emr_track.rm("abnormal_glucose1", force = TRUE)
-#     })
-#     a <- emr_extract("abnormal_glucose", names = "v")
-#     b <- emr_extract("abnormal_glucose1", names = "v")
-#     expect_equal(a, b)
-# })
+    emr_vtrack.create("vt", src = "track0", func = "avg", time.shift = c(-30, 0))
+    f <- emr_filter.create(filter = NULL, src = "vt", val = 700, operator = ">")
+    iter <- emr_screen("vt > 700")
+    a <- emr_extract(c("track0", "vt"), iterator = iter)
+    b <- emr_extract(c("track0", "vt"), iterator = "track0", filter = f)
+    expect_equal(a, b)
+})
+
+test_that("emr_dist works with vtrack filters", {
+    emr_filter.clear()
+    emr_vtrack.clear()
+
+    emr_vtrack.create("vt", src = "track0", func = "avg", time.shift = c(-30, 0))
+    f <- emr_filter.create(filter = NULL, src = "vt", val = 700, operator = ">")
+    iter <- emr_screen("vt > 700")
+    breaks <- emr_quantiles("track0", 0:20 / 20)
+    a <- emr_dist("track0", breaks, iterator = iter)
+    b <- emr_dist("track0", breaks, iterator = "track0", filter = f)
+    expect_equal(a, b)
+
+    emr_vtrack.create("vt", src = "track0", func = "earliest", time.shift = c(-30, 0))
+    f <- emr_filter.create(filter = NULL, src = "vt", val = 700, operator = ">")
+    iter <- emr_screen("vt > 700")
+    breaks <- emr_quantiles("track0", 0:20 / 20)
+    a <- emr_dist("track0", breaks, iterator = iter)
+    b <- emr_dist("track0", breaks, iterator = "track0", filter = f)
+    expect_equal(a, b)
+})
+
+test_that("emr_cor works with vtrack filters", {
+    emr_filter.clear()
+    emr_vtrack.clear()
+
+    emr_vtrack.create("vt", src = "track0", func = "avg", time.shift = c(-30, 0))
+    f <- emr_filter.create(filter = NULL, src = "vt", val = 700, operator = ">")
+    iter <- emr_screen("vt > 700")
+    breaks <- emr_quantiles("track0", 0:20 / 20)
+
+    a <- emr_cor("track0", breaks, cor.exprs = c("track1", "track2"), iterator = iter)
+    b <- emr_cor("track0", breaks, cor.exprs = c("track1", "track2"), iterator = "track0", filter = f)
+    expect_equal(a, b)
+})
+
+test_that("emr_quantiles works with vtrack with filters", {
+    emr_filter.clear()
+    emr_vtrack.clear()
+
+    emr_vtrack.create("vt", src = "track0", func = "avg", time.shift = c(-30, 0))
+    f <- emr_filter.create(filter = NULL, src = "vt", val = 700, operator = ">")
+    iter <- emr_screen("vt > 700")
+
+    a <- emr_quantiles("track0", 0:20 / 20, iterator = iter)
+    b <- emr_quantiles("track0", 0:20 / 20, iterator = "track0", filter = f)
+    expect_equal(a, b)
+})
+
+test_that("emr_summary works with vtrack filters", {
+    emr_filter.clear()
+    emr_vtrack.clear()
+
+    emr_vtrack.create("vt", src = "track0", func = "avg", time.shift = c(-30, 0))
+    f <- emr_filter.create(filter = NULL, src = "vt", val = 700, operator = ">")
+    iter <- emr_screen("vt > 700")
+
+    a <- emr_summary("track0", iterator = iter)
+    b <- emr_summary("track0", iterator = "track0", filter = f)
+    expect_equal(a, b)
+})
+
+test_that("emr_screen works with vtrack filters", {
+    emr_filter.clear()
+    emr_vtrack.clear()
+
+    emr_vtrack.create("vt", src = "track0", func = "avg", time.shift = c(-30, 0))
+    f <- emr_filter.create(filter = NULL, src = "vt", val = 700, operator = ">")
+    iter <- emr_screen("vt > 700")
+
+    a <- emr_screen("track0 <= 500", iterator = iter)
+    b <- emr_screen("track0 <= 500", iterator = "track0", filter = f)
+    expect_equal(a, b)
+})
+
+test_that("emr_ids_coverage works with vtrack filters", {
+    emr_filter.clear()
+    emr_vtrack.clear()
+
+    emr_vtrack.create("vt", src = "track0", func = "avg", time.shift = c(-30, 0))
+    f <- emr_filter.create(filter = NULL, src = "vt", val = 700, operator = ">")
+
+    ids <- emr_extract("track7")
+
+    tracks <- c("track0", "track1", "track3", "track4", "track5", "track6", "track7", "track8")
+
+    b <- emr_ids_coverage(ids, tracks, filter = f)
+
+    purrr::walk(tracks, ~ {
+        iter <- emr_screen("vt > 700", iterator = .x, keepref = TRUE) %>% dplyr::distinct(id, time)
+        a <- emr_extract(.x, iterator = iter)
+        expect_equal(
+            a %>%
+                dplyr::filter(!is.na(!!rlang::sym(.x))) %>%
+                dplyr::distinct(id) %>%
+                dplyr::filter(id %in% ids$id) %>%
+                nrow(),
+            b[.x],
+            ignore_attr = TRUE
+        )
+    })
+})
+
+test_that("emr_ids_vals_coverage works with vtrack filters", {
+    emr_filter.clear()
+    emr_vtrack.clear()
+
+    emr_vtrack.create("vt", src = "track0", func = "avg", time.shift = c(-30, 0))
+    f <- emr_filter.create(filter = NULL, src = "vt", val = 700, operator = ">")
+
+    ids <- emr_extract("track7")
+
+    tracks <- c("track6", "track7", "track8")
+    b <- emr_ids_vals_coverage(ids, tracks, filter = f) %>%
+        dplyr::mutate(track = as.character(track))
+
+    a <- purrr::map_dfr(tracks, ~ {
+        iter <- emr_screen("vt > 700", iterator = .x, keepref = TRUE) %>% dplyr::distinct(id, time, ref)
+        track_values <- emr_track.unique(.x)
+        emr_extract(.x, iterator = iter, keepref = TRUE) %>%
+            dplyr::select(-ref, -time) %>%
+            dplyr::filter(id %in% ids$id) %>%
+            tidyr::gather("track", "val", -id) %>%
+            dplyr::filter(!is.na(val), val != -1) %>%
+            dplyr::group_by(track, val) %>%
+            dplyr::summarise(count = dplyr::n_distinct(id), .groups = "drop") %>%
+            dplyr::mutate(val = factor(val, levels = track_values)) %>%
+            tidyr::complete(track, val, fill = list(count = 0)) %>%
+            dplyr::mutate(val = as.numeric(as.character(val))) %>%
+            dplyr::arrange(track, val) %>%
+            as.data.frame()
+    })
+
+    expect_equal(a, b)
+})

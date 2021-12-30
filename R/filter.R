@@ -82,6 +82,21 @@
     return(vtrack_filters_result)
 }
 
+.emr_detect_vtrack_filters <- function(filter) {
+    parsed_filters <- .emr_parse_exprs(filter)
+
+    vtrack_filters <- purrr::keep(parsed_filters, ~ {
+        emr_filter.exists(.x) &&
+            is.character(emr_filter.info(.x)$src) &&
+            emr_vtrack.exists(emr_filter.info(.x)$src)
+    })
+
+    # look for vtrack names that were given as a filter
+    explicit_vtracks <- purrr::keep(parsed_filters, emr_vtrack.exists)
+
+    return(list(vtrack_filters = vtrack_filters, explicit_vtracks = explicit_vtracks))
+}
+
 #' The function overrides the filters which are applied on vtracks,
 #' It uses the queries iterator to extract the vtrack expression and
 #' creates a new operator filter based on the extract result.
@@ -93,13 +108,9 @@
 #'
 #' @noRd
 .emr_gen_vtrack_filters <- function(filter, iterator, keepref, stime, etime) {
-    parsed_filters <- .emr_parse_exprs(filter)
-
-    vtrack_filters <- purrr::keep(parsed_filters, ~ {
-        emr_filter.exists(.x) &&
-            is.character(emr_filter.info(.x)$src) &&
-            emr_vtrack.exists(emr_filter.info(.x)$src)
-    })
+    query_vt_f <- .emr_detect_vtrack_filters(filter)
+    vtrack_filters <- query_vt_f$vtrack_filters
+    explicit_vtracks <- query_vt_f$explicit_vtracks
 
     orig_vt_filters <- vtrack_filters %>%
         purrr::map(~ {
@@ -108,8 +119,6 @@
             return(info)
         })
 
-    # look for vtrack names that were given as a filter
-    explicit_vtracks <- purrr::keep(parsed_filters, emr_vtrack.exists)
     vtrack_filters <- c(vtrack_filters, explicit_vtracks)
 
     # filters we want to remove after the operation is finished
@@ -458,6 +467,10 @@ emr_filter.create <- function(filter, src, keepref = FALSE, time.shift = NULL, v
 
     if (filter != make.names(filter)) {
         stop(sprintf("\"%s\" is not a syntactically valid name for a variable", filter), call. = FALSE)
+    }
+
+    if (startsWith(filter, "..emr")) {
+        stop("Filters with an '..emr' prefix are reserved for internal 'naryn' usage. Please rename your filter.", call. = FALSE)
     }
 
     if (emr_track.exists(filter)) {
