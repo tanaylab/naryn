@@ -1,11 +1,16 @@
-load_test_db <- function(testdb_dir = tempfile(pattern = "testdb_", tmpdir = test_path(".."))) {
+load_test_db <- function(testdb_dir = tempfile(pattern = "testdb_", tmpdir = test_path("..")),
+                         image_dir = "/net/mraid14/export/tgdata/db/tgdb/emr/naryn_testdb/") {
     dir.create(testdb_dir)
 
     # Note: we should change this to download.file from a public link
-    system(glue::glue("cp -rf /net/mraid14/export/tgdata/db/tgdb/emr/naryn_testdb/* {testdb_dir}/"))
+    system(glue::glue("cp -rf {image_dir}/* {testdb_dir}/"))
 
     emr_db.connect(c(testdb_dir, file.path(testdb_dir, "utest")))
     emr_db.reload()
+}
+
+load_minimock_db <- function() {
+    load_test_db(image_dir = "/net/mraid14/export/tgdata/db/tgdb/emr/minimock")
 }
 
 
