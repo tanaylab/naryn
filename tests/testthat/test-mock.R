@@ -1,5 +1,15 @@
 load_minimock_db()
 
+test_that("filters with value", {
+    withr::local_options(list(emr_max.data.size = 1e9))
+    abnormal_hemoglobin <- emr_screen("lab.103 < 12", keepref = TRUE)
+    a <- emr_extract("lab.103", iterator = abnormal_hemoglobin)
+
+    emr_filter.create("f", "lab.103", val = 12, operator = "<")
+    b <- emr_extract("lab.103", filter = "f")
+    expect_equal(a, b)
+})
+
 test_that("filters on vtracks #1", {
     emr_filter.clear()
     emr_vtrack.clear()

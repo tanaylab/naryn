@@ -14,6 +14,13 @@ test_that("emr_track.logical.create tracks works", {
     expect_false(emr_track.logical.exists("track1"))
 })
 
+test_that("emr_track.logical.exists works", {
+    withr::defer(clean_logical_tracks())
+    emr_track.logical.create("logical_track1", "ph1", c(15, 16))
+    emr_track.logical.create("logical_track2", "ph1", c(15, 16))
+    expect_equal(emr_track.logical.exists(emr_track.logical.ls()), c(TRUE, TRUE))
+})
+
 test_that("emr_track.logical.create tracks works in batch mode", {
     withr::defer(clean_logical_tracks())
     tracks <- c("logical_track1", "logical_track2", "logical_track3")
@@ -418,7 +425,7 @@ test_that("emr_track.readonly works on logical tracks", {
 
     expect_error(emr_track.var.set("l1", "a", TRUE))
     expect_error(emr_track.rm("l1", force = TRUE))
-    expect_error(emr_track.addto(data.frame(id = 6, time = 6, value = 6), "l1", force = TRUE))
+    expect_error(emr_track.addto("l1", data.frame(id = 6, time = 6, value = 6), force = TRUE))
 
     withr::defer(emr_track.rm("l1_ph", force = TRUE))
 })
