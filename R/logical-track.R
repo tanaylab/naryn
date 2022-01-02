@@ -155,7 +155,7 @@ emr_track.logical.rm <- function(track, force = FALSE, rm_vars = TRUE) {
 #' @noRd
 emr_track.logical.exists <- function(track) {
     .emr_checkroot()
-    .emr_call("emr_is_logical", track, new.env(parent = parent.frame()), silent = TRUE)
+    purrr::map_lgl(track, ~ .emr_call("emr_is_logical", .x, new.env(parent = parent.frame()), silent = TRUE))
 }
 
 #' Returns information about a logical track
