@@ -433,7 +433,7 @@ emr_track.exists <- function(track, db_id = NULL) {
 
     if (is.null(db_id)) {
         track_exists <- !is.na(match(track, .emr_call("emr_track_names", new.env(parent = parent.frame()), silent = TRUE)))
-        track_exists <- track_exists || !is.na(match(track, .emr_call("emr_logical_track_names", new.env(parent = parent.frame()), silent = TRUE)))
+        track_exists <- track_exists | !is.na(match(track, .emr_call("emr_logical_track_names", new.env(parent = parent.frame()), silent = TRUE)))
     } else {
         track_exists <- !is.na(match(track, .emr_call("emr_track_db_names", db_id, new.env(parent = parent.frame()), silent = TRUE)))
     }
