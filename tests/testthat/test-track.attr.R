@@ -71,6 +71,54 @@ test_that("emr_track.attr.export works for multiple tracks", {
             5L
         ), class = "data.frame")
     )
+
+    expect_equal(
+        emr_track.attr.export(c("track1", "track7"), include_missing = TRUE),
+        structure(list(
+            track = c(
+                "track1", "track1", "track1", "track7",
+                "track7"
+            ), attr = c("var1", "var2", "var3", "var1", "var2"),
+            value = c("val1", "val2", "val3", "val3", "")
+        ), row.names = c(
+            NA,
+            5L
+        ), class = "data.frame")
+    )
+
+    expect_equal(
+        emr_track.attr.export(c("track1", "track7", "savta"), include_missing = TRUE),
+        structure(list(track = c(
+            "track1", "track1", "track1", "track7",
+            "track7", "track7", "savta", "savta", "savta"
+        ), attr = c(
+            "var1",
+            "var2", "var3", "var1", "var2", "var3", "var1", "var2", "var3"
+        ), value = c(
+            "val1", "val2", "val3", "val3", "", NA, NA, NA,
+            NA
+        )), row.names = c(NA, -9L), class = "data.frame")
+    )
+
+    expect_error(
+        emr_track.attr.export(c("track1", "track7", "savta"), include_missing = FALSE)
+    )
+
+    expect_equal(
+        emr_track.attr.export("savta", c("val2", "val1"), include_missing = TRUE), 
+        structure(list(track = c("savta", "savta"), attr = c(
+            "val2",
+            "val1"
+        ), value = c(NA_character_, NA_character_)), row.names = c(
+            NA,
+            -2L
+        ), class = "data.frame")
+    )
+
+    expect_equal(
+        emr_track.attr.export("savta", include_missing = TRUE),
+        structure(list(track = character(0), attr = character(0), value = character(0)), row.names = integer(0), class = "data.frame")
+    )
 })
 
 test_that("emr_track.attr.export works for multiple tracks and vars", {

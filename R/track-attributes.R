@@ -23,6 +23,9 @@
 #'
 #' @param track a vector of track names or 'NULL'
 #' @param attr a vector of attribute names or 'NULL'
+#' @param include_missing when TRUE - adds a row for tracks which do not have the 'attr' with NA,
+#' or tracks which do not exist. Otherwise tracks without an attribute would be omitted from the data
+#' frame, and an error would be thrown for tracks which do not exist.
 #' @return A data frame containing attributes values of tracks.
 #' @seealso \code{\link{emr_track.attr.get}}, \code{\link{emr_track.attr.set}}
 #' @keywords ~attr ~attribute
@@ -38,7 +41,7 @@
 #' emr_track.attr.export(attr = "gender")
 #' emr_track.attr.export(track = "sparse_track", attr = "gender")
 #' @export emr_track.attr.export
-emr_track.attr.export <- function(track = NULL, attr = NULL) {
+emr_track.attr.export <- function(track = NULL, attr = NULL, include_missing = FALSE) {
     .emr_checkroot()
 
     if (is.null(track)) {
@@ -50,7 +53,34 @@ emr_track.attr.export <- function(track = NULL, attr = NULL) {
         attr <- unique(attr)
     }
 
-    .emr_call("emr_get_tracks_attrs", track, attr, new.env(parent = parent.frame()))
+    if (include_missing) {
+        tracks_to_compute <- track[emr_track.exists(track)]
+    } else {
+        tracks_to_compute <- track
+    }
+
+    if (length(tracks_to_compute) == 0) {
+        res <- data.frame(track = character(), attr = character(), value = character())
+    } else {
+        res <- .emr_call("emr_get_tracks_attrs", tracks_to_compute, attr, new.env(parent = parent.frame()))
+    }
+
+    if (include_missing) {
+        attr <- attr %||% unique(res$attr)
+        res <- res %>%
+            dplyr::mutate(
+                track = factor(track, levels = !!track),
+                attr = factor(attr, levels = !!attr)
+            )
+
+        res <- res %>%
+            tidyr::complete(track, attr, fill = list(value = NA)) %>%
+            dplyr::mutate(track = as.character(track), attr = as.character(attr))
+
+        res <- as.data.frame(res)
+    }
+
+    return(res)
 }
 
 
