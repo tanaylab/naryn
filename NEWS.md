@@ -1,3 +1,8 @@
+# naryn 2.6.5
+
+* Added batch mode for `emr_track.attr.set` and `emr_track.attr.rm`
+* Added `include_missing` parameter `emr_track.attr.export` allowing missing tracks and attributes.
+
 # naryn 2.6.4 
 
 * Added support for filters which are based on virtual tracks. 
