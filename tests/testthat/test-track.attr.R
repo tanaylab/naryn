@@ -105,7 +105,7 @@ test_that("emr_track.attr.export works for multiple tracks", {
     )
 
     expect_equal(
-        emr_track.attr.export("savta", c("val2", "val1"), include_missing = TRUE), 
+        emr_track.attr.export("savta", c("val2", "val1"), include_missing = TRUE),
         structure(list(track = c("savta", "savta"), attr = c(
             "val2",
             "val1"
@@ -158,6 +158,35 @@ test_that("emr_track.attr.export works by attributes", {
     )
 })
 
+test_that("emr_track.attr.rm works", {
+    withr::defer(clean_attributes())
+    emr_track.attr.set("track1", "var1", "val1")
+
+    emr_track.attr.rm("track1", "var1")
+
+    expect_equal(
+        emr_track.attr.export("track1", "var1"),
+        data.frame(track = character(0), attr = character(0), value = character(0))
+    )
+})
+
+test_that("emr_track.attr.rm works in batch mode", {
+    withr::defer(clean_attributes())
+    emr_track.attr.set("track1", "var1", "val1")
+    emr_track.attr.set("track1", "var2", "val2")
+    emr_track.attr.set("track1", "var3", "val3")
+    emr_track.attr.set("track2", "var2", "baba")
+    emr_track.attr.set("track7", "var1", "val3")
+    emr_track.attr.set("track7", "var2", "")
+
+    emr_track.attr.rm(c("track1", "track2", "track7"), "var1")
+
+    expect_equal(
+        emr_track.attr.export(c("track1", "track2", "track7"), "var1"),
+        data.frame(track = character(0), attr = character(0), value = character(0))
+    )
+})
+
 
 test_that("emr_track.ls finds tracks by var", {
     withr::defer(clean_attributes())
@@ -206,4 +235,38 @@ test_that("emr_track.rm removes the track attributes", {
     expect_error(emr_track.attr.get("tmp", "var1"))
     expect_equal(emr_track.attr.export(), initial_attrs)
     expect_false(file.exists(attrs_file))
+})
+
+test_that("emr_track.attr.set in batch mode works", {
+    withr::defer(clean_attributes())
+    emr_track.attr.set(c("track1", "track2", "track3"), "var1", "val1")
+    expect_equal(
+        emr_track.attr.export(),
+        structure(list(
+            track =
+                c("track1", "track2", "track3"),
+            attr = c(
+                "var1",
+                "var1",
+                "var1"
+            ), value = c("val1", "val1", "val1")
+        ), row.names = c(
+            NA,
+            3L
+        ), class = "data.frame")
+    )
+    expect_equal(emr_track.ls(var1 = "val*"), c("track1", "track2", "track3"))
+})
+
+test_that("emr_track.attr.set in batch mode works with an empty value", {
+    withr::defer(clean_attributes())
+    emr_track.attr.set(c("track1", "track2", "track3"), "var1", value = "")
+    expect_equal(
+        emr_track.attr.export(),
+        structure(list(track = c("track1", "track2", "track3"), attr = c(
+            "var1",
+            "var1", "var1"
+        ), value = c("", "", "")), row.names = c(NA, 3L), class = "data.frame")
+    )
+    expect_equal(emr_track.ls(var1 = ""), c("track1", "track2", "track3"))
 })

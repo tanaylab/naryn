@@ -306,8 +306,7 @@ void EMRDb::remove_logical_track(const char *track_name, const bool &update) {
         }
     }
 
-    if (update)
-    {
+    if (update) {
         update_logical_tracks_file();
     }
 }
@@ -1367,7 +1366,7 @@ EMRDb::Track2Attrs EMRDb::get_tracks_attrs(const vector<string> &tracks, vector<
 }
 
 void EMRDb::set_track_attr(const char *trackname, const char *attr,
-                           const char *val) {
+                           const char *val, const bool& update) {
     vector<BufferedFile> locks(m_rootdirs.size());
     lock_track_lists(locks, "r+");
 
@@ -1417,7 +1416,10 @@ void EMRDb::set_track_attr(const char *trackname, const char *attr,
         m_track2attrs[db_id][trackname] = track_attrs;
     }
 
-    update_tracks_attrs_file(db_id, true);
+    if (update){
+        update_tracks_attrs_file(db_id, true);
+    }
+    
 }
 
 void EMRDb::load_tracks_attrs(string db_id, bool locked)

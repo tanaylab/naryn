@@ -4,14 +4,14 @@
 \alias{emr_track.attr.set}
 \title{Assigns a value to the track attribute}
 \usage{
-emr_track.attr.set(track = NULL, attr = NULL, value = NULL)
+emr_track.attr.set(track, attr, value)
 }
 \arguments{
-\item{track}{track name}
+\item{track}{one or more track names}
 
 \item{attr}{attribute name}
 
-\item{value}{value}
+\item{value}{value (a string). Can be empty string ('').}
 }
 \value{
 None.

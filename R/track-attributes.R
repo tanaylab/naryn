@@ -108,6 +108,10 @@ emr_track.attr.get <- function(track = NULL, attr = NULL) {
     if (missing(track) || missing(attr)) {
         stop("Usage: emr_track.attr.get(track, attr)", call. = FALSE)
     }
+
+    if (length(track) > 1) {
+        stop("'emr_track.attr.get' can be used only with a single track. For multiple tracks please use 'emr_track.attr.export'", call. = FALSE)
+    }
     .emr_checkroot()
 
     res <- emr_track.attr.export(track, attr)
@@ -140,13 +144,29 @@ emr_track.attr.get <- function(track = NULL, attr = NULL) {
 #' emr_track.attr.rm("sparse_track", "test_attr")
 #' emr_track.attr.export()
 #' @export emr_track.attr.rm
-emr_track.attr.rm <- function(track = NULL, attr = NULL) {
+emr_track.attr.rm <- function(track, attr) {
     if (missing(track) || missing(attr)) {
         stop("Usage: emr_track.attr.rm(track, attr)", call. = FALSE)
     }
     .emr_checkroot()
 
-    .emr_call("emr_set_track_attr", track, attr, NULL, new.env(parent = parent.frame()))
+    dups <- duplicated(track)
+    if (any(dups)) {
+        stop("The following tracks appear more than once: ", paste(unique(track[dups]), collapse = ", "))
+    }
+
+    if (length(track) > 1) {
+        purrr::walk(track, function(tr) {
+            .emr_call("emr_set_track_attr", tr, attr, NULL, FALSE, new.env(parent = parent.frame()))
+        })
+        dbs <- emr_track.dbs(track, dataframe = FALSE)
+        purrr::walk(dbs, ~ {
+            .emr_call("update_tracks_attrs_file", .x, new.env(parent = parent.frame()))
+        })
+    } else {
+        .emr_call("emr_set_track_attr", track, attr, NULL, TRUE, new.env(parent = parent.frame()))
+    }
+
     retv <- 0 # suppress return value
 }
 
@@ -161,9 +181,9 @@ emr_track.attr.rm <- function(track = NULL, attr = NULL) {
 #'
 #' Note that both attributes and values sould be in ASCII encoding.
 #'
-#' @param track track name
+#' @param track one or more track names
 #' @param attr attribute name
-#' @param value value
+#' @param value value (a string). Can be empty string ('').
 #' @return None.
 #' @seealso \code{\link{emr_track.attr.get}}, \code{\link{emr_track.attr.rm}},
 #' \code{\link{emr_track.attr.export}}
@@ -174,12 +194,28 @@ emr_track.attr.rm <- function(track = NULL, attr = NULL) {
 #' emr_track.attr.set("sparse_track", "test_attr", "value")
 #' emr_track.attr.get("sparse_track", "test_attr")
 #' @export emr_track.attr.set
-emr_track.attr.set <- function(track = NULL, attr = NULL, value = NULL) {
+emr_track.attr.set <- function(track, attr, value) {
     if (missing(track) || missing(attr) || missing(value)) {
         stop("Usage: emr_track.attr.set(track, attr, value)", call. = FALSE)
     }
     .emr_checkroot()
 
-    .emr_call("emr_set_track_attr", track, attr, value, new.env(parent = parent.frame()))
+    dups <- duplicated(track)
+    if (any(dups)) {
+        stop("The following tracks appear more than once: ", paste(unique(track[dups]), collapse = ", "))
+    }
+
+    if (length(track) > 1) {
+        purrr::walk(track, function(tr) {
+            .emr_call("emr_set_track_attr", tr, attr, value, FALSE, new.env(parent = parent.frame()))
+        })
+        dbs <- emr_track.dbs(track, dataframe = FALSE)
+        purrr::walk(dbs, ~ {
+            .emr_call("update_tracks_attrs_file", .x, new.env(parent = parent.frame()))
+        })
+    } else {
+        .emr_call("emr_set_track_attr", track, attr, value, TRUE, new.env(parent = parent.frame()))
+    }
+
     retv <- 0 # suppress return value
 }

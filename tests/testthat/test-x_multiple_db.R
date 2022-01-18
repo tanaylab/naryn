@@ -385,6 +385,7 @@ test_that("emr_track.vars are overridden correctly", {
 })
 
 test_that("emr_track.attrs are overridden correctly", {
+    withr::defer(clean_attributes())
     expect_equal(emr_track.attr.export(attr = "coffee") %>% nrow(), 0)
 
     emr_track.attr.set("track2_2", "coffee", "bad")
@@ -401,6 +402,16 @@ test_that("emr_track.attrs are overridden correctly", {
     emr_track.rm("track2_2", force = TRUE)
 
     expect_equal(emr_track.attr.export(attr = "coffee"), data.frame(track = c("track2", "track2_2"), attr = c("coffee", "coffee"), value = c("bad", "bad")))
+})
+
+test_that("emr_track.attrs created correctly in emr_track.attr.set batch mode", {
+    withr::defer(clean_attributes())
+    emr_track.attr.set(c("track2_2", "track2", "track1_3"), "coffee", "bad")
+
+    expect_equal(emr_track.attr.export(attr = "coffee"), data.frame(track = c("track1_3", "track2", "track2_2"), attr = rep("coffee", 3), value = rep("bad", 3)))
+
+    emr_track.attr.rm(c("track2_2", "track2", "track1_3"), "coffee")
+    expect_equal(emr_track.attr.export(attr = "coffee"), data.frame(track = character(0), attr = character(0), value = character(0)))
 })
 
 test_that("vtracks work on an overridden track, without changing source", {

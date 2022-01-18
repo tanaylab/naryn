@@ -4,7 +4,7 @@
 \alias{emr_track.attr.rm}
 \title{Deletes a track attribute}
 \usage{
-emr_track.attr.rm(track = NULL, attr = NULL)
+emr_track.attr.rm(track, attr)
 }
 \arguments{
 \item{track}{track name}
