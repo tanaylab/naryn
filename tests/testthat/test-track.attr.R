@@ -74,16 +74,16 @@ test_that("emr_track.attr.export works for multiple tracks", {
 
     expect_equal(
         emr_track.attr.export(c("track1", "track7"), include_missing = TRUE),
-        structure(list(
-            track = c(
-                "track1", "track1", "track1", "track7",
-                "track7"
-            ), attr = c("var1", "var2", "var3", "var1", "var2"),
-            value = c("val1", "val2", "val3", "val3", "")
-        ), row.names = c(
-            NA,
-            5L
-        ), class = "data.frame")
+        structure(list(track = c(
+            "track1", "track1", "track1", "track7",
+            "track7", "track7"
+        ), attr = c(
+            "var1", "var2", "var3", "var1",
+            "var2", "var3"
+        ), value = c(
+            "val1", "val2", "val3", "val3", "",
+            NA
+        )), row.names = c(NA, -6L), class = "data.frame")
     )
 
     expect_equal(
