@@ -19,7 +19,8 @@ Imports:
     lifecycle,
     magrittr,
     purrr,
-    stringr
+    stringr,
+    tidyr
 Suggests: 
     spelling,
     brio,

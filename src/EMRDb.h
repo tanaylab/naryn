@@ -131,7 +131,10 @@ public:
 
     // sets track attribute; if val == NULL, the attribute is removed
     void set_track_attr(const char *track_name, const char *attr,
-                        const char *val);
+                        const char *val, const bool &update);
+
+    // Writes data into tracks attributes file.
+    void update_tracks_attrs_file(string db_id, bool locked);
 
     unsigned id(size_t idx);
     size_t id2idx(unsigned id);  // returns id index given id
@@ -237,9 +240,6 @@ protected:
 
     // Scans root directory for tracks attributes, creates tracks attributes file with the gathered data.
     void create_tracks_attrs_file(string db_id, bool locked);
-
-    // Writes data into tracks attributes file.
-    void update_tracks_attrs_file(string db_id, bool locked);
 
     // Loads track attributes file. If corrupted or missing, recreates it.
     void load_tracks_attrs(string db_id, bool locked);
