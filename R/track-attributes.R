@@ -75,7 +75,7 @@ emr_track.attr.export <- function(track = NULL, attr = NULL, include_missing = F
 
         res <- res %>%
             tidyr::complete(track, attr, fill = list(value = NA)) %>%
-            dplyr::mutate(track = as.character(track), attr = as.character(attr))
+            dplyr::mutate(track = as.character(track), attr = as.character(attr), value = as.character(value))
 
         res <- as.data.frame(res)
     }
