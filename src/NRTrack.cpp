@@ -396,8 +396,9 @@ SEXP emr_get_tracks_attrs(SEXP _tracks, SEXP _attrs, SEXP _envir)
 	return R_NilValue;
 }
 
-SEXP emr_set_track_attr(SEXP _track, SEXP _attr, SEXP _value, SEXP _envir) {
-	try {
+SEXP emr_set_track_attr(SEXP _track, SEXP _attr, SEXP _value, SEXP _update, SEXP _envir)
+{
+    try {
 		Naryn naryn(_envir);
 
 		// check the arguments
@@ -414,8 +415,8 @@ SEXP emr_set_track_attr(SEXP _track, SEXP _attr, SEXP _value, SEXP _envir) {
         const char *attr = CHAR(asChar(_attr));
         const char *value = isNull(_value) ? NULL : CHAR(asChar(_value));
 
-        g_db->set_track_attr(trackname, attr, value);
-	} catch (TGLException &e) {
+        g_db->set_track_attr(trackname, attr, value, asLogical(_update));
+    } catch (TGLException &e) {
 		rerror("%s", e.msg());
     } catch (const bad_alloc &e) {
         rerror("Out of memory");
@@ -423,6 +424,19 @@ SEXP emr_set_track_attr(SEXP _track, SEXP _attr, SEXP _value, SEXP _envir) {
 	return R_NilValue;
 }
 
+SEXP update_tracks_attrs_file(SEXP _db, SEXP _envir) {
+    try {
+        Naryn naryn(_envir, false);
+        string db_id(CHAR(asChar(_db)));
+        g_db->update_tracks_attrs_file(db_id, false);
+    } catch (TGLException &e) {
+        rerror("%s", e.msg());
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
+
+    rreturn(R_NilValue);
+}
 
 // returns all the databases of a track
 SEXP emr_track_dbs(SEXP _track, SEXP _envir) {
