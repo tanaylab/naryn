@@ -151,7 +151,6 @@ emr_db.connect <- function(db_dirs = NULL, load_on_demand = NULL, do_reload = FA
             }
         }
     )
-    return(NULL)
 }
 
 #' Initialize the examples database
@@ -192,7 +191,6 @@ emr_db.reload <- function() {
             }
         }
     )
-    return(NULL)
 }
 
 #' Unload all tracks from naryn database
@@ -232,7 +230,6 @@ emr_db.subset <- function(src = "", fraction = NULL, complementary = NULL) {
     .emr_checkroot()
 
     .emr_call("emr_db_subset", src, fraction, complementary, new.env(parent = parent.frame()))
-    return(NULL)
 }
 
 

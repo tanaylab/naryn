@@ -163,8 +163,6 @@ emr_track.var.rm <- function(track, var) {
     if (!length(dir(dirname))) {
         unlink(dirname, recursive = TRUE)
     }
-
-    return(NULL)
 }
 
 
