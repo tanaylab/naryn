@@ -784,11 +784,11 @@ void EMRDb::validate_rootdirs(const vector<string>& rootdirs){
             throw;
         }
 
-        // make sure that .naryn file has r/w permissions
+        // make sure that .naryn file has read permissions
         string filename = track_list_filename(db);
         try {
             if (access(filename.c_str(), F_OK) == 0){
-                if ((fd2 = open(filename.c_str(), O_RDWR, 0)) == -1) {
+                if ((fd2 = open(filename.c_str(), O_RDONLY, 0)) == -1) {
                     verror("Opening file %s failed: %s", filename.c_str(),
                         strerror(errno));
                 }

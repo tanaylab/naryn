@@ -706,15 +706,3 @@ test_that("emr_db.connect fails when .naryn doesn't have read permissions", {
     })
     expect_error(emr_db.connect(db))
 })
-
-test_that("emr_db.connect fails when .naryn doesn't have write permissions", {
-    prev_roots <- EMR_ROOTS
-    db <- copy_test_db(EMR_ROOTS[1])
-    file.create(file.path(db, ".naryn"))
-    system(glue::glue("chmod a-w {db}/.naryn"))
-    withr::defer({
-        system(glue::glue("chmod a+w {db}/.naryn"))
-        emr_db.connect(prev_roots)
-    })
-    expect_error(emr_db.connect(db))
-})
