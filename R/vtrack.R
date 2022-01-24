@@ -327,7 +327,6 @@ emr_vtrack.attr.src <- function(vtrack, src) {
     }
 
     EMR_VTRACKS[[vtrack]] <<- vtrack.var
-    return(NULL)
 }
 
 
@@ -609,8 +608,6 @@ emr_vtrack.rm <- function(vtrack) {
 
         assign("EMR_VTRACKS", emr_vtracks, envir = .GlobalEnv)
     }
-
-    return(NULL)
 }
 
 

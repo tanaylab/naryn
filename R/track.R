@@ -173,7 +173,6 @@ emr_track.addto <- function(track, src, force = FALSE) {
     }
 
     .emr_call("emr_import", track, NULL, NULL, src, TRUE, new.env(parent = parent.frame()))
-    return(NULL)
 }
 
 #' Creates a track from a track expression
@@ -233,7 +232,6 @@ emr_track.create <- function(track, space = EMR_UROOT, categorical, expr, stime 
     on.exit(.emr_recreate_vtrack_filters(orig_filters), add = TRUE)
 
     .emr_call("emr_track_create", track, db_id, categorical, expr, stime, etime, iterator, keepref, .emr_filter(filter), override, new.env(parent = parent.frame()))
-    return(NULL)
 }
 
 
@@ -650,8 +648,6 @@ emr_track.mv <- function(src, tgt, space = NULL) {
     if (file.exists(dirname2)) {
         .emr_dir.mv(dirname2, .emr_track.pyvar.dir(tgt))
     }
-
-    return(NULL)
 }
 
 
@@ -772,7 +768,6 @@ emr_track.readonly <- function(track, readonly = NULL) {
     if (Sys.chmod(file, mode, use_umask = FALSE) == FALSE) {
         stop(sprintf("Failed to set read-only attribute for track %s", orig_track), call. = FALSE)
     }
-    return(NULL)
 }
 
 
@@ -862,8 +857,6 @@ emr_track.rm <- function(track, force = FALSE) {
             unlink(dirname2, recursive = TRUE)
         }
     }
-
-    return(NULL)
 }
 
 
