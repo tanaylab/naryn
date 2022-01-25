@@ -406,7 +406,7 @@ test_that("emr_track.attrs are overridden correctly", {
 
 test_that("emr_track.attrs created correctly in emr_track.attr.set batch mode", {
     withr::defer(clean_attributes())
-    emr_track.attr.set(c("track2_2", "track2", "track1_3"), "coffee", "bad")
+    emr_track.attr.set(c("track2_2", "track2", "track1_3"), rep("coffee", 3), rep("bad", 3))
 
     expect_equal(emr_track.attr.export(attr = "coffee"), data.frame(track = c("track1_3", "track2", "track2_2"), attr = rep("coffee", 3), value = rep("bad", 3)))
 

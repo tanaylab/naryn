@@ -9,9 +9,9 @@ emr_track.attr.set(track, attr, value)
 \arguments{
 \item{track}{one or more track names}
 
-\item{attr}{attribute name}
+\item{attr}{one or more attribute names}
 
-\item{value}{value (a string). Can be empty string ('').}
+\item{value}{on or more values (strings). Can be an empty string ('').}
 }
 \value{
 None.
