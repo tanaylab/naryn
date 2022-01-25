@@ -239,7 +239,7 @@ test_that("emr_track.rm removes the track attributes", {
 
 test_that("emr_track.attr.set in batch mode works", {
     withr::defer(clean_attributes())
-    emr_track.attr.set(c("track1", "track2", "track3"), "var1", "val1")
+    emr_track.attr.set(c("track1", "track2", "track3"), c("var1", "var1", "var2"), c("val1", "val1", "val2"))
     expect_equal(
         emr_track.attr.export(),
         structure(list(
@@ -248,19 +248,23 @@ test_that("emr_track.attr.set in batch mode works", {
             attr = c(
                 "var1",
                 "var1",
-                "var1"
-            ), value = c("val1", "val1", "val1")
+                "var2"
+            ), value = c("val1", "val1", "val2")
         ), row.names = c(
             NA,
             3L
         ), class = "data.frame")
     )
-    expect_equal(emr_track.ls(var1 = "val*"), c("track1", "track2", "track3"))
+    expect_equal(emr_track.ls(var1 = "val*"), c("track1", "track2"))
+    expect_equal(emr_track.ls(var2 = "val*"), c("track3"))
+
+    expect_error(emr_track.attr.set(c("track1", "track2", "track3"), "var4", "val2"))
+    expect_error(emr_track.attr.set(c("track1", "track2", "track3"), rep("var4", 3), "val2"))
 })
 
 test_that("emr_track.attr.set in batch mode works with an empty value", {
     withr::defer(clean_attributes())
-    emr_track.attr.set(c("track1", "track2", "track3"), "var1", value = "")
+    emr_track.attr.set(c("track1", "track2", "track3"), rep("var1", 3), value = rep("", 3))
     expect_equal(
         emr_track.attr.export(),
         structure(list(track = c("track1", "track2", "track3"), attr = c(

@@ -130,7 +130,7 @@ emr_track.attr.get <- function(track = NULL, attr = NULL) {
 #'
 #' This function deletes a track attribute.
 #'
-#' @param track track name
+#' @param track one or more track names
 #' @param attr attribute name
 #' @return None.
 #' @seealso \code{\link{emr_track.attr.set}}, \code{\link{emr_track.attr.get}},
@@ -182,8 +182,8 @@ emr_track.attr.rm <- function(track, attr) {
 #' Note that both attributes and values sould be in ASCII encoding.
 #'
 #' @param track one or more track names
-#' @param attr attribute name
-#' @param value value (a string). Can be empty string ('').
+#' @param attr one or more attribute names
+#' @param value on or more values (strings). Can be an empty string ('').
 #' @return None.
 #' @seealso \code{\link{emr_track.attr.get}}, \code{\link{emr_track.attr.rm}},
 #' \code{\link{emr_track.attr.export}}
@@ -205,9 +205,17 @@ emr_track.attr.set <- function(track, attr, value) {
         stop("The following tracks appear more than once: ", paste(unique(track[dups]), collapse = ", "))
     }
 
+    if (length(track) != length(attr)) {
+        stop("Number of tracks is not equal to the number of attributes", call. = FALSE)
+    }
+
+    if (length(attr) != length(value)) {
+        stop("Number of values is not equal to the number of attributes", call. = FALSE)
+    }
+
     if (length(track) > 1) {
-        purrr::walk(track, function(tr) {
-            .emr_call("emr_set_track_attr", tr, attr, value, FALSE, new.env(parent = parent.frame()))
+        purrr::pwalk(list(track, attr, value), function(tr, a, v) {
+            .emr_call("emr_set_track_attr", tr, a, v, FALSE, new.env(parent = parent.frame()))
         })
         dbs <- emr_track.dbs(track, dataframe = FALSE)
         purrr::walk(dbs, ~ {

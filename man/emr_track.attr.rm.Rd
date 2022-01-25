@@ -7,7 +7,7 @@
 emr_track.attr.rm(track, attr)
 }
 \arguments{
-\item{track}{track name}
+\item{track}{one or more track names}
 
 \item{attr}{attribute name}
 }
