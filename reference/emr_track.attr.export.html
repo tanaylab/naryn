@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">naryn</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">2.6.4</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">2.6.5</span>
       </span>
     </div>
 
@@ -53,7 +53,7 @@
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Returns attributes values of tracks</h1>
-    <small class="dont-index">Source: <a href="https://github.com/tanaylab/naryn/blob/HEAD/R/track.R" class="external-link"><code>R/track.R</code></a></small>
+    <small class="dont-index">Source: <a href="https://github.com/tanaylab/naryn/blob/HEAD/R/track-attributes.R" class="external-link"><code>R/track-attributes.R</code></a></small>
     <div class="hidden name"><code>emr_track.attr.export.Rd</code></div>
     </div>
 
@@ -62,7 +62,7 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">emr_track.attr.export</span><span class="op">(</span>track <span class="op">=</span> <span class="cn">NULL</span>, attr <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">emr_track.attr.export</span><span class="op">(</span>track <span class="op">=</span> <span class="cn">NULL</span>, attr <span class="op">=</span> <span class="cn">NULL</span>, include_missing <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -71,6 +71,10 @@
 <dd><p>a vector of track names or 'NULL'</p></dd>
 <dt>attr</dt>
 <dd><p>a vector of attribute names or 'NULL'</p></dd>
+<dt>include_missing</dt>
+<dd><p>when TRUE - adds a row for tracks which do not have the 'attr' with NA,
+or tracks which do not exist. Otherwise tracks without an attribute would be omitted from the data
+frame, and an error would be thrown for tracks which do not exist.</p></dd>
 </dl></div>
     <div id="value">
     <h2>Value</h2>
@@ -98,7 +102,6 @@ attributes will persist when the track is no longer overridden.</p>
     <h2>Examples</h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"></span>
 <span class="r-in"><span class="fu"><a href="emr_db.connect.html">emr_db.init_examples</a></span><span class="op">(</span><span class="op">)</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
 <span class="r-in"><span class="fu">emr_track.attr.export</span><span class="op">(</span><span class="op">)</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] track attr  value</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;0 rows&gt; (or 0-length row.names)</span>
@@ -135,7 +138,7 @@ attributes will persist when the track is no longer overridden.</p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.1.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.2.</p>
 </div>
 
       </footer></div>
