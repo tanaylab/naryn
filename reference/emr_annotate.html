@@ -103,16 +103,9 @@ order!). Note however that all the package functions (such as 'emr_extract',
     <h2>Examples</h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"></span>
 <span class="r-in"><span class="fu"><a href="emr_db.connect.html">emr_db.init_examples</a></span><span class="op">(</span><span class="op">)</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
 <span class="r-in"></span>
 <span class="r-in"><span class="va">r1</span> <span class="op">&lt;-</span> <span class="fu"><a href="emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"sparse_track"</span>, keepref <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Track sparse_track seems to be modified outside of naryn.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> This might slow down the performance.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> Please call emr_db.reload to fix the problem</span>
 <span class="r-in"><span class="va">r2</span> <span class="op">&lt;-</span> <span class="fu"><a href="emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"dense_track"</span>, keepref <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Track dense_track seems to be modified outside of naryn.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> This might slow down the performance.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> Please call emr_db.reload to fix the problem</span>
 <span class="r-in"><span class="va">r2</span><span class="op">$</span><span class="va">dense_track</span> <span class="op">&lt;-</span> <span class="va">r2</span><span class="op">$</span><span class="va">dense_track</span> <span class="op">+</span> <span class="fl">1000</span></span>
 <span class="r-in"><span class="fu">emr_annotate</span><span class="op">(</span><span class="va">r1</span>, <span class="va">r2</span><span class="op">)</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    id time ref sparse_track dense_track</span>
@@ -151,7 +144,7 @@ order!). Note however that all the package functions (such as 'emr_extract',
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.1.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.2.</p>
 </div>
 
       </footer></div>
