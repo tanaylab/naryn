@@ -1,45 +1,29 @@
-#' Deprecated - please user emr_db.connect
+#' Initializes connection with Naryn Database
 #'
-#' @export emr_db.init
-#' @rdname emr_db.connect
-emr_db.init <- function(global.dir = NULL, user.dir = NULL, global.load.on.demand = TRUE, user.load.on.demand = TRUE, do.reload = FALSE) {
-    lifecycle::deprecate_soft(
-        when = "2.6.2",
-        what = "emr_db.init()",
-        with = "emr_db.connect()",
-    )
-
-    db_dirs <- c(global.dir, user.dir)
-
-    if (is.null(user.dir)) {
-        load_on_demand <- c(global.load.on.demand)
-    } else {
-        load_on_demand <- c(global.load.on.demand, user.load.on.demand)
-    }
-
-    emr_db.connect(db_dirs = db_dirs, load_on_demand = load_on_demand, do_reload = do.reload)
-}
-
 #' Initializes connection with Naryn Database
 #'
 #' Call `emr_db.connect` function to establish the access to the tracks in the db_dirs.
 #' To establish a connection using `emr_db.connect`, Naryn requires to specify at-least
-#' one db dir, optionally, `emr_db.connect` accepts additional db dirs which can also
+#' one db dir. Optionally, `emr_db.connect` accepts additional db dirs which can also
 #' contain additional tracks.
-#' In a case where 2 or more db dirs, contain the same track name (namespace collision),
-#' the  track will  be taken from the db dir which  was passed *last* in  the order of
-#' connections.  For example, if  we have 2 db dirs `/db1`  and `/db2`  which both contain
-#' a track named  `track1`, the call  `emr_db.connect(c('/db1', '/db2'))` will result with
-#' Naryn  using `track1` from `/db2`. As  you might expect the overriding is consistent not
-#' only for the track's data it self, but also for any other Naryn entity using or pointing
+#'
+#' In a case where 2 or more db dirs contain the same track name (namespace collision),
+#' the  track will  be taken from the db dir which was passed *last* in  the order of
+#' connections.
+#'
+#' For example, if we have 2 db dirs \code{/db1} and \code{/db2} which both contain
+#' a track named \code{track1}, the call  \code{emr_db.connect(c('/db1', '/db2'))} will result with
+#' Naryn  using \code{track1} from \code{/db2}. As you might expect the overriding is consistent not
+#' only for the track's data, but also for any other Naryn entity using or pointing
 #' to the track.
 #'
-#' Even though all the db dirs may contain track files their designation is different.
+#' Even though all the db dirs may contain track files, their designation is different.
 #' All the db dirs except the last dir in the order of connections are mainly read-only.
-#' The directory which  was connected last in  the order, also known as *user dir*, is
+#' The directory which was connected last in the order, also known as *user dir*, is
 #' intended to store volatile data like the results of intermediate calculations.
-#' New tracks  can be created only in  the db dir which was last in  the order of
-#' connections, using `emr_track.import` or `emr_track.create`. In order to write tracks
+#'
+#' New tracks can be created only in  the db dir which was last in  the order of
+#' connections, using \code{emr_track.import} or \code{emr_track.create}. In order to write tracks
 #' to a db dir which is not last in the connection order, the user must explicitly
 #' reconnect and set the required db dir as the last in order, this should be done for a
 #' well justified reason.
@@ -119,6 +103,10 @@ emr_db.connect <- function(db_dirs = NULL, load_on_demand = NULL, do_reload = FA
         if (length(db_dirs) != length(load_on_demand)) {
             stop("load_on_demand must be in the same length of db_dirs", call. = FALSE)
         }
+
+        if (!all(is.logical(load_on_demand))) {
+            stop("load_on_demand shuold be a logical vector in the same length of db_dirs (note that 'db_dirs' is a vector)", call. = FALSE)
+        }
     }
 
     # We set the groot to be the first
@@ -152,6 +140,27 @@ emr_db.connect <- function(db_dirs = NULL, load_on_demand = NULL, do_reload = FA
         }
     )
 }
+
+#' @export emr_db.init
+#' @rdname emr_db.connect
+emr_db.init <- function(global.dir = NULL, user.dir = NULL, global.load.on.demand = TRUE, user.load.on.demand = TRUE, do.reload = FALSE) {
+    lifecycle::deprecate_soft(
+        when = "2.6.2",
+        what = "emr_db.init()",
+        with = "emr_db.connect()",
+    )
+
+    db_dirs <- c(global.dir, user.dir)
+
+    if (is.null(user.dir)) {
+        load_on_demand <- c(global.load.on.demand)
+    } else {
+        load_on_demand <- c(global.load.on.demand, user.load.on.demand)
+    }
+
+    emr_db.connect(db_dirs = db_dirs, load_on_demand = load_on_demand, do_reload = do.reload)
+}
+
 
 #' Initialize the examples database
 #'
