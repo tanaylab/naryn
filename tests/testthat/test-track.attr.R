@@ -262,6 +262,18 @@ test_that("emr_track.attr.set in batch mode works", {
     expect_error(emr_track.attr.set(c("track1", "track2", "track3"), rep("var4", 3), "val2"))
 })
 
+test_that("emr_track.attr.set in batch mode works with repeated tracks", {
+    withr::defer(clean_attributes())
+    emr_track.attr.set(c("track1", "track2", "track3", "track1"), c("var1", "var1", "var2", "var3"), c("val1", "val1", "val2", "val3"))
+    expect_equal(
+        emr_track.attr.export(),
+        structure(list(track = c("track1", "track1", "track2", "track3"), attr = c("var1", "var3", "var1", "var2"), value = c(
+            "val1",
+            "val3", "val1", "val2"
+        )), row.names = c(NA, 4L), class = "data.frame")
+    )
+})
+
 test_that("emr_track.attr.set in batch mode works with an empty value", {
     withr::defer(clean_attributes())
     emr_track.attr.set(c("track1", "track2", "track3"), rep("var1", 3), value = rep("", 3))
