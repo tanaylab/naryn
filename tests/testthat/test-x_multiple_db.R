@@ -19,6 +19,11 @@ test_that("emr_db.connect recycles load_on_demand parameter", {
     expect_error(emr_db.connect(EMR_ROOTS, load_on_demand = c(TRUE, TRUE)))
 })
 
+test_that("emr_db.connect fails when load_on_demand is not logical", {
+    expect_error(emr_db.connect(EMR_ROOTS, load_on_demand = "savta"))
+})
+
+
 test_that("emr_track.ls works with multiple dbs", {
     expect_equal(
         emr_track.ls(),
