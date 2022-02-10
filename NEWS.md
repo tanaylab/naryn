@@ -1,6 +1,10 @@
+# naryn 2.6.6
+
+* Allow duplicated tracks when running `emr_track.attr.set` in batch mode.
+
 # naryn 2.6.5
 
-* Added batch mode for `emr_track.attr.set` and `emr_track.attr.rm`
+* Added batch mode for `emr_track.attr.set` and `emr_track.attr.rm`.
 * Added `include_missing` parameter `emr_track.attr.export` allowing missing tracks and attributes.
 
 # naryn 2.6.4 
