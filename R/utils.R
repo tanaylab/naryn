@@ -36,3 +36,7 @@
         default
     }
 }
+
+is_ascii_character <- function(x) {
+    !is.na(x) & !is.na(iconv(x, "ASCII", "ASCII"))
+}

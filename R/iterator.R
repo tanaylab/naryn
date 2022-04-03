@@ -35,12 +35,12 @@ iterator_by_period <- function(stime, etime, n, period) {
 
     times <- strsplit(as.character(dates), split = "-") %>%
         purrr::map_dbl(~
-        emr_date2time(
-            year = as.numeric(.x[1]),
-            month = as.numeric(.x[2]),
-            day = as.numeric(.x[3]),
-            hour = emr_time2date(stime)$hour
-        ))
+            emr_date2time(
+                year = as.numeric(.x[1]),
+                month = as.numeric(.x[2]),
+                day = as.numeric(.x[3]),
+                hour = emr_time2date(stime)$hour
+            ))
 
     iterator <- data.frame(stime = times, etime = times)
 
