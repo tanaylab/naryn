@@ -179,7 +179,6 @@ emr_track.attr.rm <- function(track, attr) {
 #' This function creates a track attribute and assigns 'value' to it. If the
 #' attribute already exists its value is overwritten.
 #'
-#'
 #' Note that both attributes and values sould be in ASCII encoding.
 #'
 #' @param track one or more track names
@@ -207,6 +206,14 @@ emr_track.attr.set <- function(track, attr, value) {
 
     if (length(attr) != length(value)) {
         stop("Number of values is not equal to the number of attributes", call. = FALSE)
+    }
+
+    if (!all(is_ascii_character(attr))) {
+        stop("Attribute name must be in ASCII encoding", call. = FALSE)
+    }
+
+    if (!all(is_ascii_character(value))) {
+        stop("Value must be in ASCII encoding", call. = FALSE)
     }
 
     if (length(track) > 1) {

@@ -286,3 +286,13 @@ test_that("emr_track.attr.set in batch mode works with an empty value", {
     )
     expect_equal(emr_track.ls(var1 = ""), c("track1", "track2", "track3"))
 })
+
+test_that("emr_track.attr.set fails with non-ascii characters", {
+    withr::defer(clean_attributes())
+    v1 <- "\x8c\x81\x8f"
+    expect_error(emr_track.attr.set("track1", "var1", v1))
+    expect_error(emr_track.attr.set("track1", v1, "val1"))
+
+    expect_error(emr_track.attr.set(c("track1", "track2"), c("v1", v1), c("val1", "val1")))
+    expect_error(emr_track.attr.set(c("track1", "track2"), c("v1", "v1"), c("val1", v1)))
+})

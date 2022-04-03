@@ -340,13 +340,13 @@ emr_ids_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filter = N
     # If we have virtual track filters, we run 'emr_ids_coverage' on each track separately
     if (length(tracks) > 1 && has_vtrack_filters) {
         res <- purrr::map(tracks, ~
-        emr_ids_coverage(
-            ids,
-            .x,
-            stime = stime,
-            etime = etime,
-            filter = filter
-        )) %>% purrr::flatten_dbl()
+            emr_ids_coverage(
+                ids,
+                .x,
+                stime = stime,
+                etime = etime,
+                filter = filter
+            )) %>% purrr::flatten_dbl()
 
         return(res)
     }
@@ -456,13 +456,13 @@ emr_ids_vals_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filte
     # If we have virtual track filters, we run 'emr_ids_coverage' on each track separately
     if (length(tracks) > 1 && has_vtrack_filters) {
         res <- purrr::map_dfr(tracks, ~
-        emr_ids_vals_coverage(
-            ids,
-            .x,
-            stime = stime,
-            etime = etime,
-            filter = filter
-        ))
+            emr_ids_vals_coverage(
+                ids,
+                .x,
+                stime = stime,
+                etime = etime,
+                filter = filter
+            ))
 
         return(res)
     }
