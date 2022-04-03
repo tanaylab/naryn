@@ -1,3 +1,7 @@
+# naryn 2.6.7
+
+* Check that attributes are in ASCII format.
+
 # naryn 2.6.6
 
 * Allow duplicated tracks when running `emr_track.attr.set` in batch mode.
