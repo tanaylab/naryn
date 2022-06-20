@@ -261,13 +261,35 @@ emr_track.exists <- function(track, db_id = NULL) {
     }
     .emr_checkroot()
 
-    if (is.null(db_id)) {
-        track_exists <- !is.na(match(track, .emr_call("emr_track_names", new.env(parent = parent.frame()), silent = TRUE)))
-        track_exists <- track_exists | !is.na(match(track, .emr_call("emr_logical_track_names", new.env(parent = parent.frame()), silent = TRUE)))
+    if (length(track) == 1) {
+        track_exists <- single_track_exists(track, db_id)
     } else {
-        track_exists <- !is.na(match(track, .emr_call("emr_track_db_names", db_id, new.env(parent = parent.frame()), silent = TRUE)))
+        track_exists <- multiple_tracks_exist(track, db_id)
     }
 
+    return(track_exists)
+}
+
+single_track_exists <- function(track, db_id = NULL) {
+    if (is.null(db_id)) {
+        track_exists <- FALSE
+        for (root in EMR_ROOTS) {
+            track_exists <- track_exists | .emr_call("emr_track_exists", track, root, new.env(parent = parent.frame()))
+        }
+        track_exists <- track_exists | .emr_call("emr_logical_track_exists", track, new.env(parent = parent.frame()))
+    } else {
+        track_exists <- .emr_call("emr_track_exists", track, db_id, new.env(parent = parent.frame()))
+    }
+    return(track_exists)
+}
+
+multiple_tracks_exist <- function(tracks, db_id = NULL) {
+    if (is.null(db_id)) {
+        track_exists <- !is.na(match(tracks, .emr_call("emr_track_names", new.env(parent = parent.frame()), silent = TRUE)))
+        track_exists <- track_exists | !is.na(match(tracks, .emr_call("emr_logical_track_names", new.env(parent = parent.frame()), silent = TRUE)))
+    } else {
+        track_exists <- !is.na(match(tracks, .emr_call("emr_track_db_names", db_id, new.env(parent = parent.frame()), silent = TRUE)))
+    }
     return(track_exists)
 }
 
