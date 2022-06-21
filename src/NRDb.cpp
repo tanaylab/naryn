@@ -210,6 +210,47 @@ SEXP emr_db_subset_info(SEXP _envir) {
     rreturn(R_NilValue);
 }
 
+SEXP emr_track_exists(SEXP _track, SEXP _db_id, SEXP envir)
+{
+    try  {
+        Naryn naryn(envir);
+
+        string track = CHAR(STRING_ELT(_track, 0));
+        string db_id = CHAR(asChar(_db_id));
+
+        SEXP answer;        
+        rprotect(answer = RSaneAllocVector(LGLSXP, 1));
+        LOGICAL(answer)[0] = g_db->track_name_exists(track, db_id);
+        return(answer);
+    } catch (TGLException &e) {
+        rerror("%s", e.msg());
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
+
+    return R_NilValue;
+}
+
+SEXP emr_logical_track_exists(SEXP _track, SEXP envir)
+{
+    try  {
+        Naryn naryn(envir);
+
+        string track = CHAR(STRING_ELT(_track, 0));        
+
+        SEXP answer;        
+        rprotect(answer = RSaneAllocVector(LGLSXP, 1));
+        LOGICAL(answer)[0] = g_db->logical_track_exists(track);
+        return(answer);
+    } catch (TGLException &e) {
+        rerror("%s", e.msg());
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
+
+    return R_NilValue;
+}
+
 SEXP emr_track_names(SEXP envir) {
     try {
         Naryn naryn(envir);

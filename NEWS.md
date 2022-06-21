@@ -1,3 +1,7 @@
+# naryn 2.6.8 
+
+* Optimized the performance of the `emr_track.exists` function.
+
 # naryn 2.6.7
 
 * Check that attributes are in ASCII format.

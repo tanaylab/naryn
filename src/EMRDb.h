@@ -6,13 +6,14 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include <algorithm>
 
 #include "EMR.h"
 #include "HashFunc.h"
 #include "naryn.h"
 #include "EMRLogicalTrack.h"
 
-using namespace std;
+    using namespace std;
 
 class BufferedFile;
 class EMRTrack;
@@ -55,7 +56,11 @@ public:
     }
     const TrackInfo *track_info(const string &track);
     const vector<string> &track_names(string db_id) { return m_track_names[db_id]; }
+    const bool track_name_exists(const string &track, const string &db_id) {
+        return (std::find(m_track_names[db_id].begin(), m_track_names[db_id].end(), track) != m_track_names[db_id].end());
+    }
     const vector<string> &rootdirs() { return m_rootdirs; }
+
     const vector<string> logical_track_names() { 
         vector<string> ltrack_names;
         ltrack_names.reserve(m_logical_tracks.size());

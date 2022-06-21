@@ -1,7 +1,7 @@
 Type: Package
 Package: naryn
 Title: Toolkit for analysis of medical records
-Version: 2.6.7
+Version: 2.6.8
 Authors@R: c(
     person("Misha", "Hoichman", , "misha@hoichman.com", role = "aut"),
     person("Aviezer", "Lifshitz", , "aviezer.lifshitz@weizmann.ac.il", role = c("aut", "cre")),
@@ -10,7 +10,7 @@ Authors@R: c(
 Description: Toolkit for medical records data analysis
 License: TBD
 BugReports: https://github.com/tanaylab/naryn/issues
-Depends:    
+Depends: 
     R (>= 3.0.0),
     utils
 Imports: 
@@ -42,6 +42,6 @@ Config/testthat/start-first: logical_tracks, w_test-options, x_multiple_db
 Encoding: UTF-8
 LazyLoad: yes
 NeedsCompilation: yes
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.0
 SystemRequirements: GNU make, C++11
 Language: en-US
