@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">naryn</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">2.6.6</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">2.6.8</span>
       </span>
     </div>
 
@@ -57,9 +57,14 @@
     </div>
 
     <div class="section level2">
+<h2 class="page-header" data-toc-text="2.6.8" id="naryn-268">naryn 2.6.8<a class="anchor" aria-label="anchor" href="#naryn-268"></a></h2>
+<ul><li>Optimized the performance of the <code>emr_track.exists</code> function.</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.6.7" id="naryn-267">naryn 2.6.7<a class="anchor" aria-label="anchor" href="#naryn-267"></a></h2>
+<ul><li>Check that attributes are in ASCII format.</li></ul></div>
+    <div class="section level2">
 <h2 class="page-header" data-toc-text="2.6.6" id="naryn-266">naryn 2.6.6<a class="anchor" aria-label="anchor" href="#naryn-266"></a></h2>
-<ul><li>Allow duplicated tracks when running <code>emr_track.attr.set</code> in batch mode.</li>
-</ul></div>
+<ul><li>Allow duplicated tracks when running <code>emr_track.attr.set</code> in batch mode.</li></ul></div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="2.6.5" id="naryn-265">naryn 2.6.5<a class="anchor" aria-label="anchor" href="#naryn-265"></a></h2>
 <ul><li>Added batch mode for <code>emr_track.attr.set</code> and <code>emr_track.attr.rm</code>.</li>
@@ -67,8 +72,7 @@
 </ul></div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="2.6.4" id="naryn-264">naryn 2.6.4<a class="anchor" aria-label="anchor" href="#naryn-264"></a></h2>
-<ul><li>Added support for filters which are based on virtual tracks.</li>
-</ul></div>
+<ul><li>Added support for filters which are based on virtual tracks.</li></ul></div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="2.6.3" id="naryn-263">naryn 2.6.3<a class="anchor" aria-label="anchor" href="#naryn-263"></a></h2>
 <ul><li>Added support for operator based filtering, see ‘operator’ argument in <code>emr_filter.create</code>
@@ -107,6 +111,427 @@
 <li>Use the <code>devtools</code> ecosystem: <code>roxygen</code> documentation and <code>testthat</code> for tests.</li>
 <li>Added a <code>NEWS.md</code> file to track changes to the package.</li>
 </ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.6.0" id="naryn-260">naryn 2.6.0<a class="anchor" aria-label="anchor" href="#naryn-260"></a></h2>
+<ul><li>New concept: track attributes</li>
+<li>New functions: emr_track.attr.get, emr_track.attr.set, emr_track.attr.rm, emr_track.attr.export.</li>
+<li>Support filtering by track attributes in: emr_track.ls, emr_track.global.ls, emr_track.user.ls.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.5.10" id="naryn-2510">naryn 2.5.10<a class="anchor" aria-label="anchor" href="#naryn-2510"></a></h2>
+<ul><li>Fixed an occasional crash in functions receiving a track expression.</li>
+<li>Redirect all messages and progress to stderr instead of stdout.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.5.9" id="naryn-259">naryn 2.5.9<a class="anchor" aria-label="anchor" href="#naryn-259"></a></h2>
+<ul><li>Fixed a resource leak effecting nearly all functions but manifesting mainly in emr_ids_coverage and emr_ids_vals_coverage by “protection stack overflow” error.</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.5.8" id="naryn-258">naryn 2.5.8<a class="anchor" aria-label="anchor" href="#naryn-258"></a></h2>
+<ul><li>Bug fix in emr_track.mv: track variables are not moved.</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.5.7" id="naryn-257">naryn 2.5.7<a class="anchor" aria-label="anchor" href="#naryn-257"></a></h2>
+<ul><li>Bug fix in emr_track.mv: error when moving a file between different file systems.</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.5.6" id="naryn-256">naryn 2.5.6<a class="anchor" aria-label="anchor" href="#naryn-256"></a></h2>
+<ul><li>New function: emr_track.mv</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.5.5" id="naryn-255">naryn 2.5.5<a class="anchor" aria-label="anchor" href="#naryn-255"></a></h2>
+<ul><li>Bug fix: occasional memory corruption in track expressions using OR operator in the filter.</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.5.4" id="naryn-254">naryn 2.5.4<a class="anchor" aria-label="anchor" href="#naryn-254"></a></h2>
+<ul><li>Bug fix: occasional crash in emr_track.rm.</li>
+<li>Bug fix: Ctrl+C doesn’t stop emr_track.import.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.5.3" id="naryn-253">naryn 2.5.3<a class="anchor" aria-label="anchor" href="#naryn-253"></a></h2>
+<ul><li>Bug fix: sub-second creation/deletion/modification of tracks in concurrent sessions might corrupt the database.</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.5.2" id="naryn-252">naryn 2.5.2<a class="anchor" aria-label="anchor" href="#naryn-252"></a></h2>
+<ul><li>emr_track.import, emr_track.addto: run-time and memory consumption improvements.</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.5.1" id="naryn-251">naryn 2.5.1<a class="anchor" aria-label="anchor" href="#naryn-251"></a></h2>
+<ul><li>Allow creation of empty tracks.</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.5.0" id="naryn-250">naryn 2.5.0<a class="anchor" aria-label="anchor" href="#naryn-250"></a></h2>
+<ul><li>Support concurrent sessions adding / deleting / modifying tracks. As long as the tracks files are not manipulated outside of naryn, sessions should always resync the changes at the beginning of a new transaction and hence access up-to-date version of tracks and up-to-date list of existing tracks. Manipulating track files outside of naryn requires emr_db.reload.</li>
+<li>
+<strong>emr_db.init</strong>: split load.on.demand parameter to global.load.on.demand and user.load.on.demand.</li>
+<li>
+<strong>emr_db.init</strong>: new ‘do.reload’ parameter.</li>
+<li>Run-time improvement in <strong>emr_db.init</strong> when load.on.demand==FALSE: previously - rebuild list of tracks. Currently - read track list from ‘.tracks’.</li>
+<li>Major run-time and memory consumption improvement in <strong>emr_db.reload</strong>: previously - rebuild list of tracks and reload <u>all</u> tracks into memory. Currently - rebuild list of tracks and reload <u>outdated</u> tracks (if load.on.demand==FALSE) or kick them out of memory (if load.on.demand==TRUE).</li>
+<li>
+<strong>emr_db.reload</strong>: while rebuilding the list DB gets locked, concurrent transactions will need to wait till the task completes.</li>
+<li>Currently - each transaction starts with fetching a track list from ‘.tracks’, if ‘.tracks’ had been modified between the transactions. Outdated tracks are unloaded from the memory (if load.on.demand==TRUE) or reloaded (if load.on.demand==FALSE).<br>
+Previously - new transaction continues using old track list and outdated tracks up until emr_db.reload is called.</li>
+<li>Bug fix: ‘.ids’ file is reloaded in each transaction even if the updated version of it is already in the memory.</li>
+<li>emr_time2hour, emr_time2dayofmonth, emr_time2month, emr_time2year, emr_date2time do not require anymore to open a database.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.4.4" id="naryn-244">naryn 2.4.4<a class="anchor" aria-label="anchor" href="#naryn-244"></a></h2>
+<ul><li>Removed MINID/MAXID constants from global environment.</li>
+<li>IDs for Beat iteator and Time Interval take their ids from ‘dob’ track.</li>
+<li>Bug fix in emr_track.import, emr_track.addto: crash when source data frame has ‘ref’ but no ‘value’ column.</li>
+<li>Bug fix in Time Intervals iterator: in some cases ids outside of subset might be produced.</li>
+<li>DB cache file format has changed. The file is now called ‘.tracks’. The first call to emr_db.init will recreate this file after a full DB reload.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.4.3" id="naryn-243">naryn 2.4.3<a class="anchor" aria-label="anchor" href="#naryn-243"></a></h2>
+<ul><li>Removed MINTIME/MAXTIME constants from global environment.</li>
+<li>All functions receiving stime/etime parameters and an iterator: defaults can no longer be used for stime/etime when the iterator type is Ids, Beat or Extended Beat.</li>
+<li>DB cache file format has changed, the first call to emr_db.init will recreate this file after a full DB reload.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.4.2" id="naryn-242">naryn 2.4.2<a class="anchor" aria-label="anchor" href="#naryn-242"></a></h2>
+<ul><li>Bug fix in emr_track.info: returned path is NULL.</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.4.1" id="naryn-241">naryn 2.4.1<a class="anchor" aria-label="anchor" href="#naryn-241"></a></h2>
+<ul><li>More robust handling of .naryn-cache file when several users simultaneously add / delete tracks. Might resolve various glitches when emr_db.reload() is needed.</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.4.0" id="naryn-240">naryn 2.4.0<a class="anchor" aria-label="anchor" href="#naryn-240"></a></h2>
+<ul><li>emr_vtrack.create / emr_vtrack.attr.src: allow ‘src’ to be a data frame. Syntax: src=list(data.frame, T/F), where T/F indicates whether the data is treated as categorical (otherwise: quantitative).</li>
+<li>Bug fix in emr_filter.attr.src: error when ‘src’ is a data frame</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.3.12" id="naryn-2312">naryn 2.3.12<a class="anchor" aria-label="anchor" href="#naryn-2312"></a></h2>
+<ul><li>Bug fix: various functions may suddenly return an empty data frame</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.3.11" id="naryn-2311">naryn 2.3.11<a class="anchor" aria-label="anchor" href="#naryn-2311"></a></h2>
+<ul><li>Bug fix: crash if the period of beat / extended beat iterator is set to 0</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.3.10" id="naryn-2310">naryn 2.3.10<a class="anchor" aria-label="anchor" href="#naryn-2310"></a></h2>
+<ul><li>Bug fix: crash in certain scenarios while using ‘filter’ parameter. For example: filter=“(track1 &amp; track2) &amp; (track3 &amp; track4)”</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.3.9" id="naryn-239">naryn 2.3.9<a class="anchor" aria-label="anchor" href="#naryn-239"></a></h2>
+<ul><li>Bug fix in emr_filter.attr.src: error if ‘src’ is ID-Time table</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.3.8" id="naryn-238">naryn 2.3.8<a class="anchor" aria-label="anchor" href="#naryn-238"></a></h2>
+<ul><li>Bug fix in emr_filter.create: named filters become inconsistent if src of the existing filter is changed from global track to user track or vice versa</li>
+<li>Bug fix in emr_vtrack.create: virtual tracks become inconsistent if src of the existing filter is changed from global track to user track or vice versa</li>
+<li>Bug fix in emr_filter.ls: if filters exist with src based on user space tracks, only these filters are returned</li>
+<li>Bug fix in emr_vtrack.ls: if virtual tracks exist with src based on user space tracks, only these virtual tracks are returned</li>
+<li>Run time optimizations in emr_filter.create and emr_vtrack.create</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.3.7" id="naryn-237">naryn 2.3.7<a class="anchor" aria-label="anchor" href="#naryn-237"></a></h2>
+<ul><li>Bug fix in emr_db.subset: error if src==NULL</li>
+<li>Bug fix in virtual track, func=“stddev”: crash when stddev is computed over a single value</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.3.6" id="naryn-236">naryn 2.3.6<a class="anchor" aria-label="anchor" href="#naryn-236"></a></h2>
+<ul><li>Bug fix in emr_track.percentile: lower bound is returned even if lower=FALSE</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.3.5" id="naryn-235">naryn 2.3.5<a class="anchor" aria-label="anchor" href="#naryn-235"></a></h2>
+<ul><li>Bug fix: MINTIME/MAXTIME may be wrongly set. As a result performance might be compromised and invalid results might be produced when defaults are used for stime,etime. Please call emr_db.reload() to set the correct values!</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.3.4" id="naryn-234">naryn 2.3.4<a class="anchor" aria-label="anchor" href="#naryn-234"></a></h2>
+<ul><li>Replaced “categorial” with “categorical” in all the parameters and documentation</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.3.3" id="naryn-233">naryn 2.3.3<a class="anchor" aria-label="anchor" href="#naryn-233"></a></h2>
+<ul><li>Bug fix: “child process ended unexpectedly” errors, crashes and hang ups whilst multitasking when running out of memory</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.3.2" id="naryn-232">naryn 2.3.2<a class="anchor" aria-label="anchor" href="#naryn-232"></a></h2>
+<ul><li>New iterator type: <a href="tiki-index.php?page=Id-Time" title="Id-Time">Id-Time</a> Intervals (dataframe with ‘id’, ‘stime’, ‘etime’ columns)</li>
+<li>New filter type: <a href="tiki-index.php?page=Id-Time" title="Id-Time">Id-Time</a> Intervals</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.3.1" id="naryn-231">naryn 2.3.1<a class="anchor" aria-label="anchor" href="#naryn-231"></a></h2>
+<ul><li>Set/retrieve a single attribute of a virtual track via: emr_vtrack.attr.src, emr_vtrack.attr.func, emr_vtrack.attr.params, emr_vtrack.attr.keepref, emr_vtrack.attr.time.shift, emr_vtrack.attr.id.map, emr_vtrack.attr.filter</li>
+<li>Set/retrieve a single attribute of a named filter via: emr_filter.attr.src, emr_filter.attr.keepref, emr_filter.attr.time.shift, emr_filter.attr.val, emr_filter.attr.expiration</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.3.0" id="naryn-230">naryn 2.3.0<a class="anchor" aria-label="anchor" href="#naryn-230"></a></h2>
+<ul><li>Filters can be applied now to the virtual tracks</li>
+<li>emr_vtrack.create: new ‘filter’ parameter</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.2.11" id="naryn-2211">naryn 2.2.11<a class="anchor" aria-label="anchor" href="#naryn-2211"></a></h2>
+<ul><li>emr_vtrack.create: new “sample.time” function</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.2.10" id="naryn-2210">naryn 2.2.10<a class="anchor" aria-label="anchor" href="#naryn-2210"></a></h2>
+<ul><li>Switched from custom random seed control (options(grnd.seed=…)) to R’s standard (set.seed)</li>
+<li>emr_db.subset: ‘seed’ parameter removed</li>
+<li>New function: emr_db.subset.info</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.2.9" id="naryn-229">naryn 2.2.9<a class="anchor" aria-label="anchor" href="#naryn-229"></a></h2>
+<ul><li>Issue a warning if beat / extended beat iterator is used without a filter and it produces more than options(emr_warning.itr.no.filter.size = …) points (default: 100000). To suppress this type of warning use options(emr_warning.itr.no.filter.size = -1)</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.2.8" id="naryn-228">naryn 2.2.8<a class="anchor" aria-label="anchor" href="#naryn-228"></a></h2>
+<ul><li>emr_dist, emr_cor: new “right” parameter (similar to “cut” function)</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.2.7" id="naryn-227">naryn 2.2.7<a class="anchor" aria-label="anchor" href="#naryn-227"></a></h2>
+<ul><li>emr_vtrack.create: new “sample” function</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.2.6" id="naryn-226">naryn 2.2.6<a class="anchor" aria-label="anchor" href="#naryn-226"></a></h2>
+<ul><li>Bug in multitasking: buffer overflow and possible memory corruption when the child process generates an error</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.2.5" id="naryn-225">naryn 2.2.5<a class="anchor" aria-label="anchor" href="#naryn-225"></a></h2>
+<ul><li>emr_vtrack.create: time.shift column can now be used within ‘id.map’ data frame uniquely remapping times and not only ids</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.2.4" id="naryn-224">naryn 2.2.4<a class="anchor" aria-label="anchor" href="#naryn-224"></a></h2>
+<ul><li>Multitasking stability issues</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.2.3" id="naryn-223">naryn 2.2.3<a class="anchor" aria-label="anchor" href="#naryn-223"></a></h2>
+<ul><li>Bug fix in emr_screen: in multitasking mode returns wrong results</li>
+<li>Bug fix: multitasking + debug mode might lead to hanging</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.2.2" id="naryn-222">naryn 2.2.2<a class="anchor" aria-label="anchor" href="#naryn-222"></a></h2>
+<ul><li>Bug fix in track expression evaluation engine: virtual track with func=“size” returns NaN instead of 0 when no values fall into the iterator interval</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.2.1" id="naryn-221">naryn 2.2.1<a class="anchor" aria-label="anchor" href="#naryn-221"></a></h2>
+<ul><li>New function: emr_annotate</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.2.0" id="naryn-220">naryn 2.2.0<a class="anchor" aria-label="anchor" href="#naryn-220"></a></h2>
+<ul><li>New functions: emr_track.var.get, emr_track.var.set, emr_track.var.rm, emr_track.var.ls</li>
+<li>emr_track.import, emr_track.create: introduce restrictions for track naming</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.1.11" id="naryn-2111">naryn 2.1.11<a class="anchor" aria-label="anchor" href="#naryn-2111"></a></h2>
+<ul><li>Bug fix in track expression evaluation engine: if two or more virtual tracks differ only by values (supplied in params) and are used in one track expression, the value of the first one is used for the rest</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.1.10" id="naryn-2110">naryn 2.1.10<a class="anchor" aria-label="anchor" href="#naryn-2110"></a></h2>
+<ul><li>Bug fix: in certain circumstances an error “Database was not loaded. Please call emr_db.init.” is printed</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.1.9" id="naryn-219">naryn 2.1.9<a class="anchor" aria-label="anchor" href="#naryn-219"></a></h2>
+<ul><li>Bug fix in emr_filter.create: warning is issued when ID-Time table is used as source</li>
+<li>Bug fix in emr_ids_coverage: when src is an ID-Time table and the filter is used “..emr_tmp_filter does not exist (9)” error is generated</li>
+<li>Bug fix in emr_ids_vals_coverage: when src is an ID-Time table “..emr_tmp_filter does not exist (9)” error is generated</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.1.8" id="naryn-218">naryn 2.1.8<a class="anchor" aria-label="anchor" href="#naryn-218"></a></h2>
+<ul><li>New function: emr_track.percentile</li>
+<li>emr_summary: renamed two members of the result member from “Total intervals”/“NaN intervals” to “Total values”/“NaN values”</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.1.7" id="naryn-217">naryn 2.1.7<a class="anchor" aria-label="anchor" href="#naryn-217"></a></h2>
+<ul><li>New functions: emr_track.exists, emr_vtrack.exists, emr_filter.exists</li>
+<li>emr_filter.create, emr_vtrack.create - run-time optimizations</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.1.6" id="naryn-216">naryn 2.1.6<a class="anchor" aria-label="anchor" href="#naryn-216"></a></h2>
+<ul><li>New function: emr_track.ids</li>
+<li>emr_ids_coverage - new additional parameters: stime, etime, filter</li>
+<li>emr_ids_vals_coverage - run-time optimizations</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.1.5" id="naryn-215">naryn 2.1.5<a class="anchor" aria-label="anchor" href="#naryn-215"></a></h2>
+<ul><li>emr_filter.create: support vector of values for “val” parameter</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.1.4" id="naryn-214">naryn 2.1.4<a class="anchor" aria-label="anchor" href="#naryn-214"></a></h2>
+<ul><li>Redesigned emr_track.import function - supports data frame, does not allow anymore to add records to the existing track</li>
+<li>New function: emr_track.addto</li>
+<li>New “space” argument to emr_track.create function</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.1.3" id="naryn-213">naryn 2.1.3<a class="anchor" aria-label="anchor" href="#naryn-213"></a></h2>
+<ul><li>New filter on values for all virtual track functions applied to categorial tracks. The filter is given via “param” in emr_vtrack.create</li>
+<li>Bug fix: virtual track function “exists” might not work on non-integer values where double(val) != float(val)</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.1.2" id="naryn-212">naryn 2.1.2<a class="anchor" aria-label="anchor" href="#naryn-212"></a></h2>
+<ul><li>Bug fix: various functions might hang when emr_debug and emr_multitasking options are both TRUE</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.1.1" id="naryn-211">naryn 2.1.1<a class="anchor" aria-label="anchor" href="#naryn-211"></a></h2>
+<ul><li>New virtual track functions for simple linear regression model: lm.slope, lm.intercept</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.1.0" id="naryn-210">naryn 2.1.0<a class="anchor" aria-label="anchor" href="#naryn-210"></a></h2>
+<ul><li>Bug fix: occasional defunc processes AND/OR hanging in multitasking mode</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.0.6" id="naryn-206">naryn 2.0.6<a class="anchor" aria-label="anchor" href="#naryn-206"></a></h2>
+<ul><li>Mild run-time optimizations due to switching to C++11</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.0.5" id="naryn-205">naryn 2.0.5<a class="anchor" aria-label="anchor" href="#naryn-205"></a></h2>
+<ul><li>Bug fix: MAXTIME and MAXID might be incorrectly set which might have grave effect on iterators, multitasking, etc. Please call emr_db.reload() on all your trackdbs</li>
+<li>New option: emr_debug=T/F</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.0.4" id="naryn-204">naryn 2.0.4<a class="anchor" aria-label="anchor" href="#naryn-204"></a></h2>
+<ul><li>Bug fix in multitasking mode: child process does not die after generating an error</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.0.3" id="naryn-203">naryn 2.0.3<a class="anchor" aria-label="anchor" href="#naryn-203"></a></h2>
+<ul><li>Run-time optimization in a filter when NOT is applied to a list of time intervals</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.0.2" id="naryn-202">naryn 2.0.2<a class="anchor" aria-label="anchor" href="#naryn-202"></a></h2>
+<ul><li>Run-time optimization in a filter when NOT is applied to a list of ids</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.0.1" id="naryn-201">naryn 2.0.1<a class="anchor" aria-label="anchor" href="#naryn-201"></a></h2>
+<ul><li>emr_db.init: new “load.on.demand” parameter</li>
+<li>emr_db.init: very fast run-time when “load.on.demand” parameter is used</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.0.0" id="naryn-200">naryn 2.0.0<a class="anchor" aria-label="anchor" href="#naryn-200"></a></h2>
+<ul><li>Multitasking for all functions that use track expression evaluation engine</li>
+<li>emr_extract and emr_screen: new “sort” parameter</li>
+<li>New R options controlling multitasking behavior: emr_multitasking, emr_min.processes, emr_max.processes</li>
+<li>Run-time optimizations in track expression evaluation engine in single-task mode</li>
+<li>Bug-fix: wrong iteration on dense tracks when subsets are used</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="1.4.7" id="naryn-147">naryn 1.4.7<a class="anchor" aria-label="anchor" href="#naryn-147"></a></h2>
+<ul><li>Bug-fix: in certain cases incorrect results when NOT is used in the filter</li>
+<li>Run-time optimization when NOT is used in the filter</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="1.4.6" id="naryn-146">naryn 1.4.6<a class="anchor" aria-label="anchor" href="#naryn-146"></a></h2>
+<ul><li>emr_extract: receive track expressions as a vector</li>
+<li>emr_extract: new “tidy” parameter</li>
+<li>emr_extract: “colnames” parameter renamed to “names”</li>
+<li>Run-time optimizations</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="1.4.5" id="naryn-145">naryn 1.4.5<a class="anchor" aria-label="anchor" href="#naryn-145"></a></h2>
+<ul><li>Run-time optimization on long filters</li>
+<li>Run-time optimization when NOT operator is used in a filter</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="1.4.4" id="naryn-144">naryn 1.4.4<a class="anchor" aria-label="anchor" href="#naryn-144"></a></h2>
+<ul><li>Bug fix in filters: incorrect result when OR and NOT are used together</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="1.4.3" id="naryn-143">naryn 1.4.3<a class="anchor" aria-label="anchor" href="#naryn-143"></a></h2>
+<ul><li>Bug fix in filters: expiration and val produce incorrect results when used together</li>
+<li>Bug fix in emr_db.init: occasional crash due to too many files open</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="1.4.2" id="naryn-142">naryn 1.4.2<a class="anchor" aria-label="anchor" href="#naryn-142"></a></h2>
+<ul><li>New functions: emr_ids_coverage and emr_ids_vals_coverage</li>
+<li>Bug fix: MINTIME, MAXTIME, MINID, MAXID constants are not updated after emr_track.create, emr_track.import and emr_track.rm are called</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="1.4.1" id="naryn-141">naryn 1.4.1<a class="anchor" aria-label="anchor" href="#naryn-141"></a></h2>
+<ul><li>New function: emr_cor. Returns correlation statistics for each pair of a track expression vector</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="1.4.0" id="naryn-140">naryn 1.4.0<a class="anchor" aria-label="anchor" href="#naryn-140"></a></h2>
+<ul><li>New concept: subsets. Use subsets to define train / test sets. Please refer user manual for further details</li>
+<li>New functions: emr_db.subset, emr_db.subset.ids</li>
+<li>New option: emr_rnd.seed. Currently used by emr_quantiles</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="1.3.3" id="naryn-133">naryn 1.3.3<a class="anchor" aria-label="anchor" href="#naryn-133"></a></h2>
+<ul><li>New global EMR_TIME variable that stores the times of the current iterator</li>
+<li>Return an empty data frame instead of NULL in emr_extract and emr_screen when result set is empty</li>
+<li>Added user manual (still incomplete but covers already tracks, virtual tracks, track expressions and iterators).</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="1.3.2" id="naryn-132">naryn 1.3.2<a class="anchor" aria-label="anchor" href="#naryn-132"></a></h2>
+<ul><li>Run-time optimizations</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="1.3.1" id="naryn-131">naryn 1.3.1<a class="anchor" aria-label="anchor" href="#naryn-131"></a></h2>
+<ul><li>
+<p>New iterator type: beat iterator aligned to the time that appears in a data frame or a track (aka birthday). Syntax:<br>
+iterator=list(period, data.frame(id=…, time=…))<br>
+iterator=list(period, trackname)</p>
+<p>Note: each id must appear only once in the data frame / track.</p>
+</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="1.3.0" id="naryn-130">naryn 1.3.0<a class="anchor" aria-label="anchor" href="#naryn-130"></a></h2>
+<ul><li>New concept: global tracks and user tracks. emr_track.import creates tracks in global tracks directory, emr_track.create does it in user tracks directory.</li>
+<li>New functions: emr_track.create, emr_track.rm, emr_track.global.ls, emr_track.user.ls</li>
+<li>emr_db.init: new user.dir parameter</li>
+<li>emr_db.init: renamed root parameter to global.dir</li>
+<li>emr_track.info: added file path to the output.</li>
+<li>emr_track.import: removed reload_db parameter. Imported track will automatically be efficiently reloaded.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="1.2.1" id="naryn-121">naryn 1.2.1<a class="anchor" aria-label="anchor" href="#naryn-121"></a></h2>
+<ul><li>emr_filter.create: new “val” parameter (slicing)</li>
+<li>emr_filter.create: new “expiration” parameter. Please refer reference manual for usage.</li>
+<li>Run-time optimizations</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="1.2.0" id="naryn-120">naryn 1.2.0<a class="anchor" aria-label="anchor" href="#naryn-120"></a></h2>
+<ul><li>New concept: named filters. No more parameters (time shift, keepref) are allowed in track expression filters. Please use named filters instead.</li>
+<li>New functions: emr_filter.create, emr_filter.rm, emr_filter.ls, emr_filter.info</li>
+<li>New virtual track functions: earliest.time, latest.time, closest.earlier.time, closest.later.time</li>
+<li>emr_time2…: return NaN if the time is NaN</li>
+<li>emr_time2…: return numeric instead of integer</li>
+<li>4+5 = ability to use emr_time2… in track expressions</li>
+<li>Bug fix in emr_track.import: do not allow creation of a track if identically named virtual track already exists</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="1.1.8" id="naryn-118">naryn 1.1.8<a class="anchor" aria-label="anchor" href="#naryn-118"></a></h2>
+<ul><li>emr_vtrack.create: new id.map parameter</li>
+<li>emr_vtrack.create: renamed time_shift parameter to time.shift</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="1.1.7" id="naryn-117">naryn 1.1.7<a class="anchor" aria-label="anchor" href="#naryn-117"></a></h2>
+<ul><li>emr_dist: allow implicit breaks (use breaks=NULL) if the track expression constitutes of a categorial track or a virtual track that is based on a categorial track</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="1.1.6" id="naryn-116">naryn 1.1.6<a class="anchor" aria-label="anchor" href="#naryn-116"></a></h2>
+<ul><li>Run-time optimizations when track expression equals to a track or a virtual track</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="1.1.5" id="naryn-115">naryn 1.1.5<a class="anchor" aria-label="anchor" href="#naryn-115"></a></h2>
+<ul><li>New logical parameter in emr_track.import: “categorial”</li>
+<li>Track format had been changed</li>
+<li>New function: emr_track.unique - returns sorted unique values of a track. Hint: use this functions to set breaks when categorial track is used</li>
+<li>emr_vtrack.create: “val” parameter had been removed</li>
+<li>emr_vtrack.create: new functions “value”, “size”, “frequent”, “exists”</li>
+<li>emr_vtrack.create: functions “earliest”, “latest” and “closest” return -1 in case of ambiguity for categorial tracks</li>
+<li>Interpret data frame with id, time columns as patient-time even if ref column is missing</li>
+<li>Bug fix: emr_db.init continues failing after it failed once (for example: due to invalid track format)</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="1.1.4" id="naryn-114">naryn 1.1.4<a class="anchor" aria-label="anchor" href="#naryn-114"></a></h2>
+<ul><li>New functions: emr_track.info, emr_summary</li>
+<li>Enable patient ids to be used as iterators</li>
+<li>Enable patient ids  to be used in filters</li>
+<li>Patient ids format for 2 &amp; 3: data frame with the first column named “id”</li>
+<li>Enable time intervals to be used as iterators</li>
+<li>Enable time intervals to be used in filters</li>
+<li>Time intervals format for 5 &amp; 6: data frame wtih the first columns named “stime” and “etime”</li>
+<li>Run-time optimization when OR is used in iterator filter</li>
+<li>Report error id-time list used for iterator / filter contains two records that differ only by reference when keepref == FALSE</li>
+</ul><ol start="10" style="list-style-type: decimal"><li>Bug fix in filter when time after shift preceeds the epoch</li>
+<li>Bug fix in beat iterator: invalid progress report</li>
+</ol></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="1.1.3" id="naryn-113">naryn 1.1.3<a class="anchor" aria-label="anchor" href="#naryn-113"></a></h2>
+<ul><li>Enable beat iterator (iterator=integer) produce references if keepref=T</li>
+<li>Support filters when beat iterator is used</li>
+<li>1+2 means that one can now run complex iterators. For example iterator=track1 | track2, keepref = R can be simulated with help of a beat iterator and a filter as: iterator=1, keepref=R, filter=“track1(R) | track2(R)”</li>
+<li>Support filters when patient-time list is used as an iterator</li>
+<li>Enable patient-time lists to be used in the filter. The syntax is identical to tracks, e.g.: filter=“mylist1(F, c(10,20)) | track &amp; !mylist2”</li>
+<li>Prefetch track files into shared memory: initial emr_db.init is expected to be slower, however subsequent access to the tracks is faster</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="1.1.2" id="naryn-112">naryn 1.1.2<a class="anchor" aria-label="anchor" href="#naryn-112"></a></h2>
+<ul><li>Use shared memory to store tracks in RAM</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="1.1.1" id="naryn-111">naryn 1.1.1<a class="anchor" aria-label="anchor" href="#naryn-111"></a></h2>
+<ul><li>Added regression tests</li>
+<li>Bug fix in emr_date2time: crash if year is out of range</li>
+<li>Bug fix in emr_vtrack.create: functions percentile.upper.min, percentile.lower.min, percentile.upper.max, percentile.lower.max generate an error</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="1.1.0" id="naryn-110">naryn 1.1.0<a class="anchor" aria-label="anchor" href="#naryn-110"></a></h2>
+<ul><li>Added track filters. Examples of valid filters:<br>
+“track1”, “track1(T)”, “track1(F, 2)”, “track1(F, c(10, 20))”, “track1 &amp; track2”, “track1 | track2”, “!track1”, “!track1 &amp; (track2(F, c(10, 20)) | !track3(T))”</li>
+<li>Bug fix: track format changes depending on the OS.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="1.0.5" id="naryn-105">naryn 1.0.5<a class="anchor" aria-label="anchor" href="#naryn-105"></a></h2>
+<ul><li>New function: emr_dist</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="1.0.4" id="naryn-104">naryn 1.0.4<a class="anchor" aria-label="anchor" href="#naryn-104"></a></h2>
+<ul><li>Increase the maximal number of simultaneously used virtual tracks to 10K</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="1.0.3" id="naryn-103">naryn 1.0.3<a class="anchor" aria-label="anchor" href="#naryn-103"></a></h2>
+<ul><li>Add “val” parameter to emr_vtrack.create</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="1.0.2" id="naryn-102">naryn 1.0.2<a class="anchor" aria-label="anchor" href="#naryn-102"></a></h2>
+<ul><li>Allow addition of data into the existing tracks emr_track.import (use “add” parameter)</li></ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="1.0.1" id="naryn-101">naryn 1.0.1<a class="anchor" aria-label="anchor" href="#naryn-101"></a></h2>
+<ul><li>New functions: emr_quantiles, emr_track.import</li>
+<li>Support new functions in virtual tracks: percentile.upper, percentile.lower, percentile.max.upper, percentile.max.lower, percentile.min.upper, percentile.min.lower</li>
+<li>Track format changed, old track format is not supported anymore</li>
+<li>New keepref parameter in emr_vtrack.create</li>
+<li>Changes in vtrack evaluation</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="1.0.0" id="naryn-100">naryn 1.0.0<a class="anchor" aria-label="anchor" href="#naryn-100"></a></h2>
+<ul><li>First version</li></ul></div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
@@ -121,7 +546,7 @@
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.2.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.4.</p>
 </div>
 
       </footer></div>

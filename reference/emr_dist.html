@@ -18,7 +18,7 @@ bins."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathj
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">naryn</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">2.6.6</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">2.6.8</span>
       </span>
     </div>
 
@@ -82,30 +82,51 @@ bins.</p>
     <h2>Arguments</h2>
     <dl><dt>...</dt>
 <dd><p>pairs of [expr, breaks], where <code>expr</code> is the  track expression and breaks are the breaks that determine the bin or 'NULL'.</p></dd>
+
+
 <dt>include.lowest</dt>
 <dd><p>if 'TRUE', the lowest (or highest, for 'right = FALSE') value of the range determined by breaks is included</p></dd>
+
+
 <dt>right</dt>
 <dd><p>if 'TRUE' the intervals are closed on the right (and open on
 the left), otherwise vice versa.</p></dd>
+
+
 <dt>stime</dt>
 <dd><p>start time scope</p></dd>
+
+
 <dt>etime</dt>
 <dd><p>end time scope</p></dd>
+
+
 <dt>iterator</dt>
 <dd><p>track expression iterator. If 'NULL' iterator is determined
 implicitly based on track expressions. See also 'iterator' section.</p></dd>
+
+
 <dt>keepref</dt>
 <dd><p>If 'TRUE' references are preserved in the iterator.</p></dd>
+
+
 <dt>filter</dt>
 <dd><p>Iterator filter.</p></dd>
+
+
 <dt>dataframe</dt>
 <dd><p>return a data frame instead of an N-dimensional vector.</p></dd>
+
+
 <dt>names</dt>
 <dd><p>names for track expressions in the returned dataframe (only relevant when <code>dataframe == TRUE</code>)</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>N-dimensional vector where N is the number of 'expr'-'breaks' pairs. If <code>dataframe == TRUE</code> - a data frame with a column for each track expression and an additional column 'n' with counts.</p>
+    
+
+<p>N-dimensional vector where N is the number of 'expr'-'breaks' pairs. If <code>dataframe == TRUE</code> - a data frame with a column for each track expression and an additional column 'n' with counts.</p>
     </div>
     <div id="details">
     <h2>Details</h2>
@@ -219,7 +240,7 @@ emr_extract("emr_time2dayofmonth(EMR_TIME)", iterator = "sparse_track") <br></p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.2.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.4.</p>
 </div>
 
       </footer></div>
