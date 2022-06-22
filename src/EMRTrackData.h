@@ -49,8 +49,7 @@ struct EMRTrackData {
 //----------------------------------------
 
 template <class T>
-EMRTrackData<T>::DataRec::DataRec(unsigned _id, const EMRTimeStamp &_timestamp,
-                                  T _val) {
+EMRTrackData<T>::DataRec::DataRec(unsigned _id, const EMRTimeStamp &_timestamp, T _val) {
     id = _id;
     timestamp = _timestamp;
     val = _val;

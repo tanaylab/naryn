@@ -1,3 +1,12 @@
+template:
+  params:
+    bootstrap: 5
+    bootswatch: cosmo
+
+home:
+  sidebar:
+    structure: [links, license, authors, dev]
+  
 navbar:
   structure:
     left:

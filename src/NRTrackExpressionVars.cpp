@@ -14,74 +14,56 @@ NRTrackExpressionVars::NRTrackExpressionVars()
 }
 
 void NRTrackExpressionVars::parse_expr(const string &expr, unsigned stime, unsigned etime){
-    // go over all substrings        
-    for (size_t start = 0; start < expr.length(); start++) {
-        for (size_t len = expr.length() - start; len >= 1; len--) {            
-            string substring = expr.substr(start, len);
+    vector<string> vars;
+    get_expression_vars(expr, vars);
 
-            // look for track names
-            if (g_db->track_exists(substring)){                                        
-                if (is_var(expr, start, start + len)) {                                        
-                    add_track_var(substring);                    
-                    if (len == expr.length() - start){ // entire string is a match
-                        return;
-                    }
-                }
-            }
+    for (string var : vars) {
+        // look for track names
+        if (g_db->track_exists(var)) {
+            add_track_var(var);
+        }
 
-            // look for logical tracks and add a virtual track if needed
-            if (g_db->logical_track_exists(substring)){                        
-                if (is_var(expr, start, start + len)) {
-                    const EMRLogicalTrack *logical_track =
-                        g_db->logical_track(substring.c_str());
-                    add_vtrack_var(
-                        substring,
-                        logical_track->vtrack(),
-                        false, stime, etime);
-                    if (len == expr.length() - start){ // entire string is a match
-                        return;
-                    }
-                }
-            }
+        // look for logical tracks and add a virtual track if needed
+        if (g_db->logical_track_exists(var)) {
+            const EMRLogicalTrack *logical_track =
+                g_db->logical_track(var.c_str());
+            add_vtrack_var(
+                var,
+                logical_track->vtrack(),
+                false, stime, etime);
+        }
 
-            // look for virtual tracks using emr_vtrack.exists R function
-            SEXP e;
-            PROTECT(e = lang2(install("emr_vtrack.exists"), mkString(substring.c_str())));
-            bool vtrack_exists = asLogical(R_tryEval(e, g_naryn->env(), NULL));
+        // look for virtual tracks using emr_vtrack.exists R function
+        SEXP e;
+        PROTECT(e = lang2(install("emr_vtrack.exists"),
+                          mkString(var.c_str())));
+        bool vtrack_exists = asLogical(R_tryEval(e, g_naryn->env(), NULL));
+        UNPROTECT(1);
+
+        if (vtrack_exists) {            
+            // get the virtual track from R and add it
+            PROTECT(e = lang3(install(".emr_vtrack.get"),
+                                mkString(var.c_str()),
+                                ScalarLogical(0)));
+            SEXP vtrack = R_tryEval(e, g_naryn->env(), NULL);
             UNPROTECT(1);
-
-            if (vtrack_exists) {
-                if (is_var(expr, start, start + len)) {
-                    // get the virtual track from R and add it
-                    PROTECT(e = lang3(install(".emr_vtrack.get"), mkString(substring.c_str()), ScalarLogical(0)));
-                    SEXP vtrack = R_tryEval(e, g_naryn->env(), NULL);
-                    UNPROTECT(1);                    
-                    add_vtrack_var(substring, vtrack, false, stime, etime);
-                    if (len == expr.length() - start){ // entire string is a match
-                        return;
-                    }
-                }
-            }
+            add_vtrack_var(var, vtrack, false, stime, etime);
         }
     }
 }
 
-void NRTrackExpressionVars::parse_exprs(const vector<string> &track_exprs, unsigned stime, unsigned etime)
-{
+void NRTrackExpressionVars::parse_exprs(const vector<string> &track_exprs, unsigned stime, unsigned etime) {
     for (vector<string>::const_iterator iexpr = track_exprs.begin(); iexpr != track_exprs.end(); ++iexpr) {
         parse_expr(*iexpr, stime, etime);     
     }
 }
 
-void NRTrackExpressionVars::check_vtrack(const string &track, SEXP rvtrack)
-{
+void NRTrackExpressionVars::check_vtrack(const string &track, SEXP rvtrack) {
     NRTrackExpressionVars parser;
     parser.add_vtrack_var(track, rvtrack, true, 0, 0);
 }
 
-NRTrackExpressionVars::IteratorManager *NRTrackExpressionVars::add_imanager(const IteratorManager &imanager, EMRTrack *track, EMRTrack::Func func, unordered_set<double> &&vals,
-                                                                            bool track_ownership)
-{
+NRTrackExpressionVars::IteratorManager *NRTrackExpressionVars::add_imanager(const IteratorManager &imanager, EMRTrack *track, EMRTrack::Func func, unordered_set<double> &&vals, bool track_ownership){
     IteratorManagers::iterator iimanager;
 
     for (iimanager = m_imanagers.begin(); iimanager < m_imanagers.end(); ++iimanager) {
@@ -102,8 +84,7 @@ NRTrackExpressionVars::IteratorManager *NRTrackExpressionVars::add_imanager(cons
     return &*iimanager;
 }
 
-void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, bool only_check, unsigned stime, unsigned etime)
-{
+void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, bool only_check, unsigned stime, unsigned etime){
     for (TrackVars::const_iterator ivar = m_track_vars.begin(); ivar != m_track_vars.end(); ++ivar) {
         if (ivar->var_name == vtrack)
             return;
@@ -291,9 +272,12 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
         SEXP rtime_shift = time_shift_used ? VECTOR_ELT(rid_map, TIME_SHIFT) : R_NilValue;
         unsigned num_ids = (unsigned)xlength(rids1);
 
-        if (!isReal(rids1) && !isInteger(rids1) || !isReal(rids2) && !isInteger(rids2) || xlength(rids1) != xlength(rids2) ||
-            time_shift_used && xlength(rids1) != xlength(rtime_shift))
+        if ((!isReal(rids1) && !isInteger(rids1)) || 
+            (!isReal(rids2) && !isInteger(rids2)) || 
+            (xlength(rids1) != xlength(rids2)) ||
+            (time_shift_used && xlength(rids1) != xlength(rtime_shift))){
             verror("Virtual track %s: invalid format of 'id.map'", vtrack.c_str());
+        }
 
         for (unsigned i = 0; i < num_ids; ++i) {
             double id1 = isReal(rids1) ? REAL(rids1)[i] : INTEGER(rids1)[i];
@@ -410,7 +394,7 @@ void NRTrackExpressionVars::define_r_vars(unsigned size)
         rprotect(ivar->rvar = RSaneAllocVector(REALSXP, size));
         defineVar(install(ivar->var_name.c_str()), ivar->rvar, g_naryn->env());
         ivar->var = REAL(ivar->rvar);
-        for (int i = 0; i < size; ++i)
+        for (int i = 0; i < (int)size; ++i)
             ivar->var[i] = numeric_limits<double>::quiet_NaN();
     }
 }

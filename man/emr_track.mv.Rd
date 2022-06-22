@@ -11,7 +11,7 @@ emr_track.mv(src, tgt, space = NULL)
 
 \item{tgt}{target track name}
 
-\item{space}{"global" or "user" or 'NULL'}
+\item{space}{db path (string), one of the paths supplied in emr_db.connect or NULL}
 }
 \value{
 None.

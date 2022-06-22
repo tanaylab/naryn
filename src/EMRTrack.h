@@ -139,6 +139,7 @@ protected:
 		unsigned               m_data_idx;   // last patient idx that is greater or equal than the last query
 		unsigned               m_rec_idx;    // last record idx that is greater or equal than the last query
         double                 m_val;
+
         vector<double>         m_frequent_vals;
 		StreamPercentiler<double> m_sp;
 	};
@@ -146,15 +147,18 @@ protected:
 public:
 	class Iterator {
 	public:
+        enum OPS { eq, gt, lt, lte, gte } ops;
 		Iterator() : m_track(NULL), m_isend(true) {}
-        Iterator(EMRTrack *track, unsigned stime = 0, unsigned etime = (unsigned)-1, unordered_set<double> &&vals = unordered_set<double>(), EMRTimeStamp::Hour expiration = 0);
+        Iterator(EMRTrack *track, unsigned stime = 0, unsigned etime = (unsigned)-1, unordered_set<double> &&vals = unordered_set<double>(), EMRTimeStamp::Hour expiration = 0, Iterator::OPS op = OPS::eq);
 
-        void init(EMRTrack *track, unsigned stime = 0, unsigned etime = (unsigned)-1, unordered_set<double> &&vals = unordered_set<double>(), EMRTimeStamp::Hour expiration = 0);
+        void init(EMRTrack *track, unsigned stime = 0, unsigned etime = (unsigned)-1, unordered_set<double> &&vals = unordered_set<double>(), EMRTimeStamp::Hour expiration = 0, Iterator::OPS op = OPS::eq);
+        bool passed_operator(double val);
 
 		bool begin() { return m_track->begin(*this); }
 		bool next() { return m_track->next(*this); }
         bool next(const EMRPoint &jumpto) { return m_track->next(*this, jumpto); }   // reference in jumpto is ignored
 		bool isend() { return m_isend; }
+        
 
 		EMRPoint &point() { return m_point; }
 
@@ -182,6 +186,8 @@ public:
         unordered_set<double> m_vals;        // slice
         EMRTimeStamp::Hour    m_expiration;
 		bool                  m_isend;
+        OPS                   m_vals_op;
+
 	};
 
 protected:
@@ -245,11 +251,30 @@ inline void EMRTrack::DataFetcher::set_vals(const EMRInterval &interv)
 	m_track->set_vals(*this, interv);
 }
 
-inline EMRTrack::Iterator::Iterator(EMRTrack *track, unsigned stime, unsigned etime, unordered_set<double> &&vals, EMRTimeStamp::Hour expiration) :
+inline EMRTrack::Iterator::Iterator(EMRTrack *track, unsigned stime, unsigned etime, unordered_set<double> &&vals, EMRTimeStamp::Hour expiration, Iterator::OPS op) :
     m_track(NULL),
     m_isend(true)
 {
-    init(track, stime, etime, move(vals), expiration);
+    init(track, stime, etime, move(vals), expiration, op);
+}
+
+inline bool EMRTrack::Iterator::passed_operator(double val){
+    //we assume that if vals_op is not OPS::eq 
+    //than m_vals is a vector of one value exactly.
+    switch(m_vals_op){
+        case OPS::eq:
+            return (m_vals.find(val) != m_vals.end());
+        case OPS::gt:
+            return (val > *m_vals.begin());
+        case OPS::gte:
+            return (val >= *m_vals.begin());
+        case OPS::lt:
+            return (val < *m_vals.begin());
+        case OPS::lte:
+            return (val <= *m_vals.begin());
+    }
+    return false;
+
 }
 
 inline EMRTrack::EMRTrack(const char *name, TrackType track_type, DataType data_type, unsigned flags,
@@ -370,6 +395,8 @@ EMRTrack *EMRTrack::construct(const char *name, EMRTrack *base_track, Func func,
         case PV_MAX_UPPER:
         case PV_MAX_LOWER:
             build_percentiles = true;
+        default:
+            break;
         }
     }
 
@@ -1086,6 +1113,8 @@ void EMRTrack::calc_vals(DataFetcher &df, const EMRInterval &interv, const T &sr
                     df.m_val = interv.etime - irec->time().hour();
             }
         }
+        break;
+    default:
         break;
     }
 }

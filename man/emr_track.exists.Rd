@@ -4,10 +4,12 @@
 \alias{emr_track.exists}
 \title{Checks whether the track exists}
 \usage{
-emr_track.exists(track)
+emr_track.exists(track, db_id = NULL)
 }
 \arguments{
 \item{track}{track name}
+
+\item{db_id}{string of a db dir passed to \code{emr_db.connect}}
 }
 \value{
 'TRUE' if the tracks exists, otherwise 'FALSE'
@@ -17,6 +19,8 @@ Checks whether the track exists.
 }
 \details{
 This function checks whether the track exists.
+If \code{db_id} is passed, the function checks
+whether the track exists in the specific db.
 }
 \examples{
 

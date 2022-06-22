@@ -20,7 +20,7 @@
 
 extern "C" {
 
-SEXP emr_track_mv(SEXP _srctrack, SEXP _tgttrack, SEXP _space, SEXP _envir)
+SEXP emr_track_mv(SEXP _srctrack, SEXP _tgttrack, SEXP _db_id, SEXP _envir)
 {
 	try {
 		Naryn naryn(_envir);
@@ -32,44 +32,60 @@ SEXP emr_track_mv(SEXP _srctrack, SEXP _tgttrack, SEXP _space, SEXP _envir)
 		if (!isString(_tgttrack) || Rf_length(_tgttrack) != 1)
 			verror("'tgt' argument is not a string");
 
-        if (!isNull(_space) && (!isString(_space) || Rf_length(_space) != 1))
-            verror("'space' must be a string");
+        if (!isNull(_db_id) && (!isString(_db_id) || Rf_length(_db_id) != 1))
+            verror("'db.dir' must be a string");
 
 		const char *src_trackname = CHAR(STRING_ELT(_srctrack, 0));
 		const char *tgt_trackname = CHAR(STRING_ELT(_tgttrack, 0));
         const EMRDb::TrackInfo *src_track_info = g_db->track_info(src_trackname);
-        string space;
+        string db_id;
+        int db_idx;
+        bool mv_to_override = false;
 
         if (!src_track_info)
             verror("Track %s does not exist", src_trackname);
 
         EMRDb::check_track_name(tgt_trackname);
 
-        if (isNull(_space))
-            space = src_track_info->is_global ? "global" : "user";
+        if (isNull(_db_id))
+            db_id = src_track_info->db_id;
+
         else {
-            space = CHAR(asChar(_space));
-            if (space != "global") {
-                if (space == "user") {
-                    if (g_db->urootdir().empty())
-                        verror("User space root directory is not set");
-                } else
-                    verror("Invalid value of 'space' argument");
+            db_id = CHAR(asChar(_db_id));
+            db_idx = g_db->get_db_idx(db_id);
+
+            if (db_idx == -1) {
+               verror("%s directory is not set", db_id);
             }
         }
 
-        if (strcmp(src_trackname, tgt_trackname)) {
-            if (g_db->track_info(tgt_trackname))
-                verror("Track %s already exists", tgt_trackname);
-        } else if ((space == "user") ^ src_track_info->is_global)
-            verror("Cannot move track '%s' into itself.", src_trackname);
+        if ((strcmp(tgt_trackname, g_db->dob_trackname()) == 0) && (g_db->get_db_idx(db_id) != 0)) {
+            verror("Can not override %s track", g_db->dob_trackname());
+        }
 
-        string tgt_fname = (space == "global" ? g_db->grootdir() : g_db->urootdir()) + string("/") + tgt_trackname + EMRDb::TRACK_FILE_EXT;
+        if (strcmp(src_trackname, tgt_trackname)) {
+            if ((g_db->track_info(tgt_trackname)) && (g_db->track_info(tgt_trackname)->db_id == db_id)){
+                verror("Track %s already exists in db %s", tgt_trackname, db_id);  
+            }
+            if (g_db->track_info(tgt_trackname)) {
+                mv_to_override = true;
+            }
+
+        } else if (db_id == src_track_info->db_id) {
+            verror("Cannot move track '%s' into itself.", src_trackname);
+        }
+
+        string tgt_fname = db_id + string("/") + tgt_trackname + EMRDb::TRACK_FILE_EXT;
         vdebug("Moving track file %s to %s\n", src_track_info->filename.c_str(), tgt_fname.c_str());
         FileUtils::move_file(src_track_info->filename.c_str(), tgt_fname.c_str());
 
-        g_db->unload_track(src_trackname);
-        g_db->load_track(tgt_trackname, space == "global");
+        if (mv_to_override) {
+            g_db->unload_track(tgt_trackname, true, true);    
+        }
+
+        g_db->unload_track(src_trackname, true);
+        g_db->load_track(tgt_trackname, db_id);
+        
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
     } catch (const bad_alloc &e) {
@@ -91,14 +107,16 @@ SEXP emr_track_rm(SEXP _track, SEXP _envir)
         vdebug("Removing track %s\n", trackname);
         const EMRDb::TrackInfo *track_info = g_db->track_info(trackname);
 
-        if (!track_info)
+        if (!track_info){
             verror("Track %s does not exist", trackname);
+        }
 
         vdebug("Removing track file %s\n", track_info->filename.c_str());
         if (unlink(track_info->filename.c_str()))
             verror("Deleting file %s: %s", track_info->filename.c_str(), strerror(errno));
 
-        g_db->unload_track(trackname);
+        g_db->unload_track(trackname, true);
+        
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());
     } catch (const bad_alloc &e) {
@@ -107,8 +125,7 @@ SEXP emr_track_rm(SEXP _track, SEXP _envir)
 	return R_NilValue;
 }
 
-SEXP emr_track_info(SEXP _track, SEXP _envir)
-{
+SEXP emr_track_info(SEXP _track, SEXP _envir) {
 	try {
 		Naryn naryn(_envir);
 
@@ -194,7 +211,7 @@ SEXP emr_track_ids(SEXP _track, SEXP _envir)
 			verror("Track argument is not a string");
 
 		const char *trackname = CHAR(STRING_ELT(_track, 0));
-        SEXP answer;
+        
         vector<unsigned> ids;
         EMRTrack *track = g_db->track(trackname);
         const EMRLogicalTrack *logical_track  =
@@ -205,9 +222,13 @@ SEXP emr_track_ids(SEXP _track, SEXP _envir)
 
         if (logical_track){
             track = g_db->track(logical_track->source.c_str());
-            unordered_set<double> vals(logical_track->values.begin(),
-                                       logical_track->values.end());            
-            track->ids(ids, vals);
+            if (logical_track->has_values()){
+                unordered_set<double> vals(logical_track->values.begin(),
+                                           logical_track->values.end());
+                track->ids(ids, vals);
+            } else {
+                track->ids(ids);
+            }                
         } else {
             track->ids(ids);
         }
@@ -375,9 +396,9 @@ SEXP emr_get_tracks_attrs(SEXP _tracks, SEXP _attrs, SEXP _envir)
 	return R_NilValue;
 }
 
-SEXP emr_set_track_attr(SEXP _track, SEXP _attr, SEXP _value, SEXP _envir)
+SEXP emr_set_track_attr(SEXP _track, SEXP _attr, SEXP _value, SEXP _update, SEXP _envir)
 {
-	try {
+    try {
 		Naryn naryn(_envir);
 
 		// check the arguments
@@ -394,8 +415,8 @@ SEXP emr_set_track_attr(SEXP _track, SEXP _attr, SEXP _value, SEXP _envir)
         const char *attr = CHAR(asChar(_attr));
         const char *value = isNull(_value) ? NULL : CHAR(asChar(_value));
 
-        g_db->set_track_attr(trackname, attr, value);
-	} catch (TGLException &e) {
+        g_db->set_track_attr(trackname, attr, value, asLogical(_update));
+    } catch (TGLException &e) {
 		rerror("%s", e.msg());
     } catch (const bad_alloc &e) {
         rerror("Out of memory");
@@ -403,4 +424,89 @@ SEXP emr_set_track_attr(SEXP _track, SEXP _attr, SEXP _value, SEXP _envir)
 	return R_NilValue;
 }
 
+SEXP update_tracks_attrs_file(SEXP _db, SEXP _envir) {
+    try {
+        Naryn naryn(_envir, false);
+        string db_id(CHAR(asChar(_db)));
+        g_db->update_tracks_attrs_file(db_id, false);
+    } catch (TGLException &e) {
+        rerror("%s", e.msg());
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
+
+    rreturn(R_NilValue);
 }
+
+// returns all the databases of a track
+SEXP emr_track_dbs(SEXP _track, SEXP _envir) {
+    try {
+
+        Naryn naryn(_envir);
+
+        if (!isString(_track) || Rf_length(_track) != 1)
+            verror("Track argument is not a string");
+
+        const char *trackname = CHAR(STRING_ELT(_track, 0));
+
+        SEXP answer;
+        EMRTrack *track = g_db->track(trackname);
+
+        const EMRDb::TrackInfo *track_info = g_db->track_info(trackname);
+
+        if (!track)
+            verror("Track %s does not exist", trackname);
+
+        rprotect(answer = RSaneAllocVector(STRSXP, track_info->dbs.size()+1));
+
+        int idx=0;
+
+        for ( auto db_id : track_info->dbs ){
+            SET_STRING_ELT(answer, idx++, mkChar(db_id.c_str()));
+        }
+        
+        SET_STRING_ELT(answer, idx++, mkChar(track_info->db_id.c_str()));
+
+        return answer;
+    } catch (TGLException &e) {
+        rerror("%s", e.msg());
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
+
+    return R_NilValue;
+}
+
+
+// returns the current database of a track
+SEXP emr_track_db(SEXP _track, SEXP _envir) {
+    try {
+        Naryn naryn(_envir);
+
+        if (!isString(_track) || Rf_length(_track) != 1)
+            verror("Track argument is not a string");
+
+        const char *trackname = CHAR(STRING_ELT(_track, 0));
+
+        SEXP answer;
+        EMRTrack *track = g_db->track(trackname);
+
+        const EMRDb::TrackInfo *track_info = g_db->track_info(trackname);
+
+        if (!track) verror("Track %s does not exist", trackname);
+
+        rprotect(answer = RSaneAllocVector(STRSXP, 1));
+
+        SET_STRING_ELT(answer, 0, mkChar(track_info->db_id.c_str()));
+
+        return answer;
+    } catch (TGLException &e) {
+        rerror("%s", e.msg());
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
+
+    return R_NilValue;
+}
+}
+

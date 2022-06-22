@@ -11,7 +11,7 @@ emr_track.addto(track, src, force = FALSE)
 
 \item{src}{file name or data-frame containing the track records}
 
-\item{force}{if 'TRUE', supresses user confirmation for addition to
+\item{force}{if 'TRUE', suppresses user confirmation for addition to
 logical tracks}
 }
 \value{

@@ -11,14 +11,12 @@
 
 //-------------------------------- EMRTrack::DataFetcher -----------------------------------
 
-EMRTrack::DataFetcher::~DataFetcher()
-{
+EMRTrack::DataFetcher::~DataFetcher() {
     if (m_track_ownership)
         delete m_track;
 }
 
-void EMRTrack::DataFetcher::init(EMRTrack *track, bool track_ownership, unordered_set<double> &&vals)
-{
+void EMRTrack::DataFetcher::init(EMRTrack *track, bool track_ownership, unordered_set<double> &&vals) {
 	m_track = track;
     m_track_ownership = track_ownership;
     m_vals2compare = move(vals);
@@ -29,8 +27,7 @@ void EMRTrack::DataFetcher::init(EMRTrack *track, bool track_ownership, unordere
     m_sp.reset();
 }
 
-void EMRTrack::DataFetcher::register_function(EMRTrack::Func func)
-{
+void EMRTrack::DataFetcher::register_function(EMRTrack::Func func) {
 	if (func == QUANTILE)
 		m_sp.init(g_naryn->max_data_size(), g_naryn->quantile_edge_data_size(), g_naryn->quantile_edge_data_size());
 
@@ -40,8 +37,7 @@ void EMRTrack::DataFetcher::register_function(EMRTrack::Func func)
 
 //-------------------------------- EMRTrack::Iterator -----------------------------------
 
-void EMRTrack::Iterator::init(EMRTrack *track, unsigned stime, unsigned etime, unordered_set<double> &&vals, EMRTimeStamp::Hour expiration)
-{
+void EMRTrack::Iterator::init(EMRTrack *track, unsigned stime, unsigned etime, unordered_set<double> &&vals, EMRTimeStamp::Hour expiration, Iterator::OPS op) {
     m_track = track;
     m_data_idx = (unsigned)0;
     m_rec_idx = (unsigned)0;
@@ -50,6 +46,7 @@ void EMRTrack::Iterator::init(EMRTrack *track, unsigned stime, unsigned etime, u
     m_etime = etime;
     m_vals = move(vals);
     m_expiration = expiration;
+    m_vals_op = op;
 }
 
 
@@ -196,10 +193,10 @@ EMRTrack::TrackAttrs EMRTrack::load_attrs(const char *, const char *filename)
 		} else {
 			if (idx) {
 				if (name.empty() || val.empty())
-					TGLError<EMRTrack>(BAD_FORMAT, "Invalid format of attributes file %s", filename); 
+					TGLError<EMRTrack>(BAD_FORMAT, "Invalid format of attributes file %s (1)", filename); 
 
 				if (attrs.find(name) != attrs.end()) // duplicated attributes
-					TGLError<EMRTrack>(BAD_FORMAT, "Invalid format of attributes file %s", filename); 
+					TGLError<EMRTrack>(BAD_FORMAT, "Invalid format of attributes file %s (2)", filename); 
 
 				attrs[name] = val;
 				name.clear();
@@ -213,7 +210,7 @@ EMRTrack::TrackAttrs EMRTrack::load_attrs(const char *, const char *filename)
 		TGLError<EMRTrack>(FILE_ERROR, "Failed to read attributes file %s: %s", filename, strerror(errno));
 
 	if (idx) 
-		TGLError<EMRTrack>(BAD_FORMAT, "Invalid format of attributes file %s", filename); 
+		TGLError<EMRTrack>(BAD_FORMAT, "Invalid format of attributes file %s (3)", filename); 
     return attrs;
 }
 

@@ -6,7 +6,7 @@
 #' range.
 #'
 #' @param time vector of times in internal format
-#' @return Vector of converted times.
+#' @return Vector of converted times. NA values in the vector would be returned as NA's.
 #' @seealso \code{\link{emr_time2dayofmonth}}, \code{\link{emr_time2month}},
 #' \code{\link{emr_time2year}}, \code{\link{emr_date2time}}
 #' @keywords ~time
@@ -23,7 +23,7 @@
 #' @export emr_time2hour
 emr_time2hour <- function(time) {
     if (missing(time)) {
-        stop("Usage: emr_time2hour(time)", call. = F)
+        stop("Usage: emr_time2hour(time)", call. = FALSE)
     }
 
     .emr_call("emr_time2hour", time, new.env(parent = parent.frame()))
@@ -39,7 +39,7 @@ emr_time2hour <- function(time) {
 #' 31] range.
 #'
 #' @param time vector of times in internal format
-#' @return Vector of converted times.
+#' @return Vector of converted times. NA values in the vector would be returned as NA's.
 #' @seealso \code{\link{emr_time2hour}}, \code{\link{emr_time2month}},
 #' \code{\link{emr_time2year}}, \code{\link{emr_date2time}}
 #' @keywords ~time
@@ -56,7 +56,7 @@ emr_time2hour <- function(time) {
 #' @export emr_time2dayofmonth
 emr_time2dayofmonth <- function(time) {
     if (missing(time)) {
-        stop("Usage: emr_time2dayofmonth(time)", call. = F)
+        stop("Usage: emr_time2dayofmonth(time)", call. = FALSE)
     }
 
     .emr_call("emr_time2dayofmonth", time, new.env(parent = parent.frame()))
@@ -72,7 +72,7 @@ emr_time2dayofmonth <- function(time) {
 #' range.
 #'
 #' @param time vector of times in internal format
-#' @return Vector of converted times.
+#' @return Vector of converted times. NA values in the vector would be returned as NA's.
 #' @seealso \code{\link{emr_time2hour}}, \code{\link{emr_time2dayofmonth}},
 #' \code{\link{emr_time2year}}, \code{\link{emr_date2time}}
 #' @keywords ~time
@@ -89,7 +89,7 @@ emr_time2dayofmonth <- function(time) {
 #' @export emr_time2month
 emr_time2month <- function(time) {
     if (missing(time)) {
-        stop("Usage: emr_time2month(time)", call. = F)
+        stop("Usage: emr_time2month(time)", call. = FALSE)
     }
 
     .emr_call("emr_time2month", time, new.env(parent = parent.frame()))
@@ -104,7 +104,7 @@ emr_time2month <- function(time) {
 #' This function converts time from internal format to a year.
 #'
 #' @param time vector of times in internal format
-#' @return Vector of converted times.
+#' @return Vector of converted times. NA values in the vector would be returned as NA's.
 #' @seealso \code{\link{emr_time2hour}}, \code{\link{emr_time2dayofmonth}},
 #' \code{\link{emr_time2month}}, \code{\link{emr_date2time}}
 #' @keywords ~time
@@ -121,7 +121,7 @@ emr_time2month <- function(time) {
 #' @export emr_time2year
 emr_time2year <- function(time) {
     if (missing(time)) {
-        stop("Usage: emr_time2year(time)", call. = F)
+        stop("Usage: emr_time2year(time)", call. = FALSE)
     }
 
     .emr_call("emr_time2year", time, new.env(parent = parent.frame()))
@@ -166,7 +166,7 @@ emr_time2year <- function(time) {
 #' @export emr_date2time
 emr_date2time <- function(day, month, year, hour = 0) {
     if (missing(day) || missing(month) || missing(year)) {
-        stop("Usage: emr_date2time(day, month, year, hour = 0)", call. = F)
+        stop("Usage: emr_date2time(day, month, year, hour = 0)", call. = FALSE)
     }
 
     .emr_call("emr_date2time", data.frame(hour, day, month, year), new.env(parent = parent.frame()))
@@ -210,10 +210,11 @@ emr_time2date <- function(time) {
 #' are other convenience functions to get a time period explicitly.
 #'
 #'
-#' @param years number of years
-#' @param months number of months
 #' @param days number of days
+#' @param months number of months
+#' @param years number of years
 #' @param hours number of hours
+#' @param n number of days/weeks/months/years/hours
 #'
 #' @return Machine time format (number of hours)
 #'
@@ -339,14 +340,14 @@ year <- function() {
 #'
 #' emr_db.init_examples()
 #'
-#' r1 <- emr_extract("sparse_track", keepref = T)
-#' r2 <- emr_extract("dense_track", keepref = T)
+#' r1 <- emr_extract("sparse_track", keepref = TRUE)
+#' r2 <- emr_extract("dense_track", keepref = TRUE)
 #' r2$dense_track <- r2$dense_track + 1000
 #' emr_annotate(r1, r2)
 #' @export emr_annotate
 emr_annotate <- function(x, y) {
     if (missing(x) || missing(y)) {
-        stop("Usage: emr_annotate(x, y)", call. = F)
+        stop("Usage: emr_annotate(x, y)", call. = FALSE)
     }
 
     .emr_call("emr_annotate", x, y, new.env(parent = parent.frame()))

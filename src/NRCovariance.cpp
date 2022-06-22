@@ -101,8 +101,8 @@ SEXP emr_covariance(SEXP _exprs, SEXP _breaks, SEXP _include_lowest, SEXP _right
         }
 
         for (size_t ibin = 0; ibin < totalbins; ++ibin) {
-            for (int i = 0; i < num_cov_exprs; ++i) {
-                for (int j = 0; j < num_cov_exprs; ++j) {
+            for (int i = 0; i < (int)num_cov_exprs; ++i) {
+                for (int j = 0; j < (int)num_cov_exprs; ++j) {
                     size_t idx = ibin + totalbins * i + totalbins * num_cov_exprs * j;
 
                     stat[N][idx] = avg_x[ibin][i][j].n;
@@ -142,7 +142,7 @@ SEXP emr_covariance(SEXP _exprs, SEXP _breaks, SEXP _include_lowest, SEXP _right
         rprotect(dimname[0] = RSaneAllocVector(STRSXP, num_cov_exprs));
         rprotect(dimname[1] = RSaneAllocVector(STRSXP, num_cov_exprs));
 
-        for (int i = 0; i < num_cov_exprs; i++) {
+        for (int i = 0; i < (int)num_cov_exprs; i++) {
             SET_STRING_ELT(dimname[0], i, STRING_ELT(_exprs, num_breaks_exprs + i));
             SET_STRING_ELT(dimname[1], i, STRING_ELT(_exprs, num_breaks_exprs + i));
         }

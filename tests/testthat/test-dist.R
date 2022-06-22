@@ -1,3 +1,4 @@
+load_test_db()
 
 test_that("emr_dist works", {
     dst <- emr_dist("track2", c(100, 300, 500, 900, 2000, 3000))
@@ -12,8 +13,8 @@ test_that("emr_dist works", {
     )
 })
 
-test_that("emr_dist works keepref=T", {
-    dst <- emr_dist("track2", c(100, 300, 500, 900, 2000, 3000), keepref = T)
+test_that("emr_dist works keepref=TRUE", {
+    dst <- emr_dist("track2", c(100, 300, 500, 900, 2000, 3000), keepref = TRUE)
     expect_equal(
         dst,
         structure(c(
@@ -67,13 +68,13 @@ test_that("emr_dist with NULL breaks", {
 })
 
 test_that("emr_dist with vtrack dt1.earliest", {
-    EMR_VTRACKS <<- list()
+    emr_vtrack.clear()
     emr_vtrack.create("v1", "track7", func = "dt1.earliest", time.shift = c(-10, 10))
     expect_error(emr_dist("v1", NULL, "track2", c(50, 60, 80, 90), iterator = "track1"))
 })
 
 test_that("emr_dist with vtrack frequent", {
-    EMR_VTRACKS <<- list()
+    emr_vtrack.clear()
     emr_vtrack.create("v1", "track7", func = "frequent", time.shift = c(-10, 10))
     dst <- emr_dist("v1", NULL, "track2", c(50, 60, 80, 90), iterator = "track1")
     expect_equal(
@@ -90,7 +91,7 @@ test_that("emr_dist with vtrack frequent", {
 })
 
 test_that("emr_dist with vtrack sample", {
-    EMR_VTRACKS <<- list()
+    emr_vtrack.clear()
     set.seed(17)
     emr_vtrack.create("v1", "track7", func = "sample", time.shift = c(-10, 10))
     dst <- emr_dist("v1", NULL, "track2", c(50, 60, 80, 90), iterator = "track1")
@@ -108,7 +109,7 @@ test_that("emr_dist with vtrack sample", {
 })
 
 test_that("emr_dist with vtrack sample.time", {
-    EMR_VTRACKS <<- list()
+    emr_vtrack.clear()
     set.seed(17)
     emr_vtrack.create("v1", "track7", func = "sample.time", time.shift = c(-10, 10))
     dst <- emr_dist("v1", NULL, "track2", c(50, 60, 80, 90), iterator = "track1")

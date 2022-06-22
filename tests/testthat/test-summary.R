@@ -1,3 +1,6 @@
+load_test_db()
+
+
 test_that("emr_summary works", {
     expect_equal(
         emr_summary("track1"),

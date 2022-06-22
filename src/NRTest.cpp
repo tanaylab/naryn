@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <iostream>
 
 #include "EMRDb.h"
 #include "EMRProgressReporter.h"
@@ -20,6 +21,25 @@
 typedef unordered_map<int, EMRTrackData<float> *> Datasets;
 
 extern "C" {
+
+SEXP test_parse_expr(SEXP r_expr, SEXP envir) {
+    try {
+        Naryn naryn(envir);
+        string expr = CHAR(STRING_ELT(r_expr, 0));
+        vector<string> vars;
+        get_expression_vars(expr, vars);        
+        for (size_t i = 0; i < vars.size(); ++i) {            
+            vdebug(vars[i].c_str());
+        }
+        return R_NilValue;
+    } catch (TGLException &e) {
+        rerror("%s", e.msg());
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
+
+    return R_NilValue;
+}
 
 SEXP logical_track_vtrack(SEXP _track, SEXP envir){
     try {
@@ -315,11 +335,11 @@ SEXP nrtest_vtrack(SEXP _track, SEXP envir)
                 if (scanf("%d %d %d", &stime, &etime, &ref) != 3)
                     continue;
 
-                if (pid < interv.id) {
+                if (pid < (int)interv.id) {
                     REprintf("New pid < old pid\n");
                     continue;
                 }
-                if (pid == interv.id && stime < interv.stime) {
+                if (pid == (int)interv.id && stime < interv.stime) {
                     REprintf("New stime < old stime\n");
                     continue;
                 }
@@ -416,8 +436,8 @@ SEXP nrtest_iterator(SEXP envir)
 
         int idx = -1;
         while (1) {
-            char buf[1000];
-            double percentile;
+            // char buf[1000];
+            // double percentile;
 
             REprintf("Enter index: ");
             if (scanf("%d", &idx) != 1)
@@ -493,7 +513,7 @@ SEXP nrimport_clalit(SEXP _dirname, SEXP _envir)
 
 		srand48(0);
 
-		while (dirp = readdir(dir)) {
+		while ((dirp = readdir(dir))) {
 			char filename[PATH_MAX + 100];
 			struct stat s;
 			int len = strlen(dirp->d_name);
@@ -503,7 +523,7 @@ SEXP nrimport_clalit(SEXP _dirname, SEXP _envir)
 				verror("Failed to stat file %s: %s", filename, strerror(errno));
 
 			// is it a normal file having the supported extension?
-			if (S_ISREG(s.st_mode) && len > FEXTENSION.size() && !strncmp(dirp->d_name + len - FEXTENSION.size(), FEXTENSION.c_str(), FEXTENSION.size())) {
+			if (S_ISREG(s.st_mode) && len > (int)FEXTENSION.size() && !strncmp(dirp->d_name + len - (int)FEXTENSION.size(), FEXTENSION.c_str(), FEXTENSION.size())) {
 				enum { PATIENTID, TESTCODE, DATE, RESULT, NUM_FIELDS };
 
 				BufferedFile bfile;
@@ -591,79 +611,79 @@ SEXP nrimport_clalit(SEXP _dirname, SEXP _envir)
 	return R_NilValue;
 }
 
-void print_tree(SEXP tree, int depth)
-{
-    bool is_op = true;
-    bool is_function = false;
+// void print_tree(SEXP tree, int depth)
+// {
+//     bool is_op = true;
+//     bool is_function = false;
 
-    while (1) {
-        SEXP data = CAR(tree);
-        if (isLanguage(data)) {
-            print_tree(data, depth + 1);
-        } else {
-            const char *str = CHAR(asChar(data));
-            if (is_op && strcmp(str, "&") && strcmp(str, "|") && strcmp(str, "!") && strcmp(str, "(")) {
-                REprintf("FUNCTION\n");
-                is_function = true;
+//     while (1) {
+//         SEXP data = CAR(tree);
+//         if (isLanguage(data)) {
+//             print_tree(data, depth + 1);
+//         } else {
+//             const char *str = CHAR(asChar(data));
+//             if (is_op && strcmp(str, "&") && strcmp(str, "|") && strcmp(str, "!") && strcmp(str, "(")) {
+//                 REprintf("FUNCTION\n");
+//                 is_function = true;
 
-                for (int i = 0; i < depth; ++i)
-                    REprintf("  ");
-                REprintf("%s\n", str);
+//                 for (int i = 0; i < depth; ++i)
+//                     REprintf("  ");
+//                 REprintf("%s\n", str);
 
-                while (1) {
-                    tree = CDR(tree);
-                    if (isNull(tree))
-                        break;
-                    data = CAR(tree);
-                    SEXP res = eval_in_R(data, g_naryn->env());
-                    if (isReal(res)) {
-                        for (int i = 0; i < Rf_length(res); ++i) {
-                            for (int j = 0; j < depth; ++j)
-                                REprintf("  ");
-                            REprintf("REAL %g\n", REAL(res)[i]);
-                        }
-                    } else if (isLogical(res)) {
-                        for (int i = 0; i < Rf_length(res); ++i) {
-                            for (int j = 0; j < depth; ++j)
-                                REprintf("  ");
-                            REprintf("LOGICAL %d\n", LOGICAL(res)[i]);
-                        }
-                    } else
-                        verror("Error in eval");
-                }
-            } else {
-                for (int i = 0; i < depth; ++i)
-                    REprintf("  ");
-                REprintf("%s\n", str);
-            }
-            is_op = false;
-        }
-        tree = CDR(tree);
-        if (isNull(tree))
-            break;
-    }
-}
+//                 while (1) {
+//                     tree = CDR(tree);
+//                     if (isNull(tree))
+//                         break;
+//                     data = CAR(tree);
+//                     SEXP res = eval_in_R(data, g_naryn->env());
+//                     if (isReal(res)) {
+//                         for (int i = 0; i < Rf_length(res); ++i) {
+//                             for (int j = 0; j < depth; ++j)
+//                                 REprintf("  ");
+//                             REprintf("REAL %g\n", REAL(res)[i]);
+//                         }
+//                     } else if (isLogical(res)) {
+//                         for (int i = 0; i < Rf_length(res); ++i) {
+//                             for (int j = 0; j < depth; ++j)
+//                                 REprintf("  ");
+//                             REprintf("LOGICAL %d\n", LOGICAL(res)[i]);
+//                         }
+//                     } else
+//                         verror("Error in eval");
+//                 }
+//             } else {
+//                 for (int i = 0; i < depth; ++i)
+//                     REprintf("  ");
+//                 REprintf("%s\n", str);
+//             }
+//             is_op = false;
+//         }
+//         tree = CDR(tree);
+//         if (isNull(tree))
+//             break;
+//     }
+// }
 
 // do.call(f, list(substitute(a+2)))
 // string to expression: eval(parse(text="substitute(a+2)"))
 
-SEXP nrtest_substitute(SEXP _expr, SEXP _envir)
-{
-	try {
-		Naryn naryn(_envir);
+// SEXP nrtest_substitute(SEXP _expr, SEXP _envir)
+// {
+// 	try {
+// 		Naryn naryn(_envir);
 
-        if (isLanguage(_expr))
-            print_tree(_expr, 0);
-        else
-            REprintf("PLAIN %s\n", CHAR(asChar(_expr)));
-	} catch (TGLException &e) {
-		rerror("%s", e.msg());
-    } catch (const bad_alloc &e) {
-        rerror("Out of memory");
-    }
+//         if (isLanguage(_expr))
+//             print_tree(_expr, 0);
+//         else
+//             REprintf("PLAIN %s\n", CHAR(asChar(_expr)));
+// 	} catch (TGLException &e) {
+// 		rerror("%s", e.msg());
+//     } catch (const bad_alloc &e) {
+//         rerror("Out of memory");
+//     }
 
-	return R_NilValue;
-}
+// 	return R_NilValue;
+// }
 
 SEXP nrfilter(SEXP _expr, SEXP _stime, SEXP _etime, SEXP _envir)
 {
@@ -823,7 +843,7 @@ SEXP emr_test_eval(SEXP _expr, SEXP _n, SEXP _envir)
         if ((!isInteger(_n) && !isReal(_n)) || Rf_length(_n) != 1)
             verror("'n' argument must be an integer value");
 
-        const char *expr_str = { CHAR(asChar(_expr)) };
+        // const char *expr_str = { CHAR(asChar(_expr)) };
         int n = asInteger(_n);
 
         SEXP aaa, bbb;
@@ -843,7 +863,7 @@ SEXP emr_test_eval(SEXP _expr, SEXP _n, SEXP _envir)
             REAL(aaa)[0] = i;
             REAL(bbb)[0] = i + 1;
             SEXP res = eval_in_R(eval_expr, g_naryn->env());
-            int lres = REAL(res)[0];
+            // int lres = REAL(res)[0];
 //            REprintf("res: %g\n", REAL(res)[0]);
             runprotect(res);
         }

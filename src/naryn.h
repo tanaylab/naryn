@@ -98,6 +98,8 @@ SEXP get_rvector_col(SEXP v, const char *colname, const char *varname, bool erro
 
 string get_bound_colname(const char *str, unsigned maxlen = 40);
 
+void get_expression_vars(const string &expr, vector<string>& vars);
+
 template<typename T> void pack_data(void *&ptr, const T &data, size_t n) {
 	size_t size = sizeof(data) * n;
 	memcpy(ptr, &data, size);

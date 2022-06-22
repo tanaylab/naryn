@@ -2,15 +2,11 @@
 }
 
 .onAttach <- function(lib, pkg) {
-    Sys.umask("0002")
+    Sys.umask("007")
 
     assign(".EMR_FUNCS", getNamespaceExports("naryn"), envir = .GlobalEnv)
 
-    if (R.Version()$major >= 3) {
-        assign(".EMR_LIBDIR", path.package("naryn"), envir = .GlobalEnv)
-    } else {
-        assign(".EMR_LIBDIR", .path.package("naryn"), envir = .GlobalEnv)
-    }
+    assign(".EMR_LIBDIR", path.package("naryn"), envir = .GlobalEnv)
 
     options(emr_multitasking = TRUE)
     options(emr_min.processes = 8)

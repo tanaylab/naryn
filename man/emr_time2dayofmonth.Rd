@@ -10,7 +10,7 @@ emr_time2dayofmonth(time)
 \item{time}{vector of times in internal format}
 }
 \value{
-Vector of converted times.
+Vector of converted times. NA values in the vector would be returned as NA's.
 }
 \description{
 Converts time from internal format to a day of month.

@@ -12,8 +12,18 @@
 
 .emr_checkroot <- function() {
     if (!exists("EMR_GROOT", envir = .GlobalEnv) || is.null(get("EMR_GROOT", envir = .GlobalEnv))) {
-        stop("Database root directory is not set. Please call emr_db.init().", call. = F)
+        stop("Database root directory is not set. Please call emr_db.connect().", call. = FALSE)
     }
+}
+
+#' Get a vector of variables inside an expression
+#'
+#' @param expr string with a naryn expression
+#'
+#' @noRd
+#' @export
+.emr_expr_vars <- function(expr) {
+    all.vars(as.list(parse(text = expr))[[1]])
 }
 
 .emr_getOption <- function(x, default = NULL) {
@@ -25,4 +35,8 @@
     } else {
         default
     }
+}
+
+is_ascii_character <- function(x) {
+    !is.na(x) & !is.na(iconv(x, "ASCII", "ASCII"))
 }

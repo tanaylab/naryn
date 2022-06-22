@@ -4,16 +4,18 @@
 \alias{emr_track.import}
 \title{Imports a track from a file or data-frame}
 \usage{
-emr_track.import(track, space, categorical, src)
+emr_track.import(track, space, categorical, src, override = FALSE)
 }
 \arguments{
 \item{track}{the name of the newly created track}
 
-\item{space}{"user" or "global" space}
+\item{space}{db dir string (path), one of the paths supplied in emr_db.connect}
 
 \item{categorical}{if 'TRUE' track is marked as categorical}
 
 \item{src}{file name or data-frame containing the track records}
+
+\item{override}{Boolean indicating whether the creation intends to override an existing track (default FALSE)}
 }
 \value{
 None.
@@ -22,9 +24,9 @@ None.
 Imports a track from a file or data-frame.
 }
 \details{
-This function creates a new track from a text file or a data-frame. The
-location of the track is controlled via 'space' parameter which can be
-either "user" or to "global".
+This function creates a new track from a text file or a data-frame.
+The location of the track is controlled via 'space' parameter which
+can be any of the db_dirs supplied in emr_db.connect.
 
 If 'src' is a file name, the latter must be constituted of four columns
 separated by spaces or 'TAB' characters: ID, time, reference and value. The

@@ -27,12 +27,10 @@
 #'
 #' @inheritSection emr_extract iterator
 #'
-#' @param expr track expression.
-#' @param breaks breaks that determine the bin or 'NULL'.
+#' @param ... pairs of [factor.expr, breaks], where \code{factor.expr} is the  track expression and breaks are the breaks that determine the bin or 'NULL'.
 #' @param cor.exprs vector of track expressions for which correlation
 #' statistics is calculated.
-#' @param include.lowest if 'TRUE', the lowest (or highest, for ‘right =
-#' FALSE’) value of the range determined by breaks is included.
+#' @param include.lowest if 'TRUE', the lowest (or highest, for 'right = FALSE') value of the range determined by breaks is included.
 #' @param right if 'TRUE' the intervals are closed on the right (and open on
 #' the left), otherwise vice versa.
 #' @param stime start time scope.
@@ -54,20 +52,20 @@
 #' emr_db.init_examples()
 #' emr_cor("categorical_track", c(0, 2, 5),
 #'     cor.exprs = c("sparse_track", "1/dense_track"),
-#'     include.lowest = T, iterator = "categorical_track",
-#'     keepref = T
+#'     include.lowest = TRUE, iterator = "categorical_track",
+#'     keepref = TRUE
 #' )
 #' emr_cor("categorical_track", c(0, 2, 5),
 #'     cor.exprs = c("sparse_track", "1/dense_track"),
-#'     include.lowest = T, iterator = "categorical_track",
-#'     keepref = T,
+#'     include.lowest = TRUE, iterator = "categorical_track",
+#'     keepref = TRUE,
 #'     dataframe = TRUE
 #' )
 #' @export emr_cor
-emr_cor <- function(..., cor.exprs = NULL, include.lowest = FALSE, right = TRUE, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL, dataframe = FALSE, names = NULL) {
+emr_cor <- function(..., cor.exprs = NULL, include.lowest = FALSE, right = TRUE, stime = NULL, etime = NULL, iterator = NULL, keepref = FALSE, filter = NULL, dataframe = FALSE, names = NULL) {
     args <- list(...)
     if (length(args) < 2 || (length(args) %% 2 != 0 && (length(args) - 1) %% 2 != 0) || is.null(cor.exprs)) {
-        stop("Usage: emr_cor([factor.expr, breaks]+, cor.exprs, include.lowest = F, right = T, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
+        stop("Usage: emr_cor([factor.expr, breaks]+, cor.exprs, include.lowest = FALSE, right = TRUE, stime = NULL, etime = NULL, iterator = NULL, keepref = FALSE, filter = NULL)", call. = FALSE)
     }
     .emr_checkroot()
 
@@ -81,6 +79,9 @@ emr_cor <- function(..., cor.exprs = NULL, include.lowest = FALSE, right = TRUE,
 
     first_exprs <- exprs
     exprs <- append(exprs, cor.exprs)
+
+    orig_filters <- .emr_gen_vtrack_filters(filter, iterator, keepref, stime, etime)
+    on.exit(.emr_recreate_vtrack_filters(orig_filters), add = TRUE)
 
     res <- .emr_call("emr_covariance", exprs, breaks, include.lowest, right, stime, etime, iterator, keepref, filter, new.env(parent = parent.frame()))
 
@@ -123,10 +124,8 @@ emr_cor <- function(..., cor.exprs = NULL, include.lowest = FALSE, right = TRUE,
 #'
 #' @inheritSection emr_extract iterator
 #'
-#' @param expr track expression
-#' @param breaks breaks that determine the bin or 'NULL'
-#' @param include.lowest if 'TRUE', the lowest (or highest, for ‘right =
-#' FALSE’) value of the range determined by breaks is included
+#' @param ... pairs of [expr, breaks], where \code{expr} is the  track expression and breaks are the breaks that determine the bin or 'NULL'.
+#' @param include.lowest if 'TRUE', the lowest (or highest, for 'right = FALSE') value of the range determined by breaks is included
 #' @param right if 'TRUE' the intervals are closed on the right (and open on
 #' the left), otherwise vice versa.
 #' @param stime start time scope
@@ -144,13 +143,13 @@ emr_cor <- function(..., cor.exprs = NULL, include.lowest = FALSE, right = TRUE,
 #' @examples
 #'
 #' emr_db.init_examples()
-#' emr_dist("sparse_track", c(0, 15, 20, 30, 40, 50), keepref = T)
-#' emr_dist("sparse_track", c(0, 15, 20, 30, 40, 50), keepref = T, dataframe = TRUE)
+#' emr_dist("sparse_track", c(0, 15, 20, 30, 40, 50), keepref = TRUE)
+#' emr_dist("sparse_track", c(0, 15, 20, 30, 40, 50), keepref = TRUE, dataframe = TRUE)
 #' @export emr_dist
 emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, etime = NULL, iterator = NULL, keepref = FALSE, filter = NULL, dataframe = FALSE, names = NULL) {
     args <- list(...)
     if (length(args) < 2 || (length(args) %% 2 != 0 && (length(args) - 1) %% 2 != 0)) {
-        stop("Usage: emr_dist([expr, breaks]+, include.lowest = F, right = T, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
+        stop("Usage: emr_dist([expr, breaks]+, include.lowest = FALSE, right = TRUE, stime = NULL, etime = NULL, iterator = NULL, keepref = FALSE, filter = NULL)", call. = FALSE)
     }
     .emr_checkroot()
 
@@ -162,6 +161,9 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, et
         breaks[length(breaks) + 1] <- list(args[[i * 2 + 2]])
     }
 
+    orig_filters <- .emr_gen_vtrack_filters(filter, iterator, keepref, stime, etime)
+    on.exit(.emr_recreate_vtrack_filters(orig_filters), add = TRUE)
+
     res <- .emr_call("emr_dist", exprs, breaks, include.lowest, right, stime, etime, iterator, keepref, filter, new.env(parent = parent.frame()))
 
     if (dataframe) {
@@ -172,8 +174,6 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, et
 
     return(res)
 }
-
-
 
 #' Returns evaluated track expression
 #'
@@ -287,11 +287,14 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, et
 #' emr_db.init_examples()
 #' emr_extract("dense_track", stime = 1, etime = 3)
 #' @export emr_extract
-emr_extract <- function(expr, tidy = F, sort = F, names = NULL, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL) {
+emr_extract <- function(expr, tidy = FALSE, sort = FALSE, names = NULL, stime = NULL, etime = NULL, iterator = NULL, keepref = FALSE, filter = NULL) {
     if (missing(expr)) {
-        stop("Usage: emr_extract(expr, tidy = F, sort = F, names = NULL, tidy = F, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
+        stop("Usage: emr_extract(expr, tidy = FALSE, sort = FALSE, names = NULL, tidy = FALSE, stime = NULL, etime = NULL, iterator = NULL, keepref = FALSE, filter = NULL)", call. = FALSE)
     }
     .emr_checkroot()
+
+    orig_filters <- .emr_gen_vtrack_filters(filter, iterator, keepref, stime, etime)
+    on.exit(.emr_recreate_vtrack_filters(orig_filters), add = TRUE)
 
     .emr_call("emr_extract", expr, names, tidy, sort, stime, etime, iterator, keepref, filter, new.env(parent = parent.frame()))
 }
@@ -309,7 +312,7 @@ emr_extract <- function(expr, tidy = F, sort = F, names = NULL, stime = NULL, et
 #' Ids can originate from a track or be provided within Ids Table.
 #'
 #' Note: The internal iterator that runs over each track is defined with
-#' 'keepref=T'.
+#' 'keepref=TRUE'.
 #'
 #' @param ids track name or Ids Table
 #' @param tracks a vector of track names
@@ -327,13 +330,36 @@ emr_extract <- function(expr, tidy = F, sort = F, names = NULL, stime = NULL, et
 #' @export emr_ids_coverage
 emr_ids_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filter = NULL) {
     if (missing(ids) || missing(tracks)) {
-        stop("Usage: emr_ids_coverage(ids, tracks, stime = NULL, etime = NULL, filter = NULL)", call. = F)
+        stop("Usage: emr_ids_coverage(ids, tracks, stime = NULL, etime = NULL, filter = NULL)", call. = FALSE)
     }
     .emr_checkroot()
+
+    query_vt_f <- .emr_detect_vtrack_filters(filter)
+    has_vtrack_filters <- length(query_vt_f$vtrack_filters) > 0 || length(query_vt_f$explicit_vtracks) > 0
+
+    # If we have virtual track filters, we run 'emr_ids_coverage' on each track separately
+    if (length(tracks) > 1 && has_vtrack_filters) {
+        res <- purrr::map(tracks, ~
+            emr_ids_coverage(
+                ids,
+                .x,
+                stime = stime,
+                etime = etime,
+                filter = filter
+            )) %>% purrr::flatten_dbl()
+
+        return(res)
+    }
 
     orig_tracks <- tracks
     res_logical <- list()
     res <- list()
+
+    if (has_vtrack_filters) {
+        stopifnot(length(tracks) == 1)
+        orig_filters <- .emr_gen_vtrack_filters(filter, iterator = tracks, keepref = TRUE, stime = stime, etime = etime)
+        on.exit(.emr_recreate_vtrack_filters(orig_filters), add = TRUE)
+    }
 
     for (track in tracks) {
         if (emr_track.logical.exists(track)) {
@@ -342,7 +368,8 @@ emr_ids_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filter = N
                 emr_ids_coverage(
                     ids,
                     ltrack$source,
-                    filter = create_logical_track_filter(track, filter), stime = stime,
+                    filter = create_logical_track_filter(track, filter),
+                    stime = stime,
                     etime = etime
                 )[[1]]
         }
@@ -401,7 +428,7 @@ emr_ids_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filter = N
 #' Ids can originate from a track or be provided within Ids Table.
 #'
 #' Note: The internal iterator that runs over each track is defined with
-#' 'keepref=T'.
+#' 'keepref=TRUE'.
 #'
 #' @param ids track name or Ids Table
 #' @param tracks a vector of track names
@@ -419,9 +446,32 @@ emr_ids_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filter = N
 #' @export emr_ids_vals_coverage
 emr_ids_vals_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filter = NULL) {
     if (missing(ids) || missing(tracks)) {
-        stop("Usage: emr_ids_vals_coverage(ids, tracks, stime = NULL, etime = NULL, filter = NULL)", call. = F)
+        stop("Usage: emr_ids_vals_coverage(ids, tracks, stime = NULL, etime = NULL, filter = NULL)", call. = FALSE)
     }
     .emr_checkroot()
+
+    query_vt_f <- .emr_detect_vtrack_filters(filter)
+    has_vtrack_filters <- length(query_vt_f$vtrack_filters) > 0 || length(query_vt_f$explicit_vtracks) > 0
+
+    # If we have virtual track filters, we run 'emr_ids_coverage' on each track separately
+    if (length(tracks) > 1 && has_vtrack_filters) {
+        res <- purrr::map_dfr(tracks, ~
+            emr_ids_vals_coverage(
+                ids,
+                .x,
+                stime = stime,
+                etime = etime,
+                filter = filter
+            ))
+
+        return(res)
+    }
+
+    if (has_vtrack_filters) {
+        stopifnot(length(tracks) == 1)
+        orig_filters <- .emr_gen_vtrack_filters(filter, iterator = tracks, keepref = TRUE, stime = stime, etime = etime)
+        on.exit(.emr_recreate_vtrack_filters(orig_filters), add = TRUE)
+    }
 
     logical_tracks <- tracks[purrr::map_lgl(tracks, emr_track.logical.exists)]
     physical_tracks <- tracks[!(tracks %in% logical_tracks)]
@@ -435,11 +485,14 @@ emr_ids_vals_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filte
             res <- emr_ids_vals_coverage(
                 ids,
                 ltrack$source,
-                filter = create_logical_track_filter(track, filter), stime = stime,
+                filter = create_logical_track_filter(track, filter),
+                stime = stime,
                 etime = etime
             )
             res$track <- track
-            res <- res %>% dplyr::filter(val %in% ltrack$values)
+            if (!is.null(ltrack$values)) {
+                res <- res %>% dplyr::filter(val %in% ltrack$values)
+            }
             return(res)
         })
     }
@@ -508,11 +561,14 @@ emr_ids_vals_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filte
 #' emr_db.init_examples()
 #' emr_quantiles("sparse_track", c(0.1, 0.6, 0.8))
 #' @export emr_quantiles
-emr_quantiles <- function(expr, percentiles = 0.5, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL) {
+emr_quantiles <- function(expr, percentiles = 0.5, stime = NULL, etime = NULL, iterator = NULL, keepref = FALSE, filter = NULL) {
     if (missing(expr)) {
-        stop("Usage: emr_quantiles(expr, percentiles = 0.5, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
+        stop("Usage: emr_quantiles(expr, percentiles = 0.5, stime = NULL, etime = NULL, iterator = NULL, keepref = FALSE, filter = NULL)", call. = FALSE)
     }
     .emr_checkroot()
+
+    orig_filters <- .emr_gen_vtrack_filters(filter, iterator, keepref, stime, etime)
+    on.exit(.emr_recreate_vtrack_filters(orig_filters), add = TRUE)
 
     .emr_call("emr_quantiles", expr, percentiles, stime, etime, iterator, keepref, filter, new.env(parent = parent.frame()))
 }
@@ -548,14 +604,17 @@ emr_quantiles <- function(expr, percentiles = 0.5, stime = NULL, etime = NULL, i
 #'
 #' emr_db.init_examples()
 #' emr_screen("sparse_track == 13 | dense_track < 80",
-#'     iterator = "sparse_track", keepref = T
+#'     iterator = "sparse_track", keepref = TRUE
 #' )
 #' @export emr_screen
-emr_screen <- function(expr, sort = F, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL) {
+emr_screen <- function(expr, sort = FALSE, stime = NULL, etime = NULL, iterator = NULL, keepref = FALSE, filter = NULL) {
     if (missing(expr)) {
-        stop("Usage: emr_screen(expr, sort = F, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
+        stop("Usage: emr_screen(expr, sort = FALSE, stime = NULL, etime = NULL, iterator = NULL, keepref = FALSE, filter = NULL)", call. = FALSE)
     }
     .emr_checkroot()
+
+    orig_filters <- .emr_gen_vtrack_filters(filter, iterator, keepref, stime, etime)
+    on.exit(.emr_recreate_vtrack_filters(orig_filters), add = TRUE)
 
     .emr_call("emr_screen", expr, sort, stime, etime, iterator, keepref, filter, new.env(parent = parent.frame()))
 }
@@ -587,11 +646,14 @@ emr_screen <- function(expr, sort = F, stime = NULL, etime = NULL, iterator = NU
 #' emr_db.init_examples()
 #' emr_summary("sparse_track")
 #' @export emr_summary
-emr_summary <- function(expr, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL) {
+emr_summary <- function(expr, stime = NULL, etime = NULL, iterator = NULL, keepref = FALSE, filter = NULL) {
     if (missing(expr)) {
-        stop("Usage: emr_summary(expr, stime = NULL, etime = NULL, iterator = NULL, keepref = F, filter = NULL)", call. = F)
+        stop("Usage: emr_summary(expr, stime = NULL, etime = NULL, iterator = NULL, keepref = FALSE, filter = NULL)", call. = FALSE)
     }
     .emr_checkroot()
+
+    orig_filters <- .emr_gen_vtrack_filters(filter, iterator, keepref, stime, etime)
+    on.exit(.emr_recreate_vtrack_filters(orig_filters), add = TRUE)
 
     .emr_call("emr_summary", expr, stime, etime, iterator, keepref, filter, new.env(parent = parent.frame()))
 }

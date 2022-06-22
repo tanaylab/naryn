@@ -28,10 +28,21 @@ SEXP emr_time2hour(SEXP _t, SEXP _envir)
         rprotect(answer = RSaneAllocVector(REALSXP, Rf_length(_t)));
 
         for (int i = 0; i < Rf_length(_t); ++i) {
+            bool ret_na = false;
+            if (isInteger(_t)){
+                if (INTEGER(_t)[i] == NA_INTEGER){
+                    ret_na = true;
+                }                
+            } else {
+                if (ISNA(REAL(_t)[i])){
+                    ret_na = true;
+                }
+            }
+            
             double t = isInteger(_t) ? INTEGER(_t)[i] : REAL(_t)[i];
 
-            if (std::isnan(t)) {
-                REAL(answer)[i] = numeric_limits<double>::quiet_NaN();
+            if (std::isnan(t) || ret_na) {
+                REAL(answer)[i] = NA_REAL;
                 continue;
             }
 
@@ -62,10 +73,21 @@ SEXP emr_time2dayofmonth(SEXP _t, SEXP _envir)
         rprotect(answer = RSaneAllocVector(REALSXP, Rf_length(_t)));
 
         for (int i = 0; i < Rf_length(_t); ++i) {
+            bool ret_na = false;
+            if (isInteger(_t)){
+                if (INTEGER(_t)[i] == NA_INTEGER){
+                    ret_na = true;
+                }                
+            } else {
+                if (ISNA(REAL(_t)[i])){
+                    ret_na = true;
+                }
+            }
+            
             double t = isInteger(_t) ? INTEGER(_t)[i] : REAL(_t)[i];
 
-            if (std::isnan(t)) {
-                REAL(answer)[i] = numeric_limits<double>::quiet_NaN();
+            if (std::isnan(t) || ret_na) {
+                REAL(answer)[i] = NA_REAL;
                 continue;
             }
 
@@ -96,10 +118,21 @@ SEXP emr_time2month(SEXP _t, SEXP _envir)
         rprotect(answer = RSaneAllocVector(REALSXP, Rf_length(_t)));
 
         for (int i = 0; i < Rf_length(_t); ++i) {
+            bool ret_na = false;
+            if (isInteger(_t)){
+                if (INTEGER(_t)[i] == NA_INTEGER){
+                    ret_na = true;
+                }                
+            } else {
+                if (ISNA(REAL(_t)[i])){
+                    ret_na = true;
+                }
+            }
+            
             double t = isInteger(_t) ? INTEGER(_t)[i] : REAL(_t)[i];
 
-            if (std::isnan(t)) {
-                REAL(answer)[i] = numeric_limits<double>::quiet_NaN();
+            if (std::isnan(t) || ret_na) {
+                REAL(answer)[i] = NA_REAL;
                 continue;
             }
 
@@ -130,10 +163,21 @@ SEXP emr_time2year(SEXP _t, SEXP _envir)
         rprotect(answer = RSaneAllocVector(REALSXP, Rf_length(_t)));
 
         for (int i = 0; i < Rf_length(_t); ++i) {
+            bool ret_na = false;
+            if (isInteger(_t)){
+                if (INTEGER(_t)[i] == NA_INTEGER){
+                    ret_na = true;
+                }                
+            } else {
+                if (ISNA(REAL(_t)[i])){
+                    ret_na = true;
+                }
+            }
+
             double t = isInteger(_t) ? INTEGER(_t)[i] : REAL(_t)[i];
 
-            if (std::isnan(t)) {
-                REAL(answer)[i] = numeric_limits<double>::quiet_NaN();
+            if (std::isnan(t) || ret_na) {
+                REAL(answer)[i] = NA_REAL;
                 continue;
             }
 
@@ -167,8 +211,10 @@ SEXP emr_date2time(SEXP _date, SEXP _envir)
 
         for (int i = 0; i < NUM_COLS; ++i) {
             rcols[i] = VECTOR_ELT(_date, i);
-            if (!isInteger(rcols[i]) && !isReal(rcols[i]) || i > 0 && Rf_length(rcols[i]) != Rf_length(rcols[i - 1]))
+            if ((!isInteger(rcols[i]) && !isReal(rcols[i])) || 
+                (i > 0 && Rf_length(rcols[i]) != Rf_length(rcols[i - 1]))){
                 verror("Invalid format of 'date' argument");
+            }
         }
 
         int num_rows = Rf_length(rcols[0]);

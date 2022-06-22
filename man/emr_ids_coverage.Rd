@@ -31,7 +31,7 @@ counted only once.
 Ids can originate from a track or be provided within Ids Table.
 
 Note: The internal iterator that runs over each track is defined with
-'keepref=T'.
+'keepref=TRUE'.
 }
 \examples{
 

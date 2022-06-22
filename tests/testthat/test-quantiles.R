@@ -1,3 +1,6 @@
+load_test_db()
+
+
 test_that("emr_quantiles works", {
     expect_equal(
         emr_quantiles("track1", c(0.1, 0.2, 0.5, 0.9)),

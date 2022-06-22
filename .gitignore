@@ -2,8 +2,11 @@ inst/naryndb/test/.naryn
 src/*.so
 src/*.o
 src/*.d
+src/Makevars_bak
 tests/testdb
+tests/testdb_*
 tests/snapshot
+tests/testthat/mock_tests.R
 .vscode
 Logical_tracks.md
 inst/naryndb/test/.logical_tracks

@@ -1,3 +1,5 @@
+load_test_db()
+
 
 test_that("emr_ids_coverage works", {
     expect_equal(

@@ -9,7 +9,7 @@ emr_vtrack.create(
   src,
   func = NULL,
   params = NULL,
-  keepref = F,
+  keepref = FALSE,
   time.shift = NULL,
   id.map = NULL,
   filter = NULL
@@ -18,7 +18,8 @@ emr_vtrack.create(
 \arguments{
 \item{vtrack}{virtual track name.}
 
-\item{src}{data source.}
+\item{src}{data source. either a track name or a list of two members: ID-Time Values table (see "User
+Manual") and a logical. If the logical is 'TRUE', the data in the table is treated as categorical, otherwise as quantitative.}
 
 \item{func, params}{see below.}
 
@@ -28,7 +29,7 @@ emr_vtrack.create(
 
 \item{id.map}{id mapping.}
 
-\item{filter}{virtual track filter.}
+\item{filter}{virtual track filter. Note that filters with a source of another virtual track are not allowed in order to avoid loops.}
 }
 \value{
 Name of the virtual track (invisibly)
@@ -153,13 +154,13 @@ emr_vtrack.create("vtrack1", "dense_track",
 emr_vtrack.create("vtrack2", "dense_track",
     time.shift = c(-5, 10), func = "min"
 )
-res <- emr_extract("dense_track", keepref = T, names = "value")
-emr_vtrack.create("vtrack3", list(res, F),
+res <- emr_extract("dense_track", keepref = TRUE, names = "value")
+emr_vtrack.create("vtrack3", list(res, FALSE),
     time.shift = c(-5, 10),
     func = "min"
 )
 emr_extract(c("dense_track", "vtrack1", "vtrack2", "vtrack3"),
-    keepref = T, iterator = "dense_track"
+    keepref = TRUE, iterator = "dense_track"
 )
 }
 \seealso{

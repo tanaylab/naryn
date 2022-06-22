@@ -487,37 +487,45 @@ void Naryn::load_options()
 	SEXP rvar;
 
     rvar = GetOption(install("emr_debug"), R_NilValue);
-    if (isLogical(rvar))
+    if (isLogical(rvar)){
         m_debug = asLogical(rvar);
+    }
 
     rvar = GetOption(install("emr_multitasking"), R_NilValue);
-    if (isLogical(rvar))
+    if (isLogical(rvar)){
         m_multitasking_avail = asLogical(rvar);
+    }
 
     rvar = GetOption(install("emr_min.processes"), R_NilValue);
-    if ((isReal(rvar) || isInteger(rvar)) && asInteger(rvar) >= 1)
+    if ((isReal(rvar) || isInteger(rvar)) && asInteger(rvar) >= 1){
         m_min_processes = asInteger(rvar);
+    }
 
     rvar = GetOption(install("emr_max.processes"), R_NilValue);
-    if ((isReal(rvar) || isInteger(rvar)) && asInteger(rvar) >= 1)
+    if ((isReal(rvar) || isInteger(rvar)) && asInteger(rvar) >= 1){
         m_max_processes = asInteger(rvar);
+    }
     m_max_processes = max(m_min_processes, m_max_processes);
 
 	rvar = GetOption(install("emr_max.data.size"), R_NilValue);
-	if ((isReal(rvar) || isInteger(rvar)) && asReal(rvar) >= 1)
+	if ((isReal(rvar) || isInteger(rvar)) && asReal(rvar) >= 1){
 		m_max_data_size = (uint64_t)asReal(rvar);
+    }
 
     rvar = GetOption(install("emr_eval.buf.size"), R_NilValue);
-    if ((isReal(rvar) || isInteger(rvar)) && asInteger(rvar) >= 1)
+    if ((isReal(rvar) || isInteger(rvar)) && asInteger(rvar) >= 1){
         m_eval_buf_size = asInteger(rvar);
+    }
 
 	rvar = GetOption(install("emr_quantile.edge.data.size"), R_NilValue);
-	if ((isReal(rvar) || isInteger(rvar)) && asReal(rvar) >= 0)
+	if ((isReal(rvar) || isInteger(rvar)) && asReal(rvar) >= 0){
 		m_quantile_edge_data_size = (uint64_t)asReal(rvar);
+    }
 
     rvar = GetOption(install("emr_warning.itr.no.filter.size"), R_NilValue);
-    if ((isReal(rvar) || isInteger(rvar)) && asReal(rvar) >= 1)
+    if ((isReal(rvar) || isInteger(rvar)) && asReal(rvar) >= 1){
         m_beat_itr_warning_size = (uint64_t)asReal(rvar);
+    }
 }
 
 void Naryn::sigint_handler(int)
@@ -632,8 +640,9 @@ SEXP rprotect(SEXP &expr)
 
 void runprotect(int count)
 {
-	if (Naryn::s_protect_counter < count)
+	if (Naryn::s_protect_counter < (unsigned)count){
 		errorcall(R_NilValue, "Number of calls to unprotect exceeds the number of calls to protect\n");
+    }
 	UNPROTECT(count);
 	Naryn::s_protect_counter -= count;
 }
@@ -821,9 +830,11 @@ SEXP get_rvector_col(SEXP v, const char *colname, const char *varname, bool erro
 	SEXP colnames = getAttrib(v, R_NamesSymbol);
 
 	if (!isVector(v) ||
-		Rf_length(v) && (!isString(colnames) || Rf_length(colnames) != Rf_length(v)) ||
-		!Rf_length(v) && !isNull(colnames))
+		(Rf_length(v) && !isString(colnames)) || 
+        (Rf_length(colnames) != Rf_length(v)) ||
+		(!Rf_length(v) && !isNull(colnames))){
 		verror("Invalid format of %s", varname);
+    }
 
 	int numcols = isNull(colnames) ? 0 : Rf_length(colnames);
 
@@ -850,3 +861,18 @@ string get_bound_colname(const char *str, unsigned maxlen)
 	return colname;
 }
 
+void get_expression_vars(const string &expr, vector<string>& vars){
+    SEXP e;
+    SEXP r_expr = mkString(expr.c_str());
+
+    PROTECT(e = lang2(install(".emr_expr_vars"), r_expr));
+    SEXP res = R_tryEval(e, g_naryn->env(), NULL);
+    UNPROTECT(1);
+
+    size_t num_vars = Rf_length(res);    
+    vars.reserve(num_vars);
+
+    for (size_t i = 0; i < num_vars; ++i){        
+        vars.push_back(CHAR(STRING_ELT(res, i)));
+    }    
+}

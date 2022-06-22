@@ -6,20 +6,21 @@
 \usage{
 emr_track.create(
   track,
-  space,
+  space = EMR_UROOT,
   categorical,
   expr,
   stime = NULL,
   etime = NULL,
   iterator = NULL,
-  keepref = F,
-  filter = NULL
+  keepref = FALSE,
+  filter = NULL,
+  override = FALSE
 )
 }
 \arguments{
 \item{track}{the name of the newly created track}
 
-\item{space}{"user" or "global" space}
+\item{space}{db path, one of the paths supplied in emr_db.connect}
 
 \item{categorical}{if 'TRUE' track is marked as categorical}
 
@@ -35,6 +36,8 @@ implicitly based on track expressions. See also 'iterator' section.}
 \item{keepref}{If 'TRUE' references are preserved in the iterator}
 
 \item{filter}{Iterator filter}
+
+\item{override}{Boolean indicating whether the creation intends to override an existing track (default FALSE)}
 }
 \value{
 None.
@@ -43,9 +46,9 @@ None.
 Creates a track from a track expression.
 }
 \details{
-This function creates a new user or global track based on the values from
+This function creates a new track based on the values from
 the track expression. The location of the track is controlled via 'space'
-parameter which can be either "user" or to "global".
+parameter which can be any of the db_dirs supplied in emr_db.connect
 }
 \section{iterator}{
 

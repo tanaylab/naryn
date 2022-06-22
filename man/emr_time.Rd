@@ -46,6 +46,8 @@ year()
 \item{years}{number of years}
 
 \item{hours}{number of hours}
+
+\item{n}{number of days/weeks/months/years/hours}
 }
 \value{
 Machine time format (number of hours)

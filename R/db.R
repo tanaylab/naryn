@@ -1,40 +1,59 @@
 #' Initializes connection with Naryn Database
 #'
-#' Initializes connection with Naryn Database.
+#' Initializes connection with Naryn Database
 #'
-#' 'emr_db.init' initializes the connection with Naryn Database facilitating
-#' tracks access. 'global.dir' marks the root directory of the global tracks.
-#' 'user.dir' parameter specifies the directory of the user tracks. Unlike
-#' global tracks user tracks may be deleted ('emr_track.rm') or new ones can be
-#' created ('emr_track.create'). 'user.dir' can be 'NULL', in which case
-#' operations on user tracks will be disabled.
+#' Call `emr_db.connect` function to establish the access to the tracks in the db_dirs.
+#' To establish a connection using `emr_db.connect`, Naryn requires to specify at-least
+#' one db dir. Optionally, `emr_db.connect` accepts additional db dirs which can also
+#' contain additional tracks.
+#'
+#' In a case where 2 or more db dirs contain the same track name (namespace collision),
+#' the  track will  be taken from the db dir which was passed *last* in  the order of
+#' connections.
+#'
+#' For example, if we have 2 db dirs \code{/db1} and \code{/db2} which both contain
+#' a track named \code{track1}, the call  \code{emr_db.connect(c('/db1', '/db2'))} will result with
+#' Naryn  using \code{track1} from \code{/db2}. As you might expect the overriding is consistent not
+#' only for the track's data, but also for any other Naryn entity using or pointing
+#' to the track.
+#'
+#' Even though all the db dirs may contain track files, their designation is different.
+#' All the db dirs except the last dir in the order of connections are mainly read-only.
+#' The directory which was connected last in the order, also known as *user dir*, is
+#' intended to store volatile data like the results of intermediate calculations.
+#'
+#' New tracks can be created only in  the db dir which was last in  the order of
+#' connections, using \code{emr_track.import} or \code{emr_track.create}. In order to write tracks
+#' to a db dir which is not last in the connection order, the user must explicitly
+#' reconnect and set the required db dir as the last in order, this should be done for a
+#' well justified reason.
 #'
 #' When the package is attached it internally calls 'emr_db.init_examples'
-#' which sets 'global.dir' to 'PKGDIR/naryndb/test' and 'user.dir' to NULL
+#' which sets a single example db dir - 'PKGDIR/naryndb/test'.
 #' ('PKGDIR' is the directory where the package is installed).
 #'
 #' Physical files in the database are supposed to be managed exclusively by
 #' Naryn itself. Manual modification, addition or deletion of track files may
 #' be done, yet it must be ratified via running 'emr_db.reload'. Some of these
 #' manual changes however (like moving a track from global space to user or
-#' vice versa) might cause 'emr_db.init' to fail. 'emr_db.reload' cannot be
+#' vice versa) might cause 'emr_db.connect' to fail. 'emr_db.reload' cannot be
 #' invoked then as it requires first the connection to the DB be established.
-#' To break the deadlock use 'do.reload=True' parameter within 'emr_db.init'.
+#' To break the deadlock use 'do_reload=True' parameter within 'emr_db.connect'.
 #' This will connect to the DB and rebuild the DB index files in one step.
 #'
-#' If 'load.on.demand' is 'TRUE' a track is loaded into memory only when it is
+#' If 'load_on_demand' is 'TRUE' a track is loaded into memory only when it is
 #' accessed and it is unloaded from memory as R sessions ends or the package is
 #' unloaded.
 #'
-#' If 'load.on.demand' parameter is 'FALSE', all the tracks from the specified
+#' If 'load_on_demand' parameter is 'FALSE', all the tracks from the specified
 #' space (global / user) are pre-loaded into memory making subsequent track
 #' access significantly faster. As loaded tracks reside in shared memory, other
 #' R sessions running on the same machine, may also enjoy significant run-time
 #' boost. On the flip side, pre-loading all the tracks prolongs the execution
-#' of 'emr_db.init' and requires enough memory to accommodate all the data.
+#' of 'emr_db.connect' and requires enough memory to accommodate all the data.
 #'
 #' Choosing between the two modes depends on the specific needs. While
-#' 'load.on.demand=TRUE' seems to be a solid default choice, in an enviroment
+#' 'load_on_demand=TRUE' seems to be a solid default choice, in an environment
 #' where there are frequent short-living R sessions, each accessing a track one
 #' might opt for running a "daemon" - an additional permanent R session. The
 #' daemon would pre-load all the tracks in advance and stay alive thus boosting
@@ -44,61 +63,111 @@
 #' global variables are added to the environment. These variables should not be
 #' modified by the user!
 #'
-#' \tabular{ll}{ EMR_GROOT \tab Root directory of global tracks\cr EMR_UROOT
-#' \tab Root directory of user tracks\cr }
+#' \tabular{lll}{
+#' EMR_GROOT \tab First db dir of tracks in the order of connections \cr
+#' EMR_UROOT \tab Last db dir of tracks in the order of connection (user dir) \cr
+#' EMR_ROOTS \tab Vector of directories (db_dirs) \cr
+#' }
 #'
-#' @aliases emr_db.init emr_db.init_examples
-#' @param global.dir root directory of global tracks
-#' @param user.dir 'NULL' or root directory of user tracks
-#' @param global.load.on.demand see below
-#' @param user.load.on.demand see below
-#' @param do.reload If 'TRUES', rebuilds DB index files
+#' \code{emr_db.init} is the old version of this function which
+#' is now deprecated.
+#'
+#' @aliases emr_db.connect emr_db.init_examples
+#' @param db_dirs vector of db directories
+#' @param load_on_demand vector of booleans, same length as db_dirs, if load_on_demand[i] is FALSE, tracks from db_dirs[i] will be pre-loaded, or a single 'TRUE' or 'FALSE' to set \code{load_on_demand} for all the datatbases. If NULL is passed, \code{load_on_demand} is set to TRUE on all the databases
+#' @param do_reload If \code{TRUE}, rebuilds DB index files.
+#' @param global.dir,user.dir,global.load.on.demand,user.load.on.demand,do.reload old parameters of the deprecated function \code{emr_db.init}
 #' @return None.
 #' @seealso \code{\link{emr_db.reload}}, \code{\link{emr_track.import}},
 #' \code{\link{emr_track.create}}, \code{\link{emr_track.rm}},
 #' \code{\link{emr_track.ls}}, \code{\link{emr_vtrack.ls}},
 #' \code{\link{emr_filter.ls}}
 #' @keywords ~db ~data ~database
-#' @export emr_db.init
-emr_db.init <- function(global.dir = NULL, user.dir = NULL, global.load.on.demand = TRUE, user.load.on.demand = TRUE, do.reload = F) {
-    if (is.null(global.dir)) {
-        stop("Usage: emr_db.init(global.dir, user.dir = NULL, global.load.on.demand = T, user.load.on.demand = T, do.reload = F)", call. = FALSE)
+#' @export emr_db.connect
+emr_db.connect <- function(db_dirs = NULL, load_on_demand = NULL, do_reload = FALSE) {
+    if (is.null(db_dirs)) {
+        stop("Usage: emr_db.connect(db_dirs, load_on_demand = NULL, do_reload = FALSE)", call. = FALSE)
     }
 
-    global.dir <- normalizePath(global.dir) # get absolute path
+    db_dirs <- normalizePath(db_dirs) # get absolute path
 
-    if (!is.null(user.dir)) {
-        user.dir <- normalizePath(user.dir) # get absolute path
+    if (any(duplicated(db_dirs))) {
+        stop("DB directories should differ from one another", call. = FALSE)
+    }
 
-        if (global.dir == user.dir) {
-            stop("Global space root directory should differ from user space root directory", call. = FALSE)
+    if (!is.null(load_on_demand)) {
+        if (length(load_on_demand) == 1) {
+            load_on_demand <- rep(load_on_demand, length(db_dirs))
+        }
+
+        if (length(db_dirs) != length(load_on_demand)) {
+            stop("load_on_demand must be in the same length of db_dirs", call. = FALSE)
+        }
+
+        if (!all(is.logical(load_on_demand))) {
+            stop("load_on_demand shuold be a logical vector in the same length of db_dirs (note that 'db_dirs' is a vector)", call. = FALSE)
         }
     }
 
-    EMR_GROOT <<- global.dir
-    EMR_UROOT <<- user.dir
+    # We set the groot to be the first
+    # directory in the vector
+    EMR_GROOT <<- db_dirs[1]
+
+    # We set the uroot to be the last
+    if (length(db_dirs) > 1) {
+        EMR_UROOT <<- utils::tail(db_dirs, n = 1)
+    }
+
+    EMR_ROOTS <<- db_dirs
+
+    if (is.null(load_on_demand)) {
+        load_on_demand <- !logical(length(db_dirs))
+    }
+
     success <- FALSE
+
     tryCatch(
         {
-            .emr_call("emr_dbinit", global.dir, user.dir, global.load.on.demand, user.load.on.demand, do.reload, new.env(parent = parent.frame()), silent = TRUE)
+            .emr_call("emr_dbinit", db_dirs, load_on_demand, do_reload, new.env(parent = parent.frame()), silent = TRUE)
             success <- TRUE
         },
         finally = {
             if (!success) {
                 remove("EMR_GROOT", envir = .GlobalEnv)
                 remove("EMR_UROOT", envir = .GlobalEnv)
+                remove("EMR_ROOTS", envir = .GlobalEnv)
             }
         }
     )
-    retv <- NULL
 }
+
+#' @export emr_db.init
+#' @rdname emr_db.connect
+emr_db.init <- function(global.dir = NULL, user.dir = NULL, global.load.on.demand = TRUE, user.load.on.demand = TRUE, do.reload = FALSE) {
+    lifecycle::deprecate_soft(
+        when = "2.6.2",
+        what = "emr_db.init()",
+        with = "emr_db.connect()",
+    )
+
+    db_dirs <- c(global.dir, user.dir)
+
+    if (is.null(user.dir)) {
+        load_on_demand <- c(global.load.on.demand)
+    } else {
+        load_on_demand <- c(global.load.on.demand, user.load.on.demand)
+    }
+
+    emr_db.connect(db_dirs = db_dirs, load_on_demand = load_on_demand, do_reload = do.reload)
+}
+
 
 #' Initialize the examples database
 #'
 #' @export
 #' @noRd
 emr_db.init_examples <- function() {
-    emr_db.init(system.file("naryndb/test", package = "naryn"))
+    emr_db.connect(system.file("naryndb/test", package = "naryn"))
 }
 
 
@@ -113,16 +182,16 @@ emr_db.init_examples <- function() {
 #' or a warning message is issued by Naryn itself recommending to run
 #' 'emr_db.reload'.
 #'
-#' @seealso \code{\link{emr_db.init}}, \code{\link{emr_track.ls}},
+#' @seealso \code{\link{emr_db.connect}}, \code{\link{emr_track.ls}},
 #' \code{\link{emr_vtrack.ls}}
 #' @keywords ~db
 #' @export emr_db.reload
 emr_db.reload <- function() {
-    success <- F
+    success <- FALSE
     tryCatch(
         {
             .emr_call("emr_dbreload", silent = TRUE)
-            success <- T
+            success <- TRUE
         },
         finally = {
             if (!success) {
@@ -131,10 +200,15 @@ emr_db.reload <- function() {
             }
         }
     )
-    retv <- NULL
 }
 
-
+#' Unload all tracks from naryn database
+#'
+#' @export
+#' @noRd
+emr_db.unload <- function() {
+    .emr_call("emr_dbunload", new.env(parent = parent.frame()), silent = TRUE)
+}
 
 #' Defines an ids subset
 #'
@@ -154,18 +228,17 @@ emr_db.reload <- function() {
 #' @param fraction fraction of data to be sampled from 'src' in [0,1] range
 #' @param complementary 'TRUE' for a complementary subset, otherwise 'FALSE'
 #' @return None.
-#' @seealso \code{\link{emr_db.init}}, \code{\link{emr_db.subset.ids}},
+#' @seealso \code{\link{emr_db.connect}}, \code{\link{emr_db.subset.ids}},
 #' \code{\link{emr_db.subset.info}}
 #' @keywords ~db ~data ~database ~subset
 #' @export emr_db.subset
 emr_db.subset <- function(src = "", fraction = NULL, complementary = NULL) {
     if (!is.null(src) && src == "") {
-        stop("Usage: emr_db.subset(src, fraction, complementary)", call. = F)
+        stop("Usage: emr_db.subset(src, fraction, complementary)", call. = FALSE)
     }
     .emr_checkroot()
 
     .emr_call("emr_db_subset", src, fraction, complementary, new.env(parent = parent.frame()))
-    retv <- NULL
 }
 
 
