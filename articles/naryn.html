@@ -51,6 +51,18 @@
 <li>
   <a href="../reference/index.html">Reference</a>
 </li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Articles
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+<li>
+      <a href="../articles/advanced.html">advanced naryn</a>
+    </li>
+  </ul>
+</li>
 <li>
   <a href="../news/index.html">Changelog</a>
 </li>
@@ -85,622 +97,250 @@
 
     
     
-<div class="section level2">
-<h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
-</h2>
-<p>Naryn allows efficient access and analysis of medical records that are maintained in a custom database.</p>
-<p>Naryn can work under R (as a package) or Python (as a module). The vast majority of the functions and the concepts are shared between the two implementations, yet certain differences still exist and are summarized in a table below. Code examples and function names in this document are presented for R but they can equally run in Python with the interface changes as to the table.</p>
-</div>
-<div class="section level2">
-<h2 id="database">Database<a class="anchor" aria-label="anchor" href="#database"></a>
-</h2>
-<div class="section level3">
-<h3 id="db-dirs-namespaces-and-read-only-tracks">DB dirs, Namespaces and Read-Only Tracks<a class="anchor" aria-label="anchor" href="#db-dirs-namespaces-and-read-only-tracks"></a>
-</h3>
-<p>Naryn allows accessing the data that resides in <em>tracks</em> where each track holds certain type of medical data such as patients’ diagnoses or their hemoglobin level at certain points of time. The track files can be aggregated from one or more directories. Before the tracks can be accessed, Naryn needs to establish connection to the directories, also referred as <em>db dirs</em>. Call <code>emr_db.connect</code> function to establish the access to the tracks in the db_dirs. To establish a connection using <code>emr_db.connect</code>, Naryn requires to specify at-least one db dir. Optionally, <code>emr_db.connect</code> accepts additional db dirs which can also contain additional tracks. In a case where 2 or more db dirs contain the same track name (namespace collision), the track will be taken from the db dir which was passed <em>last</em> in the order of connections. For example, if we have 2 db dirs <code>/db1</code> and <code>/db2</code> which both contain a track named <code>track1</code>, the call <code>emr_db.connect(c('/db1', '/db2'))</code> will result with Naryn using <code>track1</code> from <code>/db2</code>. As you might expect the overriding is consistent not only for the track’s data itself, but also for any other Naryn entity using or pointing to the track.</p>
-<p>Even though all db directories may contain track files, their designation is different. All the db dirs except for the last dir in the order of connections are mainly read-only. The directory which was connected last in the order, is termed <em>user dir</em>, and is intended to store volatile data like the results of intermediate calculations. New tracks can be created only in the db dir which was last in the order of connections, using <code>emr_track.import</code> or <code>emr_track.create</code>. In order to write tracks to a db dir which is not last in the connection order, you must explicitly pass the path to the required db dir, and this should be done for a well justified reason.</p>
-<p>A track may be marked as read-only to prevent its accidental deletion or modification. Use <code>emr_track.readonly</code> to set or get read-only property of the track. A newly created tracks is always writable. If you wish to mark it as “read-only”, please do it in a separate call.</p>
-</div>
-<div class="section level3">
-<h3 id="load-on-demand-vs--pre-load-modes">Load-on-demand vs. Pre-load Modes<a class="anchor" aria-label="anchor" href="#load-on-demand-vs--pre-load-modes"></a>
-</h3>
-<p><code>emr_db.connect</code> supports two modes of work - ‘load on demand’ and ‘pre-load’. In ‘load on demand’ mode tracks are loaded into memory only when they are accessed. Tracks stay in the memory up until R sessions ends or the package is unloaded (Python: since modules cannot be forced to unload, <code>db_unload</code> is introduced).</p>
-<p>In ‘pre-load’ mode, all the tracks are pre-loaded into memory making subsequent track access significantly faster. As loaded tracks reside in shared memory, other R sessions running on the same machine may also enjoy significant run-time boost. On the flip side, pre-loading all the tracks prolongs the execution of <code>emr_db.connect</code> and requires enough memory to accommodate all the data.</p>
-<p>Choosing between the two modes depends on the specific needs. While <code>load_on_demand=TRUE</code> seems to be a solid default choice, in an environment where there are frequent short-living R sessions, each accessing a track, one might opt for running a “daemon” - an additional permanent R session. The daemon would pre-load all the tracks in advance and stay alive thus boosting the run-time of the later emerging sessions.</p>
-</div>
-<div class="section level3">
-<h3 id="maintaining-database">Maintaining Database<a class="anchor" aria-label="anchor" href="#maintaining-database"></a>
-</h3>
-<p>Naryn caches certain data on the disk to maintain fast run-times. In particular two files (<code>.naryn</code> and <code>.ids</code>) are created in any database, and another file called <code>.logical_tracks</code> is created in global databases.</p>
-<p><code>.naryn</code> file contains a list of all tracks in the current root directory and their last modification dates. This file spares a full root directory rescan when <code>emr_db.connect</code> is called. The recorded modification dates allow to efficiently synchronize the track changes induced by synchronously running R sessions.</p>
-<p><code>.logical_tracks</code> implements the same mechanism for logical tracks, which store their properties (source and values) under a folder called <code>logical</code>.</p>
-<p><code>.ids</code> file contains available ids that are used to run certain types of <em>track expression iterators</em> (see below). The source of these ids comes from a `patients.dob} (i.e. Date Of Birth) track, which must be present in the global root directory before these iterators may be utilized.</p>
-<p>Various functions such as <code>emr_track.import</code> modify these files according to the changes that DB undergoes (addition / removal / modification of tracks). Thus manual (outside of Naryn) modification, replacement, addition or deletion of track files cause the cache files to go out of sync. Various problems might arise as a consequence, such as run-time errors, out-dated data from modified tracks and sub-optimal run-time performance.</p>
-<p>Manual modifications of the database files can still be performed, yet they must be ratified by running <code>emr_db.reload</code>.</p>
-<div class="section level4">
-<h4 id="file-and-directory-permissions">File and directory permissions<a class="anchor" aria-label="anchor" href="#file-and-directory-permissions"></a>
-</h4>
-<p>Naryn creates files and directories with a umask of <code>007</code> (except for read-only tracks), which means that files and directories would have permissions of <code>660 (rw-rw----)</code> and <code>770 (rwxrwx---)</code> respectively. This means that in order to access a database that someone outside the group created, the file and folder permissions need to be changed first.</p>
-</div>
-</div>
-<div class="section level3">
-<h3 id="tracks">Tracks<a class="anchor" aria-label="anchor" href="#tracks"></a>
-</h3>
-<p>Each track is stored in a binary file with <code>.nrtrack</code> file extension. One of the two internal formats, <em>dense</em> or <em>sparse</em>, is automatically selected during the track creation. The choice of the exact format is based on the optimal run-time performance.</p>
-<div class="section level4">
-<h4 id="records-and-references">Records and References<a class="anchor" aria-label="anchor" href="#records-and-references"></a>
-</h4>
-<p><em>Track</em> is a data structure that stores a set of records of <code>(id, time, ref, numeric value)</code> type. For example, hemoglobin level of patients can be stored in this way, where <code>id</code> would be the id of the patient and <code>time</code> would indicate the moment when the blood test was made. Another track can contain the code of the laboratory which carried out the test. If the times of the records from the two tracks match, one would conclude which lab performed the given test.</p>
-<p>Time resolution is always in hours. It might happen that two different blood tests are carried out by two different labs for the same patient at the same hour. Assuming that each lab has certain bias due to different equipment used, the reads of the hemoglobin might come out different. Since both of the tests are carried out at exactly the same hour it will be impossible later to link each result to the lab that performed it.</p>
-<p>In those cases when two or more values share identical <code>id</code> and <code>time</code> Naryn requires them to use then different <code>ref</code> (<em>references</em>). A reference is an integer number in the range of [-1, 254], which when no time collision occurs is normally set to -1. However, in cases of ambiguity it can give additional resolution to the time. In our blood example the results of the first lab could have been recorded with <code>ref = 0</code> and the second lab would do it with <code>ref = 1</code>. This way the two hemoglobin readings could later be separated and correctly linked to their originating labs.</p>
-</div>
-<div class="section level4">
-<h4 id="categorical-and-quantitative-tracks">Categorical and Quantitative Tracks<a class="anchor" aria-label="anchor" href="#categorical-and-quantitative-tracks"></a>
-</h4>
-<p>Tracks store numerical values assigned to the patients and times. The numerical data however can have different meaning and hence impose different set of operations to be applied to it. Laboratory codes, diagnosis codes, binary information such as date of birth or doctor visits are one type of data which we call <em>categorical</em>. Another type of data indicate usually the readings of different instruments such as the heartbeat rate or glucose level. This type of data is called <em>quantitative</em>.</p>
-<p>The operations that can be applied to both of these types can be very different. One might want to search for the specific diagnosis code, yet it makes little sense to search for the very specific heartbeat rate, say “68”. On contrary heartbeat rate readings from different times can be averaged or a mean value might be calculated - something that has no meaning in case of categorical data.</p>
-<p>During the track creation one must specify the type of the track: categorical or quantitative. Various operations that can be later applied to the track are bound to the track type.</p>
-</div>
-<div class="section level4">
-<h4 id="logical-tracks">Logical tracks<a class="anchor" aria-label="anchor" href="#logical-tracks"></a>
-</h4>
-<p>In addition to the physical tracks which are stored in the binary files, <code>naryn</code> supports a concept of a <em>logical track</em> which is an alias to a physical track. For example, assume we have a track called <code>lab.103</code> which contains hemoglobin levels of patients. It would be more convenient to refer to it explicitly by <code>hemoglobin</code> instead of remembering the lab code. <em>Logical tracks</em> do exactly this, we can create a logical track called <code>hemoglobin</code> which refers to the physical <code>lab.103</code>:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/emr_track.logical.create.html">emr_track.logical.create</a></span><span class="op">(</span><span class="st">"hemoglobin"</span>, <span class="st">"lab.103"</span><span class="op">)</span>
-<span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"hemoglobin"</span><span class="op">)</span></code></pre></div>
-<p>You can also use <em>logical tracks</em> to create an alias for specific values from a <em>categorical</em> track. For example, suppose we have a track called <code>diagnosis.250</code> which contains the diagnosis times of ICD code 250 (“<em>250.*</em>”), with the values being the sub-diagnosis (e.g. <code>1</code> for 250.1 and <code>4</code> for 250.4). <em>Logical tracks</em> allow us to create an alias for a specific sub-diagnosis value and then refer to it as a regular track:</p>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">naryn</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Attaching package: 'naryn'</span></span>
+<span><span class="co">#&gt; The following object is masked from 'package:base':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     months</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org" class="external-link">tidyverse</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold;">Attaching packages</span> ─────────────────────────────────────── tidyverse 1.3.1 ──</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">ggplot2</span> 3.3.6     <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">purrr  </span> 0.3.4</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">tibble </span> 3.1.8     <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">dplyr  </span> 1.0.9</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">tidyr  </span> 1.2.0     <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">stringr</span> 1.4.1</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">readr  </span> 2.1.2     <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">forcats</span> 0.5.1</span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold;">Conflicts</span> ────────────────────────────────────────── tidyverse_conflicts() ──</span></span>
+<span><span class="co">#&gt; <span style="color: #BB0000;">✖</span> <span style="color: #0000BB;">dplyr</span>::<span style="color: #00BB00;">filter()</span> masks <span style="color: #0000BB;">stats</span>::filter()</span></span>
+<span><span class="co">#&gt; <span style="color: #BB0000;">✖</span> <span style="color: #0000BB;">dplyr</span>::<span style="color: #00BB00;">lag()</span>    masks <span style="color: #0000BB;">stats</span>::lag()</span></span></code></pre></div>
+<div class="section level2">
+<h2 id="getting-started-with-naryn">Getting started with naryn<a class="anchor" aria-label="anchor" href="#getting-started-with-naryn"></a>
+</h2>
+<p>Naryn is an implmenetation of a time-series database, for efficient storage, retrieval and analysis of electronic health records (EHR). The basic element of Naryn is a track - single numerical data element (e.g. RBC lab test result) that is recorded for many patients at various time points. A track can be thought of as a very sparse two-dimentional matrix with a row for each patient in the database, and a column for each hour. The patient space is defined by a required track ‘patients.dob’ which must include all patients with a single timepoint at their time of birth. Time reflects the difference in hours to 1/3/1867 00:00.</p>
+<div class="section level5">
+<h5 id="connect-to-database">Connect to database<a class="anchor" aria-label="anchor" href="#connect-to-database"></a>
+</h5>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/emr_track.logical.create.html">emr_track.logical.create</a></span><span class="op">(</span><span class="st">"dx.250.1_4"</span>, <span class="st">"diagnosis.250"</span>, values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">4</span><span class="op">)</span><span class="op">)</span>
-<span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"dx.250.1_4"</span><span class="op">)</span></code></pre></div>
-<p>Under the hood logical tracks are implemented using the virtual tracks mechanism (see below), but unlike virtual tracks - they are part of the database and are persistent between sessions. You can delete a logical track by calling <code>emr_track.logical.rm</code> and list them using <code>emr_track.logical.ls</code>.</p>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/emr_db.connect.html">emr_db.connect</a></span><span class="op">(</span><span class="st">'/home/nettam/emr/sample_db'</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># show number of available tracks in database</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="fu"><a href="../reference/emr_track.ls.html">emr_track.ls</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 2995</span></span></code></pre></div>
 </div>
 <div class="section level4">
-<h4 id="track-attributes">Track Attributes<a class="anchor" aria-label="anchor" href="#track-attributes"></a>
+<h4 id="extract-all-patients-in-database">Extract all patients in database<a class="anchor" aria-label="anchor" href="#extract-all-patients-in-database"></a>
 </h4>
-<p>In addition to numeric data a track may store arbitrary meta-data such as description, source, etc. The meta-data is stored in the form of name-value pairs or attributes where the value is a character string.</p>
-<p>Though not officially enforced attributes are intended to store relatively short character strings. Please use <em>track variables</em> to store data in any other format.</p>
-<p>A single attribute can be retrieved, added, modified or deleted using <code>emr_track.attr.get</code> and <code>emr_track.attr.set</code> functions. Bulk access to more than one attribute is facilitated by <code>emr_track.attr.export</code> function.</p>
-<p>Track names which attributes values match a pattern can be retrieved using <code>emr_track.ls</code>, <code>emr_track.global.ls</code> and <code>emr_track.user.ls</code> functions.</p>
+<p>all patients must be listed in a track called ‘patients.dob’. This track contains for each patient a single time point at the time of birth. In this mock database, the value per patient reflect their sex: 1 for male, 2 for female.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">patients</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">'patients.dob'</span>, names<span class="op">=</span><span class="st">'sex'</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">patients</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   id    time ref sex</span></span>
+<span><span class="co">#&gt; 1  1  535998  -1   1</span></span>
+<span><span class="co">#&gt; 2  2 1024040  -1   2</span></span>
+<span><span class="co">#&gt; 3  3  807917  -1   1</span></span>
+<span><span class="co">#&gt; 4  4  864871  -1   1</span></span>
+<span><span class="co">#&gt; 5  5  826123  -1   1</span></span>
+<span><span class="co">#&gt; 6  6  817547  -1   2</span></span>
+<span><span class="va">patients</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html" class="external-link">count</a></span><span class="op">(</span><span class="va">sex</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>sex<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'male'</span>, <span class="st">'female'</span><span class="op">)</span><span class="op">[</span><span class="va">sex</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="co">#&gt;      sex     n</span></span>
+<span><span class="co">#&gt; 1   male 48621</span></span>
+<span><span class="co">#&gt; 2 female 51379</span></span></code></pre></div>
 </div>
 <div class="section level4">
-<h4 id="track-variables">Track Variables<a class="anchor" aria-label="anchor" href="#track-variables"></a>
+<h4 id="define-virtual-track-for-age">Define virtual track for Age<a class="anchor" aria-label="anchor" href="#define-virtual-track-for-age"></a>
 </h4>
-<p>Track statistics, results of time-consuming per-track calculations, historical data and any other data in arbitrary format can be stored in a track’s supplementary data in the form of track variables. Track variable can be retrieved, added, modified or deleted using <code>emr_track.var.get</code>, <code>emr_track.var.set</code> and <code>emr_track.var.rm</code> functions. List of track variables can be retrieved using <code>emr_track.var.ls</code> function.</p>
-<blockquote>
-<p>Note: track variables created in R are not visible in Python and vice versa.</p>
-</blockquote>
-</div>
-<div class="section level4">
-<h4 id="track-attributes-vs--track-variables">Track Attributes vs. Track Variables<a class="anchor" aria-label="anchor" href="#track-attributes-vs--track-variables"></a>
-</h4>
-<p>Though both track attributes and track variables can be used to store meta-data of a track, there are a few important differences between the two that are summed up in the following table:</p>
-<table class="table">
-<colgroup>
-<col width="18%">
-<col width="54%">
-<col width="27%">
-</colgroup>
-<thead><tr class="header">
-<th></th>
-<th>Track Attributes</th>
-<th>Track Variables</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td>Optimal use case</td>
-<td>Track properties as short, non-empty character strings (description, source, …)</td>
-<td>Arbitrary data associated with the track</td>
-</tr>
-<tr class="even">
-<td>Value type</td>
-<td>Character string</td>
-<td>Arbitrary</td>
-</tr>
-<tr class="odd">
-<td>Single value retrieval</td>
-<td><code>emr_track.attr.get</code></td>
-<td><code>emr_track.var.get</code></td>
-</tr>
-<tr class="even">
-<td>Bulk value retrieval</td>
-<td><code>emr_track.attr.export</code></td>
-<td>—</td>
-</tr>
-<tr class="odd">
-<td>Single value modification</td>
-<td><code>emr_track.attr.set</code></td>
-<td><code>emr_track.var.set</code></td>
-</tr>
-<tr class="even">
-<td>Object names retrieval</td>
-<td><code>emr_track.attr.export</code></td>
-<td><code>emr_track.var.ls</code></td>
-</tr>
-<tr class="odd">
-<td>Object removal</td>
-<td><code>emr_track.attr.rm</code></td>
-<td><code>emr_track.var.rm</code></td>
-</tr>
-<tr class="even">
-<td>Search by value</td>
-<td>R: <code>emr_track.ls</code>, <code>emr_track.global.ls</code>, <code>emr_track.user.ls</code>
-</td>
-<td>—</td>
-</tr>
-<tr class="odd">
-<td>R vs. Python compatibility</td>
-<td>Yes</td>
-<td>No</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="section level4">
-<h4 id="subsets">Subsets<a class="anchor" aria-label="anchor" href="#subsets"></a>
-</h4>
-<p>The analysis of data often involves dividing the data to train and test sets. Naryn allows to subset the data via <code>emr_db.subset</code> function. <code>emr_db.subset</code> accepts a list of ids or samples the ids randomly. These ids constitute the subset. The ids that are not in the subset are skipped by all the <em>iterators</em>, <em>filters</em> and various functions.</p>
-<p>One may think of a subset as an additional layer, a “viewport”, that filters out some of the ids. Some lower-level functions such as <code>emr_track.info</code> or <code>emr_track.unique</code> ignore the subsets. Same applies to <code>percentile.*</code> functions of the virtual tracks.</p>
-</div>
-</div>
-</div>
-<div class="section level2">
-<h2 id="accessing-the-data">Accessing the Data<a class="anchor" aria-label="anchor" href="#accessing-the-data"></a>
-</h2>
-<div class="section level3">
-<h3 id="track-expressions">Track Expressions<a class="anchor" aria-label="anchor" href="#track-expressions"></a>
-</h3>
-<div class="section level4">
-<h4 id="introduction-1">Introduction<a class="anchor" aria-label="anchor" href="#introduction-1"></a>
-</h4>
-<p><em>Track expression</em> allows to retrieve numerical data that is recorded in the tracks. Track expressions are widely used in various functions (<code>emr_screen</code>, <code>emr_extract</code>, <code>emr_dist</code>, …).</p>
-<p>Track expression is a character string that closely resembles a valid R/Python expression. Just like any other R/Python expression it may include conditions, function calls and variables defined beforehand. <code>"1 &gt; 2"</code>, <code>"mean(1:10)"</code> and <code>"myvar &lt; 17"</code> are all valid track expressions. Unlike regular R/Python expressions track expression might also contain track names and / or <em>virtual track</em> names.</p>
-<p>To understand how the track expression allows the access to the tracks we must explain how the track expression gets evaluated.</p>
-<p>Every track expression is accompanied by an <em>iterator</em> that produces a set of <em>id-time points</em> of <code>(id, time, ref)</code> type. For each each iterator point the track expression is evaluated. The value of the track expression <code>"mean(1:10)"</code> is constant regardless the iterator point. However the track expression might contain a track name <code>mytrack</code>, like: <code>"mytrack * 3"</code>. Naryn recognizes then that <code>mytrack</code> is not a regular R/Python variable but rather a track name. A new <em>run-time track variable</em> named <code>mytrack</code> is added then to R environment (or Python module local dictionary). For each iterator point this variable is assigned the value of the track that matches <code>(id, time, ref)</code> (or NaN if no matching value exists in the track). Once <code>mytrack</code> is assigned the corresponding value, the track expression is evaluated in R/Python.</p>
-</div>
-<div class="section level4">
-<h4 id="run-time-track-variable-is-a-vector">Run-time Track Variable is a Vector<a class="anchor" aria-label="anchor" href="#run-time-track-variable-is-a-vector"></a>
-</h4>
-<p>To boost the performance of the track expression evaluation, run-time track variables are actually defined as vectors in R rather than scalars. The result of the evaluation is expected to be also a vector of a similar size. One should always keep in his mind the vectorial notation and write the track expressions accordingly.</p>
-<p>For example, at first glance a track expression <code>"min(mytrack, 10)"</code> seems to be perfectly fine. However the evaluation of this expression produces always a scalar, i.e. a single number even if <code>mytrack</code> is actually a vector. The way to correct the specific track expression so that it works on vectors, is to use <code>pmin</code> function instead of <code>min</code>.</p>
-<p><strong>Python</strong></p>
-<p>Similarly to R, a track variable in Python is not a scalar but rather an instance of <code>numpy.ndarray</code>. The evaluation of a track expression must therefore produce a <code>numpy.ndarray</code> as well. Various operations on numpy arrays indeed work the same way as with scalars, however logical operations require different syntax. For instance:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1"></a>screen(<span class="st">"mytrack1 &gt; 1 and mytrack2 &lt; 2"</span>, iterator <span class="op">=</span> <span class="st">"mytrack1"</span>)</span></code></pre></div>
-<p>will produce an error given that <code>mytrack1</code> and <code>mytrack2</code> are numpy arrays. The correct way to write the expression is:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1"></a>screen(<span class="st">"(mytrack1 &gt; 1) &amp; (mytrack2 &lt; 2)"</span>, iterator<span class="op">=</span><span class="st">"mytrack1"</span>)</span></code></pre></div>
-<p>One may coerce the track variable to behave like a scalar: by setting <code>emr_eval.buf.size</code> option to <code>1</code> (see Appendix for more details). Beware though that this might take its heavy toll on run-time.</p>
-</div>
-<div class="section level4">
-<h4 id="matching-reference-in-the-track-expression">Matching Reference in the Track Expression<a class="anchor" aria-label="anchor" href="#matching-reference-in-the-track-expression"></a>
-</h4>
-<p>If the track expression contains a track (or virtual track) name, then the values from the track are fetched one-by-one into the identically named R variable based on <code>id</code>, <code>time</code> and <code>ref</code> of the iterator point. If however <code>ref</code> of the iterator point equals to <code>-1</code>, we treat it as a “wildcard”: matching is required then only for <code>id</code> and <code>time</code>.</p>
-<p>“Wildcard” reference in the iterator might create a new issue: more than one track value might match then a single iterator point. In this case the value placed in the track variable (e.g. <code>mytrack</code>) depends on the type of the track. If the track is categorical the track variable is set to <code>-1</code>, otherwise it is set to the average of all matching values.</p>
-</div>
-<div class="section level4">
-<h4 id="virtual-tracks">Virtual Tracks<a class="anchor" aria-label="anchor" href="#virtual-tracks"></a>
-</h4>
-<p>So far we have shown that in some situations <code>mytrack</code> variable can be set to the average of the matching track values. But what if we do not want to average the values but rather pick up the maximal, minimal or median value? What if we want to use the percentile of a track value rather than the value itself? And maybe we even want to alter the time of the iterator point: shift it or expand to a time window and by that look at the different set of track values? For instance: given an iterator point we might want to know what was the maximal level of glucose during the last year that preceded the time of the point.</p>
-<p>This is where virtual tracks come in use.</p>
-<p>Virtual track is a named set of rules that describe how the track should be proceeded, and how the time of the iterator point should be modified. Virtual tracks are created by <code>emr_vtrack.create</code> function:</p>
+<p>In order to know the age of a patient at different event times we will calculate the difference between the time of the event and the time the patient was born as found in the patients.dob track. This is done by defining a virtual track, whereby the souce of the virtual track is patients.dob. A time window from the time of the event backwords in time (up to max age = 120 years) should capture the time the patient was born. The difference in time is computed by the dt2.earliest function which computes the delta time (in hours) between the event time and the earliest appearance of a poin in the source track of the virtual track.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/emr_vtrack.create.html">emr_vtrack.create</a></span><span class="op">(</span><span class="st">"annual_glucose"</span>,
-  src <span class="op">=</span> <span class="st">"glucose_track"</span>, func <span class="op">=</span> <span class="st">"quantile"</span>,
-  param <span class="op">=</span> <span class="fl">0.5</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="../reference/emr_time.html">year</a></span><span class="op">(</span><span class="op">)</span>, <span class="fl">0</span><span class="op">)</span>
-<span class="op">)</span></code></pre></div>
-<p>This call creates a new virtual track named <code>annual_glucose</code> based on the underlying physical <em>source track</em> <code>glucose_track</code>. For each iterator point with time <code>T</code> we look at values of <code>glucose_track</code> in the time window of <code>[T-365*24,T]</code>, i.e. one year prior to <code>T</code>. We calculate then the median over the values (<code>func="quantile"</code>, <code>param=0.5</code>).</p>
-<p>There is a rich set of various functions besides “quantile” that can be applied to the track values. Some of these functions can be used only with categorical tracks, other ones - only with quantitative tracks and some functions can be applied to both types of the track. Please refer the documentation of <code>emr_vtrack.create</code>.</p>
-<p>Once a virtual track is created it can be used in a track expression:</p>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/emr_vtrack.create.html">emr_vtrack.create</a></span><span class="op">(</span><span class="st">'age'</span>, <span class="st">'patients.dob'</span>, time.shift<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">120</span><span class="op">*</span><span class="fl">365</span><span class="op">*</span><span class="fl">24</span>, <span class="fl">0</span><span class="op">)</span>, func<span class="op">=</span><span class="st">'dt2.earliest'</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level4">
+<h4 id="extract-age-and-wbc-test-value-at-time-of-test-for-each-test-performed-in-2010">extract age and wbc test value, at time of test for each test performed in 2010<a class="anchor" aria-label="anchor" href="#extract-age-and-wbc-test-value-at-time-of-test-for-each-test-performed-in-2010"></a>
+</h4>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"annual_glucose"</span>, iterator <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="../reference/emr_time.html">year</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"patients.dob"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
-<p>This would give us a median of an annual glucose level in year-steps starting from the patient’s birthday. (This example makes use of an <em>Extended Beat Iterator</em> that would be explained later.)</p>
-<p>Let’s expand our example further and ignore in our calculations the glucose readings that had been made within a week after steroids had been prescribed. We can use an additional <code>filter</code> parameter to do that.</p>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'age/(365*24)'</span>, <span class="st">'lab.WBC'</span><span class="op">)</span>, iterator<span class="op">=</span><span class="st">'lab.WBC'</span>, stime<span class="op">=</span><span class="fu"><a href="../reference/emr_date2time.html">emr_date2time</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">2010</span><span class="op">)</span>, etime<span class="op">=</span><span class="fu"><a href="../reference/emr_date2time.html">emr_date2time</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">2011</span><span class="op">)</span>, names<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'age'</span>, <span class="st">'wbc'</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="va">head</span></span>
+<span><span class="co">#&gt;   id    time ref      age       wbc</span></span>
+<span><span class="co">#&gt; 1  1 1252814  -1 81.82831  8.058747</span></span>
+<span><span class="co">#&gt; 2  1 1253515  -1 81.90833  7.199924</span></span>
+<span><span class="co">#&gt; 3  3 1257273  -1 51.29635  6.600398</span></span>
+<span><span class="co">#&gt; 4  4 1253349  -1 44.34680  8.300706</span></span>
+<span><span class="co">#&gt; 5  4 1254029  -1 44.42443  7.102493</span></span>
+<span><span class="co">#&gt; 6  4 1256304  -1 44.68413 11.600000</span></span></code></pre></div>
+</div>
+<div class="section level4">
+<h4 id="define-virtual-track-for-survival---time-until-death">Define virtual track for Survival - time until death<a class="anchor" aria-label="anchor" href="#define-virtual-track-for-survival---time-until-death"></a>
+</h4>
+<p>assume that patients.dod is a track with a single entry at most for each patient in the EHR database at time of death.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/emr_filter.create.html">emr_filter.create</a></span><span class="op">(</span><span class="st">"steroids_filter"</span>, <span class="st">"steroids_track"</span>, time.shift<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="../reference/emr_time.html">week</a></span><span class="op">(</span><span class="op">)</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span>
-<span class="fu"><a href="../reference/emr_vtrack.create.html">emr_vtrack.create</a></span><span class="op">(</span><span class="st">"annual_glucose"</span>,
-  src <span class="op">=</span> <span class="st">"glucose_track"</span>, func <span class="op">=</span> <span class="st">"quantile"</span>,
-  param <span class="op">=</span> <span class="fl">0.5</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="../reference/emr_time.html">year</a></span><span class="op">(</span><span class="op">)</span>, <span class="fl">0</span><span class="op">)</span>, filter <span class="op">=</span> <span class="st">"!steroids_filter"</span>
-<span class="op">)</span>
-<span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"annual_glucose"</span>, iterator <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="../reference/emr_time.html">year</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"date_of_birth_track"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
-<p><em>Filter</em> is applied to the ID-Time points of the source track (e.g. <code>glucose_track</code> in our example). The virtual track function (<code>quantile</code>, …) is applied then only to the points that pass the filter. The concept of filters is explained extensively in a separate chapter.</p>
-<p>Virtual tracks allow also to remap the patient ids. This is done via <code>id.map</code> parameter which accepts a data frame that defines the id mapping. Remapping ids might be useful if family ties are explored. For example, instead of glucose level of the patient we are interested to check the glucose level of one of his family members.</p>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/emr_vtrack.create.html">emr_vtrack.create</a></span><span class="op">(</span><span class="st">'survival'</span>, <span class="st">'patients.dod'</span>, time.shift<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">120</span><span class="op">*</span><span class="fl">365</span><span class="op">*</span><span class="fl">24</span><span class="op">)</span>, func<span class="op">=</span><span class="st">'dt1.earliest'</span><span class="op">)</span></span></code></pre></div>
 </div>
-</div>
-<div class="section level3">
-<h3 id="iterators">Iterators<a class="anchor" aria-label="anchor" href="#iterators"></a>
-</h3>
-<p>So far we have discussed the track expressions and how they are evaluated given the iterator point. In this section we will show how the iterator points are generated.</p>
-<p>An iterator is defined via <code>iterator</code> parameter. There are a few types of iterators such as <em>track iterator</em>, <em>beat iterator</em>, etc. The type determines which points are generated by the iterator. The information about each type is listed below.</p>
-<p>Iterator is always accompanied by four additional parameters: <code>stime</code>, <code>etime</code>, <code>keepref</code> and <code>filter</code>. <code>stime</code> and <code>etime</code> bind the time scope of the iterator: the points that the iterator generates lie always within these boundaries. The effect of <code>keepref=TRUE</code> depends on the iterator type. However for all the iterator types if <code>keepref=FALSE</code> the reference of all the iterator points is set to <code>-1</code>. <code>filter</code> parameter sets the iterator filter which is discussed thoroughly later in the document in a separate chapter.</p>
 <div class="section level4">
-<h4 id="track-iterator">Track Iterator<a class="anchor" aria-label="anchor" href="#track-iterator"></a>
+<h4 id="extract-survival-time-for-patients-with-pancreatic-cancer">Extract survival time for patients with pancreatic cancer<a class="anchor" aria-label="anchor" href="#extract-survival-time-for-patients-with-pancreatic-cancer"></a>
 </h4>
-<p><em>Track iterator</em> returns the points (including the reference) from the specified track. Track name is specified as a string.</p>
-<p>If <code>keepref=FALSE</code> the reference of each point is set to <code>-1</code>.</p>
-<p>Example:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Returns the level of glucose one hour after the insulin shot was made</span>
-<span class="fu"><a href="../reference/emr_vtrack.create.html">emr_vtrack.create</a></span><span class="op">(</span><span class="st">"glucose"</span>, <span class="st">"glucose_track"</span>, func<span class="op">=</span><span class="st">"avg"</span>, time.shift<span class="op">=</span><span class="fl">1</span><span class="op">)</span>
-<span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"glucose"</span>, iterator<span class="op">=</span><span class="st">"insulin_shot_track"</span><span class="op">)</span></code></pre></div>
-</div>
-<div class="section level4">
-<h4 id="id-time-points-iterator">Id-Time Points Iterator<a class="anchor" aria-label="anchor" href="#id-time-points-iterator"></a>
-</h4>
-<p><em>Id-Time points iterator</em> generates points from an <em>id-time points table</em> (see: Appendix). If <code>keepref=FALSE</code> the reference of each point is set to <code>-1</code>.</p>
-<p>Example:</p>
+<code class="sourceCode R"><span><span class="co"># pancreatic cancer icd9 code is 157.9</span></span>
+<span><span class="co"># note that since icd9 diagnosis codes have a tree like structure, and X.0, X.00 are both valid codes and must be distinguishable, </span></span>
+<span><span class="co"># the diagnosis tracks all include a prefix of 1 for the minor code, so X.0 will be translated to icd9_X and a value of 10 will be stored.</span></span>
+<span></span>
+<span><span class="co">#define a filter for just Pancreatic cancer in the 157 icd9 code.</span></span>
+<span><span class="fu"><a href="../reference/emr_filter.create.html">emr_filter.create</a></span><span class="op">(</span><span class="st">'pancreatic_cancer'</span>, <span class="st">'dx.icd9_157'</span>, val<span class="op">=</span><span class="fl">19</span><span class="op">)</span></span>
+<span><span class="co">#define a filter for previous pancreatic cancer (sometime in the past).</span></span>
+<span><span class="fu"><a href="../reference/emr_filter.create.html">emr_filter.create</a></span><span class="op">(</span><span class="st">'pancreatic_cancer_in_past'</span>, <span class="st">'dx.icd9_157'</span>, val<span class="op">=</span><span class="fl">19</span>, time.shift<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">120</span><span class="op">*</span><span class="fl">365</span><span class="op">*</span><span class="fl">24</span>, <span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">#to find the first diagnosis of pancreatic cancer we will go over all 157 diagnosis, filter out those that are not pancreatic cancer and make sure there wasn't a prior diagnosis of pancreatic cancer</span></span>
+<span><span class="va">pancreatic_cancer_survival</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">'survival'</span>, iterator<span class="op">=</span><span class="st">'dx.icd9_157'</span>, filter<span class="op">=</span><span class="st">'pancreatic_cancer &amp; !pancreatic_cancer_in_past'</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">pancreatic_cancer_survival</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">pancreatic_cancer_survival</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 25</span></span>
+<span><span class="co">#&gt;      id    time ref survival</span></span>
+<span><span class="co">#&gt; 1 12192 1256866  -1    19910</span></span>
+<span><span class="co">#&gt; 2 17022 1311645  -1      NaN</span></span>
+<span><span class="co">#&gt; 3 24217 1309964  -1    14332</span></span>
+<span><span class="co">#&gt; 4 27971 1280769  -1     3927</span></span>
+<span><span class="co">#&gt; 5 28135 1263030  -1    23106</span></span>
+<span><span class="co">#&gt; 6 34252 1341200  -1     9016</span></span>
+<span></span>
+<span><span class="co">#note that NA in survival means that the patient still has not died</span></span></code></pre></div>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Returns the level of glucose one hour after the insulin shot was made</span>
-<span class="fu"><a href="../reference/emr_vtrack.create.html">emr_vtrack.create</a></span><span class="op">(</span><span class="st">"glucose"</span>, <span class="st">"glucose_track"</span>, func<span class="op">=</span><span class="st">"avg"</span>, time.shift<span class="op">=</span><span class="fl">1</span><span class="op">)</span>
-<span class="va">r</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"insulin_shot_track"</span><span class="op">)</span>  <span class="co"># &lt;-- implicit iterator is used here</span>
-<span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"glucose"</span>, iterator<span class="op">=</span><span class="va">r</span><span class="op">)</span></code></pre></div>
-</div>
-<div class="section level4">
-<h4 id="ids-iterator">Ids Iterator<a class="anchor" aria-label="anchor" href="#ids-iterator"></a>
-</h4>
-<p><em>Ids iterator</em> generates points with ids taken from an <em>ids table</em> (see: Appendix) and times that run from <code>stime</code> to <code>etime</code> with a step of 1.</p>
-<p>If <code>keepref=TRUE</code> for each id-time pair the iterator generates 255 points with references running from <code>0</code> to <code>254</code>. If <code>keepref=FALSE</code> only one point is generated for the given id and time, and its reference is set to <code>-1</code>.</p>
-<p>Example:</p>
+<code class="sourceCode R"><span><span class="co">#kaplan meier for survival of pancreatic cancer patients</span></span>
+<span><span class="co">#censoring is applied to reflect latest update of database (Jan 6, 2022)</span></span>
+<span><span class="va">pancreatic_cancer_survival</span> <span class="op">&lt;-</span> <span class="va">pancreatic_cancer_survival</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>follow_time<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">survival</span><span class="op">)</span>, <span class="va">survival</span>, <span class="fu"><a href="../reference/emr_date2time.html">emr_date2time</a></span><span class="op">(</span><span class="fl">6</span>,<span class="fl">1</span>,<span class="fl">2022</span><span class="op">)</span><span class="op">-</span><span class="va">time</span><span class="op">)</span>,</span>
+<span>          status<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">survival</span><span class="op">)</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span></span>
+<span>    <span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Returns the level of glucose for each hour in year 2016 for ids 2 and 5</span>
-<span class="va">stime</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emr_date2time.html">emr_date2time</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">2016</span>, <span class="fl">0</span><span class="op">)</span>
-<span class="va">etime</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emr_date2time.html">emr_date2time</a></span><span class="op">(</span><span class="fl">31</span>, <span class="fl">12</span>, <span class="fl">2016</span>, <span class="fl">23</span><span class="op">)</span>
-<span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"glucose"</span>, iterator<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>id<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>,<span class="fl">5</span><span class="op">)</span><span class="op">)</span>, stime<span class="op">=</span><span class="va">stime</span>, etime<span class="op">=</span><span class="va">etime</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="co">#fitting survival curve</span></span>
+<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">survminer</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/survminer/man/surv_fit.html" class="external-link">surv_fit</a></span><span class="op">(</span><span class="fu">survival</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">follow_time</span>, <span class="va">status</span><span class="op">)</span> <span class="op">~</span> <span class="fl">1</span>, data <span class="op">=</span> <span class="va">pancreatic_cancer_survival</span><span class="op">)</span></span>
+<span><span class="fu">survminer</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/survminer/man/ggsurvplot.html" class="external-link">ggsurvplot</a></span><span class="op">(</span><span class="va">fit</span>, data <span class="op">=</span> <span class="va">pancreatic_cancer_survival</span><span class="op">)</span></span></code></pre></div>
+<p><img src="naryn_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
 </div>
 <div class="section level4">
-<h4 id="time-intervals-iterator">Time Intervals Iterator<a class="anchor" aria-label="anchor" href="#time-intervals-iterator"></a>
+<h4 id="extract-hgb-and-age-for-all-patients-between-the-ages-60-and-70">Extract HGB and age for all patients between the ages 60 and 70<a class="anchor" aria-label="anchor" href="#extract-hgb-and-age-for-all-patients-between-the-ages-60-and-70"></a>
 </h4>
-<p><em>Time intervals iterator</em> generates points for all the ids that appear in ‘patients.dob’ track with times taken from a <em>time intervals table</em> (see: Appendix). Each time starts at the beginning of the time interval and runs to the end of it with a step of 1. That being said the points that lie outside of <code>[stime, etime]</code> range are skipped.</p>
-<p>If <code>keepref=TRUE</code> for each id-time pair the iterator generates 255 points with references running from <code>0</code> to <code>254</code>. If <code>keepref=FALSE</code> only one point is generated for the given id and time, and its reference is set to <code>-1</code>.</p>
-<p>Example:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Returns the level of hangover for all patients the next day after New Year Eve</span>
-<span class="co"># for the years 2015 and 2016</span>
-<span class="va">stime1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emr_date2time.html">emr_date2time</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">2015</span>, <span class="fl">0</span><span class="op">)</span>
-<span class="va">etime1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emr_date2time.html">emr_date2time</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">2015</span>, <span class="fl">23</span><span class="op">)</span>
-<span class="va">stime2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emr_date2time.html">emr_date2time</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">2016</span>, <span class="fl">0</span><span class="op">)</span>
-<span class="va">etime2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emr_date2time.html">emr_date2time</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">2016</span>, <span class="fl">23</span><span class="op">)</span>
-<span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"alcohol_level_track"</span>, iterator<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>stime<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">stime1</span>, <span class="va">stime2</span><span class="op">)</span>,
-            etime<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">etime1</span>, <span class="va">etime2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></code></pre></div>
-</div>
-<div class="section level4">
-<h4 id="id-time-intervals-iterator">Id-Time Intervals Iterator<a class="anchor" aria-label="anchor" href="#id-time-intervals-iterator"></a>
-</h4>
-<p><em>Id-Time intervals iterator</em> generates for each id points that cover <code>['stime', 'etime']</code> time range as specified in <em>id-time intervals table</em> (see: Appendix). Each time starts at the beginning of the time interval and runs to the end of it with a step of 1. That being said the points that lie outside of <code>[stime, etime]</code> range are skipped.</p>
-<p>If <code>keepref=TRUE</code> for each id-time pair the iterator generates 255 points with references running from <code>0</code> to <code>254</code>. If <code>keepref=FALSE</code> only one point is generated for the given id and time, and its reference is set to <code>-1</code>.</p>
-</div>
-<div class="section level4">
-<h4 id="beat-iterator">Beat Iterator<a class="anchor" aria-label="anchor" href="#beat-iterator"></a>
-</h4>
-<p><em>Beat Iterator</em> generates a “time beat” at the given period for each id that appear in ‘patients.dob’ track. The period is given always in hours.</p>
-<p>Example:</p>
+<code class="sourceCode R"><span><span class="co">#create an age filter. If we go over a BMI test value for a patient, then we expect there to be a date of birth entry between 70 and 60 years before. This would mean that the patient is in the required age range</span></span>
+<span><span class="fu"><a href="../reference/emr_filter.create.html">emr_filter.create</a></span><span class="op">(</span><span class="st">'age_60_70'</span>, <span class="st">'patients.dob'</span>, time.shift<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">70</span>,<span class="op">-</span><span class="fl">60</span><span class="op">)</span><span class="op">*</span><span class="fl">365</span><span class="op">*</span><span class="fl">24</span><span class="op">)</span></span>
+<span><span class="va">hgb_60_70</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'age/(24*365)'</span>, <span class="st">'lab.HGB'</span><span class="op">)</span>, iterator<span class="op">=</span><span class="st">'lab.HGB'</span>, filter<span class="op">=</span><span class="st">'age_60_70'</span>, names<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'age'</span>, <span class="st">'hgb'</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"glucose_track"</span>, iterator<span class="op">=</span><span class="fl">10</span>, stime<span class="op">=</span><span class="fl">1000</span>, etime<span class="op">=</span><span class="fl">2000</span><span class="op">)</span></code></pre></div>
-<p>This will create a beat iterator with a period of 10 hours starting at <code>stime</code> up until <code>etime</code> is reached. If, for example, <code>stime</code> equals <code>1000</code> then the beat iterator will create for each id iterator points at times: 1000, 1010, 1020, …</p>
-<p>If <code>keepref=TRUE</code> for each id-time pair the iterator generates 255 points with references running from <code>0</code> to <code>254</code>. If <code>keepref=FALSE</code> only one point is generated for the given id and time, and its reference is set to <code>-1</code>.</p>
-</div>
-<div class="section level4">
-<h4 id="extended-beat-iterator">Extended Beat Iterator<a class="anchor" aria-label="anchor" href="#extended-beat-iterator"></a>
-</h4>
-<p><em>Extended beat iterator</em> is as its name suggests a variation on the beat iterator. It works by the same principle of creating time points with the given period however instead of basing the times count on <code>stime</code> it accepts an additional parameter - a track or a <em>Id-Time Points table</em> - that instructs what should be the initial time point for each of the ids. The two parameters (period and mapping) should come in a list. Each id is required to appear only once and if a certain id does not appear at all, it is skipped by the iterator.</p>
-<p>Anyhow points that lie outside of <code>[stime, etime]</code> range are not generated.</p>
-<p>Example:</p>
+<code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">hgb_60_70</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>age<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">floor</a></span><span class="op">(</span><span class="va">age</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html" class="external-link">count</a></span><span class="op">(</span><span class="va">age</span><span class="op">)</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">age</span>, y<span class="op">=</span><span class="va">n</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_bar</a></span><span class="op">(</span>stat<span class="op">=</span><span class="st">"identity"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="naryn_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Returns the maximal weight of patients at one year span starting from their birthdays</span>
-<span class="fu"><a href="../reference/emr_vtrack.create.html">emr_vtrack.create</a></span><span class="op">(</span><span class="st">"weight"</span>, <span class="st">"weight_track"</span>, func <span class="op">=</span> <span class="st">"max"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fu"><a href="../reference/emr_time.html">year</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
-<span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"weight"</span>, iterator <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="../reference/emr_time.html">year</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"birthday_track"</span><span class="op">)</span>, stime <span class="op">=</span> <span class="fl">1000</span>, etime <span class="op">=</span> <span class="fl">2000</span><span class="op">)</span></code></pre></div>
-</div>
-<div class="section level4">
-<h4 id="periodic-iterator">Periodic Iterator<a class="anchor" aria-label="anchor" href="#periodic-iterator"></a>
-</h4>
-<p><strong>periodic iterator</strong> goes over every year/month. You can use it by running <code>emr_monthly_iterator</code> or <code>emr_yearly_iterator</code>.</p>
-<p>Example:</p>
+<code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">hgb_60_70</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">hgb</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_density.html" class="external-link">geom_density</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: Removed 17 rows containing non-finite values (stat_density).</span></span></code></pre></div>
+<p><img src="naryn_files/figure-html/unnamed-chunk-12-2.png" width="700"></p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">iter</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emr_monthly_iterator.html">emr_yearly_iterator</a></span><span class="op">(</span><span class="fu"><a href="../reference/emr_date2time.html">emr_date2time</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">2002</span><span class="op">)</span>, <span class="fu"><a href="../reference/emr_date2time.html">emr_date2time</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">2017</span><span class="op">)</span><span class="op">)</span>
-<span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"dense_track"</span>, iterator <span class="op">=</span> <span class="va">iter</span>, stime <span class="op">=</span> <span class="fl">1</span>, etime <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>
-<span class="va">iter</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emr_monthly_iterator.html">emr_monthly_iterator</a></span><span class="op">(</span><span class="fu"><a href="../reference/emr_date2time.html">emr_date2time</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">2002</span><span class="op">)</span>, n <span class="op">=</span> <span class="fl">15</span><span class="op">)</span>
-<span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"dense_track"</span>, iterator <span class="op">=</span> <span class="va">iter</span>, stime <span class="op">=</span> <span class="fl">1</span>, etime <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></code></pre></div>
-</div>
-<div class="section level4">
-<h4 id="implicit-iterator">Implicit Iterator<a class="anchor" aria-label="anchor" href="#implicit-iterator"></a>
-</h4>
-<p>The iterator is set implicitly if its value remains <code>NULL</code> (which is the default). In that case the track expression is analyzed and searched for track names. If all the track variables or virtual track variables point to the same track, this track is used as a source for a track iterator. If more then one track appears in the track expression, an error message is printed out notifying ambiguity.</p>
-</div>
-<div class="section level4">
-<h4 id="revealing-current-iterator-time">Revealing Current Iterator Time<a class="anchor" aria-label="anchor" href="#revealing-current-iterator-time"></a>
-</h4>
-<p>During the evaluation of a track expression one can access a specially defined variable named <code>EMR_TIME</code> (Python: <code>TIME</code>). This variable contains a vector (<code>numpy.ndarray</code> in Python) of current iterator times. The length of the vector matches the length of the track variable (which is a vector too).</p>
-<p>Note that some values in <code>EMR_TIME</code> might be set 0. Skip those intervals and the values of the track variables at the corresponding indices.</p>
+<code class="sourceCode R"><span><span class="co">#adding sex information as hgb has bimodal distribution </span></span>
+<span><span class="co">#sex is encoded in the patients.dob track, 1 for male and 2 for female</span></span>
+<span><span class="fu"><a href="../reference/emr_vtrack.create.html">emr_vtrack.create</a></span><span class="op">(</span><span class="st">'sex'</span>, <span class="st">'patients.dob'</span>, time.shift<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">120</span><span class="op">*</span><span class="fl">365</span><span class="op">*</span><span class="fl">24</span>, <span class="fl">0</span><span class="op">)</span>, func<span class="op">=</span><span class="st">'earliest'</span><span class="op">)</span></span>
+<span><span class="va">hgb_sex_60_70</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'age/(24*365)'</span>, <span class="st">'sex'</span>, <span class="st">'lab.HGB'</span><span class="op">)</span>, iterator<span class="op">=</span><span class="st">'lab.HGB'</span>, filter<span class="op">=</span><span class="st">'age_60_70'</span>, names<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'age'</span>, <span class="st">'sex'</span>, <span class="st">'hgb'</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>sex<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'male'</span>, <span class="st">'female'</span><span class="op">)</span><span class="op">[</span><span class="va">sex</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Returns times of the current iterator as a day of month</span>
-<span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"emr_time2dayofmonth(EMR_TIME)"</span>, iterator <span class="op">=</span> <span class="st">"sparse_track"</span><span class="op">)</span></code></pre></div>
-</div>
-</div>
-<div class="section level3">
-<h3 id="filters">Filters<a class="anchor" aria-label="anchor" href="#filters"></a>
-</h3>
-<p><em>Filter</em> is used to approve / reject an ID-Time point. It can be applied to an iterator, in which case the iterator points are required to be approved by the filter before they are passed further to the track expression. Filter may also be used by a virtual track. In this case the virtual track function (see <code>func</code> parameter of <code>emr_vtrack.create</code>) is applied only to the points from the source track (<code>src</code> parameter) that pass the filter.</p>
-<p>Filter has a form of a logical expression consisting of <em>named</em> or <em>unnamed</em> <em>elementary filters</em> (the “building bricks” of the filter) connected with the logical operators: <code>&amp;</code>, <code>|</code>, <code>!</code> (<code>and</code>, <code>or</code> and <code>not</code> in Python) and brackets <code>()</code>.</p>
-<div class="section level4">
-<h4 id="named-filters">Named Filters<a class="anchor" aria-label="anchor" href="#named-filters"></a>
-</h4>
-<p>Suppose we are interested in hemoglobin levels of patients who were prescribed either drugX or drugY but not drugZ within a time window of one week before the test. Assume that drugX, drugY and drugZ are residing each in its separate track. Without filters we would need to call <code>emr_extract</code> four times, store potentially huge data frame results in the memory and finally merge the tables within R while caring about time windows. With filters we can do it much easier:</p>
+<code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">hgb_sex_60_70</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>age<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">floor</a></span><span class="op">(</span><span class="va">age</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html" class="external-link">count</a></span><span class="op">(</span><span class="va">age</span>, <span class="va">sex</span><span class="op">)</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">age</span>, y<span class="op">=</span><span class="va">n</span>, fill<span class="op">=</span><span class="va">sex</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_bar</a></span><span class="op">(</span>stat<span class="op">=</span><span class="st">"identity"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="naryn_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/emr_filter.create.html">emr_filter.create</a></span><span class="op">(</span><span class="st">"filterX"</span>, <span class="st">"drugX"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="../reference/emr_time.html">week</a></span><span class="op">(</span><span class="op">)</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span>
-<span class="fu"><a href="../reference/emr_filter.create.html">emr_filter.create</a></span><span class="op">(</span><span class="st">"filterY"</span>, <span class="st">"drugY"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="../reference/emr_time.html">week</a></span><span class="op">(</span><span class="op">)</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span>
-<span class="fu"><a href="../reference/emr_filter.create.html">emr_filter.create</a></span><span class="op">(</span><span class="st">"filterZ"</span>, <span class="st">"drugZ"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="../reference/emr_time.html">week</a></span><span class="op">(</span><span class="op">)</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span>
-<span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"hemoglobin"</span>, filter <span class="op">=</span> <span class="st">"(filterX | filterY) &amp; !filterZ"</span><span class="op">)</span></code></pre></div>
-<p>We can further expand the example above by specifying the ‘operator’ argument on filter creation. If we wish to extract, the same information as before, but in this case we are interested only in patients which have an hemoglobin level of atleast 16 (in addition to our drug treatment requirments). Under the same assumptions in the previous example, our code would look like:</p>
+<code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">hgb_sex_60_70</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">hgb</span>, color<span class="op">=</span><span class="va">sex</span>, group<span class="op">=</span><span class="va">sex</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_density.html" class="external-link">geom_density</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: Removed 17 rows containing non-finite values (stat_density).</span></span></code></pre></div>
+<p><img src="naryn_files/figure-html/unnamed-chunk-14-2.png" width="700"></p>
+</div>
+<div class="section level4">
+<h4 id="extract-patients-age-at-time-of-diagnosis-of-heart-disease-diagnosis-411-that-did-not-have-diabetes-diagnosis-250">Extract patients age at time of diagnosis of heart disease (diagnosis.411) that did not have diabetes (diagnosis.250)<a class="anchor" aria-label="anchor" href="#extract-patients-age-at-time-of-diagnosis-of-heart-disease-diagnosis-411-that-did-not-have-diabetes-diagnosis-250"></a>
+</h4>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/emr_filter.create.html">emr_filter.create</a></span><span class="op">(</span><span class="st">"filterX"</span>, <span class="st">"drugX"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="../reference/emr_time.html">week</a></span><span class="op">(</span><span class="op">)</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span>
-<span class="fu"><a href="../reference/emr_filter.create.html">emr_filter.create</a></span><span class="op">(</span><span class="st">"filterY"</span>, <span class="st">"drugY"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="../reference/emr_time.html">week</a></span><span class="op">(</span><span class="op">)</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span>
-<span class="fu"><a href="../reference/emr_filter.create.html">emr_filter.create</a></span><span class="op">(</span><span class="st">"filterZ"</span>, <span class="st">"drugZ"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="../reference/emr_time.html">week</a></span><span class="op">(</span><span class="op">)</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span>
-<span class="fu"><a href="../reference/emr_filter.create.html">emr_filter.create</a></span><span class="op">(</span><span class="st">"hemoglobin_gt_16"</span>, <span class="st">"hemoglobin"</span>, val<span class="op">=</span><span class="fl">16</span>, operator<span class="op">=</span><span class="st">"&gt;"</span><span class="op">)</span>
-<span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"hemoglobin"</span>, filter <span class="op">=</span> <span class="st">"(filterX | filterY) &amp; !filterZ &amp; hemoglobin_gt_16"</span><span class="op">)</span></code></pre></div>
-<p><strong>Python</strong></p>
-<p>Filter with logical conditions will use Python’s notation like:</p>
-<div class="sourceCode" id="cb18"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1"></a>extract(<span class="st">"hemoglobin"</span>, <span class="bu">filter</span> <span class="op">=</span> <span class="st">"(filterX or filterY) and not filterZ"</span>)</span></code></pre></div>
-<p>Each call to <code>emr_filter.create</code> creates a <em>named elementary filter</em> (or simply: named filter) with a unique name. The named filter can then be used in <code>filter</code> parameter of an iterator and be combined with other named filters using the logical operators.</p>
-</div>
-<div class="section level4">
-<h4 id="other-objects-within-filters">Other Objects within Filters<a class="anchor" aria-label="anchor" href="#other-objects-within-filters"></a>
-</h4>
-<p>In our previous example we created three named filters based on three tracks. If time window was not required, we could have used the names of the tracks directly in the filter, like: <code>filter = "(drugX | drugY) &amp; !drugZ"</code>.</p>
-<p>In addition to track names other types of objects can be used within the filter. These are: <em>Id-Time Points Table</em>, <em>Ids Table</em>, <em>Time Intervals Table</em> and <em>Id-Time Intervals Table</em> (see <em>Appendix</em> for the format of these tables). When used in the filter the object should be constructed in advanced and be referred by its name. “In place” construction (aka: <code>filter = "data.frame(...)"</code> is not allowed.</p>
-</div>
-<div class="section level4">
-<h4 id="managing-reference-in-filters">Managing Reference in Filters<a class="anchor" aria-label="anchor" href="#managing-reference-in-filters"></a>
-</h4>
-<p>The ID-Time Point embeds within itself a reference value. Named filters allow to specify whether the reference should be used for matching or not. When <code>keepref=TRUE</code> is set within <code>emr_filter.create</code>, the candidate point’s reference is matched with the filter’s reference. Otherwise the references are ignored.</p>
-<p>It is important to remember that references are always ignored when any object but a named filter is used within a filter. For instance, if <code>filter = "drug"</code> and <code>drug</code> is a name of a track (and not a name of a named filter), then the references will be ignored during the matching. To ensure the filter matches the references of <code>drug</code> track, one must define a named filter with <code>keepref=TRUE</code> parameter:</p>
+<code class="sourceCode R"><span><span class="co">#find onset of heart disease</span></span>
+<span><span class="fu"><a href="../reference/emr_vtrack.create.html">emr_vtrack.create</a></span><span class="op">(</span><span class="st">'heart_onset'</span>, <span class="st">'dx.icd9_411'</span>, time.shift<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">120</span><span class="op">*</span><span class="fl">365</span><span class="op">*</span><span class="fl">24</span><span class="op">)</span>, func<span class="op">=</span><span class="st">'earliest.time'</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/emr_filter.create.html">emr_filter.create</a></span><span class="op">(</span><span class="st">'has_heart_disease'</span>, <span class="st">'dx.icd9_411'</span>, time.shift<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">120</span><span class="op">*</span><span class="fl">365</span><span class="op">*</span><span class="fl">24</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#retrieving the earliest time of heart disease for all patients in db that have a heart disease</span></span>
+<span><span class="va">heart_onset</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">'heart_onset'</span>, iterator<span class="op">=</span><span class="st">'patients.dob'</span>, filter<span class="op">=</span><span class="st">'has_heart_disease'</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># filter patients that already have diabetes before heart disease</span></span>
+<span><span class="fu"><a href="../reference/emr_filter.create.html">emr_filter.create</a></span><span class="op">(</span><span class="st">'has_diabetes'</span>, <span class="st">'dx.icd9_250'</span>, time.shift<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">120</span><span class="op">*</span><span class="fl">365</span><span class="op">*</span><span class="fl">24</span>,<span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">heart_onset_no_diabetes</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">'age/(365*24)'</span>, iterator<span class="op">=</span><span class="va">heart_onset</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">id</span>, time<span class="op">=</span><span class="va">heart_onset</span><span class="op">)</span>, filter<span class="op">=</span><span class="st">'!has_diabetes'</span>, names<span class="op">=</span><span class="st">'age'</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/emr_filter.create.html">emr_filter.create</a></span><span class="op">(</span><span class="st">"drug_filter"</span>, <span class="st">"drug"</span>, keepref<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span>
-<span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="va">my.track.expression</span>, filter<span class="op">=</span><span class="st">"drug_filter"</span>, keepref<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">heart_onset</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 25596</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">heart_onset_no_diabetes</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 5137</span></span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">heart_onset_no_diabetes</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    id    time ref      age</span></span>
+<span><span class="co">#&gt; 1   6 1259009  -1 50.39521</span></span>
+<span><span class="co">#&gt; 2  31 1229936  -1 69.97317</span></span>
+<span><span class="co">#&gt; 3  36 1236550  -1 42.01963</span></span>
+<span><span class="co">#&gt; 4  66 1237208  -1 71.25753</span></span>
+<span><span class="co">#&gt; 5 114 1320426  -1 68.11872</span></span>
+<span><span class="co">#&gt; 6 132 1352258  -1 68.12420</span></span></code></pre></div>
 </div>
+<div class="section level4">
+<h4 id="extract-median-hemoglobin-for-all-males-between-ages-60-to-70">Extract median Hemoglobin for all males between ages 60 to 70<a class="anchor" aria-label="anchor" href="#extract-median-hemoglobin-for-all-males-between-ages-60-to-70"></a>
+</h4>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># define vtrack for computing the median value of hgb track, assuming patients.dob will be used as the iterator (each patient will be examined once)</span></span>
+<span><span class="fu"><a href="../reference/emr_vtrack.create.html">emr_vtrack.create</a></span><span class="op">(</span><span class="st">"median_hgb"</span>, <span class="st">"lab.HGB"</span>, time.shift<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">60</span>,<span class="fl">70</span><span class="op">)</span><span class="op">*</span><span class="fl">365</span><span class="op">*</span><span class="fl">24</span>, func<span class="op">=</span><span class="st">'quantile'</span>, params<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># define a filter for males only</span></span>
+<span><span class="fu"><a href="../reference/emr_filter.create.html">emr_filter.create</a></span><span class="op">(</span><span class="st">'is_male'</span>, <span class="st">'patients.dob'</span>, time.shift<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">0</span><span class="op">)</span>, val<span class="op">=</span><span class="fl">1</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">#extract median_hgb for males only</span></span>
+<span><span class="va">male_hgb_60_70_q50</span><span class="op">=</span><span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">'median_hgb'</span>, iterator<span class="op">=</span><span class="st">'patients.dob'</span>, filter<span class="op">=</span><span class="st">'is_male'</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">#comparing with female median hgb</span></span>
+<span><span class="va">female_hgb_60_70_q50</span><span class="op">=</span><span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">'median_hgb'</span>, iterator<span class="op">=</span><span class="st">'patients.dob'</span>, filter<span class="op">=</span><span class="st">'!is_male'</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/density.html" class="external-link">density</a></span><span class="op">(</span><span class="va">male_hgb_60_70_q50</span><span class="op">$</span><span class="va">median_hgb</span>, na.rm<span class="op">=</span><span class="cn">T</span><span class="op">)</span>, col<span class="op">=</span><span class="st">"blue"</span>, main<span class="op">=</span><span class="st">"median hgb"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/density.html" class="external-link">density</a></span><span class="op">(</span><span class="va">female_hgb_60_70_q50</span><span class="op">$</span><span class="va">median_hgb</span>, na.rm<span class="op">=</span><span class="cn">T</span><span class="op">)</span>, col<span class="op">=</span><span class="st">"red"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="naryn_files/figure-html/unnamed-chunk-23-1.png" width="700"></p>
 </div>
-</div>
-<div class="section level2">
-<h2 id="advanced-naryn">Advanced Naryn<a class="anchor" aria-label="anchor" href="#advanced-naryn"></a>
-</h2>
-<div class="section level3">
-<h3 id="random-algorithms">Random Algorithms<a class="anchor" aria-label="anchor" href="#random-algorithms"></a>
-</h3>
-<p>Various functions in the library such as <code>emr_quantiles</code> make use of pseudo-random number generator. Each time the function is invoked a unique series of random numbers is issued. Hence two identical calls might produce different results. To guarantee reproducible results call <code>set.seed</code> (Python: <code>seed</code>) before invoking the function.</p>
-<p>Note: R and Python implementations of Naryn use different pseudo-random number generator algorithms. Sadly it means that the result achieved in R cannot be reproducible in Python if random is used, even if identical seed is shared between the two platforms.</p>
-</div>
-<div class="section level3">
-<h3 id="multitasking">Multitasking<a class="anchor" aria-label="anchor" href="#multitasking"></a>
-</h3>
-<p>To boost the run time performance various functions in the library support multitasking mode, i.e. parallel computation by several concurrent processes. Multitasking is not invoked immediately: approximately 0.3 seconds from the function launch the actual progress is measured and total run-time is estimated. If the estimated run-time exceeds the limit (currently: 2 seconds), multitasking kicks in.</p>
-<p>The number of processes launched in the multitasking mode depends on the total run-time estimation (longer run-time will use more processes) and the values of <code>emr_min.processes</code> and <code>emr_max.processes</code> R options. In any case the number of processes never exceeds the number of CPU cores available.</p>
-<p>Multitasking can significantly boost the performance however it utilizes more CPU. When CPU utilization is the priority it is advisable to switch off multitasking by setting <code>emr_multitasking</code> R option to <code>FALSE</code>.</p>
-<p>In addition to increased CPU usage multitasking might also alter the behavior of functions that return ID-Time points such as <code>emr_extract</code> and <code>emr_screen</code>. When multitasking is not invoked these functions return the results always sorted by ID, time and reference. In multitasking mode however the result might come out unsorted. Moreover subsequent calls might return results reshuffled differently. One might use <code>sort</code> parameter in these functions to ensure the points come out sorted. Please bear in mind that sorting the results takes its toll especially on particularly large data frames. That’s why by default <code>sort</code> is set to <code>FALSE</code>.</p>
-</div>
-</div>
-<div class="section level2">
-<h2 id="appendix">Appendix<a class="anchor" aria-label="anchor" href="#appendix"></a>
-</h2>
-<div class="section level3">
-<h3 id="r-vs--python-interface-differences">R vs. Python Interface Differences<a class="anchor" aria-label="anchor" href="#r-vs--python-interface-differences"></a>
-</h3>
-<table class="table">
-<colgroup>
-<col width="71%">
-<col width="15%">
-<col width="12%">
-</colgroup>
-<thead><tr class="header">
-<th></th>
-<th>R</th>
-<th>Python</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td>Naming Conventions <br> (except for virtual track ‘func’, which stays unchanged)</td>
-<td><code>emr_xxx.yyy.zzz</code></td>
-<td><code>xxx_yyy_zzz</code></td>
-</tr>
-<tr class="even">
-<td>Variables</td>
-<td>Defined in global environment: <br><code>EMR_GROOT</code><br><code>EMR_UROOT</code>
-</td>
-<td>Defined in module’s environment:<br><code>_GROOT</code><br><code>_UROOT</code>
-</td>
-</tr>
-<tr class="odd">
-<td>Run-time Variables (available only during track expression evaluation)</td>
-<td><code>EMR_TIME</code></td>
-<td><code>TIME</code></td>
-</tr>
-<tr class="even">
-<td>Package / Module Options</td>
-<td>Controlled via standard options mechanism: <br><code>options(emr_xxx.yyy=zzz)</code> <br><code>getOption("emr_xxx.yyy")</code>
-</td>
-<td>Controlled by module’s <code>CONFIG</code> variable: <br><code>CONFIG['xxx_yyy']=zzz</code> <br><code>CONFIG['xxx_yyy']</code>
-</td>
-</tr>
-<tr class="odd">
-<td>Data Types (used as function parameters)</td>
-<td>
-<code>data.frame</code> <br><code>list</code> <br><code>vector</code> of strings <br><code>vector</code> of numerics <br><code>NULL</code>
-</td>
-<td>
-<code>pandas.DataFrame</code> <br><code>list</code> <br><code>list</code> of strings <br><code>numpy.ndarray</code> of numerics <br><code>None</code>
-</td>
-</tr>
-<tr class="even">
-<td>Data Types (return value)</td>
-<td>
-<code>data.frame</code> <br><code>list</code> <br><code>vector</code> of strings <br><br><code>vector</code> of numerics, no labels <br><code>vector</code> of numerics, with labels <br><br><code>NULL</code>
-</td>
-<td>
-<code>pandas.DataFrame</code> <br><code>dict</code> <br><code>numpy.ndarray</code> of objects (strings) <br><code>numpy.ndarray</code> of numerics <br><br><code>pandas.DataFrame</code> with two columns (label, numeric) <br><code>None</code>
-</td>
-</tr>
-<tr class="odd">
-<td>Database Management</td>
-<td>Database is unloaded when the package is detached.</td>
-<td>
-<code>db_unload()</code> must be called explicitly to unload the database.</td>
-</tr>
-<tr class="even">
-<td>Setting seed for random number generator. <br><strong>Note:</strong> R and Python use different random generators, results are therefore not reproducible between them.</td>
-<td><code>set.seed</code></td>
-<td><code>seed</code></td>
-</tr>
-<tr class="odd">
-<td>Track Variables</td>
-<td>Variables saved in Python are not visible in R.</td>
-<td>Variables saved in R are not visible in Python.</td>
-</tr>
-<tr class="even">
-<td>Setting Track Variables</td>
-<td>
-<code>emr_track.set</code> creates a directory named <code>.trackname.var</code>
-</td>
-<td>
-<code>track_set</code> creates a directory named <code>.trackname.pyvar</code>
-</td>
-</tr>
-<tr class="odd">
-<td>Named Filters and Virtual Tracks</td>
-<td>Named filters and virtuals tracks may be saved along with the rest of R’s environment.</td>
-<td>
-<code>filter_export</code>, <code>filter_import</code>, <code>vtrack_export</code>, <code>vtrack_import</code> must be explicitly called to save / restore named filters or virtual tracks.</td>
-</tr>
-<tr class="even">
-<td>Pattern Matching</td>
-<td>
-<code>emr_track.ls</code>, <br><code>emr_track.global.ls</code>, <br><code>emr_track.user.ls</code>, <br><code>emr_track.var.ls</code>, <br><code>emr_filter.ls</code> <br> accept pattern matching parameters. <br> Return: <code>vector</code> of strings that match the pattern.</td>
-<td>
-<code>track_ls</code>, <br><code>track_global_ls</code>, <br><code>track_user_ls</code>, <br><code>track_var_ls</code>, <br><code>filter_ls</code> <br> do not support pattern matching. <br> Return: <code>numpy.ndarray</code> of objects (strings) that contains all the objects (tracks, …)</td>
-</tr>
-<tr class="odd">
-<td>Time shift parameter (used in various functions)</td>
-<td>
-<code>time.shift</code> is a numeric or a vector of two numerics.</td>
-<td>
-<code>time_shift</code> is a numeric or a list of two numerics.</td>
-</tr>
-<tr class="even">
-<td>Calculating Distribution</td>
-<td>
-<code>emr_dist</code> returns N-dimensional <code>vector</code> with labels (dimension names)</td>
-<td>
-<code>dist</code> return N-dimensional <code>numpy.ndarray</code> without labels.</td>
-</tr>
-<tr class="odd">
-<td>Calculating Correlation Statistics</td>
-<td>
-<code>emr_cor</code>: <br> For N-dimensional binning the returned value <code>r</code> may be addressed as: <br><code>r$cor[bin1,...,binN,i,j]</code>, where <code>i</code> and <code>j</code> are indices of <code>cor.exprs</code>.</td>
-<td>
-<code>cor</code>: <br> For N-dimensional binning the returned value <code>r</code> may be addressed as: <br><code>r['cor'][bin1,...,binN,i,j]</code>, where <code>i</code> and <code>j</code> are indices of <code>cor_exprs</code>.</td>
-</tr>
-<tr class="even">
-<td>Others</td>
-<td>
-<code>emr_annotate</code> <br><br><br><br><br><code>emr_traceback</code>
-</td>
-<td>Not implemented, use <br><code>pandas.DataFrame.merge</code> <br> or <br><code>pandas.merge_sorted</code> <br> instead. <br><br> Not implemented, not applicable.</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="section level3">
-<h3 id="options">Options<a class="anchor" aria-label="anchor" href="#options"></a>
-</h3>
-<p>Naryn supports the following options. The options can be set/examined via R’s <code>options</code> and <code>getOption</code>.</p>
-<p>(Use <code>CONFIG['option_name']</code> to control the module options in Python. Please mind as well Python’s name convention: R’s <code>emr_xxx.yyy</code> option will change its name to <code>xxx_yyy</code>.)</p>
-<table class="table">
-<colgroup>
-<col width="19%">
-<col width="8%">
-<col width="72%">
-</colgroup>
-<thead><tr class="header">
-<th>Option</th>
-<th>Default Value</th>
-<th>Description</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td><code>emr_multitasking</code></td>
-<td><code>TRUE</code></td>
-<td>Should the multitasking be allowed?</td>
-</tr>
-<tr class="even">
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><code>emr_min.processes</code></td>
-<td><code>8</code></td>
-<td>Minimal number of processes launched when multitasking is invoked.</td>
-</tr>
-<tr class="even">
-<td><code>emr_max.processes</code></td>
-<td><code>20</code></td>
-<td>Maximal number of processes launched when multitasking is invoked.</td>
-</tr>
-<tr class="odd">
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr class="even">
-<td><code>emr_max.data.size</code></td>
-<td><code>10000000</code></td>
-<td>Maximal size of data sets (rows of a data frame, length of a vector, …) stored in memory. Prevents excessive memory usage.</td>
-</tr>
-<tr class="odd">
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr class="even">
-<td><code>emr_eval.buf.size</code></td>
-<td><code>1000</code></td>
-<td>Size of the track expression evaluation buffer.</td>
-</tr>
-<tr class="odd">
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr class="even">
-<td><code>emr_warning.itr.no.filter.size</code></td>
-<td><code>100000</code></td>
-<td>Threshold above which “beat iterator used without filter” warning is issued.</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="section level3">
-<h3 id="common-table-formats">Common Table Formats<a class="anchor" aria-label="anchor" href="#common-table-formats"></a>
-</h3>
-</div>
-<div class="section level3">
-<h3 id="id-time-points-table">Id-Time Points Table<a class="anchor" aria-label="anchor" href="#id-time-points-table"></a>
-</h3>
-<p>Id-Time Points table is a data frame having two first columns named ‘id’ and ‘time’. References might be specified by a third column named ‘ref’. If ‘ref’ column is missing or named differently references are set to <code>-1</code>. Additional columns, if presented, are ignored.</p>
-</div>
-<div class="section level3">
-<h3 id="id-time-values-table">Id-Time Values Table<a class="anchor" aria-label="anchor" href="#id-time-values-table"></a>
-</h3>
-<p>Id-Time Values table is an extension of <em>Id-Time Points table</em> with an additional column named ‘value’. Additional columns, if presented, are ignored.</p>
-</div>
-<div class="section level3">
-<h3 id="ids-table">Ids Table<a class="anchor" aria-label="anchor" href="#ids-table"></a>
-</h3>
-<p>Ids table is a data frame having the first column named ‘id’. Each id must appear only once. Additional columns of the data frame, if presented, are ignored.</p>
-</div>
-<div class="section level3">
-<h3 id="time-intervals-table">Time Intervals Table<a class="anchor" aria-label="anchor" href="#time-intervals-table"></a>
-</h3>
-<p>Time Intervals table is a data frame having two first columns named ‘stime’ and ‘etime’ (i.e. start time and end time). Additional columns, if presented, are ignored.</p>
-</div>
-<div class="section level3">
-<h3 id="id-time-intervals-table">Id-Time Intervals Table<a class="anchor" aria-label="anchor" href="#id-time-intervals-table"></a>
-</h3>
-<p>Id-Time Intervals table is a data frame having three first columns named ‘id’, ‘stime’ and ‘etime’ (i.e. start time and end time). Additional columns, if presented, are ignored.</p>
+<div class="section level4">
+<h4 id="compute-distribution-of-hgb-by-age-and-sex">Compute distribution of HGB by age and sex<a class="anchor" aria-label="anchor" href="#compute-distribution-of-hgb-by-age-and-sex"></a>
+</h4>
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">hgb_dist</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emr_dist.html">emr_dist</a></span><span class="op">(</span><span class="st">'age/(24*365)'</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">50</span>, <span class="fl">90</span><span class="op">)</span>, </span>
+<span>                     <span class="st">'sex'</span>, <span class="cn">NULL</span>, </span>
+<span>                     <span class="st">'lab.HGB'</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">16</span>, by<span class="op">=</span><span class="fl">0.5</span><span class="op">)</span>, </span>
+<span>                     iterator<span class="op">=</span><span class="st">'lab.HGB'</span>, </span>
+<span>                     dataframe<span class="op">=</span><span class="cn">TRUE</span>, </span>
+<span>                     names<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'age'</span>, <span class="st">'sex'</span>, <span class="st">'hgb'</span><span class="op">)</span>, </span>
+<span>                     right<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">hgb_dist</span><span class="op">)</span></span>
+<span><span class="co">#&gt;       age sex       hgb    n</span></span>
+<span><span class="co">#&gt; 1 [20,50)   1 [10,10.5)  266</span></span>
+<span><span class="co">#&gt; 2 [50,90)   1 [10,10.5) 2948</span></span>
+<span><span class="co">#&gt; 3 [20,50)   2 [10,10.5) 6930</span></span>
+<span><span class="co">#&gt; 4 [50,90)   2 [10,10.5) 8402</span></span>
+<span><span class="co">#&gt; 5 [20,50)   1 [10.5,11)  344</span></span>
+<span><span class="co">#&gt; 6 [50,90)   1 [10.5,11) 4355</span></span></code></pre></div>
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">hgb_dist</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>sex<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'male'</span>, <span class="st">'female'</span><span class="op">)</span><span class="op">[</span><span class="va">sex</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">hgb</span>, y<span class="op">=</span><span class="va">n</span>, colour<span class="op">=</span><span class="va">age</span>, group<span class="op">=</span><span class="va">age</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">sex</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>angle <span class="op">=</span> <span class="fl">90</span>, vjust <span class="op">=</span> <span class="fl">0.5</span>, hjust<span class="op">=</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="naryn_files/figure-html/unnamed-chunk-25-1.png" width="700"></p>
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">### Count number of patients by age that are in the system in january 2020</span></span></code></pre></div>
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">#patients in the system must have already been born, have not yet died, registered with the EHR system and that haven't left for good</span></span>
+<span><span class="fu"><a href="../reference/emr_filter.create.html">emr_filter.create</a></span><span class="op">(</span><span class="st">'born'</span>, <span class="st">'patients.dob'</span>, time.shift<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">120</span><span class="op">*</span><span class="fl">365</span><span class="op">*</span><span class="fl">24</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/emr_filter.create.html">emr_filter.create</a></span><span class="op">(</span><span class="st">'dead'</span>, <span class="st">'patients.dod'</span>, time.shift<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">120</span><span class="op">*</span><span class="fl">365</span><span class="op">*</span><span class="fl">24</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/emr_filter.create.html">emr_filter.create</a></span><span class="op">(</span><span class="st">'registered'</span>, <span class="st">'patients.status.register'</span>, time.shift<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">120</span><span class="op">*</span><span class="fl">365</span><span class="op">*</span><span class="fl">24</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/emr_filter.create.html">emr_filter.create</a></span><span class="op">(</span><span class="st">'left_for_good'</span>, <span class="st">'patients.status.lfg'</span>, time.shift<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">120</span><span class="op">*</span><span class="fl">365</span><span class="op">*</span><span class="fl">24</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">age_dist_2020</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emr_dist.html">emr_dist</a></span><span class="op">(</span><span class="st">'age/(365*24)'</span>, <span class="fl">0</span><span class="op">:</span><span class="fl">120</span>, <span class="st">'sex'</span>, <span class="cn">NULL</span>, </span>
+<span>                          iterator<span class="op">=</span><span class="fl">1</span>, </span>
+<span>                          stime<span class="op">=</span><span class="fu"><a href="../reference/emr_date2time.html">emr_date2time</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">2020</span><span class="op">)</span>, </span>
+<span>                          etime<span class="op">=</span><span class="fu"><a href="../reference/emr_date2time.html">emr_date2time</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">2020</span><span class="op">)</span>, </span>
+<span>                          filter<span class="op">=</span><span class="st">'born &amp; !dead &amp; registered &amp; !left_for_good'</span>,</span>
+<span>                          names<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'age'</span>, <span class="st">'sex'</span><span class="op">)</span>,</span>
+<span>                          dataframe<span class="op">=</span><span class="cn">TRUE</span>, </span>
+<span>                          right<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">age_dist_2020</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">n</span><span class="op">&gt;</span><span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt;       age sex   n</span></span>
+<span><span class="co">#&gt; 1 [19,20)   1  38</span></span>
+<span><span class="co">#&gt; 2 [20,21)   1 105</span></span>
+<span><span class="co">#&gt; 3 [21,22)   1 176</span></span>
+<span><span class="co">#&gt; 4 [22,23)   1 250</span></span>
+<span><span class="co">#&gt; 5 [23,24)   1 370</span></span>
+<span><span class="co">#&gt; 6 [24,25)   1 436</span></span></code></pre></div>
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>repr.plot.width<span class="op">=</span><span class="fl">20</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">age_dist_2020</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>sex<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'male'</span>, <span class="st">'female'</span><span class="op">)</span><span class="op">[</span><span class="va">sex</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">age</span>, y<span class="op">=</span><span class="va">n</span>, colour<span class="op">=</span><span class="va">sex</span>, fill<span class="op">=</span><span class="va">sex</span>, group<span class="op">=</span><span class="va">sex</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_bar</a></span><span class="op">(</span>stat<span class="op">=</span><span class="st">"identity"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">sex</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>angle <span class="op">=</span> <span class="fl">90</span>, vjust <span class="op">=</span> <span class="fl">0.5</span>, hjust<span class="op">=</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="naryn_files/figure-html/unnamed-chunk-28-1.png" width="700"></p>
 </div>
 </div>
   </div>
@@ -722,7 +362,7 @@
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.4.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
 </div>
 
       </footer>

@@ -1,7 +1,8 @@
 pandoc: 2.7.3
-pkgdown: 2.0.4
+pkgdown: 2.0.5
 pkgdown_sha: ~
 articles:
+  advanced: advanced.html
   naryn: naryn.html
-last_built: 2022-06-22T08:17Z
+last_built: 2022-09-06T14:01Z
 

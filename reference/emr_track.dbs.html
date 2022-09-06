@@ -38,6 +38,16 @@ the track according to the override rules."><!-- mathjax --><script src="https:/
 <li>
   <a href="../reference/index.html">Reference</a>
 </li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Articles
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu"><li>
+      <a href="../articles/advanced.html">advanced naryn</a>
+    </li>
+  </ul></li>
 <li>
   <a href="../news/index.html">Changelog</a>
 </li>
@@ -69,9 +79,9 @@ the track according to the override rules.</p>
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">emr_track.dbs</span><span class="op">(</span><span class="va">track</span>, dataframe <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>
-
-<span class="fu">emr_track.current_db</span><span class="op">(</span><span class="va">track</span>, dataframe <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">emr_track.dbs</span><span class="op">(</span><span class="va">track</span>, dataframe <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">emr_track.current_db</span><span class="op">(</span><span class="va">track</span>, dataframe <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -100,16 +110,16 @@ called 'track' and 'db' with the track and database ids (multiple rows per track
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"></span>
-<span class="r-in"><span class="co"># both db1 and db2 have a track named track1</span></span>
-<span class="r-in"><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span>
-<span class="r-in"><span class="fu"><a href="emr_db.connect.html">emr_db.connect</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"/db1"</span>, <span class="st">"/db2"</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-in"><span class="fu">emr_track.dbs</span><span class="op">(</span><span class="st">"track1"</span><span class="op">)</span></span>
-<span class="r-in"><span class="fu">emr_track.dbs</span><span class="op">(</span><span class="fu"><a href="emr_track.ls.html">emr_track.ls</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="fu">emr_track.current_db</span><span class="op">(</span><span class="st">"track1"</span><span class="op">)</span></span>
-<span class="r-in"><span class="fu">emr_track.current_db</span><span class="op">(</span><span class="fu"><a href="emr_track.ls.html">emr_track.ls</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-in"><span class="op">}</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># both db1 and db2 have a track named track1</span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="emr_db.connect.html">emr_db.connect</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"/db1"</span>, <span class="st">"/db2"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">emr_track.dbs</span><span class="op">(</span><span class="st">"track1"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">emr_track.dbs</span><span class="op">(</span><span class="fu"><a href="emr_track.ls.html">emr_track.ls</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu">emr_track.current_db</span><span class="op">(</span><span class="st">"track1"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">emr_track.current_db</span><span class="op">(</span><span class="fu"><a href="emr_track.ls.html">emr_track.ls</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>
     </div>
   </div>
@@ -124,7 +134,7 @@ called 'track' and 'db' with the track and database ids (multiple rows per track
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.4.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
 </div>
 
       </footer></div>

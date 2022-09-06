@@ -34,6 +34,16 @@
 <li>
   <a href="../reference/index.html">Reference</a>
 </li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Articles
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu"><li>
+      <a href="../articles/advanced.html">advanced naryn</a>
+    </li>
+  </ul></li>
 <li>
   <a href="../news/index.html">Changelog</a>
 </li>
@@ -62,7 +72,7 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">emr_track.percentile</span><span class="op">(</span><span class="va">track</span>, <span class="va">val</span>, lower <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">emr_track.percentile</span><span class="op">(</span><span class="va">track</span>, <span class="va">val</span>, lower <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -100,24 +110,24 @@ relative number of track values lower or equal than 'val'.</p>
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"></span>
-<span class="r-in"><span class="fu"><a href="emr_db.connect.html">emr_db.init_examples</a></span><span class="op">(</span><span class="op">)</span></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="co"># percentiles of 30, 50</span></span>
-<span class="r-in"><span class="fu">emr_track.percentile</span><span class="op">(</span><span class="st">"dense_track"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">30</span>, <span class="fl">50</span><span class="op">)</span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu"><a href="emr_db.connect.html">emr_db.init_examples</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># percentiles of 30, 50</span></span></span>
+<span class="r-in"><span><span class="fu">emr_track.percentile</span><span class="op">(</span><span class="st">"dense_track"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">30</span>, <span class="fl">50</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.45 0.50</span>
-<span class="r-in"></span>
-<span class="r-in"><span class="co"># calculate percentiles of track's earliest values in time window</span></span>
-<span class="r-in"><span class="fu"><a href="emr_vtrack.create.html">emr_vtrack.create</a></span><span class="op">(</span><span class="st">"v1"</span>,</span>
-<span class="r-in">    src <span class="op">=</span> <span class="st">"dense_track"</span>, func <span class="op">=</span> <span class="st">"earliest"</span>,</span>
-<span class="r-in">    time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">5</span>, <span class="fl">5</span><span class="op">)</span></span>
-<span class="r-in"><span class="op">)</span></span>
-<span class="r-in"><span class="fu"><a href="emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span class="r-in">    <span class="st">"dense_track"</span>,</span>
-<span class="r-in">    <span class="st">"emr_track.percentile(\"dense_track\", v1, FALSE)"</span></span>
-<span class="r-in"><span class="op">)</span>,</span>
-<span class="r-in">keepref <span class="op">=</span> <span class="cn">TRUE</span>, names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"col1"</span>, <span class="st">"col2"</span><span class="op">)</span></span>
-<span class="r-in"><span class="op">)</span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># calculate percentiles of track's earliest values in time window</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="emr_vtrack.create.html">emr_vtrack.create</a></span><span class="op">(</span><span class="st">"v1"</span>,</span></span>
+<span class="r-in"><span>    src <span class="op">=</span> <span class="st">"dense_track"</span>, func <span class="op">=</span> <span class="st">"earliest"</span>,</span></span>
+<span class="r-in"><span>    time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">5</span>, <span class="fl">5</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    <span class="st">"dense_track"</span>,</span></span>
+<span class="r-in"><span>    <span class="st">"emr_track.percentile(\"dense_track\", v1, FALSE)"</span></span></span>
+<span class="r-in"><span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>keepref <span class="op">=</span> <span class="cn">TRUE</span>, names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"col1"</span>, <span class="st">"col2"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    id time ref col1 col2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1  22    1   3   13 0.20</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2  24    1   3   13 0.20</span>
@@ -153,7 +163,7 @@ relative number of track values lower or equal than 'val'.</p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.4.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
 </div>
 
       </footer></div>

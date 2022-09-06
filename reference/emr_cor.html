@@ -34,6 +34,16 @@
 <li>
   <a href="../reference/index.html">Reference</a>
 </li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Articles
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu"><li>
+      <a href="../articles/advanced.html">advanced naryn</a>
+    </li>
+  </ul></li>
 <li>
   <a href="../news/index.html">Changelog</a>
 </li>
@@ -62,19 +72,19 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">emr_cor</span><span class="op">(</span>
-  <span class="va">...</span>,
-  cor.exprs <span class="op">=</span> <span class="cn">NULL</span>,
-  include.lowest <span class="op">=</span> <span class="cn">FALSE</span>,
-  right <span class="op">=</span> <span class="cn">TRUE</span>,
-  stime <span class="op">=</span> <span class="cn">NULL</span>,
-  etime <span class="op">=</span> <span class="cn">NULL</span>,
-  iterator <span class="op">=</span> <span class="cn">NULL</span>,
-  keepref <span class="op">=</span> <span class="cn">FALSE</span>,
-  filter <span class="op">=</span> <span class="cn">NULL</span>,
-  dataframe <span class="op">=</span> <span class="cn">FALSE</span>,
-  names <span class="op">=</span> <span class="cn">NULL</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">emr_cor</span><span class="op">(</span></span>
+<span>  <span class="va">...</span>,</span>
+<span>  cor.exprs <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  include.lowest <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  right <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  stime <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  etime <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  iterator <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  keepref <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  filter <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  dataframe <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  names <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -222,13 +232,13 @@ emr_extract("emr_time2dayofmonth(EMR_TIME)", iterator = "sparse_track") <br></p>
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"></span>
-<span class="r-in"><span class="fu"><a href="emr_db.connect.html">emr_db.init_examples</a></span><span class="op">(</span><span class="op">)</span></span>
-<span class="r-in"><span class="fu">emr_cor</span><span class="op">(</span><span class="st">"categorical_track"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">5</span><span class="op">)</span>,</span>
-<span class="r-in">    cor.exprs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sparse_track"</span>, <span class="st">"1/dense_track"</span><span class="op">)</span>,</span>
-<span class="r-in">    include.lowest <span class="op">=</span> <span class="cn">TRUE</span>, iterator <span class="op">=</span> <span class="st">"categorical_track"</span>,</span>
-<span class="r-in">    keepref <span class="op">=</span> <span class="cn">TRUE</span></span>
-<span class="r-in"><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu"><a href="emr_db.connect.html">emr_db.init_examples</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">emr_cor</span><span class="op">(</span><span class="st">"categorical_track"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">5</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    cor.exprs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sparse_track"</span>, <span class="st">"1/dense_track"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    include.lowest <span class="op">=</span> <span class="cn">TRUE</span>, iterator <span class="op">=</span> <span class="st">"categorical_track"</span>,</span></span>
+<span class="r-in"><span>    keepref <span class="op">=</span> <span class="cn">TRUE</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $n</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> , , sparse_track</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
@@ -303,12 +313,12 @@ emr_extract("emr_time2dayofmonth(EMR_TIME)", iterator = "sparse_track") <br></p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"breaks")[[1]]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0 2 5</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-in"><span class="fu">emr_cor</span><span class="op">(</span><span class="st">"categorical_track"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">5</span><span class="op">)</span>,</span>
-<span class="r-in">    cor.exprs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sparse_track"</span>, <span class="st">"1/dense_track"</span><span class="op">)</span>,</span>
-<span class="r-in">    include.lowest <span class="op">=</span> <span class="cn">TRUE</span>, iterator <span class="op">=</span> <span class="st">"categorical_track"</span>,</span>
-<span class="r-in">    keepref <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span class="r-in">    dataframe <span class="op">=</span> <span class="cn">TRUE</span></span>
-<span class="r-in"><span class="op">)</span></span>
+<span class="r-in"><span><span class="fu">emr_cor</span><span class="op">(</span><span class="st">"categorical_track"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">5</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    cor.exprs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sparse_track"</span>, <span class="st">"1/dense_track"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    include.lowest <span class="op">=</span> <span class="cn">TRUE</span>, iterator <span class="op">=</span> <span class="st">"categorical_track"</span>,</span></span>
+<span class="r-in"><span>    keepref <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
+<span class="r-in"><span>    dataframe <span class="op">=</span> <span class="cn">TRUE</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   categorical_track             i             j n            e          var</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1             [0,2]  sparse_track  sparse_track 3  48.00000000 3.386667e+02</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2             (2,5]  sparse_track  sparse_track 2 130.00000000 1.081600e+04</span>
@@ -318,15 +328,15 @@ emr_extract("emr_time2dayofmonth(EMR_TIME)", iterator = "sparse_track") <br></p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 6             (2,5]  sparse_track 1/dense_track 2 130.00000000 1.081600e+04</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 7             [0,2] 1/dense_track 1/dense_track 4   0.03879333 6.253773e-04</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 8             (2,5] 1/dense_track 1/dense_track 2   0.02136752 2.922054e-04</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             cov        cor</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1  3.386667e+02  1.0000000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2  1.081600e+04  1.0000000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 -2.520039e-01 -0.9995979</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 -1.777778e+00 -1.0000000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5 -2.520039e-01 -0.9995979</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6 -1.777778e+00 -1.0000000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7  6.253773e-04  1.0000000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8  2.922054e-04  1.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                cov        cor</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1   338.6666666667  1.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 10816.0000000000  1.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3    -0.2520039101 -0.9995979</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4    -1.7777777778 -1.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5    -0.2520039101 -0.9995979</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6    -1.7777777778 -1.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7     0.0006253773  1.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8     0.0002922054  1.0000000</span>
 </code></pre></div>
     </div>
   </div>
@@ -341,7 +351,7 @@ emr_extract("emr_time2dayofmonth(EMR_TIME)", iterator = "sparse_track") <br></p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.4.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
 </div>
 
       </footer></div>
