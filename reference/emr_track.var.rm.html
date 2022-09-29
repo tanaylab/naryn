@@ -106,15 +106,11 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="emr_db.connect.html">emr_db.init_examples</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="emr_track.var.set.html">emr_track.var.set</a></span><span class="op">(</span><span class="st">"sparse_track"</span>, <span class="st">"test_var1"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> Cannot set vars for track sparse_track: it is read-only.</span>
 <span class="r-in"><span><span class="fu"><a href="emr_track.var.set.html">emr_track.var.set</a></span><span class="op">(</span><span class="st">"sparse_track"</span>, <span class="st">"test_var2"</span>, <span class="st">"v"</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> Cannot set vars for track sparse_track: it is read-only.</span>
 <span class="r-in"><span><span class="fu"><a href="emr_track.var.ls.html">emr_track.var.ls</a></span><span class="op">(</span><span class="st">"sparse_track"</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> character(0)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "test_var1" "test_var2"</span>
 <span class="r-in"><span><span class="fu">emr_track.var.rm</span><span class="op">(</span><span class="st">"sparse_track"</span>, <span class="st">"test_var1"</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> Cannot remove vars from track sparse_track: it is read-only.</span>
 <span class="r-in"><span><span class="fu">emr_track.var.rm</span><span class="op">(</span><span class="st">"sparse_track"</span>, <span class="st">"test_var2"</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> Cannot remove vars from track sparse_track: it is read-only.</span>
 <span class="r-in"><span><span class="fu"><a href="emr_track.var.ls.html">emr_track.var.ls</a></span><span class="op">(</span><span class="st">"sparse_track"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> character(0)</span>
 </code></pre></div>

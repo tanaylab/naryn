@@ -168,15 +168,13 @@ returns either global, local or logical tracks accordingly.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "dense_track"</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="emr_track.attr.set.html">emr_track.attr.set</a></span><span class="op">(</span><span class="st">"sparse_track"</span>, <span class="st">"gender"</span>, <span class="st">"female"</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> Failed to open file /net/mraid14/export/data/users/eladch/tools/CO7/R/4.2.1/lib64/R/library/naryn/naryndb/test/.naryn: Permission denied</span>
 <span class="r-in"><span><span class="fu"><a href="emr_track.attr.set.html">emr_track.attr.set</a></span><span class="op">(</span><span class="st">"dense_track"</span>, <span class="st">"gender"</span>, <span class="st">"male"</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> Failed to open file /net/mraid14/export/data/users/eladch/tools/CO7/R/4.2.1/lib64/R/library/naryn/naryndb/test/.naryn: Permission denied</span>
 <span class="r-in"><span><span class="fu">emr_track.ls</span><span class="op">(</span>gender <span class="op">=</span> <span class="st">""</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> Failed to open file /net/mraid14/export/data/users/eladch/tools/CO7/R/4.2.1/lib64/R/library/naryn/naryndb/test/.naryn: Permission denied</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "dense_track"  "sparse_track"</span>
 <span class="r-in"><span><span class="fu">emr_track.ls</span><span class="op">(</span>gender <span class="op">=</span> <span class="st">"female"</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> Failed to open file /net/mraid14/export/data/users/eladch/tools/CO7/R/4.2.1/lib64/R/library/naryn/naryndb/test/.naryn: Permission denied</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "sparse_track"</span>
 <span class="r-in"><span><span class="fu">emr_track.ls</span><span class="op">(</span>gender <span class="op">=</span> <span class="st">"^male"</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> Failed to open file /net/mraid14/export/data/users/eladch/tools/CO7/R/4.2.1/lib64/R/library/naryn/naryndb/test/.naryn: Permission denied</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "dense_track"</span>
 </code></pre></div>
     </div>
   </div>

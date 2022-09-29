@@ -46,7 +46,13 @@
     <loc>/reference/emr_db.subset.info.html</loc>
   </url>
   <url>
+    <loc>/reference/emr_db.unload.html</loc>
+  </url>
+  <url>
     <loc>/reference/emr_dist.html</loc>
+  </url>
+  <url>
+    <loc>/reference/emr_download_example_data.html</loc>
   </url>
   <url>
     <loc>/reference/emr_extract.html</loc>
@@ -152,6 +158,12 @@
   </url>
   <url>
     <loc>/reference/emr_track.logical.create.html</loc>
+  </url>
+  <url>
+    <loc>/reference/emr_track.logical.exists.html</loc>
+  </url>
+  <url>
+    <loc>/reference/emr_track.logical.info.html</loc>
   </url>
   <url>
     <loc>/reference/emr_track.logical.rm.html</loc>

@@ -109,22 +109,118 @@
 <div class="section level2">
 <h2 id="getting-started-with-naryn">Getting started with naryn<a class="anchor" aria-label="anchor" href="#getting-started-with-naryn"></a>
 </h2>
-<p>Naryn is an implmenetation of a time-series database, for efficient storage, retrieval and analysis of electronic health records (EHR). The basic element of Naryn is a track - single numerical data element (e.g. RBC lab test result) that is recorded for many patients at various time points. A track can be thought of as a very sparse two-dimentional matrix with a row for each patient in the database, and a column for each hour. The patient space is defined by a required track ‘patients.dob’ which must include all patients with a single timepoint at their time of birth. Time reflects the difference in hours to 1/3/1867 00:00.</p>
-<div class="section level5">
-<h5 id="connect-to-database">Connect to database<a class="anchor" aria-label="anchor" href="#connect-to-database"></a>
-</h5>
+<p>Naryn is an implmenetation of a time-series database, for efficient storage, retrieval and analysis of electronic health records (EHR).</p>
+<div class="section level4">
+<h4 id="download-the-example-database">Download the example database<a class="anchor" aria-label="anchor" href="#download-the-example-database"></a>
+</h4>
+<p>Towards this vignette we are going to use a small database which was simulated to include an example of a typical EMR databse. It can be downloaded from <a href="https://naryn.s3.eu-west-1.amazonaws.com/naryn_example_db.tar.gz" class="external-link">here</a> or using the following code:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/emr_db.connect.html">emr_db.connect</a></span><span class="op">(</span><span class="st">"/home/nettam/emr/sample_db"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/emr_download_example_data.html">emr_download_example_data</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Extracting data...</span></span>
+<span><span class="co">#&gt; Downloaded example database to /net/mraid14/export/tgdata/users/aviezerl/src/naryn/vignettes/sample_db</span></span></code></pre></div>
+<p>Note that although smaller than the real database, this example database is still quite large (~1.2GB) and will take a few minutes to download.</p>
+</div>
+<div class="section level3">
+<h3 id="tracks">Tracks<a class="anchor" aria-label="anchor" href="#tracks"></a>
+</h3>
+<p>The basic element of Naryn is a track - a single numerical data element (e.g. RBC lab test result) that is recorded for many patients at various time points. A track can be thought of as a very sparse two-dimentional matrix with a row for each patient in the database, and a column for each timepoint in the resolution of hours. Another way to think of a track is as a table with triplets of patient, timepoint and value:</p>
+<table class="table">
+<thead><tr class="header">
+<th align="right">id</th>
+<th align="right">time</th>
+<th align="right">lab.RBC</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="right">1218708</td>
+<td align="right">4.784053</td>
+</tr>
+<tr class="even">
+<td align="right">1</td>
+<td align="right">1223571</td>
+<td align="right">4.534783</td>
+</tr>
+<tr class="odd">
+<td align="right">1</td>
+<td align="right">1227064</td>
+<td align="right">4.114022</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">1230857</td>
+<td align="right">4.588766</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">1272632</td>
+<td align="right">4.507858</td>
+</tr>
+<tr class="even">
+<td align="right">3</td>
+<td align="right">1218461</td>
+<td align="right">4.620333</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="right">1242600</td>
+<td align="right">5.412831</td>
+</tr>
+<tr class="even">
+<td align="right">3</td>
+<td align="right">1246149</td>
+<td align="right">5.555339</td>
+</tr>
+</tbody>
+</table>
+<p>The value can be any numerical value, but it is usually a lab test result, or categorical variable representing a diagnosis. The time is a number representing the number of hours since 1/3/1867 00:00, and the id is a unique identifier for each patient which is defined in a special track called ‘<em>patients.dob</em>’, which contains the time of birth for each patient (see below).</p>
+<p>For more information on tracks, see the ‘Tracks’ section in the <a href="advanced.html">advanced vignette</a>.</p>
+</div>
+<div class="section level3">
+<h3 id="connect-to-database">Connect to database<a class="anchor" aria-label="anchor" href="#connect-to-database"></a>
+</h3>
+<p>A naryn database is a folder containing a number of tracks. To connect to a database, use the <code>emr_db.connect</code> function:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># show number of available tracks in database</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/emr_db.connect.html">emr_db.connect</a></span><span class="op">(</span><span class="st">"sample_db"</span><span class="op">)</span></span></code></pre></div>
+<p>Now we can use <code>emr_track.ls</code> to list all the tracks in the database:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="../reference/emr_track.ls.html">emr_track.ls</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "dx.icd9_000" "dx.icd9_001" "dx.icd9_002" "dx.icd9_003" "dx.icd9_004"</span></span>
+<span><span class="co">#&gt; [6] "dx.icd9_005"</span></span>
+<span></span>
+<span><span class="co"># show number of available tracks in database</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="fu"><a href="../reference/emr_track.ls.html">emr_track.ls</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 2995</span></span></code></pre></div>
+<p>We can also use <code>emr_track.ls</code> to list all the tracks that match a certain pattern:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/emr_track.ls.html">emr_track.ls</a></span><span class="op">(</span><span class="st">"RBC"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "lab.RBC"      "lab.RBC.URIN"</span></span></code></pre></div>
+<blockquote>
+<p>Naryn supports connecting to multiple databases at the same time, by giving a vector of paths to <code>emr_db.connect</code>, see more in the ‘Database’ section of the <a href="advanced.html">advanced vignette</a>.</p>
+</blockquote>
 </div>
-<div class="section level4">
-<h4 id="extract-all-patients-in-database">Extract all patients in database<a class="anchor" aria-label="anchor" href="#extract-all-patients-in-database"></a>
-</h4>
-<p>all patients must be listed in a track called ‘patients.dob’. This track contains for each patient a single time point at the time of birth. In this mock database, the value per patient reflect their sex: 1 for male, 2 for female.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="section level3">
+<h3 id="extract-data-from-tracks">Extract data from tracks<a class="anchor" aria-label="anchor" href="#extract-data-from-tracks"></a>
+</h3>
+<p>We can now go back to the ‘RBC’ example and extract the data from the track. This can be done using the <code><a href="../reference/emr_extract.html">emr_extract()</a></code> function which is the ‘swiss army knife’ of the package. It can be used to extract data from a single track, or from multiple tracks, while applying various filters and transformations, but we will start with the simplest example of extracting the data from a single track:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rbc_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"lab.RBC"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">rbc_df</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   id    time ref  lab.RBC</span></span>
+<span><span class="co">#&gt; 1  1 1218708  -1 4.784053</span></span>
+<span><span class="co">#&gt; 2  1 1223571  -1 4.534783</span></span>
+<span><span class="co">#&gt; 3  1 1227064  -1 4.114022</span></span>
+<span><span class="co">#&gt; 4  1 1227864  -1 4.002392</span></span>
+<span><span class="co">#&gt; 5  1 1232022  -1 4.384029</span></span>
+<span><span class="co">#&gt; 6  1 1234887  -1 5.053118</span></span></code></pre></div>
+<p>We can see that the data is returned as a data frame with three columns: id, time, ref and value. The id column contains the patient id, the time column contains the time of the measurement in hours since 1/3/1867 00:00, and the value column contains the Red Blood Cell count of the patient at each timepoint. For information regarding the ref column, see the ‘Records and References’ section in the <a href="advanced.html">advanced vignette</a>.</p>
+<p>The data frame is sorted by id and time, so that the data for each patient is grouped together.</p>
+</div>
+<div class="section level3">
+<h3 id="extract-all-patients-in-database">Extract all patients in database<a class="anchor" aria-label="anchor" href="#extract-all-patients-in-database"></a>
+</h3>
+<p>As noted above, all patients must be listed in a track called ‘patients.dob’. This track contains for each patient a single time point at the time of birth. In this mock database, the value per patient reflect their sex: 1 for male, 2 for female:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">patients</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"patients.dob"</span>, names <span class="op">=</span> <span class="st">"sex"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">patients</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   id    time ref sex</span></span>
@@ -141,17 +237,17 @@
 <span><span class="co">#&gt; 1   male 48621</span></span>
 <span><span class="co">#&gt; 2 female 51379</span></span></code></pre></div>
 </div>
-<div class="section level4">
-<h4 id="define-virtual-track-for-age">Define virtual track for Age<a class="anchor" aria-label="anchor" href="#define-virtual-track-for-age"></a>
-</h4>
+<div class="section level3">
+<h3 id="define-virtual-track-for-age">Define virtual track for Age<a class="anchor" aria-label="anchor" href="#define-virtual-track-for-age"></a>
+</h3>
 <p>In order to know the age of a patient at different event times we will calculate the difference between the time of the event and the time the patient was born as found in the patients.dob track. This is done by defining a virtual track, whereby the souce of the virtual track is patients.dob. A time window from the time of the event backwords in time (up to max age = 120 years) should capture the time the patient was born. The difference in time is computed by the dt2.earliest function which computes the delta time (in hours) between the event time and the earliest appearance of a poin in the source track of the virtual track.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/emr_vtrack.create.html">emr_vtrack.create</a></span><span class="op">(</span><span class="st">"age"</span>, <span class="st">"patients.dob"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">120</span> <span class="op">*</span> <span class="fl">365</span> <span class="op">*</span> <span class="fl">24</span>, <span class="fl">0</span><span class="op">)</span>, func <span class="op">=</span> <span class="st">"dt2.earliest"</span><span class="op">)</span></span></code></pre></div>
 </div>
-<div class="section level4">
-<h4 id="extract-age-and-wbc-test-value-at-time-of-test-for-each-test-performed-in-2010">extract age and wbc test value, at time of test for each test performed in 2010<a class="anchor" aria-label="anchor" href="#extract-age-and-wbc-test-value-at-time-of-test-for-each-test-performed-in-2010"></a>
-</h4>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="section level3">
+<h3 id="extract-age-and-wbc-test-value-at-time-of-test-for-each-test-performed-in-2010">extract age and wbc test value, at time of test for each test performed in 2010<a class="anchor" aria-label="anchor" href="#extract-age-and-wbc-test-value-at-time-of-test-for-each-test-performed-in-2010"></a>
+</h3>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"age/(365*24)"</span>, <span class="st">"lab.WBC"</span><span class="op">)</span>, iterator <span class="op">=</span> <span class="st">"lab.WBC"</span>, stime <span class="op">=</span> <span class="fu"><a href="../reference/emr_date2time.html">emr_date2time</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">2010</span><span class="op">)</span>, etime <span class="op">=</span> <span class="fu"><a href="../reference/emr_date2time.html">emr_date2time</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">2011</span><span class="op">)</span>, names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"age"</span>, <span class="st">"wbc"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   id    time ref      age       wbc</span></span>
 <span><span class="co">#&gt; 1  1 1252814  -1 81.82831  8.058747</span></span>
@@ -161,17 +257,17 @@
 <span><span class="co">#&gt; 5  4 1254029  -1 44.42443  7.102493</span></span>
 <span><span class="co">#&gt; 6  4 1256304  -1 44.68413 11.600000</span></span></code></pre></div>
 </div>
-<div class="section level4">
-<h4 id="define-virtual-track-for-survival---time-until-death">Define virtual track for Survival - time until death<a class="anchor" aria-label="anchor" href="#define-virtual-track-for-survival---time-until-death"></a>
-</h4>
+<div class="section level3">
+<h3 id="define-virtual-track-for-survival---time-until-death">Define virtual track for Survival - time until death<a class="anchor" aria-label="anchor" href="#define-virtual-track-for-survival---time-until-death"></a>
+</h3>
 <p>assume that patients.dod is a track with a single entry at most for each patient in the EHR database at time of death.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/emr_vtrack.create.html">emr_vtrack.create</a></span><span class="op">(</span><span class="st">"survival"</span>, <span class="st">"patients.dod"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">120</span> <span class="op">*</span> <span class="fl">365</span> <span class="op">*</span> <span class="fl">24</span><span class="op">)</span>, func <span class="op">=</span> <span class="st">"dt1.earliest"</span><span class="op">)</span></span></code></pre></div>
 </div>
-<div class="section level4">
-<h4 id="extract-survival-time-for-patients-with-pancreatic-cancer">Extract survival time for patients with pancreatic cancer<a class="anchor" aria-label="anchor" href="#extract-survival-time-for-patients-with-pancreatic-cancer"></a>
-</h4>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="section level3">
+<h3 id="extract-survival-time-for-patients-with-pancreatic-cancer">Extract survival time for patients with pancreatic cancer<a class="anchor" aria-label="anchor" href="#extract-survival-time-for-patients-with-pancreatic-cancer"></a>
+</h3>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># pancreatic cancer icd9 code is 157.9</span></span>
 <span><span class="co"># note that since icd9 diagnosis codes have a tree like structure, and X.0, X.00 are both valid codes and must be distinguishable,</span></span>
 <span><span class="co"># the diagnosis tracks all include a prefix of 1 for the minor code, so X.0 will be translated to icd9_X and a value of 10 will be stored.</span></span>
@@ -195,7 +291,7 @@
 <span><span class="co">#&gt; 6 34252 1341200  -1     9016</span></span>
 <span></span>
 <span><span class="co"># note that NA in survival means that the patient still has not died</span></span></code></pre></div>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># kaplan meier for survival of pancreatic cancer patients</span></span>
 <span><span class="co"># censoring is applied to reflect latest update of database (Jan 6, 2022)</span></span>
 <span><span class="va">pancreatic_cancer_survival</span> <span class="op">&lt;-</span> <span class="va">pancreatic_cancer_survival</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -203,63 +299,69 @@
 <span>        follow_time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">survival</span><span class="op">)</span>, <span class="va">survival</span>, <span class="fu"><a href="../reference/emr_date2time.html">emr_date2time</a></span><span class="op">(</span><span class="fl">6</span>, <span class="fl">1</span>, <span class="fl">2022</span><span class="op">)</span> <span class="op">-</span> <span class="va">time</span><span class="op">)</span>,</span>
 <span>        status <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">survival</span><span class="op">)</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span></span>
 <span>    <span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># fitting survival curve</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://rpkgs.datanovia.com/survminer/index.html" class="external-link">survminer</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; Loading required package: ggpubr</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/therneau/survival" class="external-link">survival</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Attaching package: 'survival'</span></span>
+<span><span class="co">#&gt; The following object is masked from 'package:survminer':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     myeloma</span></span>
 <span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">survminer</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/survminer/man/surv_fit.html" class="external-link">surv_fit</a></span><span class="op">(</span><span class="fu">survival</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">follow_time</span>, <span class="va">status</span><span class="op">)</span> <span class="op">~</span> <span class="fl">1</span>, data <span class="op">=</span> <span class="va">pancreatic_cancer_survival</span><span class="op">)</span></span>
 <span><span class="fu">survminer</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/survminer/man/ggsurvplot.html" class="external-link">ggsurvplot</a></span><span class="op">(</span><span class="va">fit</span>, data <span class="op">=</span> <span class="va">pancreatic_cancer_survival</span><span class="op">)</span></span></code></pre></div>
-<p><img src="naryn_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
+<p><img src="naryn_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
 </div>
-<div class="section level4">
-<h4 id="extract-hgb-and-age-for-all-patients-between-the-ages-60-and-70">Extract HGB and age for all patients between the ages 60 and 70<a class="anchor" aria-label="anchor" href="#extract-hgb-and-age-for-all-patients-between-the-ages-60-and-70"></a>
-</h4>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="section level3">
+<h3 id="extract-hgb-and-age-for-all-patients-between-the-ages-60-and-70">Extract HGB and age for all patients between the ages 60 and 70<a class="anchor" aria-label="anchor" href="#extract-hgb-and-age-for-all-patients-between-the-ages-60-and-70"></a>
+</h3>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># create an age filter. If we go over a BMI test value for a patient, then we expect there to be a date of birth entry between 70 and 60 years before. This would mean that the patient is in the required age range</span></span>
 <span><span class="fu"><a href="../reference/emr_filter.create.html">emr_filter.create</a></span><span class="op">(</span><span class="st">"age_60_70"</span>, <span class="st">"patients.dob"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">70</span>, <span class="op">-</span><span class="fl">60</span><span class="op">)</span> <span class="op">*</span> <span class="fl">365</span> <span class="op">*</span> <span class="fl">24</span><span class="op">)</span></span>
 <span><span class="va">hgb_60_70</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"age/(24*365)"</span>, <span class="st">"lab.HGB"</span><span class="op">)</span>, iterator <span class="op">=</span> <span class="st">"lab.HGB"</span>, filter <span class="op">=</span> <span class="st">"age_60_70"</span>, names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"age"</span>, <span class="st">"hgb"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">hgb_60_70</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>age <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">floor</a></span><span class="op">(</span><span class="va">age</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html" class="external-link">count</a></span><span class="op">(</span><span class="va">age</span><span class="op">)</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">age</span>, y <span class="op">=</span> <span class="va">n</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_bar</a></span><span class="op">(</span>stat <span class="op">=</span> <span class="st">"identity"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="naryn_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<p><img src="naryn_files/figure-html/unnamed-chunk-16-1.png" width="700"></p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">hgb_60_70</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">hgb</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_density.html" class="external-link">geom_density</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: Removed 17 rows containing non-finite values (stat_density).</span></span></code></pre></div>
-<p><img src="naryn_files/figure-html/unnamed-chunk-12-2.png" width="700"></p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_density.html" class="external-link">geom_density</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><img src="naryn_files/figure-html/unnamed-chunk-16-2.png" width="700"></p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># adding sex information as hgb has bimodal distribution</span></span>
 <span><span class="co"># sex is encoded in the patients.dob track, 1 for male and 2 for female</span></span>
 <span><span class="fu"><a href="../reference/emr_vtrack.create.html">emr_vtrack.create</a></span><span class="op">(</span><span class="st">"sex"</span>, <span class="st">"patients.dob"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">120</span> <span class="op">*</span> <span class="fl">365</span> <span class="op">*</span> <span class="fl">24</span>, <span class="fl">0</span><span class="op">)</span>, func <span class="op">=</span> <span class="st">"earliest"</span><span class="op">)</span></span>
 <span><span class="va">hgb_sex_60_70</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"age/(24*365)"</span>, <span class="st">"sex"</span>, <span class="st">"lab.HGB"</span><span class="op">)</span>, iterator <span class="op">=</span> <span class="st">"lab.HGB"</span>, filter <span class="op">=</span> <span class="st">"age_60_70"</span>, names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"age"</span>, <span class="st">"sex"</span>, <span class="st">"hgb"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>sex <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"male"</span>, <span class="st">"female"</span><span class="op">)</span><span class="op">[</span><span class="va">sex</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">hgb_sex_60_70</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>age <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">floor</a></span><span class="op">(</span><span class="va">age</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html" class="external-link">count</a></span><span class="op">(</span><span class="va">age</span>, <span class="va">sex</span><span class="op">)</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">age</span>, y <span class="op">=</span> <span class="va">n</span>, fill <span class="op">=</span> <span class="va">sex</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_bar</a></span><span class="op">(</span>stat <span class="op">=</span> <span class="st">"identity"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="naryn_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<p><img src="naryn_files/figure-html/unnamed-chunk-18-1.png" width="700"></p>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">hgb_sex_60_70</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">hgb</span>, color <span class="op">=</span> <span class="va">sex</span>, group <span class="op">=</span> <span class="va">sex</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_density.html" class="external-link">geom_density</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: Removed 17 rows containing non-finite values (stat_density).</span></span></code></pre></div>
-<p><img src="naryn_files/figure-html/unnamed-chunk-14-2.png" width="700"></p>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_density.html" class="external-link">geom_density</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><img src="naryn_files/figure-html/unnamed-chunk-18-2.png" width="700"></p>
 </div>
-<div class="section level4">
-<h4 id="extract-patients-age-at-time-of-diagnosis-of-heart-disease-diagnosis-411-that-did-not-have-diabetes-diagnosis-250">Extract patients age at time of diagnosis of heart disease (diagnosis.411) that did not have diabetes (diagnosis.250)<a class="anchor" aria-label="anchor" href="#extract-patients-age-at-time-of-diagnosis-of-heart-disease-diagnosis-411-that-did-not-have-diabetes-diagnosis-250"></a>
-</h4>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="section level3">
+<h3 id="extract-patients-age-at-time-of-diagnosis-of-heart-disease-diagnosis-411-that-did-not-have-diabetes-diagnosis-250">Extract patients age at time of diagnosis of heart disease (diagnosis.411) that did not have diabetes (diagnosis.250)<a class="anchor" aria-label="anchor" href="#extract-patients-age-at-time-of-diagnosis-of-heart-disease-diagnosis-411-that-did-not-have-diabetes-diagnosis-250"></a>
+</h3>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># find onset of heart disease</span></span>
 <span><span class="fu"><a href="../reference/emr_vtrack.create.html">emr_vtrack.create</a></span><span class="op">(</span><span class="st">"heart_onset"</span>, <span class="st">"dx.icd9_411"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">120</span> <span class="op">*</span> <span class="fl">365</span> <span class="op">*</span> <span class="fl">24</span><span class="op">)</span>, func <span class="op">=</span> <span class="st">"earliest.time"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/emr_filter.create.html">emr_filter.create</a></span><span class="op">(</span><span class="st">"has_heart_disease"</span>, <span class="st">"dx.icd9_411"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">120</span> <span class="op">*</span> <span class="fl">365</span> <span class="op">*</span> <span class="fl">24</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co"># retrieving the earliest time of heart disease for all patients in db that have a heart disease</span></span>
 <span><span class="va">heart_onset</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"heart_onset"</span>, iterator <span class="op">=</span> <span class="st">"patients.dob"</span>, filter <span class="op">=</span> <span class="st">"has_heart_disease"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># filter patients that already have diabetes before heart disease</span></span>
 <span><span class="fu"><a href="../reference/emr_filter.create.html">emr_filter.create</a></span><span class="op">(</span><span class="st">"has_diabetes"</span>, <span class="st">"dx.icd9_250"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">120</span> <span class="op">*</span> <span class="fl">365</span> <span class="op">*</span> <span class="fl">24</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">heart_onset_no_diabetes</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"age/(365*24)"</span>, iterator <span class="op">=</span> <span class="va">heart_onset</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">id</span>, time <span class="op">=</span> <span class="va">heart_onset</span><span class="op">)</span>, filter <span class="op">=</span> <span class="st">"!has_diabetes"</span>, names <span class="op">=</span> <span class="st">"age"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">heart_onset</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 25596</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">heart_onset_no_diabetes</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 5137</span></span></code></pre></div>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">heart_onset_no_diabetes</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    id    time ref      age</span></span>
 <span><span class="co">#&gt; 1   6 1259009  -1 50.39521</span></span>
@@ -269,30 +371,30 @@
 <span><span class="co">#&gt; 5 114 1320426  -1 68.11872</span></span>
 <span><span class="co">#&gt; 6 132 1352258  -1 68.12420</span></span></code></pre></div>
 </div>
-<div class="section level4">
-<h4 id="extract-median-hemoglobin-for-all-males-between-ages-60-to-70">Extract median Hemoglobin for all males between ages 60 to 70<a class="anchor" aria-label="anchor" href="#extract-median-hemoglobin-for-all-males-between-ages-60-to-70"></a>
-</h4>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="section level3">
+<h3 id="extract-median-hemoglobin-for-all-males-between-ages-60-to-70">Extract median Hemoglobin for all males between ages 60 to 70<a class="anchor" aria-label="anchor" href="#extract-median-hemoglobin-for-all-males-between-ages-60-to-70"></a>
+</h3>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># define vtrack for computing the median value of hgb track, assuming patients.dob will be used as the iterator (each patient will be examined once)</span></span>
 <span><span class="fu"><a href="../reference/emr_vtrack.create.html">emr_vtrack.create</a></span><span class="op">(</span><span class="st">"median_hgb"</span>, <span class="st">"lab.HGB"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">60</span>, <span class="fl">70</span><span class="op">)</span> <span class="op">*</span> <span class="fl">365</span> <span class="op">*</span> <span class="fl">24</span>, func <span class="op">=</span> <span class="st">"quantile"</span>, params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># define a filter for males only</span></span>
 <span><span class="fu"><a href="../reference/emr_filter.create.html">emr_filter.create</a></span><span class="op">(</span><span class="st">"is_male"</span>, <span class="st">"patients.dob"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span>, val <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># extract median_hgb for males only</span></span>
 <span><span class="va">male_hgb_60_70_q50</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"median_hgb"</span>, iterator <span class="op">=</span> <span class="st">"patients.dob"</span>, filter <span class="op">=</span> <span class="st">"is_male"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># comparing with female median hgb</span></span>
 <span><span class="va">female_hgb_60_70_q50</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"median_hgb"</span>, iterator <span class="op">=</span> <span class="st">"patients.dob"</span>, filter <span class="op">=</span> <span class="st">"!is_male"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/density.html" class="external-link">density</a></span><span class="op">(</span><span class="va">male_hgb_60_70_q50</span><span class="op">$</span><span class="va">median_hgb</span>, na.rm <span class="op">=</span> <span class="cn">T</span><span class="op">)</span>, col <span class="op">=</span> <span class="st">"blue"</span>, main <span class="op">=</span> <span class="st">"median hgb"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/density.html" class="external-link">density</a></span><span class="op">(</span><span class="va">female_hgb_60_70_q50</span><span class="op">$</span><span class="va">median_hgb</span>, na.rm <span class="op">=</span> <span class="cn">T</span><span class="op">)</span>, col <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="naryn_files/figure-html/unnamed-chunk-23-1.png" width="700"></p>
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/density.html" class="external-link">density</a></span><span class="op">(</span><span class="va">male_hgb_60_70_q50</span><span class="op">$</span><span class="va">median_hgb</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, col <span class="op">=</span> <span class="st">"blue"</span>, main <span class="op">=</span> <span class="st">"median hgb"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/density.html" class="external-link">density</a></span><span class="op">(</span><span class="va">female_hgb_60_70_q50</span><span class="op">$</span><span class="va">median_hgb</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, col <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="naryn_files/figure-html/unnamed-chunk-27-1.png" width="700"></p>
 </div>
-<div class="section level4">
-<h4 id="compute-distribution-of-hgb-by-age-and-sex">Compute distribution of HGB by age and sex<a class="anchor" aria-label="anchor" href="#compute-distribution-of-hgb-by-age-and-sex"></a>
-</h4>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="section level3">
+<h3 id="compute-distribution-of-hgb-by-age-and-sex">Compute distribution of HGB by age and sex<a class="anchor" aria-label="anchor" href="#compute-distribution-of-hgb-by-age-and-sex"></a>
+</h3>
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">hgb_dist</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emr_dist.html">emr_dist</a></span><span class="op">(</span><span class="st">"age/(24*365)"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">50</span>, <span class="fl">90</span><span class="op">)</span>,</span>
 <span>    <span class="st">"sex"</span>, <span class="cn">NULL</span>,</span>
 <span>    <span class="st">"lab.HGB"</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">16</span>, by <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span>,</span>
@@ -309,16 +411,16 @@
 <span><span class="co">#&gt; 4 [50,90)   2 [10,10.5) 8402</span></span>
 <span><span class="co">#&gt; 5 [20,50)   1 [10.5,11)  344</span></span>
 <span><span class="co">#&gt; 6 [50,90)   1 [10.5,11) 4355</span></span></code></pre></div>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">hgb_dist</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>sex <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"male"</span>, <span class="st">"female"</span><span class="op">)</span><span class="op">[</span><span class="va">sex</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">hgb</span>, y <span class="op">=</span> <span class="va">n</span>, colour <span class="op">=</span> <span class="va">age</span>, group <span class="op">=</span> <span class="va">age</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">sex</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>angle <span class="op">=</span> <span class="fl">90</span>, vjust <span class="op">=</span> <span class="fl">0.5</span>, hjust <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="naryn_files/figure-html/unnamed-chunk-25-1.png" width="700"></p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<p><img src="naryn_files/figure-html/unnamed-chunk-29-1.png" width="700"></p>
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">### Count number of patients by age that are in the system in january 2020</span></span></code></pre></div>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># patients in the system must have already been born, have not yet died, registered with the EHR system and that haven't left for good</span></span>
 <span><span class="fu"><a href="../reference/emr_filter.create.html">emr_filter.create</a></span><span class="op">(</span><span class="st">"born"</span>, <span class="st">"patients.dob"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">120</span> <span class="op">*</span> <span class="fl">365</span> <span class="op">*</span> <span class="fl">24</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/emr_filter.create.html">emr_filter.create</a></span><span class="op">(</span><span class="st">"dead"</span>, <span class="st">"patients.dod"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">120</span> <span class="op">*</span> <span class="fl">365</span> <span class="op">*</span> <span class="fl">24</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
@@ -342,7 +444,7 @@
 <span><span class="co">#&gt; 4 [22,23)   1 250</span></span>
 <span><span class="co">#&gt; 5 [23,24)   1 370</span></span>
 <span><span class="co">#&gt; 6 [24,25)   1 436</span></span></code></pre></div>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>repr.plot.width <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span>
 <span><span class="va">age_dist_2020</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>sex <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"male"</span>, <span class="st">"female"</span><span class="op">)</span><span class="op">[</span><span class="va">sex</span><span class="op">]</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -351,7 +453,7 @@
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">sex</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>angle <span class="op">=</span> <span class="fl">90</span>, vjust <span class="op">=</span> <span class="fl">0.5</span>, hjust <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="naryn_files/figure-html/unnamed-chunk-28-1.png" width="700"></p>
+<p><img src="naryn_files/figure-html/unnamed-chunk-32-1.png" width="700"></p>
 </div>
 </div>
   </div>
