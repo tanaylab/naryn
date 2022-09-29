@@ -24,28 +24,90 @@ theme_set(theme_classic())
 # Getting started with naryn
 
 Naryn is an implmenetation of a time-series database, for efficient storage, retrieval and analysis of electronic health records (EHR).
-The basic element of Naryn is a track - single numerical data element (e.g. RBC lab test result) that is recorded for many patients at various time points. A track can be thought of as a very sparse two-dimentional matrix with a row for each patient in the database, and a column for each hour.
-The patient space is defined by a required track 'patients.dob' which must include all patients with a single timepoint at their time of birth.
-Time reflects the difference in hours to 1/3/1867 00:00.
 
-#### Connect to database
+### Download the example database 
 
+Towards this vignette we are going to use a small database which was simulated to include an example of a typical EMR databse. It can be downloaded from [here](https://naryn.s3.eu-west-1.amazonaws.com/naryn_example_db.tar.gz) or using the following code:
 
-```{r}
-emr_db.connect("/home/nettam/emr/sample_db")
+```{r, eval = FALSE}
+emr_download_example_data()
 ```
 
+Note that although smaller than the real database, this example database is still quite large (~1.2GB) and will take a few minutes to download.
+
+## Tracks
+
+The basic element of Naryn is a track - a single numerical data element (e.g. RBC lab test result) that is recorded for many patients at various time points. A track can be thought of as a very sparse two-dimentional matrix with a row for each patient in the database, and a column for each timepoint in the resolution of hours. Another way to think of a track is as a table with triplets of patient, timepoint and value: 
+
+| id|    time|  lab.RBC|
+|--:|-------:|--------:|
+|  1| 1218708| 4.784053|
+|  1| 1223571| 4.534783|
+|  1| 1227064| 4.114022|
+|  2| 1230857| 4.588766|
+|  2| 1272632| 4.507858|
+|  3| 1218461| 4.620333|
+|  3| 1242600| 5.412831|
+|  3| 1246149| 5.555339|
+
+The value can be any numerical value, but it is usually a lab test result, or categorical variable representing a diagnosis. The time is a number representing the number of hours since 1/3/1867 00:00, and the id is a unique identifier for each patient which is defined in a special track called '*patients.dob*', which contains the time of birth for each patient (see below).
+
+For more information on tracks, see the 'Tracks' section in the [advanced vignette](advanced.html).
+
+## Connect to database
+
+A naryn database is a folder containing a number of tracks. To connect to a database, use the `emr_db.connect` function:
 
 ```{r}
+emr_db.connect("sample_db")
+```
+
+Now we can use `emr_track.ls` to list all the tracks in the database:
+
+```{r}
+head(emr_track.ls())
+
 # show number of available tracks in database
 length(emr_track.ls())
 ```
 
+We can also use `emr_track.ls` to list all the tracks that match a certain pattern:
 
-### Extract all patients in database
+```{r}
+emr_track.ls("RBC")
+```
 
-all patients must be listed in a track called 'patients.dob'. This track contains for each patient a single time point at the time of birth. In this mock database, the value per patient reflect their sex: 1 for male, 2 for female.
+> Naryn supports connecting to multiple databases at the same time, by giving a vector of paths to `emr_db.connect`, see more in the 'Database' section of the [advanced vignette](advanced.html).
 
+## Extract data from tracks
+
+We can now go back to the 'RBC' example and extract the data from the track. This can be done using the `emr_extract()` function which is the 'swiss army knife' of the package. It can be used to extract data from a single track, or from multiple tracks, while applying various filters and transformations, but we will start with the simplest example of extracting the data from a single track:
+
+```{r}
+rbc_df <- emr_extract("lab.RBC")
+head(rbc_df)
+```
+
+We can see that the data is returned as a data frame with three columns: id, time, ref and value. The id column contains the patient id, the time column contains the time of the measurement in hours since 1/3/1867 00:00, and the value column contains the Red Blood Cell count of the patient at each timepoint. For information regarding the ref column, see the 'Records and References' section in the [advanced vignette](advanced.html).
+
+The data frame is sorted by id and time, so that the data for each patient is grouped together. 
+
+---
+**Changing time to date**
+
+We can transform the time to year, month day and hour using the `emr_time2date()` function:
+
+```{r}
+rbc_df %>%
+    mutate(emr_time2date(time)) %>% 
+    head()
+```
+
+---
+
+## Extract all patients in database
+
+As noted above, all patients must be listed in a track called 'patients.dob'. This track contains for each patient a single time point at the time of birth. In this mock database, the value per patient reflect their sex: 1 for male, 2 for female:
 
 ```{r}
 patients <- emr_extract("patients.dob", names = "sex")
@@ -56,7 +118,7 @@ patients %>%
 ```
 
 
-### Define virtual track for Age
+## Define virtual track for Age
 
 In order to know the age of a patient at different event times we will calculate the difference between the time of the event 
 and the time the patient was born as found in the patients.dob track. 
@@ -70,14 +132,14 @@ The difference in time is computed by the dt2.earliest function which computes t
 emr_vtrack.create("age", "patients.dob", time.shift = c(-120 * 365 * 24, 0), func = "dt2.earliest")
 ```
 
-### extract age and wbc test value, at time of test for each test performed in 2010
+## extract age and wbc test value, at time of test for each test performed in 2010
 
 
 ```{r}
 emr_extract(c("age/(365*24)", "lab.WBC"), iterator = "lab.WBC", stime = emr_date2time(1, 1, 2010), etime = emr_date2time(1, 1, 2011), names = c("age", "wbc")) %>% head()
 ```
 
-### Define virtual track for Survival - time until death
+## Define virtual track for Survival - time until death
 
 assume that patients.dod is a track with a single entry at most for each patient in the EHR database at time of death. 
 
@@ -86,7 +148,7 @@ assume that patients.dod is a track with a single entry at most for each patient
 emr_vtrack.create("survival", "patients.dod", time.shift = c(0, 120 * 365 * 24), func = "dt1.earliest")
 ```
 
-### Extract survival time for patients with pancreatic cancer
+## Extract survival time for patients with pancreatic cancer
 
 
 ```{r}
@@ -129,7 +191,7 @@ survminer::ggsurvplot(fit, data = pancreatic_cancer_survival)
 
 
 
-### Extract HGB and age for all patients between the ages 60 and 70
+## Extract HGB and age for all patients between the ages 60 and 70
 
 ```{r}
 # create an age filter. If we go over a BMI test value for a patient, then we expect there to be a date of birth entry between 70 and 60 years before. This would mean that the patient is in the required age range
@@ -164,7 +226,7 @@ ggplot(hgb_sex_60_70, aes(x = hgb, color = sex, group = sex)) +
 
 
 
-### Extract patients age at time of diagnosis of heart disease (diagnosis.411)  that did not have diabetes (diagnosis.250)
+## Extract patients age at time of diagnosis of heart disease (diagnosis.411) that did not have diabetes (diagnosis.250)
 
 
 ```{r}
@@ -194,7 +256,7 @@ head(heart_onset_no_diabetes)
 ```
 
 
-### Extract median Hemoglobin for all males between ages 60 to 70
+## Extract median Hemoglobin for all males between ages 60 to 70
 
 
 ```{r}
@@ -222,11 +284,11 @@ female_hgb_60_70_q50 <- emr_extract("median_hgb", iterator = "patients.dob", fil
 
 
 ```{r}
-plot(density(male_hgb_60_70_q50$median_hgb, na.rm = T), col = "blue", main = "median hgb")
-lines(density(female_hgb_60_70_q50$median_hgb, na.rm = T), col = "red")
+plot(density(male_hgb_60_70_q50$median_hgb, na.rm = TRUE), col = "blue", main = "median hgb")
+lines(density(female_hgb_60_70_q50$median_hgb, na.rm = TRUE), col = "red")
 ```
 
-### Compute distribution of HGB by age and sex
+## Compute distribution of HGB by age and sex
 
 
 ```{r}
