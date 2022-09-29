@@ -202,10 +202,11 @@ random_filter_name <- function(pattern) {
 #'
 #' @examples
 #' \dontrun{
-#' create_logical_track_filter("logical_track")
+#' .create_logical_track_filter("logical_track")
 #' }
 #' @export
-create_logical_track_filter <- function(ltrack, filter = NULL, filter_name = NULL, env = parent.frame()) {
+#' @noRd
+.create_logical_track_filter <- function(ltrack, filter = NULL, filter_name = NULL, env = parent.frame()) {
     ltrack <- emr_track.logical.info(ltrack)
     if (is.null(filter_name)) {
         filter_name <- random_filter_name("logical_filter_")

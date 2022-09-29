@@ -492,14 +492,14 @@ void NRTrackExprScanner::create_expr_iterator(SEXP rtrack_exprs, SEXP rstime, SE
 }
 
 // add a filter based on the logical track values:
-// call the R function create_logical_track_filter("logical_track", filter = filter)
+// call the R function .create_logical_track_filter("logical_track", filter = filter)
 SEXP NRTrackExprScanner::create_logical_track_filter(SEXP riterator, SEXP filter) const {
     SEXP e;
 
     if (filter == R_NilValue){
-        PROTECT(e = lang2(install("create_logical_track_filter"), riterator));
+        PROTECT(e = lang2(install(".create_logical_track_filter"), riterator));
     } else {
-        PROTECT(e = lang3(install("create_logical_track_filter"), riterator, filter));
+        PROTECT(e = lang3(install(".create_logical_track_filter"), riterator, filter));
     }
 
     SEXP res = R_tryEval(e, g_naryn->env(), NULL);
