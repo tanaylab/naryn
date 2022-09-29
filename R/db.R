@@ -205,7 +205,6 @@ emr_db.reload <- function() {
 #' Unload all tracks from naryn database
 #'
 #' @export
-#' @noRd
 emr_db.unload <- function() {
     .emr_call("emr_dbunload", new.env(parent = parent.frame()), silent = TRUE)
 }
@@ -233,7 +232,7 @@ emr_db.unload <- function() {
 #' @keywords ~db ~data ~database ~subset
 #' @export emr_db.subset
 emr_db.subset <- function(src = "", fraction = NULL, complementary = NULL) {
-    if (!is.null(src) && src == "") {
+    if (!is.null(src) && is.atomic(src) && src == "") {
         stop("Usage: emr_db.subset(src, fraction, complementary)", call. = FALSE)
     }
     .emr_checkroot()

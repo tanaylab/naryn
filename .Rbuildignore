@@ -1,3 +1,11 @@
 ^tests/testdb$
 ^tests/snapshots$
 ^\.github$
+^src/*\.o$
+^src/*\.so$
+^src/*\.d$
+^\.vscode$
+^\.vscode/.env$
+^_pkgdown.yml$
+^README.Rmd$
+^.lintr$

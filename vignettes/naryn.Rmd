@@ -121,6 +121,8 @@ pancreatic_cancer_survival <- pancreatic_cancer_survival %>%
 
 ```{r}
 # fitting survival curve
+library(survminer)
+library(survival)
 fit <- survminer::surv_fit(survival::Surv(follow_time, status) ~ 1, data = pancreatic_cancer_survival)
 survminer::ggsurvplot(fit, data = pancreatic_cancer_survival)
 ```

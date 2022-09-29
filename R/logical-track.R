@@ -144,15 +144,15 @@ emr_track.logical.rm <- function(track, force = FALSE, rm_vars = TRUE) {
 
 #' Is a track logical
 #'
-#' @param name of the track
+#' @param track of the track
 #'
 #' @return TRUE if \code{track} is a logical track and FALSE otherwise
 #'
 #' @examples
-#'
+#' \dontrun{
 #' emr_track.logical.exists("logical_track")
+#' }
 #' @export
-#' @noRd
 emr_track.logical.exists <- function(track) {
     .emr_checkroot()
     purrr::map_lgl(track, ~ .emr_call("emr_is_logical", .x, new.env(parent = parent.frame()), silent = TRUE))
@@ -170,11 +170,11 @@ emr_track.logical.exists <- function(track) {
 #' @seealso \code{\link{emr_track.ls}}
 #' @keywords ~track ~info ~property
 #' @examples
-#'
+#' \dontrun{
 #' emr_db.init_examples()
 #' emr_track.logical.info("logical_track")
+#' }
 #' @export
-#' @noRd
 emr_track.logical.info <- function(track) {
     if (missing(track)) {
         stop("Usage: emr_track.logical.info(track)", call. = FALSE)
@@ -190,18 +190,21 @@ random_filter_name <- function(pattern) {
 
 #' Create a filter for logical track
 #'
+#' @description This function is mostly for internal use. Please create a filter using \code{\link{emr_filter.create}}.
+#'
 #' @param ltrack name of logical track
 #' @param filter existing filter (the new filter would be added)
 #' @param filter_name name for the new filter (optional)
+#' @param env environment for the new filter (optional)
 #'
 #' @return a string with the logical track filter (i.e. filter for the values of the original track), added (with '&' operator) to the original filter (if exists).
 #'
 #'
 #' @examples
-#'
+#' \dontrun{
 #' create_logical_track_filter("logical_track")
+#' }
 #' @export
-#' @noRd
 create_logical_track_filter <- function(ltrack, filter = NULL, filter_name = NULL, env = parent.frame()) {
     ltrack <- emr_track.logical.info(ltrack)
     if (is.null(filter_name)) {

@@ -33,11 +33,12 @@ Suggests:
     tibble,
     testthat (>= 3.0.4),
     tools,
+    rlang,
     withr
 VignetteBuilder: 
     knitr
 Config/testthat/edition: 3
-Config/testthat/parallel: true
+Config/testthat/parallel: false
 Config/testthat/start-first: logical_tracks, w_test-options, x_multiple_db
 Encoding: UTF-8
 LazyLoad: yes
