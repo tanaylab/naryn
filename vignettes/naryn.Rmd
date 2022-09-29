@@ -29,7 +29,7 @@ Naryn is an implmenetation of a time-series database, for efficient storage, ret
 
 Towards this vignette we are going to use a small database which was simulated to include an example of a typical EMR databse. It can be downloaded from [here](https://naryn.s3.eu-west-1.amazonaws.com/naryn_example_db.tar.gz) or using the following code:
 
-```{r, eval = FALSE}
+```{r}
 emr_download_example_data()
 ```
 
@@ -92,8 +92,7 @@ We can see that the data is returned as a data frame with three columns: id, tim
 
 The data frame is sorted by id and time, so that the data for each patient is grouped together. 
 
----
-**Changing time to date**
+#### Changing time to date
 
 We can transform the time to year, month day and hour using the `emr_time2date()` function:
 
@@ -103,7 +102,6 @@ rbc_df %>%
     head()
 ```
 
----
 
 ## Extract all patients in database
 

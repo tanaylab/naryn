@@ -11,7 +11,7 @@
 #'
 #' @examples
 #' \dontrun{
-#' emr_download_example_data("sample_db")
+#' emr_download_example_data()
 #' }
 #'
 #' @export

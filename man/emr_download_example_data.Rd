@@ -20,7 +20,7 @@ Download an example database which was simulated to include an example of a typi
 }
 \examples{
 \dontrun{
-emr_download_example_data("sample_db")
+emr_download_example_data()
 }
 
 }
