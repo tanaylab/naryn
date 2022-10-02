@@ -1,10 +1,6 @@
 ---
 title: "naryn"
 output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{naryn}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r, include = FALSE}
@@ -29,7 +25,7 @@ Naryn is an implmenetation of a time-series database, for efficient storage, ret
 
 Towards this vignette we are going to use a small database which was simulated to include an example of a typical EMR databse. It can be downloaded from [here](https://naryn.s3.eu-west-1.amazonaws.com/naryn_example_db.tar.gz) or using the following code:
 
-```{r}
+```{r, eval = FALSE}
 emr_download_example_data()
 ```
 

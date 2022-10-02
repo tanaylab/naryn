@@ -10,3 +10,5 @@
 ^README.Rmd$
 ^.lintr$
 ^sample_db$
+^vignettes/sample_db$
+^vignettes/articles$

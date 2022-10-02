@@ -16,3 +16,5 @@ inst/doc
 docs/
 architecture.*
 sample_db/
+vignettes/articles/sample_db
+vignettes/sample_db
