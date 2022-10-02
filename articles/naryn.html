@@ -347,7 +347,7 @@
 <span><span class="co">#&gt; 4 3432 1332812  -1 6.169343  7.750395</span></span>
 <span><span class="co">#&gt; 5 3529 1269751  -1 6.435419  8.229447</span></span>
 <span><span class="co">#&gt; 6 4326 1234490  -1 6.006401  9.864933</span></span></code></pre></div>
-<p>Another example is to include or exclude based on the value of a categorical track. For example, in order to include only patients that were diagnosed with Postmyocardial infarction syndrome (ICD9 code 411.0) we filter “dx.icd9_411” to include only points with value of “10”.</p>
+<p>Another example is to include or exclude based on the value of a categorical track. For example, in order to include only patients that were diagnosed with Postmyocardial infarction syndrome (ICD9 code 411.0) we filter “dx.icd9_411” to include only points with value of “10” (see note below):</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/emr_filter.create.html">emr_filter.create</a></span><span class="op">(</span><span class="st">"postmyocardial_infarction"</span>, <span class="st">"dx.icd9_411"</span>, val <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
 <span><span class="va">postmyo_blood</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span></span>
