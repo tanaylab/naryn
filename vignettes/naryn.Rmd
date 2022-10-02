@@ -200,7 +200,7 @@ heart_blood_abnormal_rbc <- emr_extract(
 head(heart_blood_abnormal_rbc)
 ```
 
-Another example is to include or exclude based on the value of a categorical track. For example, in order to include only patients that were diagnosed with Postmyocardial infarction syndrome (ICD9 code 411.0) we filter "dx.icd9_411" to include only points with value of "10". 
+Another example is to include or exclude based on the value of a categorical track. For example, in order to include only patients that were diagnosed with Postmyocardial infarction syndrome (ICD9 code 411.0) we filter "dx.icd9_411" to include only points with value of "10" (see note below):
 
 ```{r}
 emr_filter.create("postmyocardial_infarction", "dx.icd9_411", val = 10)
@@ -368,8 +368,9 @@ hgb_60_70 <- emr_extract(c("age/year()", "lab.HGB", "sex"), iterator = "lab.HGB"
 We can now plot the distribution: 
 
 ```{r}
-hgb_sex_60_70 %>%
-    ggplot(aes(x = hgb, color = sex, group = sex)) +
+hgb_60_70 %>%
+    mutate(sex = factor(c("male", "female")[sex])) %>%
+    ggplot(aes(x = HGB, color = sex, group = sex)) +
     geom_density()
 ```
 
