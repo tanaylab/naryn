@@ -88,9 +88,9 @@ rbc_df <- emr_extract("lab.RBC")
 head(rbc_df)
 ```
 
-We can see that the data is returned as a data frame with three columns: id, time, ref and value. The id column contains the patient id, the time column contains the time of the measurement in hours since 1/3/1867 00:00, and the value column contains the Red Blood Cell count of the patient at each timepoint. For information regarding the ref column, see the 'Records and References' section in the [advanced vignette](advanced.html).
+We can see that the data is returned as a data frame with four columns: id, time, ref and value. The id column contains the patient id, the time column contains the time of the measurement in hours since 1/3/1867 00:00, and the value column contains the Red Blood Cell count of the patient at each timepoint. For information regarding the ref column, see the 'Records and References' section in the [advanced vignette](advanced.html).
 
-The data frame is sorted by id and time, so that the data for each patient is grouped together. 
+The data frame is sorted by id and time, so that the data for each patient is consecutive. 
 
 ### Track expression 
 
@@ -109,21 +109,8 @@ We can transform the time to year, month day and hour using the `emr_time2date()
 
 ```{r}
 rbc_df %>%
-    mutate(emr_time2date(time)) %>% 
+    mutate(emr_time2date(time)) %>%
     head()
-```
-
-
-## Extract all patients in database
-
-As noted above, all patients must be listed in a track called 'patients.dob'. This track contains for each patient a single time point at the time of birth. In this mock database, the value per patient reflect their sex: 1 for male, 2 for female:
-
-```{r}
-patients <- emr_extract("patients.dob", names = "sex")
-head(patients)
-patients %>%
-    count(sex) %>%
-    mutate(sex = c("male", "female")[sex])
 ```
 
 
@@ -131,7 +118,7 @@ patients %>%
 
 In the previous example we extracted the data from a single track, what happens if we want to extract data from multiple tracks at once? For example, we would want to extract the RBC and WBC (White Blood cell Count) of patients which had a heart disease (ICD9 code 411), 5 years prior to the diagnosis. In order to acheive this we need to introduce the concept of *iterators*. 
 
-An iterator is a set of points in the *patient-time space*[^1] that defines the way in which naryn traverses the database. In the RBC example, the iterator was simply the set of all *patient-time* points when that were included in the track, but now - we would want our point-of-view to be the heart disease diagnosis so we would set the iterator to this track: 
+An iterator is a set of points in the *patient-time space*[^1] that defines the way in which naryn traverses the database. In the RBC example, the iterator was simply the set of all *patient-time* points that were included in the track, but now - we would want our point-of-view to be the heart disease diagnosis so we would set the iterator to the track of ICD code 411: 
 
 ```{r}
 heart_blood <- emr_extract(c("lab.RBC", "lab.WBC"), iterator = "dx.icd9_411")
@@ -145,7 +132,7 @@ We can see that the "lab.RBC" and "lab.WBC" are all NA. This is because the iter
 1. Tell naryn to look back 5 years before the diagnosis
 2. Tell naryn what to do if there is more than one RBC test in the 5 years prior to the diagnosis, for example - take the earliest, or more generally - tell naryn which function to apply to values of the track. 
 
-This can be done using a *virtual track*. A virtual track is a way to tell naryn how to compute the value of a track when at a specific in the *patient-time space*. It is created using the `emr_virtual_track()` function, which tells naryn how to shift the time for a given track (1, `time.shift`) and which function to apply to the values of the track (2, `func`). In our case: 
+This can be done using a *virtual track*. A virtual track is a way to tell naryn how to compute the value of a track when at a specific point in the *patient-time space*. It is created using the `emr_virtual_track()` function, which tells naryn how to shift the time for a given track (1, `time.shift`) and which function to apply to the values of the track (2, `func`). In our case: 
 
 ```{r}
 emr_vtrack.create("rbc_5y", "lab.RBC", time.shift = c(-years(5), -1), func = "earliest")
@@ -159,20 +146,20 @@ heart_blood <- emr_extract(c("rbc_5y", "wbc_5y"), iterator = "dx.icd9_411", name
 head(heart_blood)
 ```
 
-We can also extract the time difference between the diagnosis and the blood test by creating an additional virtual track, this time with a function that computes the difference between the time of the diagnosis and the earliest blood test. Also, we would like the time difference to be in the resolution of months, so we will give `emr_extract` a track expression that divides the time difference by 30 * 24 (the number of hours in a month):
+We would like to also know how long before the diagnosis each test was performed, so we will create an additional virtual track, this time with a function that computes the difference between the time of the diagnosis and the earliest blood test. Also, we would like the time difference to be in the resolution of months, so we will give `emr_extract` a track expression that divides the time difference by 30 * 24 (the number of hours in a month), which is equivalent ot the `month` function:
 
 ```{r}
 emr_vtrack.create("rbc_5y_d", "lab.RBC", time.shift = c(-years(5), -1), func = "dt2.earliest")
 emr_vtrack.create("wbc_5y_d", "lab.WBC", time.shift = c(-years(5), -1), func = "dt2.earliest")
 heart_blood <- emr_extract(
-    c("rbc_5y", "wbc_5y", "rbc_5y_d/(30*24)", "wbc_5y_d/(30*24)"),
-    iterator = "dx.icd9_411", 
+    c("rbc_5y", "wbc_5y", "rbc_5y_d/month()", "wbc_5y_d/month()"),
+    iterator = "dx.icd9_411",
     names = c("RBC", "WBC", "RBC_d", "WBC_d")
 )
 head(heart_blood)
 ```
 
-Yay! we got what we wanted, but something is still weird - we can see that some patients (and in this sampled databse - most patients) have more than one diagnosis of a heart disease. Many times, this is indeed the case - a patient can be diagnosed with heart disease multiple times, but more commonly in EMR data - the same diagnosis is recorded multiple times, and what we actually want is the earliest diagnosis. In order to acheive that we would have to use *filters*.
+Yay! we got what we wanted, but something is still weird - we can see that some patients (and in this sampled database - most patients) have more than one diagnosis of a heart disease. Many times, this is indeed the case - a patient can be diagnosed with heart disease multiple times, but more commonly in EMR data - the same diagnosis is recorded multiple times, and what we actually want is the earliest diagnosis. In order to acheive that we would have to use *filters*.
 
 [^1]: Actually, *patient-time-reference* space, but this is explained in the advanced vignette.
 
@@ -188,7 +175,7 @@ We will now apply the filter to our query:
 
 ```{r}
 heart_blood <- emr_extract(
-    c("rbc_5y", "wbc_5y", "rbc_5y_d/(30*24)", "wbc_5y_d/(30*24)"),
+    c("rbc_5y", "wbc_5y", "rbc_5y_d/month()", "wbc_5y_d/month()"),
     iterator = "dx.icd9_411",
     names = c("RBC", "WBC", "RBC_d", "WBC_d"),
     filter = "!heart_disease_in_past"
@@ -200,14 +187,14 @@ Voila! every patient now has only the earliest diagnosis of heart disease.
 
 ### Value filters 
 
-Filters can not only be used to exclude or include points by the mere existence of a point in the *patient-time space* (like the previous example), but also by the value of the point. For example, we can create a filter that would include only points were the RBC was abnormal (say, above 6):
+Filters can not only be used to exclude or include points by the mere existence of a point in the *patient-time space* (like the previous example), but also by the value of the point. For example, we can create a filter that would include only points where the RBC was abnormal (say, above 6):
 
 ```{r}
 emr_filter.create("abnormal_rbc", "rbc_5y", val = 6, operator = ">")
 heart_blood_abnormal_rbc <- emr_extract(
     c("rbc_5y", "wbc_5y"),
-    iterator = "dx.icd9_411", 
-    filter = "!heart_disease_in_past & abnormal_rbc", 
+    iterator = "dx.icd9_411",
+    filter = "!heart_disease_in_past & abnormal_rbc",
     names = c("RBC", "WBC")
 )
 head(heart_blood_abnormal_rbc)
@@ -219,191 +206,77 @@ Another example is to include or exclude based on the value of a categorical tra
 emr_filter.create("postmyocardial_infarction", "dx.icd9_411", val = 10)
 postmyo_blood <- emr_extract(
     c("rbc_5y", "wbc_5y", "dx.icd9_411"),
-    iterator = "dx.icd9_411", 
-    filter = "!heart_disease_in_past & postmyocardial_infarction", 
-    names = c("RBC", "WBC", "ic9_411")
+    iterator = "dx.icd9_411",
+    filter = "!heart_disease_in_past & postmyocardial_infarction",
+    names = c("RBC", "WBC", "icd9_411")
 )
 head(postmyo_blood)
 ```
 
 > NOTE: since ICD9 diagnosis codes have a tree like structure, and X.0, X.00 are both valid codes and must be distinguishable, the diagnosis tracks all include a prefix of 1 for the minor code, so X.0 will be translated to icd9_X and a value of 10 will be stored instead of 0.
 
+## Extract all patients in database
 
-## Define a virtual track for age
-
-In order to know the age of a patient at different event times we will calculate the difference between the time of the event 
-and the time the patient was born as found in the patients.dob track. 
-This is done by defining a virtual track, whereby the souce of the virtual track is patients.dob. 
-A time window from the time of the event backwords in time (up to max age = 120 years) should capture the time the patient was born.
-The difference in time is computed by the dt2.earliest function which computes the delta time (in hours) between the event time and the earliest appearance of a poin in the source track of the virtual track.
-
-
+As noted above, all patients must be listed in a track called 'patients.dob'. This track contains for each patient a single time point at the time of birth. In this mock database, the value per patient reflect their sex: 1 for male, 2 for female:
 
 ```{r}
-emr_vtrack.create("age", "patients.dob", time.shift = c(-120 * 365 * 24, 0), func = "dt2.earliest")
+patients <- emr_extract("patients.dob", names = "sex")
+head(patients)
+patients %>%
+    count(sex) %>%
+    mutate(sex = c("male", "female")[sex])
 ```
 
-## extract age and wbc test value, at time of test for each test performed in 2010
 
+## Define virtual tracks for age and sex
+
+Given what we learned about iterators, virtual tracks and filters, how would we extract the *age* of a patient at a given timepoint? For example, say that we want to know the age of a patient at the time of their first diagnosis of heart disease. We can do this by creating a virtual track that computes the difference between the time of the diagnosis and the time of birth. 
+
+A virtual track needs 4 things - name, source, time shift and function. We sould set the name to "age", the source to "patients.dob" and at each point of the iterator we would like to go backward in time a maximal amount (say - 120 years) and compute the time difference between the point and the birth, so we will set the `time.shift` to `c(-years(120), 0)` and the function to `dt2.earliest`:
 
 ```{r}
-emr_extract(c("age/(365*24)", "lab.WBC"), iterator = "lab.WBC", stime = emr_date2time(1, 1, 2010), etime = emr_date2time(1, 1, 2011), names = c("age", "wbc")) %>% head()
+emr_vtrack.create("age", "patients.dob", time.shift = c(-years(120), 0), func = "dt2.earliest")
 ```
 
-## Define virtual track for Survival - time until death
+We can now extract the age of the patient at the time of their first diagnosis of heart disease in the resolution of years: 
 
-assume that patients.dod is a track with a single entry at most for each patient in the EHR database at time of death. 
+```{r}
+age_at_heart_diag <- emr_extract("age/year()", iterator = "dx.icd9_411", name = "age")
+head(age_at_heart_diag)
+```
 
+Sex can be defined in a similar way going backward in time and taking the earliest value at the "patients.dob" track:
+
+```{r}
+emr_vtrack.create("sex", "patients.dob", time.shift = c(-years(120), 0), func = "earliest")
+```
+
+## Define a virtual track for survival - time until death
+
+Assume that `patients.dod` is a track with a single entry (at most) for each patient in the EHR database at time of death. Define a virtual track that computes the time until death for each patient in the current iterator timepoint:
 
 ```{r}
 emr_vtrack.create("survival", "patients.dod", time.shift = c(0, 120 * 365 * 24), func = "dt1.earliest")
 ```
 
-## Extract survival time for patients with pancreatic cancer
 
+## Time range
+
+Until now we learned how to use filters to exclude or include datapoints by their value or existence, but what if we want to include only points that are within a certain time range? For example, say that we want to extract the age and WBC test values of tests that were performed in 2010. We can do this by using the `stime` and `etime` arguments of `emr_extract` which limit the query to points that are between the given start and end times:
 
 ```{r}
-# pancreatic cancer icd9 code is 157.9
-# note that since icd9 diagnosis codes have a tree like structure, and X.0, X.00 are both valid codes and must be distinguishable,
-# the diagnosis tracks all include a prefix of 1 for the minor code, so X.0 will be translated to icd9_X and a value of 10 will be stored.
-
-# define a filter for just Pancreatic cancer in the 157 icd9 code.
-emr_filter.create("pancreatic_cancer", "dx.icd9_157", val = 19)
-# define a filter for previous pancreatic cancer (sometime in the past).
-emr_filter.create("pancreatic_cancer_in_past", "dx.icd9_157", val = 19, time.shift = c(-120 * 365 * 24, -1))
-
-# to find the first diagnosis of pancreatic cancer we will go over all 157 diagnosis, filter out those that are not pancreatic cancer and make sure there wasn't a prior diagnosis of pancreatic cancer
-pancreatic_cancer_survival <- emr_extract("survival", iterator = "dx.icd9_157", filter = "pancreatic_cancer & !pancreatic_cancer_in_past")
-nrow(pancreatic_cancer_survival)
-head(pancreatic_cancer_survival)
-
-# note that NA in survival means that the patient still has not died
+wbc_2010 <- emr_extract(c("age/year()", "lab.WBC"), iterator = "lab.WBC", stime = emr_date2time(1, 1, 2010), etime = emr_date2time(1, 1, 2011), names = c("age", "wbc"))
+head(wbc_2010)
 ```
 
 
-```{r}
-# kaplan meier for survival of pancreatic cancer patients
-# censoring is applied to reflect latest update of database (Jan 6, 2022)
-pancreatic_cancer_survival <- pancreatic_cancer_survival %>%
-    mutate(
-        follow_time = ifelse(!is.na(survival), survival, emr_date2time(6, 1, 2022) - time),
-        status = ifelse(is.na(survival), 0, 1)
-    )
-```
+## Computing distributions 
 
+`emr_extract` is not the only function that can be used to extract data from the database. Another function that can be used to extract data is `emr_dist`, which is used to compute distributions of values of a track. For example, say that we want to compute the distribution of Hemoglobin (HGB) values in the database, stratified by age and sex. One way to do it would be to extract the values of HGB, age and sex, and then compute the distribution using standard R functions. However, this would require loading the entire track into memory, which is not always possible, and moreover - it is less efficient to go over the same data twice. `emr_dist` can to it in one shot, by accepting pairs of tracks expression and breaks and counting the number of values in each strata:
 
 ```{r}
-# fitting survival curve
-library(survminer)
-library(survival)
-fit <- survminer::surv_fit(survival::Surv(follow_time, status) ~ 1, data = pancreatic_cancer_survival)
-survminer::ggsurvplot(fit, data = pancreatic_cancer_survival)
-```
-
-
-
-## Extract HGB and age for all patients between the ages 60 and 70
-
-```{r}
-# create an age filter. If we go over a BMI test value for a patient, then we expect there to be a date of birth entry between 70 and 60 years before. This would mean that the patient is in the required age range
-emr_filter.create("age_60_70", "patients.dob", time.shift = c(-70, -60) * 365 * 24)
-hgb_60_70 <- emr_extract(c("age/(24*365)", "lab.HGB"), iterator = "lab.HGB", filter = "age_60_70", names = c("age", "hgb"))
-```
-
-
-```{r}
-ggplot(hgb_60_70 %>% mutate(age = floor(age)) %>% count(age), aes(x = age, y = n)) +
-    geom_bar(stat = "identity")
-ggplot(hgb_60_70, aes(x = hgb)) +
-    geom_density()
-```
-
-
-```{r}
-# adding sex information as hgb has bimodal distribution
-# sex is encoded in the patients.dob track, 1 for male and 2 for female
-emr_vtrack.create("sex", "patients.dob", time.shift = c(-120 * 365 * 24, 0), func = "earliest")
-hgb_sex_60_70 <- emr_extract(c("age/(24*365)", "sex", "lab.HGB"), iterator = "lab.HGB", filter = "age_60_70", names = c("age", "sex", "hgb")) %>%
-    mutate(sex = factor(c("male", "female")[sex]))
-```
-
-
-```{r}
-ggplot(hgb_sex_60_70 %>% mutate(age = floor(age)) %>% count(age, sex), aes(x = age, y = n, fill = sex)) +
-    geom_bar(stat = "identity")
-ggplot(hgb_sex_60_70, aes(x = hgb, color = sex, group = sex)) +
-    geom_density()
-```
-
-
-
-## Extract patients age at time of diagnosis of heart disease (diagnosis.411) that did not have diabetes (diagnosis.250)
-
-
-```{r}
-# find onset of heart disease
-emr_vtrack.create("heart_onset", "dx.icd9_411", time.shift = c(0, 120 * 365 * 24), func = "earliest.time")
-emr_filter.create("has_heart_disease", "dx.icd9_411", time.shift = c(0, 120 * 365 * 24))
-# retrieving the earliest time of heart disease for all patients in db that have a heart disease
-heart_onset <- emr_extract("heart_onset", iterator = "patients.dob", filter = "has_heart_disease")
-```
-
-
-```{r}
-# filter patients that already have diabetes before heart disease
-emr_filter.create("has_diabetes", "dx.icd9_250", time.shift = c(-120 * 365 * 24, 0))
-heart_onset_no_diabetes <- emr_extract("age/(365*24)", iterator = heart_onset %>% select(id, time = heart_onset), filter = "!has_diabetes", names = "age")
-```
-
-
-```{r}
-nrow(heart_onset)
-nrow(heart_onset_no_diabetes)
-```
-
-
-```{r}
-head(heart_onset_no_diabetes)
-```
-
-
-## Extract median Hemoglobin for all males between ages 60 to 70
-
-
-```{r}
-# define vtrack for computing the median value of hgb track, assuming patients.dob will be used as the iterator (each patient will be examined once)
-emr_vtrack.create("median_hgb", "lab.HGB", time.shift = c(60, 70) * 365 * 24, func = "quantile", params = c(0.5))
-```
-
-
-```{r}
-# define a filter for males only
-emr_filter.create("is_male", "patients.dob", time.shift = c(0, 0), val = 1)
-```
-
-
-```{r}
-# extract median_hgb for males only
-male_hgb_60_70_q50 <- emr_extract("median_hgb", iterator = "patients.dob", filter = "is_male")
-```
-
-
-```{r}
-# comparing with female median hgb
-female_hgb_60_70_q50 <- emr_extract("median_hgb", iterator = "patients.dob", filter = "!is_male")
-```
-
-
-```{r}
-plot(density(male_hgb_60_70_q50$median_hgb, na.rm = TRUE), col = "blue", main = "median hgb")
-lines(density(female_hgb_60_70_q50$median_hgb, na.rm = TRUE), col = "red")
-```
-
-## Compute distribution of HGB by age and sex
-
-
-```{r}
-hgb_dist <- emr_dist("age/(24*365)", c(20, 50, 90),
+hgb_dist <- emr_dist(
+    "age/year()", c(20, 50, 90),
     "sex", NULL,
     "lab.HGB", seq(10, 16, by = 0.5),
     iterator = "lab.HGB",
@@ -414,28 +287,179 @@ hgb_dist <- emr_dist("age/(24*365)", c(20, 50, 90),
 head(hgb_dist)
 ```
 
+We can now plot the distributions:
+
 ```{r}
-ggplot(hgb_dist %>% mutate(sex = factor(c("male", "female")[sex])), aes(x = hgb, y = n, colour = age, group = age)) +
+hgb_dist %>%
+    mutate(sex = factor(c("male", "female")[sex])) %>%
+    group_by(age, sex) %>%
+    mutate(p = n / sum(n)) %>%
+    ggplot(aes(x = hgb, y = p, colour = age, group = age)) +
+    scale_color_manual(values = c("darkred", "blue")) +
     geom_line() +
     facet_wrap(~sex) +
-    theme_bw() +
+    ylab("Fraction of tests") +
+    xlab("HGB") +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ```
 
 
+## Additional examples
+
+In the next few sections we will present a few additional examples of how to use `naryn` for analysis of EMR data. It is reccomened to try and implement a solution to each example before looking at the code below it. 
+
+### Extract survival time for patients with pancreatic cancer
+
+Extract the survival time (time until death) for patients with pancreatic cancer (ICD9 code 157.9):
+
+
+Define a filter for just Pancreatic cancer in the 157 icd9 code:
+
 ```{r}
-### Count number of patients by age that are in the system in january 2020
+emr_filter.create("pancreatic_cancer", "dx.icd9_157", val = 19)
+```
+
+Define a filter for previous pancreatic cancer (sometime in the past):
+
+```{r}
+emr_filter.create("pancreatic_cancer_in_past", "dx.icd9_157", val = 19, time.shift = c(-years(120), -1))
+```
+
+To find the first diagnosis of pancreatic cancer we will go over all 157 diagnosis, filter out those that are not pancreatic cancer and make sure there wasn't a prior diagnosis of pancreatic cancer:
+
+```{r}
+pancreatic_cancer_survival <- emr_extract("survival", iterator = "dx.icd9_157", filter = "pancreatic_cancer & !pancreatic_cancer_in_past")
+nrow(pancreatic_cancer_survival)
+head(pancreatic_cancer_survival)
+```
+
+Note that NA in survival means that the patient still has not died.
+
+We can now compute the kaplan-meier survival curve for pancreatic cancer patients. 
+Censoring is applied to reflect latest update of database (Jan 6, 2022):
+
+```{r}
+pancreatic_cancer_survival <- pancreatic_cancer_survival %>%
+    mutate(
+        follow_time = ifelse(!is.na(survival), survival, emr_date2time(6, 1, 2022) - time),
+        status = ifelse(is.na(survival), 0, 1)
+    ) %>%
+    mutate(follow_time = follow_time / month())
+```
+
+Fit the survival curve: 
+
+```{r}
+library(survminer)
+library(survival)
+fit <- survminer::surv_fit(survival::Surv(follow_time, status) ~ 1, data = pancreatic_cancer_survival)
+survminer::ggsurvplot(fit, data = pancreatic_cancer_survival, xlab = "Time (months)")
+```
+
+### Extract HGB and age for all patients between the ages 60 and 70
+
+Extract all Hemoglobin tests (HGB), age (in years) and sex for patients between the ages of 60 and 70:
+
+```{r}
+emr_filter.create("age_60_70", "patients.dob", time.shift = c(-years(70), -years(60)))
+hgb_60_70 <- emr_extract(c("age/year()", "lab.HGB", "sex"), iterator = "lab.HGB", filter = "age_60_70", names = c("age", "HGB", "sex"))
+```
+
+We can now plot the distribution: 
+
+```{r}
+hgb_sex_60_70 %>%
+    ggplot(aes(x = hgb, color = sex, group = sex)) +
+    geom_density()
 ```
 
 
-```{r}
-# patients in the system must have already been born, have not yet died, registered with the EHR system and that haven't left for good
-emr_filter.create("born", "patients.dob", time.shift = c(-120 * 365 * 24, 0))
-emr_filter.create("dead", "patients.dod", time.shift = c(-120 * 365 * 24, 0))
-emr_filter.create("registered", "patients.status.register", time.shift = c(-120 * 365 * 24, 0))
-emr_filter.create("left_for_good", "patients.status.lfg", time.shift = c(-120 * 365 * 24, 0))
+### Extract patients age at time of diagnosis of heart disease that did not have diabetes in the past
 
-age_dist_2020 <- emr_dist("age/(365*24)", 0:120, "sex", NULL,
+Extract patients age at the time of their first diagnosis of heart disease (diagnosis.411) that did not have diabetes (diagnosis.250) in the past. 
+
+This is very similar to the example above, in which we used a filter to exclude patients that had a previous diagnosis of heart disease. We are now going to use a slightly different approach that would first extract a the patient-time points of the heart disease onset and then use an additional query with these points as the iterator to filter out the patients that had diabetes in the past. This approach is useful in cases where we want to use the onset for other purposes, and it is convenient to have it in a separate table. 
+
+What would be our iterator? We can iterate the heart disease diagnosis track, and in many cases this would be the right choice. However, sometimes this track can be quite large, for example if it is a very common lab test. In such cases we can iterate over the "patients.dob" track instead, while shifting the time forward by the maximum amount (e.g. 120 years):
+
+```{r}
+# Find onset of heart disease
+emr_vtrack.create("heart_onset", "dx.icd9_411", time.shift = c(0, years(120)), func = "earliest.time")
+emr_filter.create("has_heart_disease", "dx.icd9_411", time.shift = c(0, years(120)))
+
+# Retreive the earliest time of heart disease for all patients in db that have a heart disease
+heart_onset <- emr_extract("heart_onset", iterator = "patients.dob", filter = "has_heart_disease")
+head(heart_onset)
+```
+
+Now we can use the data frame we created as an iterator:
+
+```{r}
+# filter patients that already have diabetes before heart disease
+emr_filter.create("has_diabetes", "dx.icd9_250", time.shift = c(-120 * 365 * 24, 0))
+heart_onset_no_diabetes <- emr_extract("age/year()", iterator = heart_onset %>% select(id, time = heart_onset), filter = "!has_diabetes", names = "age")
+
+nrow(heart_onset)
+nrow(heart_onset_no_diabetes)
+
+head(heart_onset_no_diabetes)
+```
+
+
+### Extract median Hemoglobin for all males between ages 60 to 70
+
+Extract for each male patient the median Hemoglobin value between ages 60 and 70. 
+
+Again we would use "patients.dob" as our iterator - this is very efficient as every patient would be examined only once, and define a virtual track with a time shift of 60 to 70 years with a function of median: 
+
+```{r}
+emr_vtrack.create("median_hgb", "lab.HGB", time.shift = c(years(60), years(70)), func = "quantile", params = c(0.5))
+```
+
+Define a filter for males only: 
+
+```{r}
+emr_filter.create("is_male", "patients.dob", val = 1)
+```
+
+Add another filter for having an HGB test in the relevant ages: 
+
+```{r}
+emr_filter.create("has_hgb", "lab.HGB", time.shift = c(years(60), years(70)))
+```
+
+Extract median_hgb for males only:
+
+```{r}
+male_hgb_60_70_q50 <- emr_extract("median_hgb", iterator = "patients.dob", filter = "is_male & has_hgb")
+```
+
+Compare with female median hgb:
+
+```{r}
+female_hgb_60_70_q50 <- emr_extract("median_hgb", iterator = "patients.dob", filter = "!is_male & has_hgb")
+plot(density(male_hgb_60_70_q50$median_hgb, na.rm = TRUE), col = "blue", main = "median HGB in ages 60-70")
+lines(density(female_hgb_60_70_q50$median_hgb, na.rm = TRUE), col = "red")
+```
+
+
+### Count number of patients by age that were in the system in january 2020
+
+What does it mean to be "in the system"? Every EHR system would have its own definition of this, but in general - we want the patients that have already been born, have not died yet, have registered with the EHR system and haven't left the system (for good) yet.
+
+We will start by creating a set of filters that will define the above conditions:
+
+```{r}
+emr_filter.create("born", "patients.dob", time.shift = c(-years(120), 0))
+emr_filter.create("dead", "patients.dod", time.shift = c(-years(120), 0))
+emr_filter.create("registered", "patients.status.register", time.shift = c(-years(120), 0))
+emr_filter.create("left_for_good", "patients.status.lfg", time.shift = c(-years(120), 0))
+```
+
+We can now use an iterator of a single point while applying all the filters to count the number of patients that were in the system in January 2020:
+
+```{r}
+age_dist_2020 <- emr_dist("age/year()", 0:120, "sex", NULL,
     iterator = 1,
     stime = emr_date2time(1, 1, 2020),
     etime = emr_date2time(1, 1, 2020),
@@ -447,14 +471,15 @@ age_dist_2020 <- emr_dist("age/(365*24)", 0:120, "sex", NULL,
 head(age_dist_2020 %>% filter(n > 0))
 ```
 
+We can plot the distribution:
 
 ```{r}
-options(repr.plot.width = 20)
 age_dist_2020 %>%
     mutate(sex = factor(c("male", "female")[sex])) %>%
+    mutate(age = as.numeric(age) - 1) %>%
     ggplot(aes(x = age, y = n, colour = sex, fill = sex, group = sex)) +
-    geom_bar(stat = "identity") +
+    geom_col() +
     facet_wrap(~sex) +
-    theme_bw() +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ```
+
