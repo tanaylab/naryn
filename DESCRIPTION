@@ -7,7 +7,7 @@ Authors@R: c(
     person("Aviezer", "Lifshitz", , "aviezer.lifshitz@weizmann.ac.il", role = c("aut", "cre")),
     person("Ben", "Gilat", , "ben.gilat@weizmann.ac.il", role = "aut")
   )
-Description: Toolkit for medical records data analysis
+Description: Naryn is a toolkit for medical records data analysis. It implements an efficient data structure for storing medical records, and provides a set of functions for data extraction, manipulation and analysis. 
 License: MIT + file LICENSE
 BugReports: https://github.com/tanaylab/naryn/issues
 Depends: 
@@ -38,7 +38,7 @@ Suggests:
 VignetteBuilder: 
     knitr
 Config/testthat/edition: 3
-Config/testthat/parallel: true
+Config/testthat/parallel: false
 Config/testthat/start-first: logical_tracks, w_test-options, x_multiple_db
 Encoding: UTF-8
 Language: en-US

@@ -880,8 +880,8 @@ test_that("filter on vtrack works with avg", {
     emr_vtrack.create("vt", src = "t", func = "avg", time.shift = c(-2, 0))
     withr::defer(emr_vtrack.rm("vt"))
 
-    expect_error(emr_filter.create("fvt", src = "vt", operator = ">", use_values = TRUE))
-    emr_filter.create("fvt", src = "vt", val = 3, operator = ">", use_values = TRUE)
+    expect_error(.emr_filter.create("fvt", src = "vt", operator = ">", use_values = TRUE))
+    emr_filter.create("fvt", src = "vt", val = 3, operator = ">")
 
     withr::defer(emr_filter.rm("fvt"))
 
@@ -902,7 +902,7 @@ test_that("filter on vtrack works with sum", {
     emr_vtrack.create("vt", src = "t", func = "sum", time.shift = c(-2, 0))
     withr::defer(emr_vtrack.rm("vt"))
 
-    emr_filter.create("fvt", src = "vt", val = 3, operator = ">", use_values = TRUE)
+    emr_filter.create("fvt", src = "vt", val = 3, operator = ">")
 
     withr::defer(emr_filter.rm("fvt"))
 
@@ -923,7 +923,7 @@ test_that("filter on vtrack works with min/max", {
     emr_vtrack.create("vt", src = "t", func = "min", time.shift = c(-2, 0))
     withr::defer(emr_vtrack.rm("vt"))
 
-    emr_filter.create("fvt", src = "vt", val = 3, operator = ">", use_values = TRUE)
+    emr_filter.create("fvt", src = "vt", val = 3, operator = ">")
     withr::defer(emr_filter.rm("fvt"))
 
     t <- emr_extract("vt", iterator = "t", filter = "fvt")
@@ -948,7 +948,7 @@ test_that("filter on vtrack works with earliest/latest", {
     emr_vtrack.create("vt", src = "t", func = "earliest", time.shift = c(-2, 0))
     withr::defer(emr_vtrack.rm("vt"))
 
-    emr_filter.create("fvt", src = "vt", val = 3, operator = ">", use_values = TRUE)
+    emr_filter.create("fvt", src = "vt", val = 3, operator = ">")
 
     withr::defer(emr_filter.rm("fvt"))
 
@@ -975,7 +975,7 @@ test_that("filter on vtrack works with exists", {
     emr_vtrack.create("vt", src = "t", params = c(5), func = "exists", time.shift = c(-2, 0))
     withr::defer(emr_vtrack.rm("vt"))
 
-    emr_filter.create("fvt", src = "vt", val = 0.5, operator = ">", use_values = TRUE)
+    emr_filter.create("fvt", src = "vt", val = 0.5, operator = ">")
     withr::defer(emr_filter.rm("fvt"))
 
     t <- emr_extract("vt", iterator = "t", filter = "fvt")
@@ -995,7 +995,7 @@ test_that("filter on vtrack works with combination of filters", {
     emr_vtrack.create("vt", src = "t", func = "min", time.shift = c(-2, 0))
     withr::defer(emr_vtrack.rm("vt"))
 
-    emr_filter.create("fvt", src = "vt", val = 3, operator = ">", use_values = TRUE)
+    emr_filter.create("fvt", src = "vt", val = 3, operator = ">")
     withr::defer(emr_filter.rm("fvt"))
 
     emr_filter.create("fnothing", src = "vt", val = c(50))
@@ -1021,7 +1021,7 @@ test_that("filter on vtrack retores the original filter", {
     orig_vt <- emr_vtrack.info("vt")
     withr::defer(emr_vtrack.rm("vt"))
 
-    emr_filter.create("fvt", src = "vt", val = 3, operator = ">", use_values = TRUE)
+    emr_filter.create("fvt", src = "vt", val = 3, operator = ">")
     orig_filter <- emr_filter.info("fvt")
     withr::defer(emr_filter.rm("fvt"))
 

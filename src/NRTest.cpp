@@ -494,8 +494,8 @@ SEXP nrtrack(SEXP _track, SEXP _envir)
 	return R_NilValue;
 }
 
-SEXP nrimport_clalit(SEXP _dirname, SEXP _envir)
-{
+// SEXP nrimport_clalit(SEXP _dirname, SEXP _envir)
+// {
 	// DIR *dir = NULL;
 	// Datasets datasets;
 
@@ -609,7 +609,7 @@ SEXP nrimport_clalit(SEXP _dirname, SEXP _envir)
     // }
 
 	// return R_NilValue;
-}
+// }
 
 // void print_tree(SEXP tree, int depth)
 // {

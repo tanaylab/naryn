@@ -11,8 +11,7 @@ emr_filter.create(
   time.shift = NULL,
   val = NULL,
   expiration = NULL,
-  operator = "=",
-  use_values = FALSE
+  operator = "="
 )
 }
 \arguments{
@@ -31,7 +30,7 @@ emr_filter.create(
 \item{operator}{operator for filtering. Accepts one of: "=", "<", "<=", ">", ">="}
 }
 \value{
-Name of the filter (invisibly, if filter name wasn't generated automatically)
+Name of the filter (invisibly, if filter name wasn't generated automatically, otherwise - explicitly)
 }
 \description{
 Creates a new named filter.
