@@ -14,7 +14,7 @@
 
 extern "C" {
 
-SEXP emr_dist(SEXP _exprs, SEXP _breaks, SEXP _include_lowest, SEXP _right, SEXP _stime, SEXP _etime, SEXP _iterator_policy, SEXP _keepref, SEXP _filter, SEXP _envir)
+SEXP C_emr_dist(SEXP _exprs, SEXP _breaks, SEXP _include_lowest, SEXP _right, SEXP _stime, SEXP _etime, SEXP _iterator_policy, SEXP _keepref, SEXP _filter, SEXP _envir)
 {
 	try {
         Naryn naryn(_envir);

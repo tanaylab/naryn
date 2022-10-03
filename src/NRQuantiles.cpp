@@ -54,7 +54,7 @@ bool calc_medians(StreamPercentiler<double> &sp, vector<Percentile> &percentiles
 
 extern "C" {
 
-SEXP emr_quantiles(SEXP _expr, SEXP _percentiles, SEXP _stime, SEXP _etime, SEXP _iterator_policy, SEXP _keepref, SEXP _filter, SEXP _envir)
+SEXP C_emr_quantiles(SEXP _expr, SEXP _percentiles, SEXP _stime, SEXP _etime, SEXP _iterator_policy, SEXP _keepref, SEXP _filter, SEXP _envir)
 {
 	try {
         Naryn naryn(_envir);

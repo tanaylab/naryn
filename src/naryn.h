@@ -45,8 +45,6 @@ void verror(const char *fmt, ...);
 
 void vwarning(const char *fmt, ...);
 
-#define DBGHERE fprintf(stderr, "%s, line %d\n", __FILE__, __LINE__);
-
 void vdebug(const char *fmt, ...);
 
 // Use rprotect instead of PROTECT!

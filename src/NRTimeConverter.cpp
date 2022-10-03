@@ -16,7 +16,7 @@ using namespace std;
 
 extern "C" {
 
-SEXP emr_time2hour(SEXP _t, SEXP _envir)
+SEXP C_emr_time2hour(SEXP _t, SEXP _envir)
 {
 	try {
 		Naryn naryn(_envir, false);
@@ -61,7 +61,7 @@ SEXP emr_time2hour(SEXP _t, SEXP _envir)
 	return R_NilValue;
 }
 
-SEXP emr_time2dayofmonth(SEXP _t, SEXP _envir)
+SEXP C_emr_time2dayofmonth(SEXP _t, SEXP _envir)
 {
 	try {
 		Naryn naryn(_envir, false);
@@ -106,7 +106,7 @@ SEXP emr_time2dayofmonth(SEXP _t, SEXP _envir)
 	return R_NilValue;
 }
 
-SEXP emr_time2month(SEXP _t, SEXP _envir)
+SEXP C_emr_time2month(SEXP _t, SEXP _envir)
 {
 	try {
 		Naryn naryn(_envir, false);
@@ -151,7 +151,7 @@ SEXP emr_time2month(SEXP _t, SEXP _envir)
 	return R_NilValue;
 }
 
-SEXP emr_time2year(SEXP _t, SEXP _envir)
+SEXP C_emr_time2year(SEXP _t, SEXP _envir)
 {
 	try {
 		Naryn naryn(_envir, false);
@@ -197,7 +197,7 @@ SEXP emr_time2year(SEXP _t, SEXP _envir)
 }
 
 
-SEXP emr_date2time(SEXP _date, SEXP _envir)
+SEXP C_emr_date2time(SEXP _date, SEXP _envir)
 {
 	try {
 		Naryn naryn(_envir, false);

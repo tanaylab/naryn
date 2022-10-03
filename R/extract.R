@@ -164,7 +164,7 @@ emr_dist <- function(..., include.lowest = FALSE, right = TRUE, stime = NULL, et
     orig_filters <- .emr_gen_vtrack_filters(filter, iterator, keepref, stime, etime)
     on.exit(.emr_recreate_vtrack_filters(orig_filters), add = TRUE)
 
-    res <- .emr_call("emr_dist", exprs, breaks, include.lowest, right, stime, etime, iterator, keepref, filter, .emr_env())
+    res <- .emr_call("C_emr_dist", exprs, breaks, include.lowest, right, stime, etime, iterator, keepref, filter, .emr_env())
 
     if (dataframe) {
         res <- as.data.frame.table(res)
@@ -296,7 +296,7 @@ emr_extract <- function(expr, tidy = FALSE, sort = FALSE, names = NULL, stime = 
     orig_filters <- .emr_gen_vtrack_filters(filter, iterator, keepref, stime, etime)
     on.exit(.emr_recreate_vtrack_filters(orig_filters), add = TRUE)
 
-    .emr_call("emr_extract", expr, names, tidy, sort, stime, etime, iterator, keepref, filter, .emr_env())
+    .emr_call("C_emr_extract", expr, names, tidy, sort, stime, etime, iterator, keepref, filter, .emr_env())
 }
 
 
@@ -572,7 +572,7 @@ emr_quantiles <- function(expr, percentiles = 0.5, stime = NULL, etime = NULL, i
     orig_filters <- .emr_gen_vtrack_filters(filter, iterator, keepref, stime, etime)
     on.exit(.emr_recreate_vtrack_filters(orig_filters), add = TRUE)
 
-    .emr_call("emr_quantiles", expr, percentiles, stime, etime, iterator, keepref, filter, .emr_env())
+    .emr_call("C_emr_quantiles", expr, percentiles, stime, etime, iterator, keepref, filter, .emr_env())
 }
 
 
@@ -618,7 +618,7 @@ emr_screen <- function(expr, sort = FALSE, stime = NULL, etime = NULL, iterator 
     orig_filters <- .emr_gen_vtrack_filters(filter, iterator, keepref, stime, etime)
     on.exit(.emr_recreate_vtrack_filters(orig_filters), add = TRUE)
 
-    .emr_call("emr_screen", expr, sort, stime, etime, iterator, keepref, filter, .emr_env())
+    .emr_call("C_emr_screen", expr, sort, stime, etime, iterator, keepref, filter, .emr_env())
 }
 
 
@@ -657,5 +657,5 @@ emr_summary <- function(expr, stime = NULL, etime = NULL, iterator = NULL, keepr
     orig_filters <- .emr_gen_vtrack_filters(filter, iterator, keepref, stime, etime)
     on.exit(.emr_recreate_vtrack_filters(orig_filters), add = TRUE)
 
-    .emr_call("emr_summary", expr, stime, etime, iterator, keepref, filter, .emr_env())
+    .emr_call("C_emr_summary", expr, stime, etime, iterator, keepref, filter, .emr_env())
 }

@@ -62,7 +62,7 @@ static const char *IntervalSummaryColNames[NUM_COLS] = { "Total values", "NaN va
 
 extern "C" {
 
-SEXP emr_summary(SEXP _expr, SEXP _stime, SEXP _etime, SEXP _iterator_policy, SEXP _keepref, SEXP _filter, SEXP _envir)
+SEXP C_emr_summary(SEXP _expr, SEXP _stime, SEXP _etime, SEXP _iterator_policy, SEXP _keepref, SEXP _filter, SEXP _envir)
 {
 	try {
         Naryn naryn(_envir);

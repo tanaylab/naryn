@@ -442,8 +442,9 @@ void Naryn::handle_error(const char *msg)
 			}
 		}
 		exit(1);
-	} else
+	} else {
 		errorcall(R_NilValue, msg);
+    }
 }
 
 void Naryn::verify_max_data_size(uint64_t data_size, const char *data_name)

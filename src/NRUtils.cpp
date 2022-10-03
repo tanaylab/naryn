@@ -5,7 +5,7 @@ using namespace std;
 
 extern "C" {
 
-SEXP emr_annotate(SEXP _x, SEXP _y, SEXP _envir)
+SEXP C_emr_annotate(SEXP _x, SEXP _y, SEXP _envir)
 {
 	try {
 		Naryn naryn(_envir);
