@@ -1,3 +1,5 @@
+#' @export
+#' @noRd
 .naryn <- new.env(parent = emptyenv())
 
 .onLoad <- function(lib, pkg) {

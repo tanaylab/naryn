@@ -30,7 +30,7 @@ week()
 
 day()
 
-\method{months}{numeric}(n)
+\method{months}{numeric}(n, abbreviate = FALSE)
 
 month()
 
@@ -48,12 +48,17 @@ year()
 \item{hours}{number of hours}
 
 \item{n}{number of days/weeks/months/years/hours}
+
+\item{abbreviate}{ignore this parameter. It is here only to obey the months generic arguments.}
 }
 \value{
 Machine time format (number of hours)
 }
 \description{
 Convert time periods to internal time format
+
+We are using a generic since months is a function in base R.
+This is also the reason for the "abbreviate" argument.
 }
 \details{
 \code{emr_time} converts a generic number of years, months day and hours to the internal

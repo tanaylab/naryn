@@ -215,6 +215,7 @@ emr_time2date <- function(time) {
 #' @param years number of years
 #' @param hours number of hours
 #' @param n number of days/weeks/months/years/hours
+#' @param abbreviate ignore this parameter. It is here only to obey the months generic arguments.
 #'
 #' @return Machine time format (number of hours)
 #'
@@ -282,8 +283,12 @@ day <- function() {
 }
 
 #' @export
+#'
+#' @description We are using a generic since months is a function in base R.
+#' This is also the reason for the "abbreviate" argument.
+#'
 #' @rdname emr_time
-months.numeric <- function(n) {
+months.numeric <- function(n, abbreviate = FALSE) {
     return(n * 30 * 24)
 }
 
