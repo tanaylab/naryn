@@ -7,7 +7,10 @@ status](https://www.r-pkg.org/badges/version/naryn)](https://CRAN.R-project.org/
 naryn
 =====
 
-‘naryn’ package helps to efficiently analyze medical records data.
+The `naryn` package is a toolkit for medical records data analysis. It
+implements an efficient data structure for storing medical records, and
+provides a set of functions for data extraction, manipulation and
+analysis.
 
 Installation
 ------------

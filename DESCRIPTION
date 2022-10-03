@@ -7,7 +7,7 @@ Authors@R: c(
     person("Aviezer", "Lifshitz", , "aviezer.lifshitz@weizmann.ac.il", role = c("aut", "cre")),
     person("Ben", "Gilat", , "ben.gilat@weizmann.ac.il", role = "aut")
   )
-Description: The `Naryn` package is a toolkit for medical records data analysis. It implements an efficient data structure for storing medical records, and provides a set of functions for data extraction, manipulation and analysis. 
+Description: The `naryn` package is a toolkit for medical records data analysis. It implements an efficient data structure for storing medical records, and provides a set of functions for data extraction, manipulation and analysis. 
 License: MIT + file LICENSE
 BugReports: https://github.com/tanaylab/naryn/issues
 Depends: 
