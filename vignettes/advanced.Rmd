@@ -435,7 +435,7 @@ In addition to increased CPU usage multitasking might also alter the behavior of
 |                                                                                                              | R                      | Python            |
 |--------------------------------------------------------------------------------------------------------------|------------------------|-------------------|
 | Naming Conventions <br /> (except for virtual track 'func', which stays unchanged)                           | `emr_xxx.yyy.zzz`      |  `xxx_yyy_zzz`    |
-| Variables | Defined in global environment: <br>`EMR_GROOT`<br>`EMR_UROOT` | Defined in  module's environment:<br>`_GROOT`<br>`_UROOT`
+| Variables | Defined in `.naryn` environment: <br>`EMR_GROOT`<br>`EMR_UROOT` | Defined in  module's environment:<br>`_GROOT`<br>`_UROOT`
 | Run-time Variables (available only during track expression evaluation) | `EMR_TIME` | `TIME` |
 | Package / Module Options | Controlled via standard options mechanism: <br /> `options(emr_xxx.yyy=zzz)` <br /> `getOption("emr_xxx.yyy")` | Controlled by module's `CONFIG` variable: <br /> `CONFIG['xxx_yyy']=zzz` <br /> `CONFIG['xxx_yyy']` |
 | Data Types (used as function parameters) | `data.frame` <br /> `list` <br /> `vector` of strings <br /> `vector` of numerics <br /> `NULL` | `pandas.DataFrame` <br /> `list` <br /> `list` of strings <br /> `numpy.ndarray` of numerics <br /> `None` | 

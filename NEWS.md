@@ -1,3 +1,8 @@
+# naryn 2.6.9 
+
+* Removed global variables from the package - EMR_ROOTS, EMR_GROOT, EMR_UROOT, EMR_FILTERS and EMR_VTRACKS are now a part of a dedicated environment called `.naryn`. You can access them using `.naryn::EMR_ROOTS` etc. 
+
+
 # naryn 2.6.8 
 
 * Optimized the performance of the `emr_track.exists` function.
