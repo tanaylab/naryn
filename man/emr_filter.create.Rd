@@ -11,8 +11,7 @@ emr_filter.create(
   time.shift = NULL,
   val = NULL,
   expiration = NULL,
-  operator = "=",
-  use_values = FALSE
+  operator = "="
 )
 }
 \arguments{
@@ -31,7 +30,7 @@ emr_filter.create(
 \item{operator}{operator for filtering. Accepts one of: "=", "<", "<=", ">", ">="}
 }
 \value{
-Name of the filter (invisibly, if filter name wasn't generated automatically)
+Name of the filter (invisibly, if filter name wasn't generated automatically, otherwise - explicitly)
 }
 \description{
 Creates a new named filter.
@@ -66,7 +65,7 @@ If both 'val' and 'expiration' are not 'NULL' then only values from 'val'
 vector are checked both in time window and expiration window.
 
 Note: 'time.shift' can be used only when 'keepref' is 'FALSE'.
-Note:  A zero length vector is interpeted by R as NULL, so \code{val=c()} would create
+Note:  A zero length vector is interpreted by R as NULL, so \code{val=c()} would create
 a filter which returns all the values of \code{src}
 }
 \examples{

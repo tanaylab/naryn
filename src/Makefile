@@ -1,6 +1,6 @@
 CC=g++
 
-CFLAGS=-O3 -DNDEBUG -fpic -I$(R_INCLUDE_DIR) -std=c++11 -Wformat -Wformat-security -Wall -pedantic -fdiagnostics-color=always
+CFLAGS=-O3 -DNDEBUG -fpic -I$(R_INCLUDE_DIR) -std=c++11 -Wall -pedantic -fdiagnostics-color=always
 
 TGT=naryn.so
 SRCS=$(wildcard *.cpp)

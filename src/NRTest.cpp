@@ -494,122 +494,122 @@ SEXP nrtrack(SEXP _track, SEXP _envir)
 	return R_NilValue;
 }
 
-SEXP nrimport_clalit(SEXP _dirname, SEXP _envir)
-{
-	DIR *dir = NULL;
-	Datasets datasets;
+// SEXP nrimport_clalit(SEXP _dirname, SEXP _envir)
+// {
+	// DIR *dir = NULL;
+	// Datasets datasets;
 
-	try {
-		Naryn naryn(_envir);
+	// try {
+	// 	Naryn naryn(_envir);
 
-		const char *dirname = CHAR(STRING_ELT(_dirname, 0));
-		const string FEXTENSION(".csv");
+	// 	const char *dirname = CHAR(STRING_ELT(_dirname, 0));
+	// 	const string FEXTENSION(".csv");
 
-		dir = opendir(dirname);
-		struct dirent *dirp;
+	// 	dir = opendir(dirname);
+	// 	struct dirent *dirp;
 
-		if (!dir)
-			verror("Failed to open directory %s: %s", dirname, strerror(errno));
+	// 	if (!dir)
+	// 		verror("Failed to open directory %s: %s", dirname, strerror(errno));
 
-		srand48(0);
+	// 	srand48(0);
 
-		while ((dirp = readdir(dir))) {
-			char filename[PATH_MAX + 100];
-			struct stat s;
-			int len = strlen(dirp->d_name);
+	// 	while ((dirp = readdir(dir))) {
+	// 		char filename[PATH_MAX + 100];
+	// 		struct stat s;
+	// 		int len = strlen(dirp->d_name);
 
-			sprintf(filename, "%s/%s", dirname, dirp->d_name);
-			if (stat(filename, &s))
-				verror("Failed to stat file %s: %s", filename, strerror(errno));
+	// 		sprintf(filename, "%s/%s", dirname, dirp->d_name);
+	// 		if (stat(filename, &s))
+	// 			verror("Failed to stat file %s: %s", filename, strerror(errno));
 
-			// is it a normal file having the supported extension?
-			if (S_ISREG(s.st_mode) && len > (int)FEXTENSION.size() && !strncmp(dirp->d_name + len - (int)FEXTENSION.size(), FEXTENSION.c_str(), FEXTENSION.size())) {
-				enum { PATIENTID, TESTCODE, DATE, RESULT, NUM_FIELDS };
+	// 		// is it a normal file having the supported extension?
+	// 		if (S_ISREG(s.st_mode) && len > (int)FEXTENSION.size() && !strncmp(dirp->d_name + len - (int)FEXTENSION.size(), FEXTENSION.c_str(), FEXTENSION.size())) {
+	// 			enum { PATIENTID, TESTCODE, DATE, RESULT, NUM_FIELDS };
 
-				BufferedFile bfile;
-				vector<string> fields;
-				int lineno = 0;
+	// 			BufferedFile bfile;
+	// 			vector<string> fields;
+	// 			int lineno = 0;
 
-				REprintf("Reading %s\n", filename);
-				if (bfile.open(filename, "r"))
-					verror("Failed to open file %s for reading: %s", filename, strerror(errno));
+	// 			REprintf("Reading %s\n", filename);
+	// 			if (bfile.open(filename, "r"))
+	// 				verror("Failed to open file %s for reading: %s", filename, strerror(errno));
 
-				while (1) {
-					char *endptr;
-					unsigned patientid;
-					unsigned testcode;
-					EMRTimeStamp timestamp;
-					float res;
+	// 			while (1) {
+	// 				char *endptr;
+	// 				unsigned patientid;
+	// 				unsigned testcode;
+	// 				EMRTimeStamp timestamp;
+	// 				float res;
 
-					check_interrupt();
+	// 				check_interrupt();
 
-					lineno += split_line(bfile, fields, ',', NUM_FIELDS);
+	// 				lineno += split_line(bfile, fields, ',', NUM_FIELDS);
 
-					if (fields.size() != NUM_FIELDS) {
-						if (bfile.eof()) 
-							break;
+	// 				if (fields.size() != NUM_FIELDS) {
+	// 					if (bfile.eof()) 
+	// 						break;
 
-						if (bfile.error()) 
-							verror("Reading file %s: %s", filename, strerror(errno));
+	// 					if (bfile.error()) 
+	// 						verror("Reading file %s: %s", filename, strerror(errno));
 
-						verror("File %s has invalid format (0)", filename);
-					}
+	// 					verror("File %s has invalid format (0)", filename);
+	// 				}
 
-					patientid = (unsigned)strtod(fields[PATIENTID].c_str(), &endptr);
-					if (*endptr) {
-						// if it's a header => skip it
-						if (lineno == 1) 
-							continue;
-						verror("File %s has invalid format (line %d)", filename, lineno);
-					}
+	// 				patientid = (unsigned)strtod(fields[PATIENTID].c_str(), &endptr);
+	// 				if (*endptr) {
+	// 					// if it's a header => skip it
+	// 					if (lineno == 1) 
+	// 						continue;
+	// 					verror("File %s has invalid format (line %d)", filename, lineno);
+	// 				}
 
-					testcode = strtol(fields[TESTCODE].c_str(), &endptr, 10);
-					if (*endptr) 
-						verror("File %s has invalid format (2)", filename);
+	// 				testcode = strtol(fields[TESTCODE].c_str(), &endptr, 10);
+	// 				if (*endptr) 
+	// 					verror("File %s has invalid format (2)", filename);
 
-					res = strtod(fields[RESULT].c_str(), &endptr);
-					if (*endptr) 
-						verror("File %s has invalid format (3)", filename);
+	// 				res = strtod(fields[RESULT].c_str(), &endptr);
+	// 				if (*endptr) 
+	// 					verror("File %s has invalid format (3)", filename);
 
-					for (unsigned char refcount = 0; ; ++refcount) {
-						// for now put random timestamp
-						timestamp.init((unsigned)(unif_rand() * 1000000), refcount);
+	// 				for (unsigned char refcount = 0; ; ++refcount) {
+	// 					// for now put random timestamp
+	// 					timestamp.init((unsigned)(unif_rand() * 1000000), refcount);
 
-						if (datasets.find(testcode) == datasets.end())
-							datasets[testcode] = new EMRTrackData<float>();
-						try {
-							datasets[testcode]->add(patientid, timestamp, res);
-							break;
-						} catch (...) {
-							// if exception is thrown => record already exists => increase reference count
-						}
-					}
-				}
-			}
-		}
+	// 					if (datasets.find(testcode) == datasets.end())
+	// 						datasets[testcode] = new EMRTrackData<float>();
+	// 					try {
+	// 						datasets[testcode]->add(patientid, timestamp, res);
+	// 						break;
+	// 					} catch (...) {
+	// 						// if exception is thrown => record already exists => increase reference count
+	// 					}
+	// 				}
+	// 			}
+	// 		}
+	// 	}
 
-		closedir(dir);
+	// 	closedir(dir);
 
-		for (Datasets::iterator idataset = datasets.begin(); idataset != datasets.end(); ++idataset) {
-			char filename[PATH_MAX + 100];
+	// 	for (Datasets::iterator idataset = datasets.begin(); idataset != datasets.end(); ++idataset) {
+	// 		char filename[PATH_MAX + 100];
 
-			REprintf("Writing track %d\n", idataset->first);
-			sprintf(filename, "%s/t%d%s", g_db->grootdir().c_str(), idataset->first, EMRDb::TRACK_FILE_EXT.c_str());
-			EMRTrack::serialize(filename, false, *idataset->second);
-		}
+	// 		REprintf("Writing track %d\n", idataset->first);
+	// 		sprintf(filename, "%s/t%d%s", g_db->grootdir().c_str(), idataset->first, EMRDb::TRACK_FILE_EXT.c_str());
+	// 		EMRTrack::serialize(filename, false, *idataset->second);
+	// 	}
 
-		for (Datasets::iterator idataset = datasets.begin(); idataset != datasets.end(); ++idataset) 
-			delete idataset->second;
-	} catch (TGLException &e) {
-		for (Datasets::iterator idataset = datasets.begin(); idataset != datasets.end(); ++idataset) 
-			delete idataset->second;
-		rerror("%s", e.msg());
-    } catch (const bad_alloc &e) {
-        rerror("Out of memory");
-    }
+	// 	for (Datasets::iterator idataset = datasets.begin(); idataset != datasets.end(); ++idataset) 
+	// 		delete idataset->second;
+	// } catch (TGLException &e) {
+	// 	for (Datasets::iterator idataset = datasets.begin(); idataset != datasets.end(); ++idataset) 
+	// 		delete idataset->second;
+	// 	rerror("%s", e.msg());
+    // } catch (const bad_alloc &e) {
+    //     rerror("Out of memory");
+    // }
 
-	return R_NilValue;
-}
+	// return R_NilValue;
+// }
 
 // void print_tree(SEXP tree, int depth)
 // {

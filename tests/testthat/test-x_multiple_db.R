@@ -51,7 +51,7 @@ test_that("emr_track.ls works with db_id", {
     ls_tracks <- emr_track.ls(db_id = EMR_ROOTS[2])
     tracks <- gsub(".nrtrack$", "", list.files(EMR_ROOTS[2], pattern = ".nrtrack"))
 
-    # remove overriden tracks
+    # remove overridden tracks
     files_tracks <- purrr::discard(tracks, ~ {
         dbs <- emr_track.dbs(.x)
         dbs[length(dbs)] != EMR_ROOTS[2]
@@ -64,7 +64,7 @@ test_that("emr_track.ls works with db_id which is the global db", {
     ls_tracks <- emr_track.ls(db_id = EMR_GROOT)
     tracks <- gsub(".nrtrack$", "", list.files(EMR_GROOT, pattern = ".nrtrack"))
 
-    # remove overriden tracks
+    # remove overridden tracks
     files_tracks <- purrr::discard(tracks, ~ {
         dbs <- emr_track.dbs(.x)
         dbs[length(dbs)] != EMR_GROOT
@@ -77,7 +77,7 @@ test_that("emr_track.ls works with db_id which is the user db", {
     ls_tracks <- emr_track.ls(db_id = EMR_UROOT)
     tracks <- gsub(".nrtrack$", "", list.files(EMR_UROOT, pattern = ".nrtrack"))
 
-    # remove overriden tracks
+    # remove overridden tracks
     files_tracks <- purrr::discard(tracks, ~ {
         dbs <- emr_track.dbs(.x)
         dbs[length(dbs)] != EMR_UROOT

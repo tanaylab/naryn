@@ -407,7 +407,7 @@ emr_track.info <- function(track) {
 
     if (is.character(track) && emr_track.logical.exists(track)) {
         ltrack <- emr_track.logical.info(track)
-        .emr_call("emr_logical_track_user_info", track, ltrack$source, NULL, NULL, ltrack$source, TRUE, .emr_filter(create_logical_track_filter(track)), c(EMR_ROOTS), new.env(parent = parent.frame()))
+        .emr_call("emr_logical_track_user_info", track, ltrack$source, NULL, NULL, ltrack$source, TRUE, .emr_filter(.create_logical_track_filter(track)), c(EMR_ROOTS), new.env(parent = parent.frame()))
     } else {
         .emr_call("emr_track_info", track, new.env(parent = parent.frame()))
     }
@@ -502,7 +502,7 @@ emr_track.current_db <- function(track, dataframe = FALSE) {
 #' should match all the patterns.
 #'
 #' If \code{db_id} parameter is set, only tracks within the specific db would be shown.
-#' Note that tracks which were overriden by other databases would not be shown, even if
+#' Note that tracks which were overridden by other databases would not be shown, even if
 #' their files exist within the database. See \code{emr_db.connect} for more details.
 #'
 #' 'emr_track.global.ls', 'emr_track.user.ls', 'emr_track.logical.ls' work similarly to
@@ -733,15 +733,15 @@ emr_track.percentile <- function(track, val, lower = TRUE) {
 #'
 #' Gets or sets "readonly" property of a track.
 #'
-#' This function gets or sets "read-onlyness" of the track. If 'readonly' is
+#' This function gets or sets "readonly-ness" of the track. If 'readonly' is
 #' 'NULL' the functions returns whether the track is R/O. Otherwise it sets
-#' "read-onlyness" to the value indicated by 'readonly'.
+#' "readonly-ness" to the value indicated by 'readonly'.
 #'
-#' Logical tracks inherit their "read-onlyness" from the source
+#' Logical tracks inherit their "readonly-ness" from the source
 #' physical tracks.
 #'
-#' Overriding a track also overrides it's "read-onlyness", it's
-#' "read-onlyness" will persist when the track is no longer overridden
+#' Overriding a track also overrides it's "readonly-ness", it's
+#' "readonly-ness" will persist when the track is no longer overridden
 #'
 #' @param track track name
 #' @param readonly if 'NULL', return "readonlyness" of the track, otherwise

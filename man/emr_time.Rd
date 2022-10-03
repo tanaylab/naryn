@@ -8,7 +8,7 @@
 \alias{day}
 \alias{weeks}
 \alias{week}
-\alias{months}
+\alias{months.numeric}
 \alias{month}
 \alias{years}
 \alias{year}
@@ -30,7 +30,7 @@ week()
 
 day()
 
-months(n)
+\method{months}{numeric}(n)
 
 month()
 

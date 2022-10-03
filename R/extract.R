@@ -368,7 +368,7 @@ emr_ids_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filter = N
                 emr_ids_coverage(
                     ids,
                     ltrack$source,
-                    filter = create_logical_track_filter(track, filter),
+                    filter = .create_logical_track_filter(track, filter),
                     stime = stime,
                     etime = etime
                 )[[1]]
@@ -485,7 +485,7 @@ emr_ids_vals_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filte
             res <- emr_ids_vals_coverage(
                 ids,
                 ltrack$source,
-                filter = create_logical_track_filter(track, filter),
+                filter = .create_logical_track_filter(track, filter),
                 stime = stime,
                 etime = etime
             )
