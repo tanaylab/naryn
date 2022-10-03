@@ -65,7 +65,7 @@ If both 'val' and 'expiration' are not 'NULL' then only values from 'val'
 vector are checked both in time window and expiration window.
 
 Note: 'time.shift' can be used only when 'keepref' is 'FALSE'.
-Note:  A zero length vector is interpeted by R as NULL, so \code{val=c()} would create
+Note:  A zero length vector is interpreted by R as NULL, so \code{val=c()} would create
 a filter which returns all the values of \code{src}
 }
 \examples{

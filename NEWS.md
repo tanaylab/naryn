@@ -25,7 +25,7 @@
 * Added support for track attributes to logical tracks. 
 * Bug fix: dbs order was changed to lexicographical order on emr_db.connect.
 * Bug fix: stray logical tracks on non-global dbs were shown.
-* Bug fix: `emr_time` funtions failed when there was an `NA` in an integer vector.
+* Bug fix: `emr_time` functions failed when there was an `NA` in an integer vector.
 * Bug fix: `emr_track.attr.get` returned attribute name instead of value.
 * `emr_track.var.get` now returns `NULL` when variable doesn't exist.
 * Make sure logical tracks cannot be created on non-global db. 
@@ -118,7 +118,7 @@ without parameters.
 # naryn 2.4.4
 
 *  Removed MINID/MAXID constants from global environment.
-*  IDs for Beat iteator and Time Interval take their ids from 'dob' track.
+*  IDs for Beat iterator and Time Interval take their ids from 'dob' track.
 *  Bug fix in emr_track.import, emr_track.addto: crash when source data frame has 'ref' but no 'value' column.
 *  Bug fix in Time Intervals iterator: in some cases ids outside of subset might be produced.
 *  DB cache file format has changed. The file is now called '.tracks'. The first call to emr_db.init will recreate this file after a full DB reload.
@@ -296,7 +296,7 @@ without parameters.
 
 # naryn 2.1.3
 
-*  New filter on values for all virtual track functions applied to categorial tracks. The filter is given via "param" in emr_vtrack.create
+*  New filter on values for all virtual track functions applied to categorical tracks. The filter is given via "param" in emr_vtrack.create
 *  Bug fix: virtual track function "exists" might not work on non-integer values where double(val) != float(val)
 
 # naryn 2.1.2
@@ -436,7 +436,7 @@ without parameters.
 
 # naryn 1.1.7
 
-*  emr_dist: allow implicit breaks (use breaks=NULL) if the track expression constitutes of a categorial track or a virtual track that is based on a categorial track
+*  emr_dist: allow implicit breaks (use breaks=NULL) if the track expression constitutes of a categorical track or a virtual track that is based on a categorical track
 
 # naryn 1.1.6
 
@@ -444,12 +444,12 @@ without parameters.
 
 # naryn 1.1.5
 
-*  New logical parameter in emr_track.import: "categorial"
+*  New logical parameter in emr_track.import: "categorical"
 *  Track format had been changed
-*  New function: emr_track.unique - returns sorted unique values of a track. Hint: use this functions to set breaks when categorial track is used
+*  New function: emr_track.unique - returns sorted unique values of a track. Hint: use this functions to set breaks when categorical track is used
 *  emr_vtrack.create: "val" parameter had been removed
 *  emr_vtrack.create: new functions "value", "size", "frequent", "exists"
-*  emr_vtrack.create: functions "earliest", "latest" and "closest" return -1 in case of ambiguity for categorial tracks
+*  emr_vtrack.create: functions "earliest", "latest" and "closest" return -1 in case of ambiguity for categorical tracks
 *  Interpret data frame with id, time columns as patient-time even if ref column is missing
 *  Bug fix: emr_db.init continues failing after it failed once (for example: due to invalid track format)
 
@@ -461,7 +461,7 @@ without parameters.
 *  Patient ids format for 2 & 3: data frame with the first column named "id"
 *  Enable time intervals to be used as iterators
 *  Enable time intervals to be used in filters
-*  Time intervals format for 5 & 6: data frame wtih the first columns named "stime" and "etime"
+*  Time intervals format for 5 & 6: data frame with the first columns named "stime" and "etime"
 *  Run-time optimization when OR is used in iterator filter
 *  Report error id-time list used for iterator / filter contains two records that differ only by reference when keepref == FALSE
 10.  Bug fix in filter when time after shift preceeds the epoch

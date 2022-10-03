@@ -523,7 +523,7 @@ void NRTrackExprScanner::create_expr_iterator(IteratorWithFilter *itr, SEXP rite
         if (period <= 0)
             verror("Invalid value is used for iterator policy (code: %d)", __LINE__);
         if (is_implicit_scope)
-            verror("Cannot use an implicit time scope with Beat Iteator: please specify 'stime' and 'etime'");
+            verror("Cannot use an implicit time scope with Beat Iterator: please specify 'stime' and 'etime'");
         expr_itr = new EMRBeatIterator(asInteger(riterator), keepref, stime, etime);
     } else if (isString(riterator) && Rf_length(riterator) == 1 && g_db->track(CHAR(asChar(riterator)))){ // iterator == physical track
         expr_itr = new EMRTrackIterator(g_db->track(CHAR(asChar(riterator))), keepref, stime, etime);
@@ -639,7 +639,7 @@ void NRTrackExprScanner::create_expr_iterator(IteratorWithFilter *itr, SEXP rite
 
             if (success) {
                 if (is_implicit_scope)
-                    verror("Cannot use an implicit time scope with Ids Iteator: please specify 'stime' and 'etime'");
+                    verror("Cannot use an implicit time scope with Ids Iterator: please specify 'stime' and 'etime'");
                 try {
                     expr_itr = new EMRIdsIterator(ids, keepref, stime, etime);
                 } catch (TGLException &e) {
@@ -680,7 +680,7 @@ void NRTrackExprScanner::create_expr_iterator(IteratorWithFilter *itr, SEXP rite
 
                 if (isString(rinit) && Rf_length(rinit) == 1 && g_db->track(CHAR(asChar(rinit)))) {
                     if (is_implicit_scope)
-                        verror("Cannot use an implicit time scope with Extended Beat Iteator: please specify 'stime' and 'etime'");
+                        verror("Cannot use an implicit time scope with Extended Beat Iterator: please specify 'stime' and 'etime'");
 
                     EMRTrackIterator *itr = new EMRTrackIterator(g_db->track(CHAR(asChar(rinit))), keepref, 0, etime);
                     try {
@@ -701,7 +701,7 @@ void NRTrackExprScanner::create_expr_iterator(IteratorWithFilter *itr, SEXP rite
 
                     if (success) {
                         if (is_implicit_scope)
-                            verror("Cannot use an implicit time scope with Extended Beat Iteator: please specify 'stime' and 'etime'");
+                            verror("Cannot use an implicit time scope with Extended Beat Iterator: please specify 'stime' and 'etime'");
 
                         EMRPointsIterator *itr = new EMRPointsIterator(points, keepref, 0, etime);
                         try {

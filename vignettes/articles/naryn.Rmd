@@ -19,11 +19,11 @@ theme_set(theme_classic())
 
 # Getting started with naryn
 
-Naryn is an implmenetation of a time-series database, for efficient storage, retrieval and analysis of electronic health records (EHR).
+Naryn is an implementation of a time-series database, for efficient storage, retrieval and analysis of electronic health records (EHR).
 
 ### Download the example database 
 
-Towards this vignette we are going to use a small database which was simulated to include an example of a typical EMR databse. It can be downloaded from [here](https://naryn.s3.eu-west-1.amazonaws.com/naryn_example_db.tar.gz) or using the following code:
+Towards this vignette we are going to use a small database which was simulated to include an example of a typical EMR database. It can be downloaded from [here](https://naryn.s3.eu-west-1.amazonaws.com/naryn_example_db.tar.gz) or using the following code:
 
 ```{r, eval = FALSE}
 emr_download_example_data()
@@ -33,7 +33,7 @@ Note that although smaller than the real database, this example database is stil
 
 ## Tracks
 
-The basic element of Naryn is a track - a single numerical data element (e.g. RBC lab test result) that is recorded for many patients at various time points. A track can be thought of as a very sparse two-dimentional matrix with a row for each patient in the database, and a column for each timepoint in the resolution of hours. Another way to think of a track is as a table with triplets of patient, timepoint and value: 
+The basic element of Naryn is a track - a single numerical data element (e.g. RBC lab test result) that is recorded for many patients at various time points. A track can be thought of as a very sparse two-dimensional matrix with a row for each patient in the database, and a column for each timepoint in the resolution of hours. Another way to think of a track is as a table with triplets of patient, timepoint and value: 
 
 | id|    time|  lab.RBC|
 |--:|-------:|--------:|
@@ -77,7 +77,7 @@ emr_track.ls("RBC")
 
 ## Extract data from tracks
 
-We can now go back to the 'RBC' example and extract the data from the track. This can be done using the `emr_extract()` function which is the 'swiss army knife' of the package. It can be used to extract data from a single track, or from multiple tracks, while applying various filters and transformations, but we will start with the simplest example of extracting the data from a single track:
+We can now go back to the 'RBC' example and extract the data from the track. This can be done using the `emr_extract()` function which is the 'Swiss army knife' of the package. It can be used to extract data from a single track, or from multiple tracks, while applying various filters and transformations, but we will start with the simplest example of extracting the data from a single track:
 
 ```{r}
 rbc_df <- emr_extract("lab.RBC")
@@ -112,7 +112,7 @@ rbc_df %>%
 
 ## Iterators and virtual tracks
 
-In the previous example we extracted the data from a single track, what happens if we want to extract data from multiple tracks at once? For example, we would want to extract the RBC and WBC (White Blood cell Count) of patients which had a heart disease (ICD9 code 411), 5 years prior to the diagnosis. In order to acheive this we need to introduce the concept of *iterators*. 
+In the previous example we extracted the data from a single track, what happens if we want to extract data from multiple tracks at once? For example, we would want to extract the RBC and WBC (White Blood cell Count) of patients which had a heart disease (ICD9 code 411), 5 years before their diagnosis. In order to achieve this we need to introduce the concept of *iterators*. 
 
 An iterator is a set of points in the *patient-time space*[^1] that defines the way in which naryn traverses the database. In the RBC example, the iterator was simply the set of all *patient-time* points that were included in the track, but now - we would want our point-of-view to be the heart disease diagnosis so we would set the iterator to the track of ICD code 411: 
 
@@ -128,11 +128,11 @@ We can see that the "lab.RBC" and "lab.WBC" are all NA. This is because the iter
 1. Tell naryn to look back 5 years before the diagnosis
 2. Tell naryn what to do if there is more than one RBC test in the 5 years prior to the diagnosis, for example - take the earliest, or more generally - tell naryn which function to apply to values of the track. 
 
-This can be done using a *virtual track*. A virtual track is a way to tell naryn how to compute the value of a track when at a specific point in the *patient-time space*. It is created using the `emr_virtual_track()` function, which tells naryn how to shift the time for a given track (1, `time.shift`) and which function to apply to the values of the track (2, `func`). In our case: 
+This can be done using a *virtual track*. A virtual track is a way to tell naryn how to compute the value of a track when at a specific point in the *patient-time space*. It is created using the `emr_virtual_track()` function, which tells naryn how to shift the time for a given track (1, `time.shift`) and which function to apply to the values of the track (2, `func`). Note that the time shift is always in reference to the *iterator*. So for example, in our case we would like to look at an RBC / WBC measurement 5 years before the diagnosis. If our iterator is at the time of heart disease diagnosis, we want to look at a time window that starts 5 years before and ends at the time of diagnosis:
 
 ```{r}
-emr_vtrack.create("rbc_5y", "lab.RBC", time.shift = c(-years(5), -1), func = "earliest")
-emr_vtrack.create("wbc_5y", "lab.WBC", time.shift = c(-years(5), -1), func = "earliest")
+emr_vtrack.create("rbc_5y", "lab.RBC", time.shift = c(-years(5), 0), func = "earliest")
+emr_vtrack.create("wbc_5y", "lab.WBC", time.shift = c(-years(5), 0), func = "earliest")
 ```
 
 Now, we can extract the data from the virtual tracks (instead of the tracks themselves):
@@ -145,8 +145,8 @@ head(heart_blood)
 We would like to also know how long before the diagnosis each test was performed, so we will create an additional virtual track, this time with a function that computes the difference between the time of the diagnosis and the earliest blood test. Also, we would like the time difference to be in the resolution of months, so we will give `emr_extract` a track expression that divides the time difference by 30 * 24 (the number of hours in a month), which is equivalent ot the `month` function:
 
 ```{r}
-emr_vtrack.create("rbc_5y_d", "lab.RBC", time.shift = c(-years(5), -1), func = "dt2.earliest")
-emr_vtrack.create("wbc_5y_d", "lab.WBC", time.shift = c(-years(5), -1), func = "dt2.earliest")
+emr_vtrack.create("rbc_5y_d", "lab.RBC", time.shift = c(-years(5), 0), func = "dt2.earliest")
+emr_vtrack.create("wbc_5y_d", "lab.WBC", time.shift = c(-years(5), 0), func = "dt2.earliest")
 heart_blood <- emr_extract(
     c("rbc_5y", "wbc_5y", "rbc_5y_d/month()", "wbc_5y_d/month()"),
     iterator = "dx.icd9_411",
@@ -155,7 +155,7 @@ heart_blood <- emr_extract(
 head(heart_blood)
 ```
 
-Yay! we got what we wanted, but something is still weird - we can see that some patients (and in this sampled database - most patients) have more than one diagnosis of a heart disease. Many times, this is indeed the case - a patient can be diagnosed with heart disease multiple times, but more commonly in EMR data - the same diagnosis is recorded multiple times, and what we actually want is the earliest diagnosis. In order to acheive that we would have to use *filters*.
+Yay! we got what we wanted, but something is still weird - we can see that some patients (and in this sampled database - most patients) have more than one diagnosis of a heart disease. Many times, this is indeed the case - a patient can be diagnosed with heart disease multiple times, but more commonly in EMR data - the same diagnosis is recorded multiple times, and what we actually want is the earliest diagnosis. In order to achieve that we would have to use *filters*.
 
 [^1]: Actually, *patient-time-reference* space, but this is explained in the advanced vignette.
 
@@ -228,7 +228,7 @@ patients %>%
 
 Given what we learned about iterators, virtual tracks and filters, how would we extract the *age* of a patient at a given timepoint? For example, say that we want to know the age of a patient at the time of their first diagnosis of heart disease. We can do this by creating a virtual track that computes the difference between the time of the diagnosis and the time of birth. 
 
-A virtual track needs 4 things - name, source, time shift and function. We sould set the name to "age", the source to "patients.dob" and at each point of the iterator we would like to go backward in time a maximal amount (say - 120 years) and compute the time difference between the point and the birth, so we will set the `time.shift` to `c(-years(120), 0)` and the function to `dt2.earliest`:
+A virtual track needs 4 things - name, source, time shift and function. We should set the name to "age", the source to "patients.dob" and at each point of the iterator we would like to go backward in time a maximal amount (say - 120 years) and compute the time difference between the point and the birth, so we will set the `time.shift` to `c(-years(120), 0)` and the function to `dt2.earliest`:
 
 ```{r}
 emr_vtrack.create("age", "patients.dob", time.shift = c(-years(120), 0), func = "dt2.earliest")
@@ -283,6 +283,8 @@ hgb_dist <- emr_dist(
 head(hgb_dist)
 ```
 
+Note that for the categorical track "sex" the breaks were set to NULL which implicitly uses all the possible values in the track. 
+
 We can now plot the distributions:
 
 ```{r}
@@ -302,7 +304,7 @@ hgb_dist %>%
 
 ## Additional examples
 
-In the next few sections we will present a few additional examples of how to use `naryn` for analysis of EMR data. It is reccomened to try and implement a solution to each example before looking at the code below it. 
+In the next few sections we will present a few additional examples of how to use `naryn` for analysis of EMR data. It is recommended to try and implement a solution to each example before looking at the code below it. 
 
 ### Extract survival time for patients with pancreatic cancer
 
@@ -331,7 +333,7 @@ head(pancreatic_cancer_survival)
 
 Note that NA in survival means that the patient still has not died.
 
-We can now compute the kaplan-meier survival curve for pancreatic cancer patients. 
+We can now compute the Kaplan-Meier survival curve for pancreatic cancer patients. 
 Censoring is applied to reflect latest update of database (Jan 6, 2022):
 
 ```{r}
@@ -393,7 +395,7 @@ Now we can use the data frame we created as an iterator:
 
 ```{r}
 # filter patients that already have diabetes before heart disease
-emr_filter.create("has_diabetes", "dx.icd9_250", time.shift = c(-120 * 365 * 24, 0))
+emr_filter.create("has_diabetes", "dx.icd9_250", time.shift = c(-years(120), 0))
 heart_onset_no_diabetes <- emr_extract("age/year()", iterator = heart_onset %>% select(id, time = heart_onset), filter = "!has_diabetes", names = "age")
 
 nrow(heart_onset)
@@ -440,7 +442,7 @@ lines(density(female_hgb_60_70_q50$median_hgb, na.rm = TRUE), col = "red")
 ```
 
 
-### Count number of patients by age that were in the system in january 2020
+### Count number of patients by age that were in the system in January 2020
 
 What does it mean to be "in the system"? Every EHR system would have its own definition of this, but in general - we want the patients that have already been born, have not died yet, have registered with the EHR system and haven't left the system (for good) yet.
 

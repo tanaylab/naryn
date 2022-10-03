@@ -70,7 +70,7 @@ Multiple patterns are applied one after another. The resulted list of tracks
 should match all the patterns.
 
 If \code{db_id} parameter is set, only tracks within the specific db would be shown.
-Note that tracks which were overriden by other databases would not be shown, even if
+Note that tracks which were overridden by other databases would not be shown, even if
 their files exist within the database. See \code{emr_db.connect} for more details.
 
 'emr_track.global.ls', 'emr_track.user.ls', 'emr_track.logical.ls' work similarly to

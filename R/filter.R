@@ -457,7 +457,7 @@ emr_filter.create_from_name <- function(filter) {
 #' vector are checked both in time window and expiration window.
 #'
 #' Note: 'time.shift' can be used only when 'keepref' is 'FALSE'.
-#' Note:  A zero length vector is interpeted by R as NULL, so \code{val=c()} would create
+#' Note:  A zero length vector is interpreted by R as NULL, so \code{val=c()} would create
 #' a filter which returns all the values of \code{src}
 #'
 #' @param filter filter name. If NULL - a name would be generated automatically using \code{emr_filter.name}.

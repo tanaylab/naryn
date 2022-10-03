@@ -294,7 +294,7 @@ test_that("beat iterator warning", {
     expect_warning(expect_regression(emr_extract("track1", iterator = 1, keepref = TRUE, stime = 10, etime = 15), "filter.38"))
 })
 
-test_that("Cannot use an implicit time scope with Beat Iteator: please specify 'stime' and 'etime'", {
+test_that("Cannot use an implicit time scope with Beat Iterator: please specify 'stime' and 'etime'", {
     emr_filter.clear()
     emr_filter.create("f1", "track0", keepref = FALSE, time.shift = c(10, 50))
     emr_filter.create("f2", "track3", keepref = TRUE)

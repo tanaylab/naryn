@@ -27,4 +27,4 @@ remotes::install_github("tanaylab/naryn")
 
 ## Usage
 
-See the [vigentte](https://tanaylab.github.io/naryn/articles/naryn.html) for more details.
+See the [vignette](https://tanaylab.github.io/naryn/articles/naryn.html) for more details.
