@@ -94,14 +94,19 @@ SEXP emr_track_mv(SEXP _srctrack, SEXP _tgttrack, SEXP _db_id, SEXP _envir)
 	rreturn(R_NilValue);
 }
 
-SEXP emr_track_rm(SEXP _track, SEXP _envir)
+SEXP emr_track_rm(SEXP _track, SEXP _update, SEXP _envir)
 {
 	try {
-		Naryn naryn(_envir);
+		Naryn naryn(_envir, asLogical(_update));
 
 		// check the arguments
-		if (!isString(_track) || Rf_length(_track) != 1)
+		if (!isString(_track) || Rf_length(_track) != 1){
 			verror("Track argument is not a string");
+        }
+        
+        if (!isLogical(_update)){
+            verror("update argument must be a logical value");
+        }
 
 		const char *trackname = CHAR(STRING_ELT(_track, 0));
         vdebug("Removing track %s\n", trackname);
@@ -112,12 +117,13 @@ SEXP emr_track_rm(SEXP _track, SEXP _envir)
         }
 
         vdebug("Removing track file %s\n", track_info->filename.c_str());
-        if (unlink(track_info->filename.c_str()))
+        if (unlink(track_info->filename.c_str())){
             verror("Deleting file %s: %s", track_info->filename.c_str(), strerror(errno));
+        }
 
-        g_db->unload_track(trackname, true);
-        
-	} catch (TGLException &e) {
+        g_db->unload_track(trackname, true, !asLogical(_update));
+
+        } catch (TGLException &e) {
 		rerror("%s", e.msg());
     } catch (const bad_alloc &e) {
         rerror("Out of memory");

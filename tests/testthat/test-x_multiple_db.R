@@ -169,7 +169,6 @@ test_that("deletion of overriding track loads back the overridden track", {
     expect_false("track1" %in% emr_track.ls())
 })
 
-
 test_that("emr_track.create overrides existing track", {
 
     # track2_2 is in db 2, we are creating a new track2_2 in EMR_UROOT
