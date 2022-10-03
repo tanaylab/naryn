@@ -128,14 +128,16 @@ attributes will persist when the track is no longer overridden.</p>
 <span class="r-in"><span><span class="fu"><a href="emr_track.attr.set.html">emr_track.attr.set</a></span><span class="op">(</span><span class="st">"sparse_track"</span>, <span class="st">"tag"</span>, <span class="st">""</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="emr_track.attr.set.html">emr_track.attr.set</a></span><span class="op">(</span><span class="st">"dense_track"</span>, <span class="st">"gender"</span>, <span class="st">"male"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">emr_track.attr.export</span><span class="op">(</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          track   attr  value</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1  dense_track gender   male</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 sparse_track gender female</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 sparse_track    tag       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          track      attr  value</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1  dense_track    gender   male</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 sparse_track    gender female</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 sparse_track       tag       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 sparse_track test_attr  value</span>
 <span class="r-in"><span><span class="fu">emr_track.attr.export</span><span class="op">(</span>track <span class="op">=</span> <span class="st">"sparse_track"</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          track   attr  value</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 sparse_track gender female</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 sparse_track    tag       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          track      attr  value</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 sparse_track    gender female</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 sparse_track       tag       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 sparse_track test_attr  value</span>
 <span class="r-in"><span><span class="fu">emr_track.attr.export</span><span class="op">(</span>attr <span class="op">=</span> <span class="st">"gender"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          track   attr  value</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1  dense_track gender   male</span>
