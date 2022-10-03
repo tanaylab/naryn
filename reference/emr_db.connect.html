@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">naryn</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">2.6.8</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">2.6.9</span>
       </span>
     </div>
 
@@ -157,9 +157,9 @@ might opt for running a "daemon" - an additional permanent R session. The
 daemon would pre-load all the tracks in advance and stay alive thus boosting
 the run-time of the later emerging sessions.</p>
 <p>Upon completion the connection is established with the database and a few
-global variables are added to the environment. These variables should not be
+variables are added to the .naryn environment. These variables should not be
 modified by the user!</p>
-<table class="table table"><tr><td>EMR_GROOT</td><td>First db dir of tracks in the order of connections</td><td>EMR_UROOT</td></tr><tr><td>Last db dir of tracks in the order of connection (user dir)</td><td>EMR_ROOTS</td><td>Vector of directories (db_dirs)</td></tr></table><p><code>emr_db.init</code> is the old version of this function which
+<table class="table table"><tr><td>.naryn$EMR_GROOT</td><td>First db dir of tracks in the order of connections</td><td>.naryn$EMR_UROOT</td></tr><tr><td>Last db dir of tracks in the order of connection (user dir)</td><td>.naryn$EMR_ROOTS</td><td>Vector of directories (db_dirs)</td></tr></table><p><code>emr_db.init</code> is the old version of this function which
 is now deprecated.</p>
     </div>
     <div id="see-also">

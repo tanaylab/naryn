@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">naryn</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">2.6.8</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">2.6.9</span>
       </span>
     </div>
 
@@ -66,6 +66,9 @@
       <small>Source: <a href="https://github.com/tanaylab/naryn/blob/HEAD/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.6.9" id="naryn-269">naryn 2.6.9<a class="anchor" aria-label="anchor" href="#naryn-269"></a></h2>
+<ul><li>Removed global variables from the package - EMR_ROOTS, EMR_GROOT, EMR_UROOT, EMR_FILTERS and EMR_VTRACKS are now a part of a dedicated environment called <code>.naryn</code>. You can access them using <code>.naryn::EMR_ROOTS</code> etc.</li></ul></div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="2.6.8" id="naryn-268">naryn 2.6.8<a class="anchor" aria-label="anchor" href="#naryn-268"></a></h2>
 <ul><li>Optimized the performance of the <code>emr_track.exists</code> function.</li></ul></div>
@@ -492,7 +495,7 @@ iterator=list(period, trackname)</p>
 <li>Time intervals format for 5 &amp; 6: data frame with the first columns named “stime” and “etime”</li>
 <li>Run-time optimization when OR is used in iterator filter</li>
 <li>Report error id-time list used for iterator / filter contains two records that differ only by reference when keepref == FALSE</li>
-</ul><ol start="10" style="list-style-type: decimal"><li>Bug fix in filter when time after shift preceeds the epoch</li>
+</ul><ol start="10" style="list-style-type: decimal"><li>Bug fix in filter when time after shift precedes the epoch</li>
 <li>Bug fix in beat iterator: invalid progress report</li>
 </ol></div>
     <div class="section level2">
