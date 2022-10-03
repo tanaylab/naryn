@@ -283,7 +283,7 @@ day <- function() {
 
 #' @export
 #' @rdname emr_time
-months <- function(n) {
+months.numeric <- function(n) {
     return(n * 30 * 24)
 }
 

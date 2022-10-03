@@ -1,4 +1,6 @@
 library(testthat)
 library(naryn)
 
-test_check("naryn")
+if (identical(Sys.getenv("NOT_CRAN"), "true")) {
+    test_check("naryn")
+}

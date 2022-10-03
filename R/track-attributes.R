@@ -180,7 +180,7 @@ emr_track.attr.rm <- function(track, attr) {
 #' attribute already exists its value is overwritten.
 #'
 #'
-#' Note that both attributes and values sould be in ASCII encoding.
+#' Note that both attributes and values should be in ASCII encoding.
 #'
 #' @param track one or more track names
 #' @param attr one or more attribute names

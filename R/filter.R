@@ -208,12 +208,12 @@
 }
 
 #' The function receives the output of .emr_gen_vtrack_filters
-#' and reverts the filters to there old, original form.
+#' and reverts the filters to their old, original form.
 #'
 #' @noRd
 .emr_recreate_vtrack_filters <- function(orig_filters) {
     purrr::walk(orig_filters$updated, ~ {
-        emr_filter.create(
+        .emr_filter.create(
             filter = .x$filter,
             src = .x$src,
             time.shift = .x$time_shift,
@@ -457,7 +457,7 @@ emr_filter.create_from_name <- function(filter) {
 #' vector are checked both in time window and expiration window.
 #'
 #' Note: 'time.shift' can be used only when 'keepref' is 'FALSE'.
-#' Note:  A zero length vector is interpeted by R as NULL, so \code{val=c()} would create
+#' Note:  A zero length vector is interpreted by R as NULL, so \code{val=c()} would create
 #' a filter which returns all the values of \code{src}
 #'
 #' @param filter filter name. If NULL - a name would be generated automatically using \code{emr_filter.name}.
@@ -467,7 +467,7 @@ emr_filter.create_from_name <- function(filter) {
 #' @param val selected values
 #' @param expiration expiration period
 #' @param operator operator for filtering. Accepts one of: "=", "<", "<=", ">", ">="
-#' @return Name of the filter (invisibly, if filter name wasn't generated automatically)
+#' @return Name of the filter (invisibly, if filter name wasn't generated automatically, otherwise - explicitly)
 #' @seealso \code{\link{emr_filter.attr.src}}, \code{\link{emr_filter.ls}},
 #' \code{\link{emr_filter.exists}}, \code{\link{emr_filter.rm}}, \code{\link{emr_filter.create_from_name}}
 #' @keywords ~filter
@@ -478,7 +478,14 @@ emr_filter.create_from_name <- function(filter) {
 #' emr_filter.create("f2", "dense_track", keepref = TRUE)
 #' emr_extract("sparse_track", filter = "!f1 & f2")
 #' @export emr_filter.create
-emr_filter.create <- function(filter, src, keepref = FALSE, time.shift = NULL, val = NULL, expiration = NULL, operator = "=", use_values = FALSE) {
+emr_filter.create <- function(filter, src, keepref = FALSE, time.shift = NULL, val = NULL, expiration = NULL, operator = "=") {
+    .emr_filter.create(filter, src, keepref, time.shift, val, expiration, operator)
+}
+
+#' This helper function is here in order to obfuscate the \code{use_values} argument
+#'
+#' @noRd
+.emr_filter.create <- function(filter, src, keepref = FALSE, time.shift = NULL, val = NULL, expiration = NULL, operator = "=", use_values = FALSE) {
     if (missing(filter) || missing(src)) {
         stop("Usage: emr_filter.create(filter, src, keepref = FALSE, time.shift = NULL, val = NULL, expiration = NULL)", call. = FALSE)
     }

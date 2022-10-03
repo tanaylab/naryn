@@ -7,5 +7,9 @@ utils::globalVariables(unique(c(
     "EMR_VTRACKS",
     "track",
     # emr_ids_vals_coverage
-    "val"
+    "val",
+    "value",
+    ".EMR_FUNCS",
+    ".EMR_LIBDIR",
+    "."
 )))

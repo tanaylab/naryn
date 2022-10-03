@@ -19,15 +19,15 @@ None.
 Gets or sets "readonly" property of a track.
 }
 \details{
-This function gets or sets "read-onlyness" of the track. If 'readonly' is
+This function gets or sets "readonly-ness" of the track. If 'readonly' is
 'NULL' the functions returns whether the track is R/O. Otherwise it sets
-"read-onlyness" to the value indicated by 'readonly'.
+"readonly-ness" to the value indicated by 'readonly'.
 
-Logical tracks inherit their "read-onlyness" from the source
+Logical tracks inherit their "readonly-ness" from the source
 physical tracks.
 
-Overriding a track also overrides it's "read-onlyness", it's
-"read-onlyness" will persist when the track is no longer overridden
+Overriding a track also overrides it's "readonly-ness", it's
+"readonly-ness" will persist when the track is no longer overridden
 }
 \seealso{
 \code{\link{emr_track.create}}, \code{\link{emr_track.mv}},

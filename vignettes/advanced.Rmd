@@ -1,8 +1,8 @@
 ---
-title: "naryn"
+title: "advanced naryn"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{naryn}
+  %\VignetteIndexEntry{advanced}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -370,7 +370,7 @@ emr_extract("hemoglobin", filter = "(filterX | filterY) & !filterZ")
 ```
 
 We can further expand the example above by specifying the 'operator' argument on filter creation. 
-If we wish to extract, the same information as before, but in this case we are interested only in patients which have an hemoglobin level of atleast 16 (in addition to our drug treatment requirments). 
+If we wish to extract, the same information as before, but in this case we are interested only in patients which have an hemoglobin level of at least 16 (in addition to our drug treatment requirements). 
 Under the same assumptions in the previous example, our code would look like:
 
 ```r
