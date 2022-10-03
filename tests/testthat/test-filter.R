@@ -440,7 +440,7 @@ test_that("emr_filter.info works", {
 test_that("emr_filter.create works with -1 as val (kr issues)", {
     emr_filter.clear()
     df <- data.frame(id = 1, time = c(1, 2, 2), value = c(-1, 4, 3), ref = c(0, 0, 1))
-    emr_track.import("minusone", space = EMR_UROOT, categorical = TRUE, src = df)
+    emr_track.import("minusone", space = .naryn$EMR_UROOT, categorical = TRUE, src = df)
     withr::defer(emr_track.rm("minusone", force = TRUE))
     emr_filter.create("f", "minusone", val = -1)
     t <- emr_extract("minusone", filter = "f")

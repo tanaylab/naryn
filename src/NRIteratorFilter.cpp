@@ -17,8 +17,8 @@ void NRIteratorFilter::init(SEXP filter, unsigned stime, unsigned etime)
     vector<SEXP> rfilter_names;
     vector<SEXP> filters;
     
-    // retrieve filter names (named filters are at a global variable called EMR_FILTERS)
-    rprotect(emr_filters = findVar(install("EMR_FILTERS"), g_naryn->env()));
+    // retrieve filter names (named filters are at a variable called EMR_FILTERS inside the .naryn environment)    
+    rprotect(emr_filters = findVar(install("EMR_FILTERS"), findVar(install(".naryn"), g_naryn->env())));
 
     if (!isNull(emr_filters) && !isSymbol(emr_filters)) {        
 

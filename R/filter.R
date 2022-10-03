@@ -12,7 +12,7 @@
         stop(sprintf("Filter %s does not exist", filterstr), call. = FALSE)
     }
 
-    filter <- get("EMR_FILTERS", envir = .GlobalEnv)[[filterstr]]
+    filter <- get("EMR_FILTERS", envir = .naryn)[[filterstr]]
 
     if (!is.null(filter$logical)) {
         filter$src <- filter$logical$src
@@ -533,8 +533,8 @@ emr_filter.create <- function(filter, src, keepref = FALSE, time.shift = NULL, v
 }
 
 .create_named_filter <- function(filter, src, keepref = FALSE, time.shift = NULL, val = NULL, expiration = NULL, operator = "=", use_values = FALSE) {
-    if (!exists("EMR_FILTERS", envir = .GlobalEnv)) {
-        EMR_FILTERS <<- list()
+    if (!exists("EMR_FILTERS", envir = .naryn)) {
+        assign("EMR_FILTERS", list(), envir = .naryn)
     }
 
     logical <- NULL
@@ -585,7 +585,7 @@ emr_filter.create <- function(filter, src, keepref = FALSE, time.shift = NULL, v
         emr_filter.rm(filter)
     }
 
-    EMR_FILTERS[[filter]] <<- var
+    .naryn$EMR_FILTERS[[filter]] <- var
 }
 
 #' Get or set attributes of a named filter
@@ -623,7 +623,7 @@ emr_filter.attr.src <- function(filter, src) {
         stop("Usage: emr_filter.attr.src(filter, src)", call. = FALSE)
     }
 
-    filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[filter]]
+    filter.var <- get("EMR_FILTERS", envir = .naryn)[[filter]]
 
     if (is.null(filter.var)) {
         stop(sprintf("Filter \"%s\" does not exist", filter), call. = FALSE)
@@ -664,7 +664,7 @@ emr_filter.attr.src <- function(filter, src) {
         }
     }
 
-    EMR_FILTERS[[filter]] <<- filter.var
+    .naryn$EMR_FILTERS[[filter]] <- filter.var
     return(NULL)
 }
 
@@ -676,7 +676,7 @@ emr_filter.attr.keepref <- function(filter, keepref) {
         stop("Usage: emr_filter.attr.keepref(filter, keepref)", call. = FALSE)
     }
 
-    filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[filter]]
+    filter.var <- get("EMR_FILTERS", envir = .naryn)[[filter]]
     if (is.null(filter.var)) {
         stop(sprintf("Filter \"%s\" does not exist", filter), call. = FALSE)
     }
@@ -688,7 +688,7 @@ emr_filter.attr.keepref <- function(filter, keepref) {
             stop("'keepref' parameter must be logical", call. = FALSE)
         }
 
-        EMR_FILTERS[[filter]]["keepref"] <<- list(keepref)
+        .naryn$EMR_FILTERS[[filter]]["keepref"] <- list(keepref)
         return(NULL)
     }
 }
@@ -701,7 +701,7 @@ emr_filter.attr.time.shift <- function(filter, time.shift) {
         stop("Usage: emr_filter.attr.time.shift(filter, time.shift)", call. = FALSE)
     }
 
-    filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[filter]]
+    filter.var <- get("EMR_FILTERS", envir = .naryn)[[filter]]
     if (is.null(filter.var)) {
         stop(sprintf("Filter \"%s\" does not exist", filter), call. = FALSE)
     }
@@ -710,7 +710,7 @@ emr_filter.attr.time.shift <- function(filter, time.shift) {
         filter.var$time_shift
     } else {
         .emr_call("emr_check_filter_attr_time_shift", time.shift, new.env(parent = parent.frame()))
-        EMR_FILTERS[[filter]]["time_shift"] <<- list(time.shift)
+        .naryn$EMR_FILTERS[[filter]]["time_shift"] <- list(time.shift)
         return(NULL)
     }
 }
@@ -723,7 +723,7 @@ emr_filter.attr.val <- function(filter, val) {
         stop("Usage: emr_filter.attr.val(filter, val)", call. = FALSE)
     }
 
-    filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[filter]]
+    filter.var <- get("EMR_FILTERS", envir = .naryn)[[filter]]
     if (is.null(filter.var)) {
         stop(sprintf("Filter \"%s\" does not exist", filter), call. = FALSE)
     }
@@ -750,9 +750,9 @@ emr_filter.attr.val <- function(filter, val) {
             filter.var$src <- data.frame(id = numeric(), time = numeric())
             val <- NULL
         }
-        EMR_FILTERS[[filter]] <<- filter.var
+        .naryn$EMR_FILTERS[[filter]] <- filter.var
     } else {
-        EMR_FILTERS[[filter]]["val"] <<- unique(list(val))
+        .naryn$EMR_FILTERS[[filter]]["val"] <- unique(list(val))
     }
     return(NULL)
 }
@@ -765,7 +765,7 @@ emr_filter.attr.expiration <- function(filter, expiration) {
         stop("Usage: emr_filter.attr.expiration(filter, expiration)", call. = FALSE)
     }
 
-    filter.var <- get("EMR_FILTERS", envir = .GlobalEnv)[[filter]]
+    filter.var <- get("EMR_FILTERS", envir = .naryn)[[filter]]
     if (is.null(filter.var)) {
         stop(sprintf("Filter \"%s\" does not exist", filter), call. = FALSE)
     }
@@ -774,7 +774,7 @@ emr_filter.attr.expiration <- function(filter, expiration) {
         filter.var$expiration
     } else {
         .emr_call("emr_check_filter_attr_expiration", expiration, new.env(parent = parent.frame()))
-        EMR_FILTERS[[filter]]["expiration"] <<- list(expiration)
+        .naryn$EMR_FILTERS[[filter]]["expiration"] <- list(expiration)
         return(NULL)
     }
 }
@@ -803,8 +803,8 @@ emr_filter.exists <- function(filter) {
     }
 
     res <- FALSE
-    if (exists("EMR_FILTERS", envir = .GlobalEnv)) {
-        filters <- get("EMR_FILTERS", envir = .GlobalEnv)
+    if (exists("EMR_FILTERS", envir = .naryn)) {
+        filters <- get("EMR_FILTERS", envir = .naryn)
         res <- !is.null(filters[[filter]])
     }
     res
@@ -860,11 +860,11 @@ emr_filter.info <- function(filter) {
 #' emr_filter.ls("*2")
 #' @export emr_filter.ls
 emr_filter.ls <- function(pattern = "", ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
-    if (!exists("EMR_FILTERS", envir = .GlobalEnv)) {
+    if (!exists("EMR_FILTERS", envir = .naryn)) {
         return(character(0))
     }
 
-    filters <- get("EMR_FILTERS", envir = .GlobalEnv)
+    filters <- get("EMR_FILTERS", envir = .naryn)
     filternames <- names(filters)
 
     if (!is.list(filters) || (length(filters) && !is.character(filternames)) || length(filters) != length(filternames)) {
@@ -908,11 +908,11 @@ emr_filter.rm <- function(filter) {
         stop("Usage: emr_filter.rm(filter)", call. = FALSE)
     }
 
-    if (exists("EMR_FILTERS", envir = .GlobalEnv)) {
-        emr_filters <- get("EMR_FILTERS", envir = .GlobalEnv)
+    if (exists("EMR_FILTERS", envir = .naryn)) {
+        emr_filters <- get("EMR_FILTERS", envir = .naryn)
         emr_filters[[filter]] <- NULL
 
-        assign("EMR_FILTERS", emr_filters, envir = .GlobalEnv)
+        assign("EMR_FILTERS", emr_filters, envir = .naryn)
     }
 
     return(NULL)
@@ -931,6 +931,6 @@ emr_filter.rm <- function(filter) {
 #' emr_filter.ls()
 #' @export
 emr_filter.clear <- function() {
-    EMR_FILTERS <<- list()
+    assign("EMR_FILTERS", list(), envir = .naryn)
     return(NULL)
 }

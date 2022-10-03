@@ -381,20 +381,21 @@ emr_ids_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filter = N
         if (is.null(stime) && is.null(etime) && is.null(filter)) {
             res <- .emr_call("emr_ids_dist", ids, tracks, new.env(parent = parent.frame()))
         } else {
+            filter_name <- random_filter_name("tmp_")
             if (is.null(filter)) {
-                filter <- "..emr_tmp_filter"
+                filter <- filter_name
             } else {
-                filter <- paste0("(", filter, ")", " & ..emr_tmp_filter")
+                filter <- glue::glue("({filter}) & {filter_name}")
             }
 
             if (is.character(ids)) { # ids is a name of the track
                 track_ids <- emr_track.ids(ids)
-                assign("..emr_tmp_filter", track_ids, envir = .GlobalEnv)
+                assign(filter_name, track_ids, envir = parent.frame())
                 if (emr_track.logical.exists(ids)) {
                     ids <- track_ids
                 }
             } else {
-                assign("..emr_tmp_filter", data.frame(id = unique(ids$id)), envir = .GlobalEnv)
+                assign(filter_name, data.frame(id = unique(ids$id)), envir = parent.frame())
             }
 
             tryCatch(
@@ -402,7 +403,7 @@ emr_ids_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filter = N
                     res <- .emr_call("emr_ids_dist_with_iterator", ids, tracks, stime, etime, filter, new.env(parent = parent.frame()))
                 },
                 finally = {
-                    rm("..emr_tmp_filter", envir = .GlobalEnv)
+                    rm(list = filter_name, envir = parent.frame())
                 }
             )
         }
@@ -498,20 +499,21 @@ emr_ids_vals_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filte
     }
 
     if (length(physical_tracks) > 0) {
+        filter_name <- random_filter_name("tmp_")
         if (is.null(filter)) {
-            filter <- "..emr_tmp_filter"
+            filter <- filter_name
         } else {
-            filter <- paste0("(", filter, ")", "& ..emr_tmp_filter")
+            filter <- glue::glue("({filter}) & {filter_name}")
         }
 
         if (is.character(ids)) { # ids is a name of the track
             track_ids <- emr_track.ids(ids)
-            assign("..emr_tmp_filter", track_ids, envir = .GlobalEnv)
+            assign(filter_name, track_ids, envir = parent.frame())
             if (emr_track.logical.exists(ids)) {
                 ids <- track_ids
             }
         } else {
-            assign("..emr_tmp_filter", data.frame(id = unique(ids$id)), envir = .GlobalEnv)
+            assign(filter_name, data.frame(id = unique(ids$id)), envir = parent.frame())
         }
 
         tryCatch(
@@ -519,7 +521,7 @@ emr_ids_vals_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filte
                 res_physical <- .emr_call("emr_ids_vals_dist", ids, physical_tracks, stime, etime, filter, new.env(parent = parent.frame()))
             },
             finally = {
-                rm("..emr_tmp_filter", envir = .GlobalEnv)
+                rm(list = filter_name, envir = parent.frame())
             }
         )
     }

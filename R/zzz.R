@@ -1,12 +1,14 @@
+.naryn <- new.env(parent = emptyenv())
+
 .onLoad <- function(lib, pkg) {
 }
 
 .onAttach <- function(lib, pkg) {
     Sys.umask("007")
 
-    assign(".EMR_FUNCS", getNamespaceExports("naryn"), envir = .GlobalEnv)
+    assign(".EMR_FUNCS", getNamespaceExports("naryn"), envir = .naryn)
 
-    assign(".EMR_LIBDIR", path.package("naryn"), envir = .GlobalEnv)
+    assign(".EMR_LIBDIR", path.package("naryn"), envir = .naryn)
 
     options(emr_multitasking = TRUE)
     options(emr_min.processes = 8)
@@ -22,7 +24,7 @@
 
 .onDetach <- function(lib) {
     .emr_call("emr_dbunload", new.env(parent = parent.frame()), silent = TRUE)
-    if (exists(".EMR_FUNCS", envir = .GlobalEnv)) {
-        remove(".EMR_FUNCS", envir = .GlobalEnv)
+    if (exists(".EMR_FUNCS", envir = .naryn)) {
+        remove(".EMR_FUNCS", envir = .naryn)
     }
 }

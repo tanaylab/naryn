@@ -60,13 +60,13 @@
 #' the run-time of the later emerging sessions.
 #'
 #' Upon completion the connection is established with the database and a few
-#' global variables are added to the environment. These variables should not be
+#' variables are added to the .naryn environment. These variables should not be
 #' modified by the user!
 #'
 #' \tabular{lll}{
-#' EMR_GROOT \tab First db dir of tracks in the order of connections \cr
-#' EMR_UROOT \tab Last db dir of tracks in the order of connection (user dir) \cr
-#' EMR_ROOTS \tab Vector of directories (db_dirs) \cr
+#' .naryn$EMR_GROOT \tab First db dir of tracks in the order of connections \cr
+#' .naryn$EMR_UROOT \tab Last db dir of tracks in the order of connection (user dir) \cr
+#' .naryn$EMR_ROOTS \tab Vector of directories (db_dirs) \cr
 #' }
 #'
 #' \code{emr_db.init} is the old version of this function which
@@ -111,14 +111,14 @@ emr_db.connect <- function(db_dirs = NULL, load_on_demand = NULL, do_reload = FA
 
     # We set the groot to be the first
     # directory in the vector
-    EMR_GROOT <<- db_dirs[1]
+    assign("EMR_GROOT", db_dirs[1], envir = .naryn)
 
     # We set the uroot to be the last
     if (length(db_dirs) > 1) {
-        EMR_UROOT <<- utils::tail(db_dirs, n = 1)
+        assign("EMR_UROOT", utils::tail(db_dirs, n = 1), envir = .naryn)
     }
 
-    EMR_ROOTS <<- db_dirs
+    assign("EMR_ROOTS", db_dirs, envir = .naryn)
 
     if (is.null(load_on_demand)) {
         load_on_demand <- !logical(length(db_dirs))
@@ -133,9 +133,9 @@ emr_db.connect <- function(db_dirs = NULL, load_on_demand = NULL, do_reload = FA
         },
         finally = {
             if (!success) {
-                remove("EMR_GROOT", envir = .GlobalEnv)
-                remove("EMR_UROOT", envir = .GlobalEnv)
-                remove("EMR_ROOTS", envir = .GlobalEnv)
+                remove("EMR_GROOT", envir = .naryn)
+                remove("EMR_UROOT", envir = .naryn)
+                remove("EMR_ROOTS", envir = .naryn)
             }
         }
     )
@@ -195,8 +195,8 @@ emr_db.reload <- function() {
         },
         finally = {
             if (!success) {
-                remove("EMR_GROOT", envir = .GlobalEnv)
-                remove("EMR_UROOT", envir = .GlobalEnv)
+                remove("EMR_GROOT", envir = .naryn)
+                remove("EMR_UROOT", envir = .naryn)
             }
         }
     )

@@ -228,7 +228,7 @@ test_that("emr_track.rm removes the track attributes", {
     emr_track.import("tmp", space = "user", categorical = TRUE, src = df)
     withr::defer(emr_track.rm("test", force = TRUE))
     emr_track.attr.set("tmp", "var1", "val1")
-    attrs_file <- file.path(EMR_GROOT, "utest", ".tmp.attrs")
+    attrs_file <- file.path(.naryn$EMR_GROOT, "utest", ".tmp.attrs")
     expect_true(file.exists(attrs_file))
     expect_equal(emr_track.attr.get("tmp", "var1"), "val1")
     emr_track.rm("tmp", force = TRUE)

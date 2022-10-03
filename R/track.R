@@ -62,12 +62,12 @@
     lspace <- tolower(space)
 
     if (lspace == "user") {
-        if ((!exists("EMR_UROOT", envir = .GlobalEnv) || is.null(get("EMR_UROOT", envir = .GlobalEnv)))) {
+        if ((!exists("EMR_UROOT", envir = .naryn) || is.null(get("EMR_UROOT", envir = .naryn)))) {
             stop("User space root directory is not set. Please call emr_db.connect", call. = FALSE)
         }
-        db_id <- EMR_UROOT
+        db_id <- .naryn$EMR_UROOT
     } else if (lspace == "global") {
-        db_id <- EMR_GROOT
+        db_id <- .naryn$EMR_GROOT
     } else if (!is.null(space)) {
         db_id <- normalizePath(space)
     } else {
@@ -202,19 +202,19 @@ emr_track.addto <- function(track, src, force = FALSE) {
 #' \code{\link{emr_track.ls}}, \code{\link{emr_track.exists}}
 #' @keywords ~track ~create
 #' @export emr_track.create
-emr_track.create <- function(track, space = EMR_UROOT, categorical, expr, stime = NULL, etime = NULL, iterator = NULL, keepref = FALSE, filter = NULL, override = FALSE) {
+emr_track.create <- function(track, space = .naryn$EMR_UROOT, categorical, expr, stime = NULL, etime = NULL, iterator = NULL, keepref = FALSE, filter = NULL, override = FALSE) {
 
     # when space is missing, writing for the last db in the order of connections
     if (missing(space)) {
-        if ((!exists("EMR_UROOT", envir = .GlobalEnv) || is.null(get("EMR_UROOT", envir = .GlobalEnv)))) {
-            space <- EMR_GROOT
+        if ((!exists("EMR_UROOT", envir = .naryn) || is.null(get("EMR_UROOT", envir = .naryn)))) {
+            space <- .naryn$EMR_GROOT
         } else {
-            space <- EMR_UROOT
+            space <- .naryn$EMR_UROOT
         }
     }
 
     if (missing(track) || missing(categorical) || missing(expr)) {
-        stop("Usage: emr_track.create(track, space = EMR_GROOT, categorical, expr, stime = NULL, etime = NULL, iterator = NULL, keepref = FALSE, filter = NULL)", call. = FALSE)
+        stop("Usage: emr_track.create(track, space = .naryn$EMR_GROOT, categorical, expr, stime = NULL, etime = NULL, iterator = NULL, keepref = FALSE, filter = NULL)", call. = FALSE)
     }
     .emr_checkroot()
 
@@ -273,7 +273,7 @@ emr_track.exists <- function(track, db_id = NULL) {
 single_track_exists <- function(track, db_id = NULL) {
     if (is.null(db_id)) {
         track_exists <- FALSE
-        for (root in EMR_ROOTS) {
+        for (root in .naryn$EMR_ROOTS) {
             track_exists <- track_exists | .emr_call("emr_track_exists", track, root, new.env(parent = parent.frame()))
         }
         track_exists <- track_exists | .emr_call("emr_logical_track_exists", track, new.env(parent = parent.frame()))
@@ -357,10 +357,10 @@ emr_track.ids <- function(track) {
 emr_track.import <- function(track, space, categorical, src, override = FALSE) {
     # when space is missing, writing for the last db in the order of connections
     if (missing(space)) {
-        if ((!exists("EMR_UROOT", envir = .GlobalEnv) || is.null(get("EMR_UROOT", envir = .GlobalEnv)))) {
-            space <- EMR_GROOT
+        if ((!exists("EMR_UROOT", envir = .naryn) || is.null(get("EMR_UROOT", envir = .naryn)))) {
+            space <- .naryn$EMR_GROOT
         } else {
-            space <- EMR_UROOT
+            space <- .naryn$EMR_UROOT
         }
     }
     if (missing(track) || missing(src) || missing(categorical)) {
@@ -407,7 +407,7 @@ emr_track.info <- function(track) {
 
     if (is.character(track) && emr_track.logical.exists(track)) {
         ltrack <- emr_track.logical.info(track)
-        .emr_call("emr_logical_track_user_info", track, ltrack$source, NULL, NULL, ltrack$source, TRUE, .emr_filter(.create_logical_track_filter(track)), c(EMR_ROOTS), new.env(parent = parent.frame()))
+        .emr_call("emr_logical_track_user_info", track, ltrack$source, NULL, NULL, ltrack$source, TRUE, .emr_filter(.create_logical_track_filter(track)), c(.naryn$EMR_ROOTS), new.env(parent = parent.frame()))
     } else {
         .emr_call("emr_track_info", track, new.env(parent = parent.frame()))
     }
@@ -424,7 +424,7 @@ emr_track.info <- function(track) {
     }
 
     if (is.character(track) && emr_track.logical.exists(track)) {
-        dbs <- EMR_GROOT
+        dbs <- .naryn$EMR_GROOT
     } else {
         dbs <- .emr_call(c_func, track, new.env(parent = parent.frame()))
     }
@@ -539,7 +539,7 @@ emr_track.current_db <- function(track, dataframe = FALSE) {
 emr_track.ls <- function(..., db_id = NULL, ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
     .emr_checkroot()
     if (!is.null(db_id)) {
-        if (db_id == EMR_GROOT) {
+        if (db_id == .naryn$EMR_GROOT) {
             return(emr_track.global.ls(..., ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes))
         } else {
             return(emr_track.db.ls(..., db_id = db_id, ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes))
@@ -556,7 +556,7 @@ emr_track.ls <- function(..., db_id = NULL, ignore.case = FALSE, perl = FALSE, f
 #' @rdname emr_track.ls
 emr_track.global.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
     .emr_checkroot()
-    tracks <- .emr_call("emr_track_db_names", EMR_GROOT, new.env(parent = parent.frame()), silent = TRUE)
+    tracks <- .emr_call("emr_track_db_names", .naryn$EMR_GROOT, new.env(parent = parent.frame()), silent = TRUE)
     logical_tracks <- .emr_call("emr_logical_track_names", new.env(parent = parent.frame()), silent = TRUE)
     .emr_tracks_filter(..., tracks = sort(c(tracks, logical_tracks)), ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes)
 }
@@ -567,7 +567,7 @@ emr_track.global.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = 
 #' @rdname emr_track.ls
 emr_track.user.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
     .emr_checkroot()
-    tracks <- .emr_call("emr_track_db_names", EMR_UROOT, new.env(parent = parent.frame()), silent = TRUE)
+    tracks <- .emr_call("emr_track_db_names", .naryn$EMR_UROOT, new.env(parent = parent.frame()), silent = TRUE)
     .emr_tracks_filter(..., tracks = tracks, ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes)
 }
 
@@ -621,7 +621,7 @@ emr_track.mv <- function(src, tgt, space = NULL) {
     if (!is.null(space)) {
         space <- tolower(space)
 
-        if (emr_track.logical.exists(src) && space != EMR_GROOT) {
+        if (emr_track.logical.exists(src) && space != .naryn$EMR_GROOT) {
             stop("cannot move logical tracks out of global space")
         }
     }

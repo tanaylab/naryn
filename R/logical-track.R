@@ -1,5 +1,5 @@
 .emr_track.logical.dir <- function() {
-    dirname <- get("EMR_GROOT", envir = .GlobalEnv)
+    dirname <- get("EMR_GROOT", envir = .naryn)
     paste0(dirname, "/logical")
 }
 

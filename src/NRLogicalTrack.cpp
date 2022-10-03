@@ -329,16 +329,15 @@ SEXP emr_expr_virtual_tracks(SEXP _expr, SEXP _envir) {
         vector<SEXP> rvtracknames;
         vector<SEXP> vtracks;
 
-        // retrieve virtual track names (virtual tracks are at a global variable
-        // called EMR_VTRACKS)
-        rprotect(emr_vtracks = findVar(install("EMR_VTRACKS"), g_naryn->env()));
+        // retrieve virtual track names (virtual tracks are at a variable called EMR_VTRACKS in the .naryn environment)        
+        rprotect(emr_vtracks = findVar(install("EMR_VTRACKS"), findVar(install(".naryn"), g_naryn->env())));
 
         if (!isNull(emr_vtracks) && !isSymbol(emr_vtracks)) {
             if (!isVector(emr_vtracks)){
                 verror(
                     "Invalid format of EMR_VTRACKS variable (1).\n"
                     "To continue working with virtual tracks please remove "
-                    "this variable from the environment.");
+                    "this variable from the .naryn environment.");
             }
 
             vtracks.push_back(emr_vtracks);
@@ -350,7 +349,7 @@ SEXP emr_expr_virtual_tracks(SEXP _expr, SEXP _envir) {
                 verror(
                     "Invalid format of EMR_VTRACKS variable (2).\n"
                     "To continue working with virtual tracks please "
-                    "remove this variable from the environment.");
+                    "remove this variable from the .naryn environment.");
             }
 
             rvtracknames.push_back(vtracknames);

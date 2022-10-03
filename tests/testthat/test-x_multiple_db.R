@@ -1,26 +1,26 @@
 load_test_dbs()
 
 test_that("load_on_demand=FALSE loads tracks into shared memory", {
-    cmd <- glue::glue("lsof -ad mem {file}", file = file.path(EMR_UROOT, "track0.nrtrack"))
+    cmd <- glue::glue("lsof -ad mem {file}", file = file.path(.naryn$EMR_UROOT, "track0.nrtrack"))
     # in the beginning - track0 is not loaded to memory
     expect_equal(system(cmd), 1)
 
     # reload the db which contains track0
-    load_on_demand <- rep(TRUE, length(EMR_ROOTS))
-    load_on_demand[which(EMR_ROOTS == emr_track.dbs("track0"))] <- FALSE
-    emr_db.connect(EMR_ROOTS, load_on_demand = load_on_demand)
+    load_on_demand <- rep(TRUE, length(.naryn$EMR_ROOTS))
+    load_on_demand[which(.naryn$EMR_ROOTS == emr_track.dbs("track0"))] <- FALSE
+    emr_db.connect(.naryn$EMR_ROOTS, load_on_demand = load_on_demand)
 
     # now the track should be in shared memory
     expect_equal(system(cmd), 0)
 })
 
 test_that("emr_db.connect recycles load_on_demand parameter", {
-    emr_db.connect(EMR_ROOTS, load_on_demand = TRUE)
-    expect_error(emr_db.connect(EMR_ROOTS, load_on_demand = c(TRUE, TRUE)))
+    emr_db.connect(.naryn$EMR_ROOTS, load_on_demand = TRUE)
+    expect_error(emr_db.connect(.naryn$EMR_ROOTS, load_on_demand = c(TRUE, TRUE)))
 })
 
 test_that("emr_db.connect fails when load_on_demand is not logical", {
-    expect_error(emr_db.connect(EMR_ROOTS, load_on_demand = "savta"))
+    expect_error(emr_db.connect(.naryn$EMR_ROOTS, load_on_demand = "savta"))
 })
 
 
@@ -48,39 +48,39 @@ test_that("emr_track.ls works with multiple dbs", {
 })
 
 test_that("emr_track.ls works with db_id", {
-    ls_tracks <- emr_track.ls(db_id = EMR_ROOTS[2])
-    tracks <- gsub(".nrtrack$", "", list.files(EMR_ROOTS[2], pattern = ".nrtrack"))
+    ls_tracks <- emr_track.ls(db_id = .naryn$EMR_ROOTS[2])
+    tracks <- gsub(".nrtrack$", "", list.files(.naryn$EMR_ROOTS[2], pattern = ".nrtrack"))
 
     # remove overridden tracks
     files_tracks <- purrr::discard(tracks, ~ {
         dbs <- emr_track.dbs(.x)
-        dbs[length(dbs)] != EMR_ROOTS[2]
+        dbs[length(dbs)] != .naryn$EMR_ROOTS[2]
     })
 
     expect_setequal(ls_tracks, files_tracks)
 })
 
 test_that("emr_track.ls works with db_id which is the global db", {
-    ls_tracks <- emr_track.ls(db_id = EMR_GROOT)
-    tracks <- gsub(".nrtrack$", "", list.files(EMR_GROOT, pattern = ".nrtrack"))
+    ls_tracks <- emr_track.ls(db_id = .naryn$EMR_GROOT)
+    tracks <- gsub(".nrtrack$", "", list.files(.naryn$EMR_GROOT, pattern = ".nrtrack"))
 
     # remove overridden tracks
     files_tracks <- purrr::discard(tracks, ~ {
         dbs <- emr_track.dbs(.x)
-        dbs[length(dbs)] != EMR_GROOT
+        dbs[length(dbs)] != .naryn$EMR_GROOT
     })
 
     expect_setequal(ls_tracks, files_tracks)
 })
 
 test_that("emr_track.ls works with db_id which is the user db", {
-    ls_tracks <- emr_track.ls(db_id = EMR_UROOT)
-    tracks <- gsub(".nrtrack$", "", list.files(EMR_UROOT, pattern = ".nrtrack"))
+    ls_tracks <- emr_track.ls(db_id = .naryn$EMR_UROOT)
+    tracks <- gsub(".nrtrack$", "", list.files(.naryn$EMR_UROOT, pattern = ".nrtrack"))
 
     # remove overridden tracks
     files_tracks <- purrr::discard(tracks, ~ {
         dbs <- emr_track.dbs(.x)
-        dbs[length(dbs)] != EMR_UROOT
+        dbs[length(dbs)] != .naryn$EMR_UROOT
     })
 
     expect_setequal(ls_tracks, files_tracks)
@@ -91,14 +91,14 @@ test_that("emr_track.ls works with db_id which is the user db", {
 
 test_that("emr_track.dbs works", {
     track_dbs <- c(
-        track1 = EMR_ROOTS[1],
-        track1 = EMR_ROOTS[2],
-        track1 = EMR_ROOTS[4],
-        track7 = EMR_ROOTS[1],
-        track7 = EMR_ROOTS[2],
-        track7 = EMR_ROOTS[3],
-        track7 = EMR_ROOTS[4],
-        track0_1 = EMR_ROOTS[1]
+        track1 = .naryn$EMR_ROOTS[1],
+        track1 = .naryn$EMR_ROOTS[2],
+        track1 = .naryn$EMR_ROOTS[4],
+        track7 = .naryn$EMR_ROOTS[1],
+        track7 = .naryn$EMR_ROOTS[2],
+        track7 = .naryn$EMR_ROOTS[3],
+        track7 = .naryn$EMR_ROOTS[4],
+        track0_1 = .naryn$EMR_ROOTS[1]
     )
     expect_equal(emr_track.dbs(c("track1", "track7", "track0_1")), track_dbs)
     expect_equal(
@@ -116,9 +116,9 @@ test_that("emr_track.dbs works", {
 
 test_that("emr_track.current_db works", {
     track_dbs <- c(
-        track1 = EMR_ROOTS[4],
-        track7 = EMR_ROOTS[4],
-        track0_2 = EMR_ROOTS[2]
+        track1 = .naryn$EMR_ROOTS[4],
+        track7 = .naryn$EMR_ROOTS[4],
+        track0_2 = .naryn$EMR_ROOTS[2]
     )
     expect_equal(emr_track.current_db(c("track1", "track7", "track0_2")), track_dbs)
     expect_equal(
@@ -137,34 +137,34 @@ test_that("emr_track.current_db works", {
 test_that("db.connect works with overlapping namespace", {
     expect_true("track1" %in% emr_track.ls())
     expect_equal(sum(emr_track.ls() == "track1"), 1)
-    expect_true(emr_track.exists("track1", normalizePath(EMR_UROOT)))
+    expect_true(emr_track.exists("track1", normalizePath(.naryn$EMR_UROOT)))
 })
 
 test_that("emr_track.dbs works as expected", {
-    expect_equal(emr_track.dbs("track0_1"), EMR_GROOT, ignore_attr = TRUE)
-    expect_equal(emr_track.dbs("track0"), EMR_UROOT, ignore_attr = TRUE)
-    expect_equal(emr_track.dbs("track7"), EMR_ROOTS, ignore_attr = TRUE)
-    expect_equal(emr_track.dbs("track1"), EMR_ROOTS[-3], ignore_attr = TRUE)
+    expect_equal(emr_track.dbs("track0_1"), .naryn$EMR_GROOT, ignore_attr = TRUE)
+    expect_equal(emr_track.dbs("track0"), .naryn$EMR_UROOT, ignore_attr = TRUE)
+    expect_equal(emr_track.dbs("track7"), .naryn$EMR_ROOTS, ignore_attr = TRUE)
+    expect_equal(emr_track.dbs("track1"), .naryn$EMR_ROOTS[-3], ignore_attr = TRUE)
 })
 
 test_that("deletion of overriding track loads back the overridden track", {
     expect_true("track1" %in% emr_track.ls())
-    expect_true(emr_track.exists("track1", EMR_UROOT))
+    expect_true(emr_track.exists("track1", .naryn$EMR_UROOT))
 
     emr_track.rm(track = "track1", force = TRUE)
-    expect_false(emr_track.exists("track1", EMR_UROOT))
+    expect_false(emr_track.exists("track1", .naryn$EMR_UROOT))
 
     expect_true("track1" %in% emr_track.ls())
-    expect_true(emr_track.exists("track1", EMR_ROOTS[2]))
+    expect_true(emr_track.exists("track1", .naryn$EMR_ROOTS[2]))
 
     emr_track.rm(track = "track1", force = TRUE)
-    expect_false(emr_track.exists("track1", EMR_ROOTS[2]))
+    expect_false(emr_track.exists("track1", .naryn$EMR_ROOTS[2]))
 
     expect_true("track1" %in% emr_track.ls())
-    expect_true(emr_track.exists("track1", EMR_GROOT))
+    expect_true(emr_track.exists("track1", .naryn$EMR_GROOT))
 
     emr_track.rm(track = "track1", force = TRUE)
-    expect_false(emr_track.exists("track1", EMR_GROOT))
+    expect_false(emr_track.exists("track1", .naryn$EMR_GROOT))
 
     expect_false("track1" %in% emr_track.ls())
 })
@@ -174,15 +174,15 @@ test_that("emr_track.create overrides existing track", {
 
     # track2_2 is in db 2, we are creating a new track2_2 in EMR_UROOT
     expect_true("track2_2" %in% emr_track.ls())
-    expect_true(emr_track.exists("track2_2", EMR_ROOTS[2]))
+    expect_true(emr_track.exists("track2_2", .naryn$EMR_ROOTS[2]))
     t1 <- emr_extract("track2_2")
 
-    emr_track.create(track = "track2_2", space = EMR_UROOT, categorical = FALSE, exp = "track2_2*2", keepref = TRUE, override = TRUE)
+    emr_track.create(track = "track2_2", space = .naryn$EMR_UROOT, categorical = FALSE, exp = "track2_2*2", keepref = TRUE, override = TRUE)
     withr::defer(emr_track.rm("track2_2", force = TRUE))
 
     expect_true("track2_2" %in% emr_track.ls())
-    expect_true(emr_track.exists("track2_2", EMR_UROOT))
-    expect_false(emr_track.exists("track2_2", EMR_ROOTS[2]))
+    expect_true(emr_track.exists("track2_2", .naryn$EMR_UROOT))
+    expect_false(emr_track.exists("track2_2", .naryn$EMR_ROOTS[2]))
 
     t2 <- emr_extract("track2_2")
 
@@ -193,12 +193,12 @@ test_that("emr_track.create overrides existing track", {
 test_that("emr_track.import overrides existing track", {
     # track2_2 is in db 2, we are creating a new track2_2 in EMR_UROOT
     expect_true("track2_2" %in% emr_track.ls())
-    expect_true(emr_track.exists("track2_2", EMR_ROOTS[2]))
+    expect_true(emr_track.exists("track2_2", .naryn$EMR_ROOTS[2]))
     t1 <- emr_extract("track2_2")
 
     emr_track.import(
         track = "track2_2",
-        space = EMR_UROOT,
+        space = .naryn$EMR_UROOT,
         categorical = FALSE,
         src = t1 %>% dplyr::mutate(track2_2 = track2_2 * 2) %>% dplyr::rename(value = track2_2),
         override = TRUE
@@ -207,8 +207,8 @@ test_that("emr_track.import overrides existing track", {
     withr::defer(emr_track.rm("track2_2", force = TRUE))
 
     expect_true("track2_2" %in% emr_track.ls())
-    expect_true(emr_track.exists("track2_2", EMR_UROOT))
-    expect_false(emr_track.exists("track2_2", EMR_ROOTS[2]))
+    expect_true(emr_track.exists("track2_2", .naryn$EMR_UROOT))
+    expect_false(emr_track.exists("track2_2", .naryn$EMR_ROOTS[2]))
 
     t2 <- emr_extract("track2_2")
 
@@ -218,15 +218,15 @@ test_that("emr_track.import overrides existing track", {
 test_that("emr_track.create overrides existing track - not user dir", {
     # track2_2 is in db 2, we are creating a new track2_2 in db 3
     expect_true("track2_2" %in% emr_track.ls())
-    expect_true(emr_track.exists("track2_2", EMR_ROOTS[2]))
+    expect_true(emr_track.exists("track2_2", .naryn$EMR_ROOTS[2]))
     t1 <- emr_extract("track2_2")
 
-    emr_track.create(track = "track2_2", space = EMR_ROOTS[3], categorical = FALSE, exp = "track2_2*2", keepref = TRUE, override = TRUE)
+    emr_track.create(track = "track2_2", space = .naryn$EMR_ROOTS[3], categorical = FALSE, exp = "track2_2*2", keepref = TRUE, override = TRUE)
     withr::defer(emr_track.rm("track2_2", force = TRUE))
 
     expect_true("track2_2" %in% emr_track.ls())
-    expect_true(emr_track.exists("track2_2", EMR_ROOTS[3]))
-    expect_false(emr_track.exists("track2_2", EMR_ROOTS[2]))
+    expect_true(emr_track.exists("track2_2", .naryn$EMR_ROOTS[3]))
+    expect_false(emr_track.exists("track2_2", .naryn$EMR_ROOTS[2]))
 
     t2 <- emr_extract("track2_2")
 
@@ -236,12 +236,12 @@ test_that("emr_track.create overrides existing track - not user dir", {
 test_that("emr_track.import overrides existing track - not user dir", {
     # track2_2 is in db 2, we are creating a new track2_2 in db 3
     expect_true("track2_2" %in% emr_track.ls())
-    expect_true(emr_track.exists("track2_2", EMR_ROOTS[2]))
+    expect_true(emr_track.exists("track2_2", .naryn$EMR_ROOTS[2]))
     t1 <- emr_extract("track2_2")
 
     emr_track.import(
         track = "track2_2",
-        space = EMR_ROOTS[3],
+        space = .naryn$EMR_ROOTS[3],
         categorical = FALSE,
         src = t1 %>% dplyr::mutate(track2_2 = track2_2 * 2) %>% dplyr::rename(value = track2_2),
         override = TRUE
@@ -250,8 +250,8 @@ test_that("emr_track.import overrides existing track - not user dir", {
     withr::defer(emr_track.rm("track2_2", force = TRUE))
 
     expect_true("track2_2" %in% emr_track.ls())
-    expect_true(emr_track.exists("track2_2", EMR_ROOTS[3]))
-    expect_false(emr_track.exists("track2_2", EMR_ROOTS[2]))
+    expect_true(emr_track.exists("track2_2", .naryn$EMR_ROOTS[3]))
+    expect_false(emr_track.exists("track2_2", .naryn$EMR_ROOTS[2]))
 
     t2 <- emr_extract("track2_2")
 
@@ -259,7 +259,7 @@ test_that("emr_track.import overrides existing track - not user dir", {
 })
 
 test_that("overriding hierarchy on connect works as expected", {
-    original_roots <- EMR_ROOTS
+    original_roots <- .naryn$EMR_ROOTS
 
     emr_db.connect(original_roots[1])
 
@@ -302,21 +302,21 @@ test_that("overriding mechanism works with mv, when a track is renamed it is no 
     expect_true(emr_track.exists("track7"))
     expect_true(emr_track.exists("track7_4"))
 
-    expect_equal(emr_track.dbs("track7"), EMR_ROOTS[-4], ignore_attr = TRUE)
+    expect_equal(emr_track.dbs("track7"), .naryn$EMR_ROOTS[-4], ignore_attr = TRUE)
 
     emr_track.mv("track7", "track7_3")
 
     expect_true(emr_track.exists("track7"))
     expect_true(emr_track.exists("track7_3"))
 
-    expect_equal(emr_track.dbs("track7"), EMR_ROOTS[-c(3, 4)], ignore_attr = TRUE)
+    expect_equal(emr_track.dbs("track7"), .naryn$EMR_ROOTS[-c(3, 4)], ignore_attr = TRUE)
 
     emr_track.mv("track7", "track7_2")
 
     expect_true(emr_track.exists("track7"))
     expect_true(emr_track.exists("track7_2"))
 
-    expect_equal(emr_track.dbs("track7"), EMR_ROOTS[1], ignore_attr = TRUE)
+    expect_equal(emr_track.dbs("track7"), .naryn$EMR_ROOTS[1], ignore_attr = TRUE)
 
     emr_track.mv("track7", "track7_1")
 
@@ -329,36 +329,36 @@ test_that("overriding mechanism works with mv, when a track is renamed it is no 
 
 test_that("mv to override works as expected", {
     expect_error(emr_track.mv("track8_2", "track8_2"))
-    expect_error(emr_track.mv("track8_2", "track8_3", EMR_ROOTS[3]))
-    expect_error(emr_track.mv("track8_3", "track8_2", EMR_ROOTS[2]))
+    expect_error(emr_track.mv("track8_2", "track8_3", .naryn$EMR_ROOTS[3]))
+    expect_error(emr_track.mv("track8_3", "track8_2", .naryn$EMR_ROOTS[2]))
 
     emr_track.mv("track8_2", "track8_1")
-    expect_equal(emr_track.dbs("track8_1"), EMR_ROOTS[1:2], ignore_attr = TRUE)
+    expect_equal(emr_track.dbs("track8_1"), .naryn$EMR_ROOTS[1:2], ignore_attr = TRUE)
 
     emr_track.mv("track8_3", "track8_1")
-    expect_equal(emr_track.dbs("track8_1"), EMR_ROOTS[1:3], ignore_attr = TRUE)
+    expect_equal(emr_track.dbs("track8_1"), .naryn$EMR_ROOTS[1:3], ignore_attr = TRUE)
 
     # mv to reveal underlying track
     emr_track.mv("track8_1", "track8_3")
-    expect_equal(emr_track.dbs("track8_1"), EMR_ROOTS[1:2], ignore_attr = TRUE)
+    expect_equal(emr_track.dbs("track8_1"), .naryn$EMR_ROOTS[1:2], ignore_attr = TRUE)
 
     # mv two levels up
     emr_track.mv("track5_3", "track5_1")
-    expect_equal(emr_track.dbs("track5_1"), EMR_ROOTS[c(1, 3)], ignore_attr = TRUE)
+    expect_equal(emr_track.dbs("track5_1"), .naryn$EMR_ROOTS[c(1, 3)], ignore_attr = TRUE)
 })
 
 
 test_that("read_only is also overridden when overriding a track", {
-    expect_true(emr_track.exists("stam1_1", EMR_ROOTS[1]))
+    expect_true(emr_track.exists("stam1_1", .naryn$EMR_ROOTS[1]))
     expect_false(emr_track.readonly("stam1_1"))
 
     emr_track.readonly("stam1_1", readonly = TRUE)
     expect_true(emr_track.readonly("stam1_1"))
 
-    emr_track.create(track = "stam1_1", space = EMR_UROOT, categorical = FALSE, keepref = FALSE, exp = "stam1_1", override = TRUE)
+    emr_track.create(track = "stam1_1", space = .naryn$EMR_UROOT, categorical = FALSE, keepref = FALSE, exp = "stam1_1", override = TRUE)
 
-    expect_false(emr_track.exists("stam1_1", EMR_ROOTS[1]))
-    expect_true(emr_track.exists("stam1_1", EMR_ROOTS[4]))
+    expect_false(emr_track.exists("stam1_1", .naryn$EMR_ROOTS[1]))
+    expect_true(emr_track.exists("stam1_1", .naryn$EMR_ROOTS[4]))
 
     expect_false(emr_track.readonly("stam1_1"))
     emr_track.rm("stam1_1", force = TRUE)
@@ -372,7 +372,7 @@ test_that("emr_track.vars are overridden correctly", {
     emr_track.var.set("track2_2", "coffee_hours", c(8, 14, 17))
     expect_equal(emr_track.var.get("track2_2", "coffee_hours"), c(8, 14, 17))
 
-    emr_track.create(track = "track2_2", space = EMR_UROOT, categorical = FALSE, exp = "track2_2*2", keepref = TRUE, override = TRUE)
+    emr_track.create(track = "track2_2", space = .naryn$EMR_UROOT, categorical = FALSE, exp = "track2_2*2", keepref = TRUE, override = TRUE)
 
     expect_length(emr_track.var.ls("track2_2"), 0)
     emr_track.var.set("track2_2", "coffee_hours", c(9, 15, 18))
@@ -383,7 +383,7 @@ test_that("emr_track.vars are overridden correctly", {
     expect_length(emr_track.var.ls("track2_2"), 1)
     expect_equal(emr_track.var.get("track2_2", "coffee_hours"), c(8, 14, 17))
 
-    emr_track.create(track = "track2_2", space = EMR_UROOT, categorical = FALSE, exp = "track2_2*2", keepref = TRUE, override = TRUE)
+    emr_track.create(track = "track2_2", space = .naryn$EMR_UROOT, categorical = FALSE, exp = "track2_2*2", keepref = TRUE, override = TRUE)
     withr::defer(emr_track.rm("track2_2", force = TRUE))
 
     expect_length(emr_track.var.ls("track2_2"), 0)
@@ -398,7 +398,7 @@ test_that("emr_track.attrs are overridden correctly", {
 
     expect_equal(emr_track.attr.export(attr = "coffee"), data.frame(track = c("track2", "track2_2"), attr = c("coffee", "coffee"), value = c("bad", "bad")))
 
-    emr_track.create(track = "track2_2", space = EMR_UROOT, categorical = FALSE, exp = "track2_2*2", keepref = TRUE, override = TRUE)
+    emr_track.create(track = "track2_2", space = .naryn$EMR_UROOT, categorical = FALSE, exp = "track2_2*2", keepref = TRUE, override = TRUE)
 
     expect_equal(emr_track.attr.export(attr = "coffee"), data.frame(track = "track2", attr = "coffee", value = "bad"))
     emr_track.attr.set("track2_2", "coffee", "good")
@@ -426,7 +426,7 @@ test_that("vtracks work on an overridden track, without changing source", {
     size1 <- emr_extract("size")
     avg1 <- emr_extract("avg")
 
-    emr_track.create(track = "track2_2", space = EMR_UROOT, categorical = FALSE, exp = "track2_2*2", keepref = TRUE, override = TRUE)
+    emr_track.create(track = "track2_2", space = .naryn$EMR_UROOT, categorical = FALSE, exp = "track2_2*2", keepref = TRUE, override = TRUE)
     withr::defer(emr_track.rm("track2_2", force = TRUE))
 
     size2 <- emr_extract("size")
@@ -439,7 +439,7 @@ test_that("vtracks work on an overridden track, without changing source", {
 test_that("filters work on an overridden track, without changing source", {
     emr_track.import(
         track = "kcart",
-        space = EMR_GROOT,
+        space = .naryn$EMR_GROOT,
         categorical = TRUE,
         src = data.frame(id = 14, time = emr_date2time(27, 12, 1952), value = 100),
     )
@@ -451,7 +451,7 @@ test_that("filters work on an overridden track, without changing source", {
 
     emr_track.import(
         track = "kcart",
-        space = EMR_UROOT,
+        space = .naryn$EMR_UROOT,
         categorical = TRUE,
         src = data.frame(id = 14, time = emr_date2time(27, 12, 1952), value = 101),
         override = TRUE
@@ -487,7 +487,7 @@ test_that("subset works with overridden tracks", {
     # override track2_2 with new track, shift ids by the max val -1, leaving only one id in the intersection
     emr_track.import(
         track = "track2_2",
-        space = EMR_UROOT,
+        space = .naryn$EMR_UROOT,
         categorical = FALSE,
         src = track2_2 %>%
             dplyr::mutate(track2_2 = track2_2 * 2) %>%
@@ -513,7 +513,7 @@ test_that("subset works with overridden tracks", {
 test_that("trying to override not explicitly throws an error", {
     expect_error(emr_track.create(
         track = "track2_2",
-        space = EMR_UROOT,
+        space = .naryn$EMR_UROOT,
         categorical = FALSE,
         exp = "track2_2*2",
         keepref = TRUE
@@ -523,7 +523,7 @@ test_that("trying to override not explicitly throws an error", {
 test_that("trying to override a track in the same db throws an error", {
     expect_error(emr_track.create(
         track = "track2",
-        space = EMR_UROOT,
+        space = .naryn$EMR_UROOT,
         categorical = FALSE,
         exp = "track2*2",
         keepref = TRUE
@@ -531,19 +531,19 @@ test_that("trying to override a track in the same db throws an error", {
 })
 
 test_that("trying to create a vtrack with the name of an overridden track throws an error", {
-    emr_track.create(track = "track2_2", space = EMR_UROOT, categorical = FALSE, exp = "track2_2*2", keepref = TRUE, override = TRUE)
+    emr_track.create(track = "track2_2", space = .naryn$EMR_UROOT, categorical = FALSE, exp = "track2_2*2", keepref = TRUE, override = TRUE)
     withr::defer(emr_track.rm("track2_2", force = TRUE))
     expect_error(emr_vtrack.create("track2_2", "track2_2"))
 })
 
 test_that("trying to create a logical track with the name of an overridden track throws an error", {
-    emr_track.create(track = "track2_2", space = EMR_UROOT, categorical = FALSE, exp = "track2_2*2", keepref = TRUE, override = TRUE)
+    emr_track.create(track = "track2_2", space = .naryn$EMR_UROOT, categorical = FALSE, exp = "track2_2*2", keepref = TRUE, override = TRUE)
     withr::defer(emr_track.rm("track2_2", force = TRUE))
     expect_error(emr_track.logical.create("track2_2", "track2_2"))
 })
 
 test_that("trying to connect with non unique dbs throws an error", {
-    expect_error(emr_db.connect(c(EMR_UROOT, EMR_UROOT)))
+    expect_error(emr_db.connect(c(.naryn$EMR_UROOT, .naryn$EMR_UROOT)))
 })
 
 
@@ -551,12 +551,12 @@ test_that("emr_track.import throws error when trying to override existing track 
 
     # track2_2 is in db 2, we are creating a new track2_2 in db 1
     expect_true("track2_2" %in% emr_track.ls())
-    expect_true(emr_track.exists("track2_2", EMR_ROOTS[2]))
+    expect_true(emr_track.exists("track2_2", .naryn$EMR_ROOTS[2]))
     t1 <- emr_extract("track2_2")
 
     expect_error(emr_track.import(
         track = "track2_2",
-        space = EMR_ROOTS[1],
+        space = .naryn$EMR_ROOTS[1],
         categorical = FALSE,
         src = t1 %>% dplyr::mutate(track2_2 = track2_2 * 2) %>% dplyr::rename(value = track2_2),
         override = TRUE
@@ -567,18 +567,18 @@ test_that("emr_track.create throws error when trying to override existing track 
 
     # track2_2 is in db 2, we are creating a new track2_2 in db 1
     expect_true("track2_2" %in% emr_track.ls())
-    expect_true(emr_track.exists("track2_2", EMR_ROOTS[2]))
+    expect_true(emr_track.exists("track2_2", .naryn$EMR_ROOTS[2]))
     t1 <- emr_extract("track2_2")
 
-    expect_error(emr_track.create(track = "track2_2", space = EMR_ROOTS[1], categorical = FALSE, exp = "track2_2*2", keepref = TRUE, override = TRUE))
+    expect_error(emr_track.create(track = "track2_2", space = .naryn$EMR_ROOTS[1], categorical = FALSE, exp = "track2_2*2", keepref = TRUE, override = TRUE))
 })
 
 test_that("trying to override patients.dob throws error in any case", {
     expect_error(emr_track.mv("track4_1", "patients.dob"))
-    expect_error(emr_track.mv("track4_1", "patients.dob", EMR_ROOTS[2]))
+    expect_error(emr_track.mv("track4_1", "patients.dob", .naryn$EMR_ROOTS[2]))
     expect_error(emr_track.create(
         track = "patients.dob",
-        space = EMR_ROOTS[3],
+        space = .naryn$EMR_ROOTS[3],
         categorical = FALSE,
         exp = "patients.dob*2",
         keepref = TRUE,
@@ -586,7 +586,7 @@ test_that("trying to override patients.dob throws error in any case", {
     ))
     expect_error(emr_track.import(
         track = "patients.dob",
-        space = EMR_ROOTS[4],
+        space = .naryn$EMR_ROOTS[4],
         categorical = FALSE,
         src = "patients.dob*2",
         override = TRUE
@@ -609,7 +609,7 @@ test_that("emr_ids_coverage works with multiple dbs", {
     # originally, ids range 0-999, add 998 to ids, 0 becomes 998, and 1 becomes 999, ...
     emr_track.import(
         track = "track2_1",
-        space = EMR_ROOTS[3],
+        space = .naryn$EMR_ROOTS[3],
         categorical = FALSE,
         src = track2_1 %>% dplyr::mutate(id = id + max(track2_1$id) - 1),
         override = TRUE
@@ -628,7 +628,7 @@ test_that("emr_ids_coverage works with filter and overriding", {
     # originally, ids range 0-999, add 998 to ids, 0 becomes 998, and 1 becomes 999, ...
     emr_track.import(
         track = "track2_1",
-        space = EMR_ROOTS[3],
+        space = .naryn$EMR_ROOTS[3],
         categorical = FALSE,
         src = track2_1 %>% dplyr::mutate(id = id + max(track2_1$id) - 1),
         override = TRUE
@@ -649,9 +649,9 @@ test_that("creating logical tracks happens only on the global db", {
 test_that("logical tracks on non-global db are not shown at emr_track.ls", {
     withr::defer(clean_logical_tracks())
     emr_track.logical.create("l1", "track0_1")
-    old_roots <- EMR_ROOTS
+    old_roots <- .naryn$EMR_ROOTS
     withr::defer(emr_db.connect(old_roots))
-    new_roots <- EMR_ROOTS[c(4, 2, 3, 1)]
+    new_roots <- .naryn$EMR_ROOTS[c(4, 2, 3, 1)]
     emr_db.connect(new_roots)
     expect_length(emr_track.ls("l1"), 0)
     emr_db.connect(old_roots)
@@ -669,8 +669,8 @@ test_that("cannot create a logical track pointing to non-global db track", {
 
 
 test_that("emr_db.connect fails when directory doesn't have read permissions", {
-    prev_roots <- EMR_ROOTS
-    db <- copy_test_db(EMR_ROOTS[1])
+    prev_roots <- .naryn$EMR_ROOTS
+    db <- copy_test_db(.naryn$EMR_ROOTS[1])
     system(glue::glue("chmod a-r {db}"))
     withr::defer({
         system(glue::glue("chmod a+r {db}"))
@@ -680,8 +680,8 @@ test_that("emr_db.connect fails when directory doesn't have read permissions", {
 })
 
 test_that("emr_db.connect fails when directory doesn't have search permissions", {
-    prev_roots <- EMR_ROOTS
-    db <- copy_test_db(EMR_ROOTS[1])
+    prev_roots <- .naryn$EMR_ROOTS
+    db <- copy_test_db(.naryn$EMR_ROOTS[1])
     system(glue::glue("chmod a-x {db}"))
     withr::defer({
         system(glue::glue("chmod a+x {db}"))
@@ -691,7 +691,7 @@ test_that("emr_db.connect fails when directory doesn't have search permissions",
 })
 
 test_that("emr_db.connect fails when db_id is a file instead of directory", {
-    prev_roots <- EMR_ROOTS
+    prev_roots <- .naryn$EMR_ROOTS
     fn <- tempfile()
     file.create(fn)
     expect_error(emr_db.connect(fn), glue::glue("{fn} is not a directory"))
@@ -701,8 +701,8 @@ test_that("emr_db.connect fails when db_id is a file instead of directory", {
 })
 
 test_that("emr_db.connect fails when .naryn doesn't have read permissions", {
-    prev_roots <- EMR_ROOTS
-    db <- copy_test_db(EMR_ROOTS[1])
+    prev_roots <- .naryn$EMR_ROOTS
+    db <- copy_test_db(.naryn$EMR_ROOTS[1])
     file.create(file.path(db, ".naryn"))
     system(glue::glue("chmod a-r {db}/.naryn"))
     withr::defer({
