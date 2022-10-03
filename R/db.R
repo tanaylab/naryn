@@ -128,7 +128,7 @@ emr_db.connect <- function(db_dirs = NULL, load_on_demand = NULL, do_reload = FA
 
     tryCatch(
         {
-            .emr_call("emr_dbinit", db_dirs, load_on_demand, do_reload, new.env(parent = parent.frame()), silent = TRUE)
+            .emr_call("emr_dbinit", db_dirs, load_on_demand, do_reload, .emr_env(), silent = TRUE)
             success <- TRUE
         },
         finally = {
@@ -206,7 +206,7 @@ emr_db.reload <- function() {
 #'
 #' @export
 emr_db.unload <- function() {
-    .emr_call("emr_dbunload", new.env(parent = parent.frame()), silent = TRUE)
+    .emr_call("emr_dbunload", .emr_env(), silent = TRUE)
 }
 
 #' Defines an ids subset
@@ -237,7 +237,7 @@ emr_db.subset <- function(src = "", fraction = NULL, complementary = NULL) {
     }
     .emr_checkroot()
 
-    .emr_call("emr_db_subset", src, fraction, complementary, new.env(parent = parent.frame()))
+    .emr_call("emr_db_subset", src, fraction, complementary, .emr_env())
 }
 
 
@@ -257,7 +257,7 @@ emr_db.subset <- function(src = "", fraction = NULL, complementary = NULL) {
 #' @export emr_db.subset.ids
 emr_db.subset.ids <- function() {
     .emr_checkroot()
-    .emr_call("emr_db_subset_ids", new.env(parent = parent.frame()))
+    .emr_call("emr_db_subset_ids", .emr_env())
 }
 
 
@@ -275,5 +275,5 @@ emr_db.subset.ids <- function() {
 #' @export emr_db.subset.info
 emr_db.subset.info <- function() {
     .emr_checkroot()
-    .emr_call("emr_db_subset_info", new.env(parent = parent.frame()))
+    .emr_call("emr_db_subset_info", .emr_env())
 }

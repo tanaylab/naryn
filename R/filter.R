@@ -581,7 +581,7 @@ emr_filter.create <- function(filter, src, keepref = FALSE, time.shift = NULL, v
 
     # filters on vtracks are created lazily on extract
     if (is.null(vtrack)) {
-        .emr_call("emr_check_named_filter", var, filter, new.env(parent = parent.frame()))
+        .emr_call("emr_check_named_filter", var, filter, .emr_env())
         emr_filter.rm(filter)
     }
 
@@ -654,7 +654,7 @@ emr_filter.attr.src <- function(filter, src) {
             filter.var$val <- NULL
         }
     } else {
-        .emr_call("emr_check_filter_attr_src", src, new.env(parent = parent.frame()))
+        .emr_call("emr_check_filter_attr_src", src, .emr_env())
         emr_filter.rm(filter)
         filter.var$src <- src
 
@@ -709,7 +709,7 @@ emr_filter.attr.time.shift <- function(filter, time.shift) {
     if (missing(time.shift)) {
         filter.var$time_shift
     } else {
-        .emr_call("emr_check_filter_attr_time_shift", time.shift, new.env(parent = parent.frame()))
+        .emr_call("emr_check_filter_attr_time_shift", time.shift, .emr_env())
         .naryn$EMR_FILTERS[[filter]]["time_shift"] <- list(time.shift)
         return(NULL)
     }
@@ -773,7 +773,7 @@ emr_filter.attr.expiration <- function(filter, expiration) {
     if (missing(expiration)) {
         filter.var$expiration
     } else {
-        .emr_call("emr_check_filter_attr_expiration", expiration, new.env(parent = parent.frame()))
+        .emr_call("emr_check_filter_attr_expiration", expiration, .emr_env())
         .naryn$EMR_FILTERS[[filter]]["expiration"] <- list(expiration)
         return(NULL)
     }

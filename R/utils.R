@@ -10,6 +10,12 @@
     res
 }
 
+.emr_env <- function() {
+    e <- new.env(parent = parent.frame(2))
+    assign(".naryn", .naryn, envir = e)
+    return(e)
+}
+
 .emr_checkroot <- function() {
     if (!exists("EMR_GROOT", envir = .naryn) || is.null(get("EMR_GROOT", envir = .naryn))) {
         stop("Database root directory is not set. Please call emr_db.connect().", call. = FALSE)

@@ -248,7 +248,7 @@ emr_vtrack.create <- function(vtrack, src, func = NULL, params = NULL, keepref =
 
     var <- list(src = src, time_shift = time.shift, func = func, params = params, keepref = keepref, id_map = id.map, filter = .emr_filter(filter), logical = logical)
 
-    .emr_call("emr_check_vtrack", vtrack, var, new.env(parent = parent.frame()))
+    .emr_call("emr_check_vtrack", vtrack, var, .emr_env())
     emr_vtrack.rm(vtrack)
     .naryn$EMR_VTRACKS[[vtrack]] <- var
 
@@ -321,7 +321,7 @@ emr_vtrack.attr.src <- function(vtrack, src) {
         ltrack_info <- emr_track.logical.info(src)
         vtrack.var$src <- ltrack_info$source
     } else {
-        .emr_call("emr_check_vtrack_attr_src", src, new.env(parent = parent.frame()))
+        .emr_call("emr_check_vtrack_attr_src", src, .emr_env())
         emr_vtrack.rm(vtrack)
         vtrack.var$src <- src
     }
@@ -347,7 +347,7 @@ emr_vtrack.attr.func <- function(vtrack, func) {
     if (missing(func)) {
         vtrack.var$func
     } else {
-        .emr_call("emr_check_vtrack_attr_func", func, new.env(parent = parent.frame()))
+        .emr_call("emr_check_vtrack_attr_func", func, .emr_env())
         .naryn$EMR_VTRACKS[[vtrack]]["func"] <- list(func)
         return(NULL)
     }
@@ -424,7 +424,7 @@ emr_vtrack.attr.time.shift <- function(vtrack, time.shift) {
     if (missing(time.shift)) {
         vtrack.var$time_shift
     } else {
-        .emr_call("emr_check_vtrack_attr_time_shift", time.shift, new.env(parent = parent.frame()))
+        .emr_call("emr_check_vtrack_attr_time_shift", time.shift, .emr_env())
         .naryn$EMR_VTRACKS[[vtrack]]["time_shift"] <- list(time.shift)
         return(NULL)
     }
@@ -446,7 +446,7 @@ emr_vtrack.attr.id.map <- function(vtrack, id.map) {
     if (missing(id.map)) {
         vtrack.var$id.map
     } else {
-        .emr_call("emr_check_vtrack_attr_id_map", id.map, new.env(parent = parent.frame()))
+        .emr_call("emr_check_vtrack_attr_id_map", id.map, .emr_env())
         .naryn$EMR_VTRACKS[[vtrack]]["id.map"] <- list(id.map)
         return(NULL)
     }
@@ -467,7 +467,7 @@ emr_vtrack.attr.filter <- function(vtrack, filter) {
     if (missing(filter)) {
         vtrack.var$filter
     } else {
-        .emr_call("emr_check_vtrack_attr_filter", .emr_filter(filter), new.env(parent = parent.frame()))
+        .emr_call("emr_check_vtrack_attr_filter", .emr_filter(filter), .emr_env())
         .naryn$EMR_VTRACKS[[vtrack]]["filter"] <- list(.emr_filter(filter))
         return(NULL)
     }

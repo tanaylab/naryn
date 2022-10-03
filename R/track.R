@@ -23,7 +23,7 @@
 
         # filter out by attributes
         if (length(attrs)) {
-            attrs_table <- .emr_call("emr_get_tracks_attrs", tracks, attrs, new.env(parent = parent.frame()))
+            attrs_table <- .emr_call("emr_get_tracks_attrs", tracks, attrs, .emr_env())
             for (i in 1:length(attrs)) {
                 tracks <- with(attrs_table, attrs_table[attr == attrs[i] & grepl(patterns[i], value), ])$track
                 attrs_table <- attrs_table[attrs_table$track %in% tracks, ]
@@ -172,7 +172,7 @@ emr_track.addto <- function(track, src, force = FALSE) {
         }
     }
 
-    .emr_call("emr_import", track, NULL, NULL, src, TRUE, new.env(parent = parent.frame()))
+    .emr_call("emr_import", track, NULL, NULL, src, TRUE, .emr_env())
 }
 
 #' Creates a track from a track expression
@@ -231,7 +231,7 @@ emr_track.create <- function(track, space = .naryn$EMR_UROOT, categorical, expr,
     orig_filters <- .emr_gen_vtrack_filters(filter, iterator, keepref, stime, etime)
     on.exit(.emr_recreate_vtrack_filters(orig_filters), add = TRUE)
 
-    .emr_call("emr_track_create", track, db_id, categorical, expr, stime, etime, iterator, keepref, .emr_filter(filter), override, new.env(parent = parent.frame()))
+    .emr_call("emr_track_create", track, db_id, categorical, expr, stime, etime, iterator, keepref, .emr_filter(filter), override, .emr_env())
 }
 
 
@@ -274,21 +274,21 @@ single_track_exists <- function(track, db_id = NULL) {
     if (is.null(db_id)) {
         track_exists <- FALSE
         for (root in .naryn$EMR_ROOTS) {
-            track_exists <- track_exists | .emr_call("emr_track_exists", track, root, new.env(parent = parent.frame()))
+            track_exists <- track_exists | .emr_call("emr_track_exists", track, root, .emr_env())
         }
-        track_exists <- track_exists | .emr_call("emr_logical_track_exists", track, new.env(parent = parent.frame()))
+        track_exists <- track_exists | .emr_call("emr_logical_track_exists", track, .emr_env())
     } else {
-        track_exists <- .emr_call("emr_track_exists", track, db_id, new.env(parent = parent.frame()))
+        track_exists <- .emr_call("emr_track_exists", track, db_id, .emr_env())
     }
     return(track_exists)
 }
 
 multiple_tracks_exist <- function(tracks, db_id = NULL) {
     if (is.null(db_id)) {
-        track_exists <- !is.na(match(tracks, .emr_call("emr_track_names", new.env(parent = parent.frame()), silent = TRUE)))
-        track_exists <- track_exists | !is.na(match(tracks, .emr_call("emr_logical_track_names", new.env(parent = parent.frame()), silent = TRUE)))
+        track_exists <- !is.na(match(tracks, .emr_call("emr_track_names", .emr_env(), silent = TRUE)))
+        track_exists <- track_exists | !is.na(match(tracks, .emr_call("emr_logical_track_names", .emr_env(), silent = TRUE)))
     } else {
-        track_exists <- !is.na(match(tracks, .emr_call("emr_track_db_names", db_id, new.env(parent = parent.frame()), silent = TRUE)))
+        track_exists <- !is.na(match(tracks, .emr_call("emr_track_db_names", db_id, .emr_env(), silent = TRUE)))
     }
     return(track_exists)
 }
@@ -319,7 +319,7 @@ emr_track.ids <- function(track) {
     }
     .emr_checkroot()
 
-    .emr_call("emr_track_ids", track, new.env(parent = parent.frame()))
+    .emr_call("emr_track_ids", track, .emr_env())
 }
 
 
@@ -377,7 +377,7 @@ emr_track.import <- function(track, space, categorical, src, override = FALSE) {
     }
 
     db_id <- ._emr_backward_comp_space(space)
-    .emr_call("emr_import", track, db_id, categorical, src, FALSE, override, new.env(parent = parent.frame()))
+    .emr_call("emr_import", track, db_id, categorical, src, FALSE, override, .emr_env())
 }
 
 
@@ -407,9 +407,9 @@ emr_track.info <- function(track) {
 
     if (is.character(track) && emr_track.logical.exists(track)) {
         ltrack <- emr_track.logical.info(track)
-        .emr_call("emr_logical_track_user_info", track, ltrack$source, NULL, NULL, ltrack$source, TRUE, .emr_filter(.create_logical_track_filter(track)), c(.naryn$EMR_ROOTS), new.env(parent = parent.frame()))
+        .emr_call("emr_logical_track_user_info", track, ltrack$source, NULL, NULL, ltrack$source, TRUE, .emr_filter(.create_logical_track_filter(track)), c(.naryn$EMR_ROOTS), .emr_env())
     } else {
-        .emr_call("emr_track_info", track, new.env(parent = parent.frame()))
+        .emr_call("emr_track_info", track, .emr_env())
     }
 }
 
@@ -426,7 +426,7 @@ emr_track.info <- function(track) {
     if (is.character(track) && emr_track.logical.exists(track)) {
         dbs <- .naryn$EMR_GROOT
     } else {
-        dbs <- .emr_call(c_func, track, new.env(parent = parent.frame()))
+        dbs <- .emr_call(c_func, track, .emr_env())
     }
 
     if (!dataframe) {
@@ -545,8 +545,8 @@ emr_track.ls <- function(..., db_id = NULL, ignore.case = FALSE, perl = FALSE, f
             return(emr_track.db.ls(..., db_id = db_id, ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes))
         }
     }
-    tracks <- .emr_call("emr_track_names", new.env(parent = parent.frame()), silent = TRUE)
-    logical_tracks <- .emr_call("emr_logical_track_names", new.env(parent = parent.frame()), silent = TRUE)
+    tracks <- .emr_call("emr_track_names", .emr_env(), silent = TRUE)
+    logical_tracks <- .emr_call("emr_logical_track_names", .emr_env(), silent = TRUE)
     .emr_tracks_filter(..., tracks = sort(c(tracks, logical_tracks)), ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes)
 }
 
@@ -556,8 +556,8 @@ emr_track.ls <- function(..., db_id = NULL, ignore.case = FALSE, perl = FALSE, f
 #' @rdname emr_track.ls
 emr_track.global.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
     .emr_checkroot()
-    tracks <- .emr_call("emr_track_db_names", .naryn$EMR_GROOT, new.env(parent = parent.frame()), silent = TRUE)
-    logical_tracks <- .emr_call("emr_logical_track_names", new.env(parent = parent.frame()), silent = TRUE)
+    tracks <- .emr_call("emr_track_db_names", .naryn$EMR_GROOT, .emr_env(), silent = TRUE)
+    logical_tracks <- .emr_call("emr_logical_track_names", .emr_env(), silent = TRUE)
     .emr_tracks_filter(..., tracks = sort(c(tracks, logical_tracks)), ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes)
 }
 
@@ -567,7 +567,7 @@ emr_track.global.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = 
 #' @rdname emr_track.ls
 emr_track.user.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
     .emr_checkroot()
-    tracks <- .emr_call("emr_track_db_names", .naryn$EMR_UROOT, new.env(parent = parent.frame()), silent = TRUE)
+    tracks <- .emr_call("emr_track_db_names", .naryn$EMR_UROOT, .emr_env(), silent = TRUE)
     .emr_tracks_filter(..., tracks = tracks, ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes)
 }
 
@@ -576,7 +576,7 @@ emr_track.user.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FA
 #' @noRd
 emr_track.db.ls <- function(..., db_id, ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
     .emr_checkroot()
-    tracks <- .emr_call("emr_track_db_names", db_id, new.env(parent = parent.frame()), silent = TRUE)
+    tracks <- .emr_call("emr_track_db_names", db_id, .emr_env(), silent = TRUE)
     .emr_tracks_filter(..., tracks = tracks, ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes)
 }
 
@@ -586,7 +586,7 @@ emr_track.db.ls <- function(..., db_id, ignore.case = FALSE, perl = FALSE, fixed
 #' @rdname emr_track.ls
 emr_track.logical.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed = FALSE, useBytes = FALSE) {
     .emr_checkroot()
-    tracks <- .emr_call("emr_logical_track_names", new.env(parent = parent.frame()), silent = TRUE)
+    tracks <- .emr_call("emr_logical_track_names", .emr_env(), silent = TRUE)
     tracks <- .emr_tracks_filter(..., tracks = tracks, ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes)
     return(sort(tracks))
 }
@@ -654,7 +654,7 @@ emr_track.mv <- function(src, tgt, space = NULL) {
         dirname1 <- .emr_track.var.dir(src)
         dirname2 <- .emr_track.pyvar.dir(src)
 
-        .emr_call("emr_track_mv", src, tgt, db_id, new.env(parent = parent.frame()))
+        .emr_call("emr_track_mv", src, tgt, db_id, .emr_env())
 
         for (ltrack in dependent_ltracks) {
             ltrack_info <- emr_track.logical.info(ltrack)
@@ -724,7 +724,7 @@ emr_track.percentile <- function(track, val, lower = TRUE) {
         track <- ltrack$source
     }
 
-    .emr_call("emr_track_percentile", track, val, lower, new.env(parent = parent.frame()))
+    .emr_call("emr_track_percentile", track, val, lower, .emr_env())
 }
 
 
@@ -869,7 +869,7 @@ emr_track.rm <- function(track, force = FALSE) {
             emr_track.logical.rm(ltrack, force = TRUE)
         }
 
-        .emr_call("emr_track_rm", track, new.env(parent = parent.frame()))
+        .emr_call("emr_track_rm", track, .emr_env())
 
         if (file.exists(dirname1)) {
             unlink(dirname1, recursive = TRUE)
@@ -910,12 +910,12 @@ emr_track.unique <- function(track) {
 
     if (emr_track.logical.exists(track)) {
         ltrack <- emr_track.logical.info(track)
-        res <- .emr_call("emr_track_unique", ltrack$source, new.env(parent = parent.frame()))
+        res <- .emr_call("emr_track_unique", ltrack$source, .emr_env())
         if (!is.null(ltrack$values)) {
             res <- res[res %in% ltrack$values]
         }
     } else {
-        res <- .emr_call("emr_track_unique", track, new.env(parent = parent.frame()))
+        res <- .emr_call("emr_track_unique", track, .emr_env())
     }
 
     return(res)

@@ -25,7 +25,7 @@
 }
 
 .onDetach <- function(lib) {
-    .emr_call("emr_dbunload", new.env(parent = parent.frame()), silent = TRUE)
+    .emr_call("emr_dbunload", .emr_env(), silent = TRUE)
     if (exists(".EMR_FUNCS", envir = .naryn)) {
         remove(".EMR_FUNCS", envir = .naryn)
     }

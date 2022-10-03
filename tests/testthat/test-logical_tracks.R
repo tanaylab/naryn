@@ -362,8 +362,8 @@ test_that("logical track returns a valid vtrack R object without values", {
     withr::defer(clean_logical_tracks())
     emr_track.logical.create("logical_track1", "ph1")
     emr_track.logical.create("logical_track_numeric", "track0")
-    res <- .emr_call("logical_track_vtrack", "logical_track1", new.env(parent = parent.frame()), silent = TRUE)
-    res_numeric <- .emr_call("logical_track_vtrack", "logical_track_numeric", new.env(parent = parent.frame()), silent = TRUE)
+    res <- .emr_call("logical_track_vtrack", "logical_track1", .emr_env(), silent = TRUE)
+    res_numeric <- .emr_call("logical_track_vtrack", "logical_track_numeric", .emr_env(), silent = TRUE)
     emr_vtrack.create("vt", "ph1", keepref = TRUE)
     emr_vtrack.create("vt_numeric", "track0", keepref = TRUE)
     # commented because logical field was added to local R object
@@ -379,7 +379,7 @@ test_that("logical track returns a valid vtrack R object without values", {
 test_that("logical track returns a valid vtrack R object with values", {
     withr::defer(clean_logical_tracks())
     emr_track.logical.create("logical_track1", "ph1", c(15, 16))
-    res <- .emr_call("logical_track_vtrack", "logical_track1", new.env(parent = parent.frame()), silent = TRUE)
+    res <- .emr_call("logical_track_vtrack", "logical_track1", .emr_env(), silent = TRUE)
     emr_vtrack.create("vt", "ph1", params = c(15, 16), keepref = TRUE)
     # commented because logical field was added to local R object
     # vt <- .naryn$EMR_VTRACKS$vt
@@ -387,7 +387,7 @@ test_that("logical track returns a valid vtrack R object with values", {
     expect_equal(vt, res)
 
     emr_track.logical.create("logical_track_numeric", "track0")
-    res <- .emr_call("logical_track_vtrack", "logical_track_numeric", new.env(parent = parent.frame()), silent = TRUE)
+    res <- .emr_call("logical_track_vtrack", "logical_track_numeric", .emr_env(), silent = TRUE)
     emr_vtrack.create("vt", "track0", keepref = TRUE)
     vt <- emr_vtrack.info("vt")
     expect_equal(vt, res)
