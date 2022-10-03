@@ -90,7 +90,7 @@
 <li>Added support for track attributes to logical tracks.</li>
 <li>Bug fix: dbs order was changed to lexicographical order on emr_db.connect.</li>
 <li>Bug fix: stray logical tracks on non-global dbs were shown.</li>
-<li>Bug fix: <code>emr_time</code> funtions failed when there was an <code>NA</code> in an integer vector.</li>
+<li>Bug fix: <code>emr_time</code> functions failed when there was an <code>NA</code> in an integer vector.</li>
 <li>Bug fix: <code>emr_track.attr.get</code> returned attribute name instead of value.</li>
 <li>
 <code>emr_track.var.get</code> now returns <code>NULL</code> when variable doesn’t exist.</li>
@@ -180,7 +180,7 @@ Previously - new transaction continues using old track list and outdated tracks 
     <div class="section level2">
 <h2 class="page-header" data-toc-text="2.4.4" id="naryn-244">naryn 2.4.4<a class="anchor" aria-label="anchor" href="#naryn-244"></a></h2>
 <ul><li>Removed MINID/MAXID constants from global environment.</li>
-<li>IDs for Beat iteator and Time Interval take their ids from ‘dob’ track.</li>
+<li>IDs for Beat iterator and Time Interval take their ids from ‘dob’ track.</li>
 <li>Bug fix in emr_track.import, emr_track.addto: crash when source data frame has ‘ref’ but no ‘value’ column.</li>
 <li>Bug fix in Time Intervals iterator: in some cases ids outside of subset might be produced.</li>
 <li>DB cache file format has changed. The file is now called ‘.tracks’. The first call to emr_db.init will recreate this file after a full DB reload.</li>
@@ -336,7 +336,7 @@ Previously - new transaction continues using old track list and outdated tracks 
 </ul></div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="2.1.3" id="naryn-213">naryn 2.1.3<a class="anchor" aria-label="anchor" href="#naryn-213"></a></h2>
-<ul><li>New filter on values for all virtual track functions applied to categorial tracks. The filter is given via “param” in emr_vtrack.create</li>
+<ul><li>New filter on values for all virtual track functions applied to categorical tracks. The filter is given via “param” in emr_vtrack.create</li>
 <li>Bug fix: virtual track function “exists” might not work on non-integer values where double(val) != float(val)</li>
 </ul></div>
     <div class="section level2">
@@ -466,18 +466,18 @@ iterator=list(period, trackname)</p>
 </ul></div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="1.1.7" id="naryn-117">naryn 1.1.7<a class="anchor" aria-label="anchor" href="#naryn-117"></a></h2>
-<ul><li>emr_dist: allow implicit breaks (use breaks=NULL) if the track expression constitutes of a categorial track or a virtual track that is based on a categorial track</li></ul></div>
+<ul><li>emr_dist: allow implicit breaks (use breaks=NULL) if the track expression constitutes of a categorical track or a virtual track that is based on a categorical track</li></ul></div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="1.1.6" id="naryn-116">naryn 1.1.6<a class="anchor" aria-label="anchor" href="#naryn-116"></a></h2>
 <ul><li>Run-time optimizations when track expression equals to a track or a virtual track</li></ul></div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="1.1.5" id="naryn-115">naryn 1.1.5<a class="anchor" aria-label="anchor" href="#naryn-115"></a></h2>
-<ul><li>New logical parameter in emr_track.import: “categorial”</li>
+<ul><li>New logical parameter in emr_track.import: “categorical”</li>
 <li>Track format had been changed</li>
-<li>New function: emr_track.unique - returns sorted unique values of a track. Hint: use this functions to set breaks when categorial track is used</li>
+<li>New function: emr_track.unique - returns sorted unique values of a track. Hint: use this functions to set breaks when categorical track is used</li>
 <li>emr_vtrack.create: “val” parameter had been removed</li>
 <li>emr_vtrack.create: new functions “value”, “size”, “frequent”, “exists”</li>
-<li>emr_vtrack.create: functions “earliest”, “latest” and “closest” return -1 in case of ambiguity for categorial tracks</li>
+<li>emr_vtrack.create: functions “earliest”, “latest” and “closest” return -1 in case of ambiguity for categorical tracks</li>
 <li>Interpret data frame with id, time columns as patient-time even if ref column is missing</li>
 <li>Bug fix: emr_db.init continues failing after it failed once (for example: due to invalid track format)</li>
 </ul></div>
@@ -489,7 +489,7 @@ iterator=list(period, trackname)</p>
 <li>Patient ids format for 2 &amp; 3: data frame with the first column named “id”</li>
 <li>Enable time intervals to be used as iterators</li>
 <li>Enable time intervals to be used in filters</li>
-<li>Time intervals format for 5 &amp; 6: data frame wtih the first columns named “stime” and “etime”</li>
+<li>Time intervals format for 5 &amp; 6: data frame with the first columns named “stime” and “etime”</li>
 <li>Run-time optimization when OR is used in iterator filter</li>
 <li>Report error id-time list used for iterator / filter contains two records that differ only by reference when keepref == FALSE</li>
 </ul><ol start="10" style="list-style-type: decimal"><li>Bug fix in filter when time after shift preceeds the epoch</li>

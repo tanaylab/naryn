@@ -79,8 +79,7 @@
 <span>  time.shift <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  val <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  expiration <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  operator <span class="op">=</span> <span class="st">"="</span>,</span>
-<span>  use_values <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  operator <span class="op">=</span> <span class="st">"="</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -118,7 +117,7 @@
     <h2>Value</h2>
     
 
-<p>Name of the filter (invisibly, if filter name wasn't generated automatically)</p>
+<p>Name of the filter (invisibly, if filter name wasn't generated automatically, otherwise - explicitly)</p>
     </div>
     <div id="details">
     <h2>Details</h2>
@@ -143,7 +142,7 @@ When 'operator' is not "=", 'vals' must exist, and be of length 1.</p>
 <p>If both 'val' and 'expiration' are not 'NULL' then only values from 'val'
 vector are checked both in time window and expiration window.</p>
 <p>Note: 'time.shift' can be used only when 'keepref' is 'FALSE'.
-Note:  A zero length vector is interpeted by R as NULL, so <code>val=c()</code> would create
+Note:  A zero length vector is interpreted by R as NULL, so <code>val=c()</code> would create
 a filter which returns all the values of <code>src</code></p>
     </div>
     <div id="see-also">

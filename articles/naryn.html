@@ -109,11 +109,11 @@
 <div class="section level2">
 <h2 id="getting-started-with-naryn">Getting started with naryn<a class="anchor" aria-label="anchor" href="#getting-started-with-naryn"></a>
 </h2>
-<p>Naryn is an implmenetation of a time-series database, for efficient storage, retrieval and analysis of electronic health records (EHR).</p>
+<p>Naryn is an implementation of a time-series database, for efficient storage, retrieval and analysis of electronic health records (EHR).</p>
 <div class="section level4">
 <h4 id="download-the-example-database">Download the example database<a class="anchor" aria-label="anchor" href="#download-the-example-database"></a>
 </h4>
-<p>Towards this vignette we are going to use a small database which was simulated to include an example of a typical EMR databse. It can be downloaded from <a href="https://naryn.s3.eu-west-1.amazonaws.com/naryn_example_db.tar.gz" class="external-link">here</a> or using the following code:</p>
+<p>Towards this vignette we are going to use a small database which was simulated to include an example of a typical EMR database. It can be downloaded from <a href="https://naryn.s3.eu-west-1.amazonaws.com/naryn_example_db.tar.gz" class="external-link">here</a> or using the following code:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/emr_download_example_data.html">emr_download_example_data</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>Note that although smaller than the real database, this example database is still quite large (~1.2GB) and will take a few minutes to download.</p>
@@ -121,7 +121,7 @@
 <div class="section level3">
 <h3 id="tracks">Tracks<a class="anchor" aria-label="anchor" href="#tracks"></a>
 </h3>
-<p>The basic element of Naryn is a track - a single numerical data element (e.g. RBC lab test result) that is recorded for many patients at various time points. A track can be thought of as a very sparse two-dimentional matrix with a row for each patient in the database, and a column for each timepoint in the resolution of hours. Another way to think of a track is as a table with triplets of patient, timepoint and value:</p>
+<p>The basic element of Naryn is a track - a single numerical data element (e.g. RBC lab test result) that is recorded for many patients at various time points. A track can be thought of as a very sparse two-dimensional matrix with a row for each patient in the database, and a column for each timepoint in the resolution of hours. Another way to think of a track is as a table with triplets of patient, timepoint and value:</p>
 <table class="table">
 <thead><tr class="header">
 <th align="right">id</th>
@@ -200,7 +200,7 @@
 <div class="section level3">
 <h3 id="extract-data-from-tracks">Extract data from tracks<a class="anchor" aria-label="anchor" href="#extract-data-from-tracks"></a>
 </h3>
-<p>We can now go back to the ‘RBC’ example and extract the data from the track. This can be done using the <code><a href="../reference/emr_extract.html">emr_extract()</a></code> function which is the ‘swiss army knife’ of the package. It can be used to extract data from a single track, or from multiple tracks, while applying various filters and transformations, but we will start with the simplest example of extracting the data from a single track:</p>
+<p>We can now go back to the ‘RBC’ example and extract the data from the track. This can be done using the <code><a href="../reference/emr_extract.html">emr_extract()</a></code> function which is the ‘Swiss army knife’ of the package. It can be used to extract data from a single track, or from multiple tracks, while applying various filters and transformations, but we will start with the simplest example of extracting the data from a single track:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rbc_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"lab.RBC"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">rbc_df</span><span class="op">)</span></span>
@@ -249,7 +249,7 @@
 <div class="section level3">
 <h3 id="iterators-and-virtual-tracks">Iterators and virtual tracks<a class="anchor" aria-label="anchor" href="#iterators-and-virtual-tracks"></a>
 </h3>
-<p>In the previous example we extracted the data from a single track, what happens if we want to extract data from multiple tracks at once? For example, we would want to extract the RBC and WBC (White Blood cell Count) of patients which had a heart disease (ICD9 code 411), 5 years prior to the diagnosis. In order to acheive this we need to introduce the concept of <em>iterators</em>.</p>
+<p>In the previous example we extracted the data from a single track, what happens if we want to extract data from multiple tracks at once? For example, we would want to extract the RBC and WBC (White Blood cell Count) of patients which had a heart disease (ICD9 code 411), 5 years before their diagnosis. In order to achieve this we need to introduce the concept of <em>iterators</em>.</p>
 <p>An iterator is a set of points in the <em>patient-time space</em><a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a> that defines the way in which naryn traverses the database. In the RBC example, the iterator was simply the set of all <em>patient-time</em> points that were included in the track, but now - we would want our point-of-view to be the heart disease diagnosis so we would set the iterator to the track of ICD code 411:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">heart_blood</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lab.RBC"</span>, <span class="st">"lab.WBC"</span><span class="op">)</span>, iterator <span class="op">=</span> <span class="st">"dx.icd9_411"</span><span class="op">)</span></span>
@@ -268,10 +268,10 @@
 <li>Tell naryn to look back 5 years before the diagnosis</li>
 <li>Tell naryn what to do if there is more than one RBC test in the 5 years prior to the diagnosis, for example - take the earliest, or more generally - tell naryn which function to apply to values of the track.</li>
 </ol>
-<p>This can be done using a <em>virtual track</em>. A virtual track is a way to tell naryn how to compute the value of a track when at a specific point in the <em>patient-time space</em>. It is created using the <code>emr_virtual_track()</code> function, which tells naryn how to shift the time for a given track (1, <code>time.shift</code>) and which function to apply to the values of the track (2, <code>func</code>). In our case:</p>
+<p>This can be done using a <em>virtual track</em>. A virtual track is a way to tell naryn how to compute the value of a track when at a specific point in the <em>patient-time space</em>. It is created using the <code>emr_virtual_track()</code> function, which tells naryn how to shift the time for a given track (1, <code>time.shift</code>) and which function to apply to the values of the track (2, <code>func</code>). Note that the time shift is always in reference to the <em>iterator</em>. So for example, in our case we would like to look at an RBC / WBC measurement 5 years before the diagnosis. If our iterator is at the time of heart disease diagnosis, we want to look at a time window that starts 5 years before and ends at the time of diagnosis:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/emr_vtrack.create.html">emr_vtrack.create</a></span><span class="op">(</span><span class="st">"rbc_5y"</span>, <span class="st">"lab.RBC"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="../reference/emr_time.html">years</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span>, <span class="op">-</span><span class="fl">1</span><span class="op">)</span>, func <span class="op">=</span> <span class="st">"earliest"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/emr_vtrack.create.html">emr_vtrack.create</a></span><span class="op">(</span><span class="st">"wbc_5y"</span>, <span class="st">"lab.WBC"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="../reference/emr_time.html">years</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span>, <span class="op">-</span><span class="fl">1</span><span class="op">)</span>, func <span class="op">=</span> <span class="st">"earliest"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/emr_vtrack.create.html">emr_vtrack.create</a></span><span class="op">(</span><span class="st">"rbc_5y"</span>, <span class="st">"lab.RBC"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="../reference/emr_time.html">years</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span>, <span class="fl">0</span><span class="op">)</span>, func <span class="op">=</span> <span class="st">"earliest"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/emr_vtrack.create.html">emr_vtrack.create</a></span><span class="op">(</span><span class="st">"wbc_5y"</span>, <span class="st">"lab.WBC"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="../reference/emr_time.html">years</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span>, <span class="fl">0</span><span class="op">)</span>, func <span class="op">=</span> <span class="st">"earliest"</span><span class="op">)</span></span></code></pre></div>
 <p>Now, we can extract the data from the virtual tracks (instead of the tracks themselves):</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">heart_blood</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"rbc_5y"</span>, <span class="st">"wbc_5y"</span><span class="op">)</span>, iterator <span class="op">=</span> <span class="st">"dx.icd9_411"</span>, names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"RBC"</span>, <span class="st">"WBC"</span><span class="op">)</span><span class="op">)</span></span>
@@ -285,8 +285,8 @@
 <span><span class="co">#&gt; 6  4 1335742  -1 4.619302 5.197200</span></span></code></pre></div>
 <p>We would like to also know how long before the diagnosis each test was performed, so we will create an additional virtual track, this time with a function that computes the difference between the time of the diagnosis and the earliest blood test. Also, we would like the time difference to be in the resolution of months, so we will give <code>emr_extract</code> a track expression that divides the time difference by 30 * 24 (the number of hours in a month), which is equivalent ot the <code>month</code> function:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/emr_vtrack.create.html">emr_vtrack.create</a></span><span class="op">(</span><span class="st">"rbc_5y_d"</span>, <span class="st">"lab.RBC"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="../reference/emr_time.html">years</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span>, <span class="op">-</span><span class="fl">1</span><span class="op">)</span>, func <span class="op">=</span> <span class="st">"dt2.earliest"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/emr_vtrack.create.html">emr_vtrack.create</a></span><span class="op">(</span><span class="st">"wbc_5y_d"</span>, <span class="st">"lab.WBC"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="../reference/emr_time.html">years</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span>, <span class="op">-</span><span class="fl">1</span><span class="op">)</span>, func <span class="op">=</span> <span class="st">"dt2.earliest"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/emr_vtrack.create.html">emr_vtrack.create</a></span><span class="op">(</span><span class="st">"rbc_5y_d"</span>, <span class="st">"lab.RBC"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="../reference/emr_time.html">years</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span>, <span class="fl">0</span><span class="op">)</span>, func <span class="op">=</span> <span class="st">"dt2.earliest"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/emr_vtrack.create.html">emr_vtrack.create</a></span><span class="op">(</span><span class="st">"wbc_5y_d"</span>, <span class="st">"lab.WBC"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="../reference/emr_time.html">years</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span>, <span class="fl">0</span><span class="op">)</span>, func <span class="op">=</span> <span class="st">"dt2.earliest"</span><span class="op">)</span></span>
 <span><span class="va">heart_blood</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"rbc_5y"</span>, <span class="st">"wbc_5y"</span>, <span class="st">"rbc_5y_d/month()"</span>, <span class="st">"wbc_5y_d/month()"</span><span class="op">)</span>,</span>
 <span>    iterator <span class="op">=</span> <span class="st">"dx.icd9_411"</span>,</span>
@@ -294,13 +294,13 @@
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">heart_blood</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   id    time ref      RBC      WBC     RBC_d     WBC_d</span></span>
-<span><span class="co">#&gt; 1  1 1220308  -1 4.784053 8.008108  2.220833  2.220833</span></span>
-<span><span class="co">#&gt; 2  1 1220947  -1 4.784053 8.008108  3.108333  3.108333</span></span>
-<span><span class="co">#&gt; 3  1 1241362  -1 4.784053 8.008108 31.462500 31.462500</span></span>
-<span><span class="co">#&gt; 4  4 1280579  -1 4.617556 5.105508 57.433333 57.433333</span></span>
-<span><span class="co">#&gt; 5  4 1329136  -1 4.421784 6.366830 59.808333 59.808333</span></span>
-<span><span class="co">#&gt; 6  4 1335742  -1 4.619302 5.197200 52.716667 52.716667</span></span></code></pre></div>
-<p>Yay! we got what we wanted, but something is still weird - we can see that some patients (and in this sampled database - most patients) have more than one diagnosis of a heart disease. Many times, this is indeed the case - a patient can be diagnosed with heart disease multiple times, but more commonly in EMR data - the same diagnosis is recorded multiple times, and what we actually want is the earliest diagnosis. In order to acheive that we would have to use <em>filters</em>.</p>
+<span><span class="co">#&gt; 1  1 1220308  -1 4.784053 8.008108  2.222222  2.222222</span></span>
+<span><span class="co">#&gt; 2  1 1220947  -1 4.784053 8.008108  3.109722  3.109722</span></span>
+<span><span class="co">#&gt; 3  1 1241362  -1 4.784053 8.008108 31.463889 31.463889</span></span>
+<span><span class="co">#&gt; 4  4 1280579  -1 4.617556 5.105508 57.434722 57.434722</span></span>
+<span><span class="co">#&gt; 5  4 1329136  -1 4.421784 6.366830 59.809722 59.809722</span></span>
+<span><span class="co">#&gt; 6  4 1335742  -1 4.619302 5.197200 52.718056 52.718056</span></span></code></pre></div>
+<p>Yay! we got what we wanted, but something is still weird - we can see that some patients (and in this sampled database - most patients) have more than one diagnosis of a heart disease. Many times, this is indeed the case - a patient can be diagnosed with heart disease multiple times, but more commonly in EMR data - the same diagnosis is recorded multiple times, and what we actually want is the earliest diagnosis. In order to achieve that we would have to use <em>filters</em>.</p>
 </div>
 <div class="section level3">
 <h3 id="filters">Filters<a class="anchor" aria-label="anchor" href="#filters"></a>
@@ -318,12 +318,12 @@
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">heart_blood</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   id    time ref      RBC      WBC     RBC_d     WBC_d</span></span>
-<span><span class="co">#&gt; 1  1 1220308  -1 4.784053 8.008108  2.220833  2.220833</span></span>
-<span><span class="co">#&gt; 2  4 1280579  -1 4.617556 5.105508 57.433333 57.433333</span></span>
-<span><span class="co">#&gt; 3  5 1306345  -1 6.196034 9.277723 57.437500 57.437500</span></span>
-<span><span class="co">#&gt; 4  6 1259009  -1 4.271791 7.004467 43.413889 43.413889</span></span>
-<span><span class="co">#&gt; 5 19 1322741  -1 4.385486 7.695645 53.868056 53.868056</span></span>
-<span><span class="co">#&gt; 6 22 1227666  -1 3.858857 4.801625 13.519444 13.519444</span></span></code></pre></div>
+<span><span class="co">#&gt; 1  1 1220308  -1 4.784053 8.008108  2.222222  2.222222</span></span>
+<span><span class="co">#&gt; 2  4 1280579  -1 4.617556 5.105508 57.434722 57.434722</span></span>
+<span><span class="co">#&gt; 3  5 1306345  -1 6.196034 9.277723 57.438889 57.438889</span></span>
+<span><span class="co">#&gt; 4  6 1259009  -1 4.271791 7.004467 43.415278 43.415278</span></span>
+<span><span class="co">#&gt; 5 19 1322741  -1 4.385486 7.695645 53.869444 53.869444</span></span>
+<span><span class="co">#&gt; 6 22 1227666  -1 3.858857 4.801625 13.520833 13.520833</span></span></code></pre></div>
 <p>Voila! every patient now has only the earliest diagnosis of heart disease.</p>
 <div class="section level4">
 <h4 id="value-filters">Value filters<a class="anchor" aria-label="anchor" href="#value-filters"></a>
@@ -392,7 +392,7 @@
 <h3 id="define-virtual-tracks-for-age-and-sex">Define virtual tracks for age and sex<a class="anchor" aria-label="anchor" href="#define-virtual-tracks-for-age-and-sex"></a>
 </h3>
 <p>Given what we learned about iterators, virtual tracks and filters, how would we extract the <em>age</em> of a patient at a given timepoint? For example, say that we want to know the age of a patient at the time of their first diagnosis of heart disease. We can do this by creating a virtual track that computes the difference between the time of the diagnosis and the time of birth.</p>
-<p>A virtual track needs 4 things - name, source, time shift and function. We sould set the name to “age”, the source to “patients.dob” and at each point of the iterator we would like to go backward in time a maximal amount (say - 120 years) and compute the time difference between the point and the birth, so we will set the <code>time.shift</code> to <code>c(-years(120), 0)</code> and the function to <code>dt2.earliest</code>:</p>
+<p>A virtual track needs 4 things - name, source, time shift and function. We should set the name to “age”, the source to “patients.dob” and at each point of the iterator we would like to go backward in time a maximal amount (say - 120 years) and compute the time difference between the point and the birth, so we will set the <code>time.shift</code> to <code>c(-years(120), 0)</code> and the function to <code>dt2.earliest</code>:</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/emr_vtrack.create.html">emr_vtrack.create</a></span><span class="op">(</span><span class="st">"age"</span>, <span class="st">"patients.dob"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="../reference/emr_time.html">years</a></span><span class="op">(</span><span class="fl">120</span><span class="op">)</span>, <span class="fl">0</span><span class="op">)</span>, func <span class="op">=</span> <span class="st">"dt2.earliest"</span><span class="op">)</span></span></code></pre></div>
 <p>We can now extract the age of the patient at the time of their first diagnosis of heart disease in the resolution of years:</p>
@@ -454,6 +454,7 @@
 <span><span class="co">#&gt; 4 [50,90)   2 [10,10.5) 8402</span></span>
 <span><span class="co">#&gt; 5 [20,50)   1 [10.5,11)  344</span></span>
 <span><span class="co">#&gt; 6 [50,90)   1 [10.5,11) 4355</span></span></code></pre></div>
+<p>Note that for the categorical track “sex” the breaks were set to NULL which implicitly uses all the possible values in the track.</p>
 <p>We can now plot the distributions:</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">hgb_dist</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -472,7 +473,7 @@
 <div class="section level3">
 <h3 id="additional-examples">Additional examples<a class="anchor" aria-label="anchor" href="#additional-examples"></a>
 </h3>
-<p>In the next few sections we will present a few additional examples of how to use <code>naryn</code> for analysis of EMR data. It is reccomened to try and implement a solution to each example before looking at the code below it.</p>
+<p>In the next few sections we will present a few additional examples of how to use <code>naryn</code> for analysis of EMR data. It is recommended to try and implement a solution to each example before looking at the code below it.</p>
 <div class="section level4">
 <h4 id="extract-survival-time-for-patients-with-pancreatic-cancer">Extract survival time for patients with pancreatic cancer<a class="anchor" aria-label="anchor" href="#extract-survival-time-for-patients-with-pancreatic-cancer"></a>
 </h4>
@@ -497,7 +498,7 @@
 <span><span class="co">#&gt; 5 28135 1263030  -1    23106</span></span>
 <span><span class="co">#&gt; 6 34252 1341200  -1     9016</span></span></code></pre></div>
 <p>Note that NA in survival means that the patient still has not died.</p>
-<p>We can now compute the kaplan-meier survival curve for pancreatic cancer patients. Censoring is applied to reflect latest update of database (Jan 6, 2022):</p>
+<p>We can now compute the Kaplan-Meier survival curve for pancreatic cancer patients. Censoring is applied to reflect latest update of database (Jan 6, 2022):</p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pancreatic_cancer_survival</span> <span class="op">&lt;-</span> <span class="va">pancreatic_cancer_survival</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
@@ -558,7 +559,7 @@
 <p>Now we can use the data frame we created as an iterator:</p>
 <div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># filter patients that already have diabetes before heart disease</span></span>
-<span><span class="fu"><a href="../reference/emr_filter.create.html">emr_filter.create</a></span><span class="op">(</span><span class="st">"has_diabetes"</span>, <span class="st">"dx.icd9_250"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">120</span> <span class="op">*</span> <span class="fl">365</span> <span class="op">*</span> <span class="fl">24</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/emr_filter.create.html">emr_filter.create</a></span><span class="op">(</span><span class="st">"has_diabetes"</span>, <span class="st">"dx.icd9_250"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="../reference/emr_time.html">years</a></span><span class="op">(</span><span class="fl">120</span><span class="op">)</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">heart_onset_no_diabetes</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"age/year()"</span>, iterator <span class="op">=</span> <span class="va">heart_onset</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">id</span>, time <span class="op">=</span> <span class="va">heart_onset</span><span class="op">)</span>, filter <span class="op">=</span> <span class="st">"!has_diabetes"</span>, names <span class="op">=</span> <span class="st">"age"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">heart_onset</span><span class="op">)</span></span>
@@ -599,7 +600,7 @@
 <p><img src="naryn_files/figure-html/unnamed-chunk-38-1.png" width="700"></p>
 </div>
 <div class="section level4">
-<h4 id="count-number-of-patients-by-age-that-were-in-the-system-in-january-2020">Count number of patients by age that were in the system in january 2020<a class="anchor" aria-label="anchor" href="#count-number-of-patients-by-age-that-were-in-the-system-in-january-2020"></a>
+<h4 id="count-number-of-patients-by-age-that-were-in-the-system-in-january-2020">Count number of patients by age that were in the system in January 2020<a class="anchor" aria-label="anchor" href="#count-number-of-patients-by-age-that-were-in-the-system-in-january-2020"></a>
 </h4>
 <p>What does it mean to be “in the system”? Every EHR system would have its own definition of this, but in general - we want the patients that have already been born, have not died yet, have registered with the EHR system and haven’t left the system (for good) yet.</p>
 <p>We will start by creating a set of filters that will define the above conditions:</p>
