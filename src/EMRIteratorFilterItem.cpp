@@ -134,7 +134,7 @@ bool EMRIteratorFilterItem::is_passed_leaf(const EMRPoint &point)
             return filtered_next();
     }
 
-    // current point preceeds filter interval => jump to the beginning of filter interval
+    // current point precedes filter interval => jump to the beginning of filter interval
     if (m_itr->point().id < point.id || (m_itr->point().id == point.id && (int)m_itr->point().timestamp.hour() < sinterv)) {
         if (!m_itr->next(EMRPoint(point.id, EMRTimeStamp(max(sinterv, 0), (EMRTimeStamp::Refcount)-1))))
             return filtered_end();

@@ -469,7 +469,7 @@ without parameters.
 *  Time intervals format for 5 & 6: data frame with the first columns named "stime" and "etime"
 *  Run-time optimization when OR is used in iterator filter
 *  Report error id-time list used for iterator / filter contains two records that differ only by reference when keepref == FALSE
-10.  Bug fix in filter when time after shift preceeds the epoch
+10.  Bug fix in filter when time after shift precedes the epoch
 11.  Bug fix in beat iterator: invalid progress report
 
 # naryn 1.1.3
