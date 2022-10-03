@@ -19,11 +19,11 @@ emr_download_example_data <- function(dir = getwd(), temp_dir = tempdir()) {
     temp_file <- tempfile(tmpdir = temp_dir)
 
     # Download the data
-    withr::with_options(list(timeout = 1e4), download.file("https://naryn.s3.eu-west-1.amazonaws.com/naryn_example_db.tar.gz", temp_file))
+    withr::with_options(list(timeout = 1e4), utils::download.file("https://naryn.s3.eu-west-1.amazonaws.com/naryn_example_db.tar.gz", temp_file))
 
     message("Extracting data...")
     # untar the data
-    untar(temp_file, exdir = dir)
+    utils::untar(temp_file, exdir = dir)
 
     stopifnot(file.exists(file.path(dir, "sample_db")))
 

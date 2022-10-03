@@ -1,13 +1,13 @@
 Type: Package
 Package: naryn
-Title: Toolkit for analysis of medical records
+Title: Toolkit for Analysis of Medical Records
 Version: 2.6.8
 Authors@R: c(
     person("Misha", "Hoichman", , "misha@hoichman.com", role = "aut"),
     person("Aviezer", "Lifshitz", , "aviezer.lifshitz@weizmann.ac.il", role = c("aut", "cre")),
     person("Ben", "Gilat", , "ben.gilat@weizmann.ac.il", role = "aut")
   )
-Description: Naryn is a toolkit for medical records data analysis. It implements an efficient data structure for storing medical records, and provides a set of functions for data extraction, manipulation and analysis. 
+Description: The `Naryn` package is a toolkit for medical records data analysis. It implements an efficient data structure for storing medical records, and provides a set of functions for data extraction, manipulation and analysis. 
 License: MIT + file LICENSE
 BugReports: https://github.com/tanaylab/naryn/issues
 Depends: 
@@ -44,5 +44,6 @@ Encoding: UTF-8
 Language: en-US
 LazyLoad: yes
 NeedsCompilation: yes
+OS_type: unix
 RoxygenNote: 7.2.0
 SystemRequirements: GNU make, C++11
