@@ -4,6 +4,11 @@
 	#undef _POSIX_C_SOURCE
 #endif
 
+#if defined(__APPLE__)
+    #include <libproc.h>
+    #include <sys/proc_info.h>
+#endif
+
 #include <ctype.h>
 #include <dirent.h>
 #include <errno.h>
@@ -299,22 +304,25 @@ pid_t Naryn::launch_process()
 
 		SEXP r_multitasking_stdout = GetOption(install("emr_multitasking_stdout"), R_NilValue);
 
-        if (!isLogical(r_multitasking_stdout) || !(int)LOGICAL(r_multitasking_stdout)[0]) {
-            if (!freopen("/dev/null", "w", stdout))
-                verror("Failed to open /dev/null");
+        int devnull;
+        if ((devnull = open("/dev/null", O_RDWR)) == -1){
+            verror("Failed to open /dev/null");
         }
 
-        if (!freopen("/dev/null", "w", stderr))
-            verror("Failed to open /dev/null");
+        if (!isLogical(r_multitasking_stdout) || !(int)LOGICAL(r_multitasking_stdout)[0]) {
+            dup2(devnull, STDOUT_FILENO);
+        }
 
-        if (!freopen("/dev/null", "r", stdin))
-            verror("Failed to open /dev/null");
+        dup2(devnull, STDIN_FILENO);
+        dup2(devnull, STDERR_FILENO);
+        close(devnull);
 
         // fifo was open for read by the parent
         close(s_fifo_fd);
 
-        if ((s_fifo_fd = open(get_fifo_name().c_str(), O_WRONLY)) == -1)
+        if ((s_fifo_fd = open(get_fifo_name().c_str(), O_WRONLY)) == -1){
             verror("open of fifo %s for write failed: %s", get_fifo_name().c_str(), strerror(errno));
+        }
 	}
 
 	return pid;
@@ -441,7 +449,7 @@ void Naryn::handle_error(const char *msg)
 				s_shm->error_msg[sizeof(s_shm->error_msg) - 1] = '\0';
 			}
 		}
-		exit(1);
+		rexit();
 	} else {
 		errorcall(R_NilValue, msg);
     }
@@ -635,8 +643,6 @@ void vdebug(const char *fmt, ...)
 
         if (!*fmt || (*fmt && fmt[strlen(fmt) - 1] != '\n'))
             REprintf("\n");
-
-        fflush(stderr);
     }
 }
 

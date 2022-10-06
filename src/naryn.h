@@ -8,9 +8,12 @@
 #include <semaphore.h>
 #include <signal.h>
 #include <time.h>
+#include <unistd.h>
+
 
 #include <R.h>
 #include <Rinternals.h>
+#include <Rinterface.h>
 
 #include "Thread.h"
 
@@ -22,6 +25,8 @@
 #endif
 
 #include "TGLException.h"
+
+#define NARYN_EXIT_SIG SIGTERM
 
 #ifndef RNARYN
     #define RNARYN
@@ -112,7 +117,9 @@ template<typename T> void unpack_data(void *&ptr, T &data, size_t n) {
 
 
 #define MAX_KIDS 1000
-#define rreturn(retv) { if (Naryn::is_kid()) exit(0); return(retv); }
+#define rreturn(retv) { if (Naryn::is_kid()) rexit(); return(retv); }
+
+void rexit();
 
 #ifdef __sun
 
@@ -265,6 +272,18 @@ extern Naryn *g_naryn;
 
 
 // ------------------------------- IMPLEMENTATION --------------------------------
+
+inline void rexit()
+{
+    if (Naryn::is_kid())
+        // Normally we should have called exit() here. However "R CMD check" doesn't like calls to exit/abort/etc because they end R session itself.
+        // It prints a warning message and packages with warning messages cannot be submitted to CRAN.
+        // Yet the child process MUST end the R sessions, that's the whole point.
+        // Solution? Send a signal to itself. Fortunately "R CMD check" allows signals.
+        kill(getpid(), NARYN_EXIT_SIG);
+    else
+        verror("rexit is called from parent process");
+}
 
 inline void check_interrupt()
 {

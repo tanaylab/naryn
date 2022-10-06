@@ -362,7 +362,7 @@ void NRTrackExprScanner::start_multitasking()
 
         if (!ids_subset.empty() && !g_naryn->launch_process()) { // kid process
             kid_main_loop(ids_subset);
-            exit(0);
+            rexit();
         }
         vdebug("Launched child %d/%d\n", ikid + 1, num_kids);
     }
