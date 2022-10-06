@@ -105,14 +105,14 @@ string get_bound_colname(const char *str, unsigned maxlen = 40);
 
 void get_expression_vars(const string &expr, vector<string>& vars);
 
-template<typename T> void pack_data(void *&ptr, const T &data, size_t n) {
-	size_t size = sizeof(data) * n;
+template<typename T> void pack_data(void *&ptr, const T &data, uint64_t n) {
+	uint64_t size = sizeof(data) * n;
 	memcpy(ptr, &data, size);
 	ptr = (char *)ptr + size;
 }
 
-template<typename T> void unpack_data(void *&ptr, T &data, size_t n) {
-	size_t size = sizeof(data) * n;
+template<typename T> void unpack_data(void *&ptr, T &data, uint64_t n) {
+	uint64_t size = sizeof(data) * n;
 	memcpy(&data, ptr, size);
 	ptr = (char *)ptr + size;
 }
@@ -191,8 +191,8 @@ public:
     static bool wait_for_kids(int millisecs);
 
     // returns number of bytes read or 0 for EOF; the parent process that uses fifo does not need to call then wait_for_kids()
-    static int read_multitask_fifo(void *buf, size_t bytes);
-    static void write_multitask_fifo(const void *buf, size_t bytes);
+    static int read_multitask_fifo(void *buf, uint64_t bytes);
+    static void write_multitask_fifo(const void *buf, uint64_t bytes);
 
     static bool is_kid() { return s_is_kid; }
 

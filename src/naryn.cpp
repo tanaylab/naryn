@@ -379,11 +379,11 @@ bool Naryn::wait_for_kids(int millisecs)
     return true;
 }
 
-int Naryn::read_multitask_fifo(void *buf, size_t bytes)
+int Naryn::read_multitask_fifo(void *buf, uint64_t bytes)
 {
     bool eof_reached = false;
     int retv;
-    size_t readlen = 0;
+    uint64_t readlen = 0;
     fd_set rfds;
     struct timeval tv;
 
@@ -432,7 +432,7 @@ int Naryn::read_multitask_fifo(void *buf, size_t bytes)
     return readlen;
 }
 
-void Naryn::write_multitask_fifo(const void *buf, size_t bytes)
+void Naryn::write_multitask_fifo(const void *buf, uint64_t bytes)
 {
     SemLocker sl(s_fifo_sem);
     if (write(s_fifo_fd, buf, bytes) == -1)
@@ -939,10 +939,10 @@ void get_expression_vars(const string &expr, vector<string>& vars){
     SEXP res = R_tryEval(e, g_naryn->env(), NULL);
     UNPROTECT(1);
 
-    size_t num_vars = Rf_length(res);    
+    uint64_t num_vars = Rf_length(res);    
     vars.reserve(num_vars);
 
-    for (size_t i = 0; i < num_vars; ++i){        
+    for (uint64_t i = 0; i < num_vars; ++i){        
         vars.push_back(CHAR(STRING_ELT(res, i)));
     }    
 }

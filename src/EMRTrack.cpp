@@ -121,7 +121,7 @@ EMRTrack *EMRTrack::unserialize(const char *name, const char *filename)
         close(fd);
         fd = -1;
 
-        size_t pos = 0;
+        uint64_t pos = 0;
     	int signature;
     	int track_type;
     	int data_type;

@@ -101,12 +101,12 @@ SEXP EMRLogicalTrack::vtrack() const{
     SET_VECTOR_ELT(answer, KEEPREF, keepref);
 
     if (this->has_values()) {        
-        size_t num_values = this->num_values();
+        uint64_t num_values = this->num_values();
         
         rprotect(params = RSaneAllocVector(INTSXP, num_values));
         for (vector<int>::const_iterator iid = this->values.begin();
             iid != this->values.end(); ++iid) {
-            size_t index = iid - this->values.begin();
+            uint64_t index = iid - this->values.begin();
             INTEGER(params)[index] = *iid;
         }        
         SET_VECTOR_ELT(answer, PARAMS, params);

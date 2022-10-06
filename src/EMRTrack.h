@@ -86,7 +86,7 @@ public:
     virtual void data_recs(EMRTrackData<double> &data_recs) = 0;
     virtual void data_recs(EMRTrackData<float> &data_recs) = 0;
 
-    virtual size_t count_ids(const vector<unsigned> &ids) const = 0;
+    virtual uint64_t count_ids(const vector<unsigned> &ids) const = 0;
 
     // Construct an intermediate track for virtual track queries based on EMRTrackData and the original track
     template <class T>
@@ -193,7 +193,7 @@ public:
 protected:
     char           *m_mem{NULL};             // used for an intermediate track built in memory
     void           *m_shmem{MAP_FAILED};
-    size_t          m_shmem_size;
+    uint64_t          m_shmem_size;
     struct timespec m_timestamp;
     string          m_name;
 	TrackType       m_track_type;
@@ -205,14 +205,14 @@ protected:
     unsigned        m_min_time;
     unsigned        m_max_time;
 
-    EMRTrack(const char *name, TrackType track_type, DataType data_type, unsigned flags, void *&mem, size_t size, unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime);
+    EMRTrack(const char *name, TrackType track_type, DataType data_type, unsigned flags, void *&mem, uint64_t size, unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime);
 	EMRTrack(const char *name, TrackType track_type, DataType data_type, unsigned flags, EMRTrack *base_track, unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime);
 
     template <class T>
     static EMRTrack *construct(const char *name, EMRTrack *base_track, Func func, unsigned flags, EMRTrackData<T> &data);
 
     template <class T>
-    static int read_datum(void *mem, size_t &pos, size_t size, T &t, const char *trackname);
+    static int read_datum(void *mem, uint64_t &pos, uint64_t size, T &t, const char *trackname);
 
 	virtual void set_vals(DataFetcher &df, const EMRInterval &interv) = 0;
     void set_nan_vals(DataFetcher &df);
@@ -278,7 +278,7 @@ inline bool EMRTrack::Iterator::passed_operator(double val){
 }
 
 inline EMRTrack::EMRTrack(const char *name, TrackType track_type, DataType data_type, unsigned flags,
-                        void *&mem, size_t size, unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime) :
+                        void *&mem, uint64_t size, unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime) :
     m_shmem_size(size),
     m_name(name),
 	m_track_type(track_type),
@@ -502,7 +502,7 @@ inline void EMRTrack::set_nan_vals(EMRTrack::DataFetcher &df)
 }
 
 template <class T>
-int EMRTrack::read_datum(void *mem, size_t &pos, size_t size, T &t, const char *trackname)
+int EMRTrack::read_datum(void *mem, uint64_t &pos, uint64_t size, T &t, const char *trackname)
 {
     if (pos + sizeof(t) > size)
         TGLError<EMRTrack>(FILE_ERROR, "Invalid format of a track %s", trackname);

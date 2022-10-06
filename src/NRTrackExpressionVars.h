@@ -69,7 +69,7 @@ public:
 
     static void check_vtrack(const string &track, SEXP rvtrack);
 
-    static bool is_var(const string &str, size_t start, size_t end) {
+    static bool is_var(const string &str, uint64_t start, uint64_t end) {
         return (!start || !is_R_var_char(str[start - 1])) &&
                (end == str.size() || !is_R_var_char(str[end]));
     }

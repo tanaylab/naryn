@@ -270,7 +270,7 @@ SEXP emr_track_names(SEXP envir) {
 
         rprotect(answer = RSaneAllocVector(STRSXP, tracks_size));
 
-        size_t idx = 0;
+        uint64_t idx = 0;
 
         for (int db_idx = 0; db_idx < (int)rootdirs.size(); db_idx++) {
             for ( auto track_name : g_db->track_names(rootdirs[db_idx]) )

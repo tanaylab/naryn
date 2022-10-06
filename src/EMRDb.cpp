@@ -219,7 +219,7 @@ void EMRDb::load_logical_tracks_from_disk() {
 
             // is it a normal file having file extension of a track?
             if (S_ISREG(fs.st_mode) &&
-                (size_t)len > LOGICAL_TRACK_FILE_EXT.size() &&
+                (uint64_t)len > LOGICAL_TRACK_FILE_EXT.size() &&
                 !strncmp(dirp->d_name + len - LOGICAL_TRACK_FILE_EXT.size(),
                          LOGICAL_TRACK_FILE_EXT.c_str(),
                          LOGICAL_TRACK_FILE_EXT.size()))
@@ -502,7 +502,7 @@ void EMRDb::ids_subset(vector<unsigned> &ids, const char *src, double fraction,
     if (!ids.size() && !complementary)
         verror("Source ids are empty.");
 
-    size_t subset_size = (size_t)(ids.size() * fraction + .5);
+    uint64_t subset_size = (uint64_t)(ids.size() * fraction + .5);
 
     if ((!subset_size && !complementary) ||
         (subset_size == ids.size() && complementary))
@@ -514,9 +514,9 @@ void EMRDb::ids_subset(vector<unsigned> &ids, const char *src, double fraction,
     m_ids_subset_fraction = fraction;
     m_ids_subset_complementary = complementary;
 
-    for (size_t i = 0; i < subset_size; ++i)
+    for (uint64_t i = 0; i < subset_size; ++i)
     {
-        size_t idx = (size_t)(unif_rand() * (ids.size() - subset_size));
+        uint64_t idx = (uint64_t)(unif_rand() * (ids.size() - subset_size));
 
         if (!complementary)
             m_ids_subset.insert(ids[idx]);
@@ -656,7 +656,7 @@ void EMRDb::load_ids() {
             m_ids_ts = get_file_mtime(sb);
             m_ids_transact_ts = m_transact_id;
 
-            for (size_t i = 0; i < m_num_ids; ++i)
+            for (uint64_t i = 0; i < m_num_ids; ++i)
                 m_id2idx[m_ids[i]] = i;
 
             break;
@@ -985,7 +985,7 @@ void EMRDb::create_track_list_file(string db_id, BufferedFile *_pbf) {
                 verror("Failed to stat file %s: %s", filename, strerror(errno));
             }
                 
-            if (S_ISREG(fs.st_mode) && (size_t)len > TRACK_FILE_EXT.size() &&
+            if (S_ISREG(fs.st_mode) && (uint64_t)len > TRACK_FILE_EXT.size() &&
                 !strncmp(dirp->d_name + len - TRACK_FILE_EXT.size(),
                          TRACK_FILE_EXT.c_str(), TRACK_FILE_EXT.size())) {
                 string track_name(dirp->d_name, 0, len - TRACK_FILE_EXT.size());

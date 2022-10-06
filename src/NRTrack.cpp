@@ -265,7 +265,7 @@ SEXP emr_track_unique(SEXP _track, SEXP _envir)
         vector<double> unique_vals;
         track->unique_vals(unique_vals);
 
-        for (size_t i = 0; i < unique_vals.size(); ++i)
+        for (uint64_t i = 0; i < unique_vals.size(); ++i)
             REAL(answer)[i] = unique_vals[i];
 
         return answer;
@@ -353,7 +353,7 @@ SEXP emr_get_tracks_attrs(SEXP _tracks, SEXP _attrs, SEXP _envir)
             attrs[i] = CHAR(STRING_ELT(_attrs, i));
 
         EMRDb::Track2Attrs track2attrs = g_db->get_tracks_attrs(tracks, attrs);
-        size_t num_attrs = 0;
+        uint64_t num_attrs = 0;
 
         for (const auto &v : track2attrs)
             num_attrs += v.second.size();
