@@ -46,4 +46,4 @@ LazyLoad: yes
 NeedsCompilation: yes
 OS_type: unix
 RoxygenNote: 7.2.0
-SystemRequirements: GNU make, C++11
+SystemRequirements: C++11
