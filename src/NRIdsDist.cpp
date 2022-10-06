@@ -203,7 +203,7 @@ SEXP emr_ids_vals_dist(SEXP _ids, SEXP _tracks, SEXP _stime, SEXP _etime, SEXP _
             NRTrackExprScanner scanner;
             Val2Count &val2count = res[itrack - tracks.begin()];
             vector<double> unique_vals;
-            unordered_set<pair<unsigned, unsigned>> idval;
+            unordered_set<pair<size_t, size_t>> idval;
 
             (*itrack)->unique_vals(unique_vals);
             tot_num_vals += unique_vals.size();
@@ -219,12 +219,12 @@ SEXP emr_ids_vals_dist(SEXP _ids, SEXP _tracks, SEXP _stime, SEXP _etime, SEXP _
                 size_t val_size_t;                
                 memcpy(&val_size_t, &val, sizeof(val));
                 if (val != -1 && ids.find(scanner.point().id) != ids.end() &&
-                    idval.find(pair<unsigned, unsigned>((unsigned)val_size_t, (unsigned)scanner.point().id)) == idval.end())
+                    idval.find(pair<size_t, size_t>(val_size_t, (size_t)scanner.point().id)) == idval.end())
                 {
                     int64_t val_int64_t;
                     memcpy(&val_int64_t, &val, sizeof(val));
                     ++val2count[val_int64_t];
-                    idval.insert(pair<unsigned, unsigned>((unsigned)val_size_t, (unsigned)scanner.point().id));
+                    idval.insert(pair<size_t, size_t>(val_size_t, (size_t)scanner.point().id));
                 }
             }
             progress.report(1);
