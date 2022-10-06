@@ -172,7 +172,9 @@ emr_db.init <- function(global.dir = NULL, user.dir = NULL, global.load.on.deman
 #' @export
 #' @noRd
 emr_db.init_examples <- function() {
-    emr_db.connect(system.file("naryndb/test", package = "naryn"))
+    db_dir <- tempdir()
+    utils::untar(system.file("testdb.tar.gz", package = "naryn"), exdir = db_dir)
+    emr_db.connect(file.path(db_dir, "naryndb/test"))
 }
 
 
