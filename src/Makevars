@@ -1,5 +1,3 @@
 CXX_STD = CXX11
 
-PKG_CXXFLAGS += -Wall -pedantic -fdiagnostics-color=always
-
-PKG_LIBS += -lpthread -shared
+PKG_LIBS = -lpthread -shared
