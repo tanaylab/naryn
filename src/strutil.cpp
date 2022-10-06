@@ -274,7 +274,7 @@ int count_match(const string &targ, const string &mot)
 {
 	int count = 0;
 	uint32_t pos = targ.find(mot, 0);
-	while(pos != string::npos) {
+	while(pos != (uint32_t)string::npos) {
 		pos = targ.find(mot, pos + 1);
 		count++;
 	}

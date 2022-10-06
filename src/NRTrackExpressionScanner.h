@@ -78,8 +78,7 @@ private:
         bool apply_filter();
     };
 
-	vector<string>   m_track_exprs;
-	unsigned         m_num_track_vars;
+	vector<string>   m_track_exprs;	
     ValType          m_valtype;
     bool             m_multitasking;
     char            *m_mtask_buf;

@@ -35,8 +35,7 @@ static uint64_t get_cur_clock()
 	return tv.tv_sec * 1000 + tv.tv_usec / 1000;
 }
 
-NRTrackExprScanner::NRTrackExprScanner() :    
-	m_num_track_vars(0),
+NRTrackExprScanner::NRTrackExprScanner() :    	
     m_mtask_buf(NULL),
 	m_isend(true),
 	m_expr_vars()
