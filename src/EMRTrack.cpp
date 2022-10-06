@@ -155,7 +155,7 @@ EMRTrack *EMRTrack::unserialize(const char *name, const char *filename)
         if (!track)
             TGLError<EMRTrack>(BAD_FORMAT, "Invalid format of a track %s (5)", name);
 
-        track->m_timestamp = sb.st_mtim;
+        track->m_timestamp = get_file_mtime(sb);
     	return track;
     }
     catch (...) {

@@ -9,6 +9,8 @@
 #include <signal.h>
 #include <time.h>
 #include <unistd.h>
+#include <utime.h>
+#include <sys/stat.h>
 
 
 #include <R.h>
@@ -129,6 +131,12 @@ inline int posix_memalign(void **memptr, uint64_t alignment, uint64_t size) {
   return 0;
 }
 
+#endif
+
+#if defined(__APPLE__)
+inline timespec get_file_mtime(struct stat &st) { return st.st_mtimespec; }
+#else
+inline timespec get_file_mtime(struct stat &st){ return st.st_mtim; }
 #endif
 
 // Define Naryn instance in your main function that is called by R.

@@ -381,7 +381,7 @@ void EMRDb::load_logical_tracks() {
         verror("stat failed on file %s: %s", bf.file_name().c_str(),
                strerror(errno));
 
-    if (m_logical_tracks_ts == fs.st_mtim)
+    if (m_logical_tracks_ts == get_file_mtime(fs))
     {
         vdebug("Up-to-date logical tracks are already in memory");
         bf.close();
@@ -461,7 +461,7 @@ void EMRDb::load_logical_tracks() {
         {
             bf.close();
 
-            m_logical_tracks_ts = fs.st_mtim;
+            m_logical_tracks_ts = get_file_mtime(fs);
             vdebug("Read %lu logical tracks", m_logical_tracks.size());
 
             if (g_naryn->debug())
@@ -584,7 +584,7 @@ void EMRDb::load_ids() {
                 verror("stat failed on file %s: %s", filename.c_str(),
                        strerror(errno));
 
-            if (m_ids_ts == sb.st_mtim)
+            if (m_ids_ts == get_file_mtime(sb))
             {   // the up-to-date ids file has
                 // already been read into memory
                 close(fd);
@@ -646,7 +646,7 @@ void EMRDb::load_ids() {
             m_num_ids = (m_shmem_ids_size - sizeof(int) -
                          sizeof(m_dob_ts.tv_sec) - sizeof(m_dob_ts.tv_nsec)) /
                         sizeof(unsigned);
-            m_ids_ts = sb.st_mtim;
+            m_ids_ts = get_file_mtime(sb);
             m_ids_transact_ts = m_transact_id;
 
             for (size_t i = 0; i < m_num_ids; ++i)
@@ -726,13 +726,13 @@ bool EMRDb::rebuild_ids_file_on_dob_change() {
         verror("Failed to stat '%s' track: %s", DOB_TRACKNAME, strerror(errno));
     }
 
-    if (m_dob_ts != fs.st_mtim){
+    if (m_dob_ts != get_file_mtime(fs)){
         // remove an outdated version of dob track from the memory
         // (it is there if the session has already accessed dob track in the
         // past)
         Name2Track::iterator itrack = m_tracks.find(DOB_TRACKNAME);
         if (itrack != m_tracks.end() && itrack->second.track &&
-            fs.st_mtim != itrack->second.track->timestamp()){
+            get_file_mtime(fs) != itrack->second.track->timestamp()){
             delete itrack->second.track;
             itrack->second.track = NULL;
         }
@@ -984,7 +984,7 @@ void EMRDb::create_track_list_file(string db_id, BufferedFile *_pbf) {
                 string track_name(dirp->d_name, 0, len - TRACK_FILE_EXT.size());
                 track_list.emplace(
                     track_name,
-                    TrackInfo(NULL, track_filename(db_id, track_name), fs.st_mtim, db_id));
+                    TrackInfo(NULL, track_filename(db_id, track_name), get_file_mtime(fs), db_id));
             }
 
             check_interrupt();
@@ -1076,7 +1076,7 @@ void EMRDb::load_track_list(string db_id, BufferedFile *_pbf, bool force){
         }
 
         // track list in memory is synced with the track list on disk
-        if ((m_track_list_ts[db_id] == fs.st_mtim) && !force) {
+        if ((m_track_list_ts[db_id] == get_file_mtime(fs)) && !force) {
             vdebug("Up-to-date %s track list is already in memory", db_id.c_str());
             if (g_naryn->debug()) {
                 int n = 0;
@@ -1136,7 +1136,7 @@ void EMRDb::load_track_list(string db_id, BufferedFile *_pbf, bool force){
             continue;
         }
 
-        m_track_list_ts[db_id] = fs.st_mtim;
+        m_track_list_ts[db_id] = get_file_mtime(fs);
         vdebug("Read %lu tracks", track_list.size());
 
         if (g_naryn->debug()) {
@@ -1454,7 +1454,7 @@ void EMRDb::load_tracks_attrs(string db_id, bool locked)
 
         // tracks attributes in memory are synced with the attributes file on
         // disk
-        if (m_tracks_attrs_ts[db_id] == fs.st_mtim)
+        if (m_tracks_attrs_ts[db_id] == get_file_mtime(fs))
         {
             vdebug("Up-to-date %s tracks attributes are already in memory", db_id.c_str());
             return;
@@ -1525,7 +1525,7 @@ void EMRDb::load_tracks_attrs(string db_id, bool locked)
             }
         }
 
-        m_tracks_attrs_ts[db_id] = fs.st_mtim;
+        m_tracks_attrs_ts[db_id] = get_file_mtime(fs);
         vdebug("Read %lu tracks with attributes",
                m_track2attrs[db_id].size());
         break;
