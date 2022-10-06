@@ -609,12 +609,19 @@ void EMRDb::load_ids() {
                 create_ids_file();
                 continue;
             }
-
+#if defined(__APPLE__)
+            if ((m_shmem_ids = mmap(NULL, m_shmem_ids_size, PROT_READ,
+                                    MAP_PRIVATE, fd, 0)) ==
+                MAP_FAILED)
+                verror("mmap failed on file %s: %s", filename.c_str(),
+                       strerror(errno));
+#else
             if ((m_shmem_ids = mmap(NULL, m_shmem_ids_size, PROT_READ,
                                     MAP_PRIVATE | MAP_POPULATE, fd, 0)) ==
                 MAP_FAILED)
                 verror("mmap failed on file %s: %s", filename.c_str(),
                        strerror(errno));
+#endif            
 
             close(fd);
             fd = -1;
@@ -1037,7 +1044,7 @@ void EMRDb::update_track_list_file(const Name2Track &tracks, string db_id, Buffe
 }
 
 void EMRDb::load_track_list(string db_id, BufferedFile &bf, bool force) {
-    vdebug("Loading %s track list before update\n", db_id);
+    vdebug("Loading %s track list before update\n", db_id.c_str());
     lock_track_list(db_id, bf, "r+");
     load_track_list(db_id, &bf, force);
 }

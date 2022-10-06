@@ -110,8 +110,13 @@ EMRTrack *EMRTrack::unserialize(const char *name, const char *filename)
         if (!sb.st_size)
             TGLError<EMRTrack>(BAD_FORMAT, "Track file %s is empty (0)", filename);
 
+#if defined(__APPLE__)
+        if ((mem = mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0)) == MAP_FAILED)
+            verror("mmap failed on file %s: %s", filename, strerror(errno));
+#else
         if ((mem = mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE | MAP_POPULATE, fd, 0)) == MAP_FAILED)
             verror("mmap failed on file %s: %s", filename, strerror(errno));
+#endif
 
         close(fd);
         fd = -1;
