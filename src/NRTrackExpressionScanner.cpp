@@ -1,5 +1,5 @@
 #include <errno.h>
-#include <sys/timeb.h>
+#include <sys/time.h>
 #include <unistd.h>
 #include <set>
 #include <unordered_set>
@@ -30,9 +30,9 @@ const int NRTrackExprScanner::CHECK_MULTITASKING_TIME = 300;
 
 static uint64_t get_cur_clock()
 {
-	struct timeb tp;
-	ftime(&tp);
-	return tp.time * 1000 + tp.millitm;
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return tv.tv_sec * 1000 + tv.tv_usec / 1000;
 }
 
 NRTrackExprScanner::NRTrackExprScanner() :    
