@@ -1,3 +1,6 @@
+#' An environment for storing the package global variables
+#'
+#'
 #' @export
 #' @noRd
 .naryn <- new.env(parent = emptyenv())
@@ -13,8 +16,8 @@
     assign(".EMR_LIBDIR", path.package("naryn"), envir = .naryn)
 
     options(emr_multitasking = TRUE)
-    options(emr_min.processes = 8)
-    options(emr_max.processes = 20)
+    options(emr_min.processes = max(1, parallel::detectCores() * 0.2))
+    options(emr_max.processes = max(1, parallel::detectCores() * 0.8))
     options(emr_max.data.size = 10000000)
     options(emr_eval.buf.size = 1000)
     options(emr_quantile.edge.data.size = 100000)

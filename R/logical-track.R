@@ -149,9 +149,8 @@ emr_track.logical.rm <- function(track, force = FALSE, rm_vars = TRUE) {
 #' @return TRUE if \code{track} is a logical track and FALSE otherwise
 #'
 #' @examples
-#' \dontrun{
 #' emr_track.logical.exists("logical_track")
-#' }
+#'
 #' @export
 emr_track.logical.exists <- function(track) {
     .emr_checkroot()
@@ -170,10 +169,9 @@ emr_track.logical.exists <- function(track) {
 #' @seealso \code{\link{emr_track.ls}}
 #' @keywords ~track ~info ~property
 #' @examples
-#' \dontrun{
 #' emr_db.init_examples()
 #' emr_track.logical.info("logical_track")
-#' }
+#'
 #' @export
 emr_track.logical.info <- function(track) {
     if (missing(track)) {

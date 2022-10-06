@@ -1,5 +1,12 @@
 #' Parse an R filter string
 #'
+#' This is used internally in the CPP code
+#'
+#' @return the parsed R filter
+#'
+#' @examples
+#' .emr_filter("f > 1")
+#'
 #' @noRd
 #' @export
 .emr_filter <- function(filter) {
@@ -318,6 +325,8 @@ emr_filter.name <- function(src, keepref = FALSE, time.shift = NULL, val = NULL,
 #'
 #' @seealso \code{\link{emr_filter.create}}, \code{\link{emr_filter.create_from_name}}
 #' @keywords ~filter
+#'
+#' @return name of the filter
 #'
 #' @examples
 #' emr_db.init_examples()

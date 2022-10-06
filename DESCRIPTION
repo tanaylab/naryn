@@ -20,7 +20,8 @@ Imports:
     magrittr,
     purrr,
     stringr,
-    tidyr
+    tidyr,
+    parallel
 Suggests: 
     brio,
     callr,

@@ -19,10 +19,9 @@ Returns information about a logical track
 This function returns the source and values of a logical track
 }
 \examples{
-\dontrun{
 emr_db.init_examples()
 emr_track.logical.info("logical_track")
-}
+
 }
 \seealso{
 \code{\link{emr_track.ls}}

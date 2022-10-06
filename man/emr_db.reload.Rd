@@ -6,6 +6,9 @@
 \usage{
 emr_db.reload()
 }
+\value{
+None.
+}
 \description{
 Reloads database
 }
@@ -15,6 +18,10 @@ add/delete/move/modify track files or if you suspect that the database is
 corrupted: existing tracks cannot be found, deleted ones continue to appear
 or a warning message is issued by Naryn itself recommending to run
 'emr_db.reload'.
+}
+\examples{
+emr_db.reload()
+
 }
 \seealso{
 \code{\link{emr_db.connect}}, \code{\link{emr_track.ls}},

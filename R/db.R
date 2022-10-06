@@ -164,6 +164,11 @@ emr_db.init <- function(global.dir = NULL, user.dir = NULL, global.load.on.deman
 
 #' Initialize the examples database
 #'
+#' @return None
+#'
+#' @examples
+#' emr_db.init_examples()
+#'
 #' @export
 #' @noRd
 emr_db.init_examples <- function() {
@@ -181,6 +186,11 @@ emr_db.init_examples <- function() {
 #' corrupted: existing tracks cannot be found, deleted ones continue to appear
 #' or a warning message is issued by Naryn itself recommending to run
 #' 'emr_db.reload'.
+#'
+#' @return None.
+#'
+#' @examples
+#' emr_db.reload()
 #'
 #' @seealso \code{\link{emr_db.connect}}, \code{\link{emr_track.ls}},
 #' \code{\link{emr_vtrack.ls}}
@@ -203,6 +213,13 @@ emr_db.reload <- function() {
 }
 
 #' Unload all tracks from naryn database
+#'
+#' @return None.
+#'
+#' @examples
+#' \dontrun{
+#' emr_db.unload()
+#' }
 #'
 #' @export
 emr_db.unload <- function() {
