@@ -556,16 +556,6 @@ void Naryn::sigchld_handler(int)
 {
 }
 
-#ifdef __sun
-    #ifdef __XOPEN_OR_POSIX
-        #define _dirfd(dir) (dir->d_fd)
-    #else
-        #define _dirfd(dir) (dir->dd_fd)
-    #endif
-#else
-    #define _dirfd(dir) dirfd(dir)
-#endif
-
 void Naryn::get_open_fds(set<int> &fds)
 {
 #if defined(__APPLE__)
@@ -650,7 +640,7 @@ void rerror(const char *fmt, ...)
 	char buf[1000];
 
 	va_start(ap, fmt);
-	vsprintf(buf, fmt, ap);
+    vsnprintf(buf, sizeof(buf), fmt, ap);	
 	va_end(ap);
 
 	Naryn::handle_error(buf);
@@ -700,8 +690,9 @@ void vdebug(const char *fmt, ...)
 
         va_list ap;
     	va_start(ap, fmt);
-    	vprintf(fmt, ap);
+        vsnprintf(buf, sizeof(buf), fmt, ap);    	
         va_end(ap);
+        REprintf(buf);
 
         if (!*fmt || (*fmt && fmt[strlen(fmt) - 1] != '\n'))
             REprintf("\n");
