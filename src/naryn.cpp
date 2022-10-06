@@ -151,7 +151,7 @@ Naryn::~Naryn()
                 sem_close(s_fifo_sem);
 
             if (s_shm != (Shm *)MAP_FAILED)
-                munmap(s_shm, sizeof(Shm));
+                munmap((char*)s_shm, sizeof(Shm)); // needs to be char * for some versions of Solaris
 
             unlink(get_fifo_name().c_str());
         }
@@ -193,21 +193,21 @@ Naryn::~Naryn()
 string Naryn::get_shm_sem_name()
 {
 	char buf[100];
-	sprintf(buf, "naryn-shm-sem-%d", (int)getpid());
+	sprintf(buf, "/naryn_shm_sem_%d", (int)getpid());
 	return buf;
 }
 
 string Naryn::get_fifo_sem_name()
 {
 	char buf[100];
-	sprintf(buf, "naryn-fifo-sem-%d", (int)getpid());
+	sprintf(buf, "/naryn_fifo_sem_%d", (int)getpid());
 	return buf;
 }
 
 string Naryn::get_fifo_name()
 {
 	char buf[100];
-    sprintf(buf, "/tmp/naryn-fifo-%d", s_is_kid ? (int)getppid() : (int)getpid());
+    sprintf(buf, "/tmp/naryn_fifo_%d", s_is_kid ? (int)getppid() : (int)getpid());
 	return buf;
 }
 
@@ -548,6 +548,16 @@ void Naryn::sigchld_handler(int)
 {
 }
 
+#ifdef __sun
+    #ifdef __XOPEN_OR_POSIX
+        #define _dirfd(dir) (dir->d_fd)
+    #else
+        #define _dirfd(dir) (dir->dd_fd)
+    #endif
+#else
+    #define _dirfd(dir) dirfd(dir)
+#endif
+
 void Naryn::get_open_fds(set<int> &fds)
 {
 	DIR *dir = opendir("/proc/self/fd");
@@ -557,7 +567,7 @@ void Naryn::get_open_fds(set<int> &fds)
 	while ((dirp = readdir(dir))) {
 		char *endptr;
 		int fd = strtol(dirp->d_name, &endptr, 10);
-		if (!*endptr && fd != dirfd(dir)) // name is a number (it can be also ".", "..", whatever...)
+		if (!*endptr && fd != _dirfd(dir)) // name is a number (it can be also ".", "..", whatever...)
 			fds.insert(fd);
 	}
 

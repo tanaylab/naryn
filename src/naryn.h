@@ -114,6 +114,16 @@ template<typename T> void unpack_data(void *&ptr, T &data, size_t n) {
 #define MAX_KIDS 1000
 #define rreturn(retv) { if (Naryn::is_kid()) exit(0); return(retv); }
 
+#ifdef __sun
+
+inline int posix_memalign(void **memptr, uint64_t alignment, uint64_t size) {
+  *memptr = memalign(alignment, size);
+  if (!*memptr) return EINVAL;
+  return 0;
+}
+
+#endif
+
 // Define Naryn instance in your main function that is called by R.
 // Naryn should be defined inside "try-catch" statement that catches TGLException.
 // Naryn performs the following actions:
