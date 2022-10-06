@@ -340,7 +340,7 @@ void Naryn::check_kids_state(bool ignore_errors)
                 vdebug("pid %d was identified as a child process\n", pid);
                 swap(*ipid, s_running_pids.back());
                 s_running_pids.pop_back();
-                if (!ignore_errors && !WIFEXITED(status))
+                if (!ignore_errors && !WIFEXITED(status) && WIFSIGNALED(status) && WTERMSIG(status) != NARYN_EXIT_SIG)
                     verror("Child process %d ended unexpectedly", (int)pid);
                 break;
             }
