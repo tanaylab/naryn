@@ -55,7 +55,7 @@ SEXP emr_track_mv(SEXP _srctrack, SEXP _tgttrack, SEXP _db_id, SEXP _envir)
             db_idx = g_db->get_db_idx(db_id);
 
             if (db_idx == -1) {
-               verror("%s directory is not set", db_id);
+               verror("%s directory is not set", db_id.c_str());
             }
         }
 
@@ -65,7 +65,7 @@ SEXP emr_track_mv(SEXP _srctrack, SEXP _tgttrack, SEXP _db_id, SEXP _envir)
 
         if (strcmp(src_trackname, tgt_trackname)) {
             if ((g_db->track_info(tgt_trackname)) && (g_db->track_info(tgt_trackname)->db_id == db_id)){
-                verror("Track %s already exists in db %s", tgt_trackname, db_id);  
+                verror("Track %s already exists in db %s", tgt_trackname, db_id.c_str());  
             }
             if (g_db->track_info(tgt_trackname)) {
                 mv_to_override = true;
