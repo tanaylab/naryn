@@ -359,7 +359,7 @@ void EMRDb::clear_logical_tracks() {
 void EMRDb::load_logical_tracks() {
     Name2LogicalTrack track_list;
 
-    vdebug("Loading logical track list");
+    vdebug("Loading logical track list\n");
 
     BufferedFile bf;
     string filename = logical_tracks_filename();
@@ -1163,9 +1163,8 @@ void EMRDb::load_track_list(string db_id, BufferedFile *_pbf, bool force){
     }
 
     for (auto &fresh_track : track_list) {
-
         Name2Track::iterator itrack = m_tracks.find(fresh_track.first);
-        
+
         if (itrack != m_tracks.end() && itrack->second.db_id != fresh_track.second.db_id){
 
             //Overriding mechanism
@@ -1177,8 +1176,10 @@ void EMRDb::load_track_list(string db_id, BufferedFile *_pbf, bool force){
                                                      m_track_names[itrack->second.db_id].end(), 
                                                      itrack->first);
 
-            m_track_names[itrack->second.db_id].erase(pos);
-
+            if (pos != m_track_names[itrack->second.db_id].end()){
+                m_track_names[itrack->second.db_id].erase(pos);
+            }
+            
             //when coming to override, save the cascade of dbs
             //already overridden. Then, add the latest one.
             fresh_track.second.dbs = itrack->second.dbs;
