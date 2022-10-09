@@ -194,8 +194,8 @@ without parameters.
 
 # naryn 2.3.2
 
-*  New iterator type: [Id-Time](tiki-index.php?page=Id-Time "Id-Time") Intervals (dataframe with 'id', 'stime', 'etime' columns)
-*  New filter type: [Id-Time](tiki-index.php?page=Id-Time "Id-Time") Intervals
+*  New iterator type: "Id-Time" Intervals (dataframe with 'id', 'stime', 'etime' columns)
+*  New filter type: "Id-Time" Intervals
 
 # naryn 2.3.1
 
