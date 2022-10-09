@@ -1,6 +1,6 @@
 Type: Package
 Package: naryn
-Title: Native Access Medical Record Retriver for High Yield Analytics
+Title: Native Access Medical Record Retriever for High Yield Analytics
 Version: 2.6.9
 Authors@R: c(
     person("Misha", "Hoichman", , "misha@hoichman.com", role = "aut"),
