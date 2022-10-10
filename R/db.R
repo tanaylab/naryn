@@ -164,6 +164,11 @@ emr_db.init <- function(global.dir = NULL, user.dir = NULL, global.load.on.deman
 
 #' Initialize the examples database
 #'
+#' @description This function initializes the examples database. When \code{n_dbs} is more than 1, multiple
+#' databases are created.
+#'
+#' @param n_dbs number of databases to create
+#'
 #' @return None
 #'
 #' @examples
@@ -171,10 +176,24 @@ emr_db.init <- function(global.dir = NULL, user.dir = NULL, global.load.on.deman
 #'
 #' @export
 #' @noRd
-emr_db.init_examples <- function() {
+emr_db.init_examples <- function(n_dbs = 1) {
     db_dir <- tempdir()
     utils::untar(system.file("testdb.tar.gz", package = "naryn"), exdir = db_dir)
-    emr_db.connect(file.path(db_dir, "naryndb/test"))
+    db_dirs <- file.path(db_dir, "naryndb/test")
+
+    if (n_dbs > 1) {
+        for (i in 2:n_dbs) {
+            db_dir <- file.path(tempdir(), paste0("naryndb", i))
+            dir.create(db_dir, recursive = TRUE, showWarnings = FALSE)
+            utils::untar(system.file("testdb.tar.gz", package = "naryn"), exdir = db_dir)
+            unlink(file.path(db_dir, "naryndb/test/patients.dob.nrtrack"))
+            emr_db.connect(file.path(db_dir, "naryndb/test"))
+            emr_db.reload()
+            db_dirs <- c(db_dirs, file.path(db_dir, "naryndb/test"))
+        }
+    }
+
+    emr_db.connect(db_dirs)
 }
 
 
@@ -219,7 +238,7 @@ emr_db.reload <- function() {
 #' @return None.
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' emr_db.unload()
 #' }
 #'

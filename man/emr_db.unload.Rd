@@ -13,7 +13,7 @@ None.
 Unload all tracks from naryn database
 }
 \examples{
-\dontrun{
+\donttest{
 emr_db.unload()
 }
 

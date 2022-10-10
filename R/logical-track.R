@@ -37,8 +37,8 @@
 #' @return None.
 #'
 #' @examples
-#' \dontrun{
-#' emr_track.logical.create("logical_track", "categorical_track", values = c(2, 3))
+#' \donttest{
+#' emr_track.logical.create("logical_track_example", "categorical_track", values = c(2, 3))
 #'
 #' # multiple tracks
 #' emr_track.logical.create(
@@ -199,9 +199,7 @@ random_filter_name <- function(pattern) {
 #'
 #'
 #' @examples
-#' \dontrun{
 #' .create_logical_track_filter("logical_track")
-#' }
 #' @export
 #' @noRd
 .create_logical_track_filter <- function(ltrack, filter = NULL, filter_name = NULL, env = parent.frame()) {

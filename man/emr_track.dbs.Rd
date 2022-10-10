@@ -23,20 +23,19 @@ called 'track' and 'db' with the track and database ids (multiple rows per track
 }
 \description{
 \code{emr_track.dbs} returns all the databases which have a version of the track,
-while \code{emr_track.current_db} returns the database from which `naryn` currently takes
+while \code{emr_track.current_db} returns the database from which 'naryn' currently takes
 the track according to the override rules.
 }
 \examples{
 
-# both db1 and db2 have a track named track1
-\dontrun{
-emr_db.connect(c("/db1", "/db2"))
-emr_track.dbs("track1")
+# both db1 and db2 have a track named 'categorical_track'
+emr_db.init_examples(2)
+emr_track.dbs("categorical_track")
 emr_track.dbs(emr_track.ls())
 
-emr_track.current_db("track1")
+emr_track.current_db("categorical_track")
 emr_track.current_db(emr_track.ls())
-}
+
 }
 \seealso{
 \code{\link{emr_track.info}}
