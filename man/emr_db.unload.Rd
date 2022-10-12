@@ -6,6 +6,15 @@
 \usage{
 emr_db.unload()
 }
+\value{
+None.
+}
 \description{
 Unload all tracks from naryn database
+}
+\examples{
+\donttest{
+emr_db.unload()
+}
+
 }

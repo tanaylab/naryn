@@ -201,7 +201,7 @@ SEXP emr_logical_track_info(SEXP _track, SEXP _envir) {
 
             for (vector<int>::const_iterator iid = track->values.begin();
                  iid != track->values.end(); ++iid) {
-                size_t index = iid - track->values.begin();
+                uint64_t index = iid - track->values.begin();
                 INTEGER(rvalues)[index] = *iid;                
             }
         } else {
@@ -240,7 +240,7 @@ SEXP emr_expr_logical_tracks(SEXP _expr, SEXP _envir) {
         for (auto itrack =
                  logical_track_names.begin();
              itrack < logical_track_names.end(); ++itrack) {
-            size_t pos = 0;
+            uint64_t pos = 0;
 
             while ((pos = expr.find(*itrack, pos)) != string::npos) {                
                 if (NRTrackExpressionVars::is_var(expr, pos, pos + itrack->size())){                
@@ -282,7 +282,7 @@ SEXP emr_expr_physical_tracks(SEXP _expr, SEXP _envir) {
         for(auto db_id = g_db->rootdirs().begin(); db_id != g_db->rootdirs().end(); db_id++){
             for (vector<string>::const_iterator itrack = g_db->track_names(*db_id).begin(); itrack < g_db->track_names(*db_id).end(); ++itrack) {
 
-                size_t pos = 0;
+                uint64_t pos = 0;
 
                 while ((pos = expr.find(*itrack, pos)) != string::npos) {
                   if (NRTrackExpressionVars::is_var(expr, pos, pos + itrack->size())){                 
@@ -356,12 +356,12 @@ SEXP emr_expr_virtual_tracks(SEXP _expr, SEXP _envir) {
         }
 
         // look for virtual tracks
-        for (size_t i = 0; i < vtracks.size(); ++i) {
+        for (uint64_t i = 0; i < vtracks.size(); ++i) {
             if (isString(rvtracknames[i])) {
                 for (int itrack = 0; itrack < Rf_length(rvtracknames[i]);
                      ++itrack) {
                     string track = CHAR(STRING_ELT(rvtracknames[i], itrack));
-                    size_t pos = 0;
+                    uint64_t pos = 0;
 
                     while ((pos = expr.find(track, pos)) != string::npos) {
                         if (NRTrackExpressionVars::is_var(expr, pos, pos + track.size())){

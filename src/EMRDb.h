@@ -13,7 +13,7 @@
 #include "naryn.h"
 #include "EMRLogicalTrack.h"
 
-    using namespace std;
+using namespace std;
 
 class BufferedFile;
 class EMRTrack;
@@ -141,8 +141,8 @@ public:
     // Writes data into tracks attributes file.
     void update_tracks_attrs_file(string db_id, bool locked);
 
-    unsigned id(size_t idx);
-    size_t id2idx(unsigned id);  // returns id index given id
+    unsigned id(uint64_t idx);
+    uint64_t id2idx(unsigned id);  // returns id index given id
     bool id_exists(unsigned id);
     unsigned num_ids();
 
@@ -160,7 +160,7 @@ public:
 protected:
 	typedef unordered_map<string, TrackInfo> Name2Track;
     typedef unordered_map<string, EMRLogicalTrack> Name2LogicalTrack;
-    typedef unordered_map<unsigned, size_t> Id2Idx;
+    typedef unordered_map<unsigned, uint64_t> Id2Idx;
 
     static const char *TRACK_LIST_FILENAME;
     static const char *TRACKS_ATTRS_FILENAME;
@@ -187,12 +187,12 @@ protected:
     double           m_ids_subset_fraction;
     bool             m_ids_subset_complementary;
     void            *m_shmem_ids{MAP_FAILED};
-    size_t           m_shmem_ids_size;
+    uint64_t           m_shmem_ids_size;
     struct timespec  m_ids_ts{0, 0};
     struct timespec  m_dob_ts{0, 0};
     unsigned         m_ids_transact_ts{0}; // transact timestamp for ids: if differs from m_transact_ids, ids are reloaded
     unsigned        *m_ids{NULL};
-    size_t           m_num_ids{0};
+    uint64_t           m_num_ids{0};
     Id2Idx           m_id2idx;
 
     
@@ -261,13 +261,13 @@ extern EMRDb *g_db;
 
 //---------------------------------------- IMPLEMENTATION --------------------------------------------
 
-inline unsigned EMRDb::id(size_t idx){
+inline unsigned EMRDb::id(uint64_t idx){
     if (m_ids_transact_ts != m_transact_id)
         load_ids();
     return m_ids[idx];
 }
 
-inline size_t EMRDb::id2idx(unsigned id){
+inline uint64_t EMRDb::id2idx(unsigned id){
     if (m_ids_transact_ts != m_transact_id)
         load_ids();
     auto itr = m_id2idx.find(id);

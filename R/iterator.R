@@ -65,7 +65,6 @@ iterator_by_period <- function(stime, etime, n, period) {
 #' @return an id time data frame that can be used as an iterator
 #'
 #' @examples
-#' \dontrun{
 #' iter <- emr_monthly_iterator(emr_date2time(1, 1, 2002), emr_date2time(1, 1, 2017))
 #' emr_extract("dense_track", iterator = iter, stime = 1, etime = 3)
 #'
@@ -77,7 +76,6 @@ iterator_by_period <- function(stime, etime, n, period) {
 #'
 #' iter <- emr_yearly_iterator(emr_date2time(1, 1, 2002), n = 4)
 #' emr_extract("dense_track", iterator = iter, stime = 1, etime = 3)
-#' }
 #'
 #' @export
 emr_monthly_iterator <- function(stime, etime = NULL, n = NULL) {

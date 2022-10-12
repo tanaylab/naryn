@@ -16,7 +16,6 @@ TRUE if \code{track} is a logical track and FALSE otherwise
 Is a track logical
 }
 \examples{
-\dontrun{
 emr_track.logical.exists("logical_track")
-}
+
 }

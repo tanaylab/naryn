@@ -29,8 +29,8 @@ would be created and afterwards the db would be loaded as non-global db the logi
 would **not** be visible.
 }
 \examples{
-\dontrun{
-emr_track.logical.create("logical_track", "categorical_track", values = c(2, 3))
+\donttest{
+emr_track.logical.create("logical_track_example", "categorical_track", values = c(2, 3))
 
 # multiple tracks
 emr_track.logical.create(

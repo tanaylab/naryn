@@ -37,8 +37,8 @@
 #' @return None.
 #'
 #' @examples
-#' \dontrun{
-#' emr_track.logical.create("logical_track", "categorical_track", values = c(2, 3))
+#' \donttest{
+#' emr_track.logical.create("logical_track_example", "categorical_track", values = c(2, 3))
 #'
 #' # multiple tracks
 #' emr_track.logical.create(
@@ -149,9 +149,8 @@ emr_track.logical.rm <- function(track, force = FALSE, rm_vars = TRUE) {
 #' @return TRUE if \code{track} is a logical track and FALSE otherwise
 #'
 #' @examples
-#' \dontrun{
 #' emr_track.logical.exists("logical_track")
-#' }
+#'
 #' @export
 emr_track.logical.exists <- function(track) {
     .emr_checkroot()
@@ -170,10 +169,9 @@ emr_track.logical.exists <- function(track) {
 #' @seealso \code{\link{emr_track.ls}}
 #' @keywords ~track ~info ~property
 #' @examples
-#' \dontrun{
 #' emr_db.init_examples()
 #' emr_track.logical.info("logical_track")
-#' }
+#'
 #' @export
 emr_track.logical.info <- function(track) {
     if (missing(track)) {
@@ -201,9 +199,7 @@ random_filter_name <- function(pattern) {
 #'
 #'
 #' @examples
-#' \dontrun{
 #' .create_logical_track_filter("logical_track")
-#' }
 #' @export
 #' @noRd
 .create_logical_track_filter <- function(ltrack, filter = NULL, filter_name = NULL, env = parent.frame()) {

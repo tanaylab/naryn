@@ -55,7 +55,7 @@ SEXP emr_track_mv(SEXP _srctrack, SEXP _tgttrack, SEXP _db_id, SEXP _envir)
             db_idx = g_db->get_db_idx(db_id);
 
             if (db_idx == -1) {
-               verror("%s directory is not set", db_id);
+               verror("%s directory is not set", db_id.c_str());
             }
         }
 
@@ -65,7 +65,7 @@ SEXP emr_track_mv(SEXP _srctrack, SEXP _tgttrack, SEXP _db_id, SEXP _envir)
 
         if (strcmp(src_trackname, tgt_trackname)) {
             if ((g_db->track_info(tgt_trackname)) && (g_db->track_info(tgt_trackname)->db_id == db_id)){
-                verror("Track %s already exists in db %s", tgt_trackname, db_id);  
+                verror("Track %s already exists in db %s", tgt_trackname, db_id.c_str());  
             }
             if (g_db->track_info(tgt_trackname)) {
                 mv_to_override = true;
@@ -271,7 +271,7 @@ SEXP emr_track_unique(SEXP _track, SEXP _envir)
         vector<double> unique_vals;
         track->unique_vals(unique_vals);
 
-        for (size_t i = 0; i < unique_vals.size(); ++i)
+        for (uint64_t i = 0; i < unique_vals.size(); ++i)
             REAL(answer)[i] = unique_vals[i];
 
         return answer;
@@ -359,7 +359,7 @@ SEXP emr_get_tracks_attrs(SEXP _tracks, SEXP _attrs, SEXP _envir)
             attrs[i] = CHAR(STRING_ELT(_attrs, i));
 
         EMRDb::Track2Attrs track2attrs = g_db->get_tracks_attrs(tracks, attrs);
-        size_t num_attrs = 0;
+        uint64_t num_attrs = 0;
 
         for (const auto &v : track2attrs)
             num_attrs += v.second.size();

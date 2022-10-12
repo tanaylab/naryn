@@ -8,9 +8,14 @@
 #include <semaphore.h>
 #include <signal.h>
 #include <time.h>
+#include <unistd.h>
+#include <utime.h>
+#include <sys/stat.h>
+
 
 #include <R.h>
 #include <Rinternals.h>
+#include <Rinterface.h>
 
 #include "Thread.h"
 
@@ -22,6 +27,8 @@
 #endif
 
 #include "TGLException.h"
+
+#define NARYN_EXIT_SIG SIGTERM
 
 #ifndef RNARYN
     #define RNARYN
@@ -98,21 +105,39 @@ string get_bound_colname(const char *str, unsigned maxlen = 40);
 
 void get_expression_vars(const string &expr, vector<string>& vars);
 
-template<typename T> void pack_data(void *&ptr, const T &data, size_t n) {
-	size_t size = sizeof(data) * n;
+template<typename T> void pack_data(void *&ptr, const T &data, uint64_t n) {
+	uint64_t size = sizeof(data) * n;
 	memcpy(ptr, &data, size);
 	ptr = (char *)ptr + size;
 }
 
-template<typename T> void unpack_data(void *&ptr, T &data, size_t n) {
-	size_t size = sizeof(data) * n;
+template<typename T> void unpack_data(void *&ptr, T &data, uint64_t n) {
+	uint64_t size = sizeof(data) * n;
 	memcpy(&data, ptr, size);
 	ptr = (char *)ptr + size;
 }
 
 
 #define MAX_KIDS 1000
-#define rreturn(retv) { if (Naryn::is_kid()) exit(0); return(retv); }
+#define rreturn(retv) { if (Naryn::is_kid()) rexit(); return(retv); }
+
+void rexit();
+
+#ifdef __sun
+
+inline int posix_memalign(void **memptr, uint64_t alignment, uint64_t size) {
+  *memptr = memalign(alignment, size);
+  if (!*memptr) return EINVAL;
+  return 0;
+}
+
+#endif
+
+#if defined(__APPLE__)
+inline timespec get_file_mtime(struct stat &st) { return st.st_mtimespec; }
+#else
+inline timespec get_file_mtime(struct stat &st){ return st.st_mtim; }
+#endif
 
 // Define Naryn instance in your main function that is called by R.
 // Naryn should be defined inside "try-catch" statement that catches TGLException.
@@ -166,8 +191,8 @@ public:
     static bool wait_for_kids(int millisecs);
 
     // returns number of bytes read or 0 for EOF; the parent process that uses fifo does not need to call then wait_for_kids()
-    static int read_multitask_fifo(void *buf, size_t bytes);
-    static void write_multitask_fifo(const void *buf, size_t bytes);
+    static int read_multitask_fifo(void *buf, uint64_t bytes);
+    static void write_multitask_fifo(const void *buf, uint64_t bytes);
 
     static bool is_kid() { return s_is_kid; }
 
@@ -255,6 +280,18 @@ extern Naryn *g_naryn;
 
 
 // ------------------------------- IMPLEMENTATION --------------------------------
+
+inline void rexit()
+{
+    if (Naryn::is_kid())
+        // Normally we should have called exit() here. However "R CMD check" doesn't like calls to exit/abort/etc because they end R session itself.
+        // It prints a warning message and packages with warning messages cannot be submitted to CRAN.
+        // Yet the child process MUST end the R sessions, that's the whole point.
+        // Solution? Send a signal to itself. Fortunately "R CMD check" allows signals.
+        kill(getpid(), NARYN_EXIT_SIG);
+    else
+        verror("rexit is called from parent process");
+}
 
 inline void check_interrupt()
 {

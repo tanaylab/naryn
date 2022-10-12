@@ -25,7 +25,7 @@ public:
     virtual void data_recs(EMRTrackData<double> &data_recs);
     virtual void data_recs(EMRTrackData<float> &data_recs);
 
-    virtual size_t count_ids(const vector<unsigned> &ids) const;
+    virtual uint64_t count_ids(const vector<unsigned> &ids) const;
 
 	static void serialize(BufferedFile &bfile, EMRTrackData<T> &data, unsigned num_unique_ids, unsigned flags);
 
@@ -60,13 +60,13 @@ protected:
 
     unsigned  m_data_size{0};
     unsigned  m_num_recs{0};
-    size_t    m_num_percentiles{0};
+    uint64_t    m_num_percentiles{0};
     Data     *m_data{NULL};
     Rec      *m_recs{NULL};
     float    *m_percentiles{NULL};
     T        *m_sorted_unique_vals{NULL};
 
-	EMRTrackSparse(const char *name, DataType data_type, unsigned flags, void *&mem, size_t &pos, size_t size,
+	EMRTrackSparse(const char *name, DataType data_type, unsigned flags, void *&mem, uint64_t &pos, uint64_t size,
                    unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime);
 
     EMRTrackSparse(const char *name, EMRTrack *base_track, EMRTrackData<T> &track_data, unsigned num_unique_ids, DataType data_type,
@@ -88,7 +88,7 @@ protected:
 //------------------------------ IMPLEMENTATION ----------------------------------------
 
 template <class T>
-EMRTrackSparse<T>::EMRTrackSparse(const char *name, DataType data_type, unsigned flags, void *&mem, size_t &pos, size_t size,
+EMRTrackSparse<T>::EMRTrackSparse(const char *name, DataType data_type, unsigned flags, void *&mem, uint64_t &pos, uint64_t size,
                                   unsigned minid, unsigned maxid, unsigned mintime, unsigned maxtime) :
 	EMRTrack(name, SPARSE, data_type, flags, mem, size, minid, maxid, mintime, maxtime)
 {
@@ -171,12 +171,12 @@ EMRTrackSparse<T>::EMRTrackSparse(const char *name, EMRTrack *base_track, EMRTra
         m_num_percentiles = percentiles.size();
     }
 
-    size_t mem_size = sizeof(Data) * data.size() + sizeof(Rec) * recs.size() + (sizeof(sorted_unique_vals[0]) + sizeof(percentiles[0])) * m_num_percentiles;
+    uint64_t mem_size = sizeof(Data) * data.size() + sizeof(Rec) * recs.size() + (sizeof(sorted_unique_vals[0]) + sizeof(percentiles[0])) * m_num_percentiles;
 
     if (posix_memalign((void **)&m_mem, 64, mem_size))
         verror("%s", strerror(errno));
 
-    size_t pos = 0;
+    uint64_t pos = 0;
 
     memcpy(m_mem + pos, &data.front(), sizeof(Data) * data.size());
     m_data = (Data *)(m_mem + pos);
@@ -226,7 +226,7 @@ void EMRTrackSparse<T>::serialize(BufferedFile &bfile, EMRTrackData<T> &track_da
         }
         percentiles.push_back(1.);
     }
-    size_t num_percentiles = percentiles.size();
+    uint64_t num_percentiles = percentiles.size();
 
 	unsigned cur_dataid = (unsigned)-1;
 	unsigned data_idx = 0;
@@ -267,7 +267,7 @@ void EMRTrackSparse<T>::unique_vals(vector<double> &vals) const
     else {
         vals.clear();
         vals.reserve(m_num_percentiles);
-        for (size_t i = 0; i < m_num_percentiles; ++i)
+        for (uint64_t i = 0; i < m_num_percentiles; ++i)
             vals.push_back((double)m_sorted_unique_vals[i]);
     }
 }
@@ -333,9 +333,9 @@ void EMRTrackSparse<T>::data_recs(EMRTrackData<float> &data_recs)
 }
 
 template <class T>
-size_t EMRTrackSparse<T>::count_ids(const vector<unsigned> &ids) const
+uint64_t EMRTrackSparse<T>::count_ids(const vector<unsigned> &ids) const
 {
-    size_t count = 0;
+    uint64_t count = 0;
     Data *sdata = m_data;
 
     for (vector<unsigned>::const_iterator iid = ids.begin(); iid != ids.end(); ++iid) {

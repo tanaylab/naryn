@@ -26,6 +26,11 @@
 #'
 #' @param expr string with a naryn expression
 #'
+#' @return vector of the variables inside an expression
+#'
+#' @examples
+#' .emr_expr_vars("a + b")
+#'
 #' @noRd
 #' @export
 .emr_expr_vars <- function(expr) {

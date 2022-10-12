@@ -147,9 +147,9 @@ SEXP emr_ids_vals_dist(SEXP _ids, SEXP _tracks, SEXP _stime, SEXP _etime, SEXP _
 
     struct ValCount {
         double val;
-        size_t count;
+        uint64_t count;
 
-        ValCount(double _val, size_t _count) : val(_val), count(_count) {}
+        ValCount(double _val, uint64_t _count) : val(_val), count(_count) {}
         bool operator<(const ValCount &o) const { return val < o.val; }
     };
 
@@ -165,7 +165,7 @@ SEXP emr_ids_vals_dist(SEXP _ids, SEXP _tracks, SEXP _stime, SEXP _etime, SEXP _
         vector<Val2Count> res;
         EMRProgressReporter progress;
         SEXP riterator;
-        size_t tot_num_vals = 0;
+        uint64_t tot_num_vals = 0;
 
         if (isString(_ids) && Rf_length(_ids) == 1) { // it's a track name
             const char *trackname = CHAR(STRING_ELT(_ids, 0));
@@ -203,7 +203,7 @@ SEXP emr_ids_vals_dist(SEXP _ids, SEXP _tracks, SEXP _stime, SEXP _etime, SEXP _
             NRTrackExprScanner scanner;
             Val2Count &val2count = res[itrack - tracks.begin()];
             vector<double> unique_vals;
-            unordered_set<pair<size_t, size_t>> idval;
+            unordered_set<pair<uint64_t, uint64_t>> idval;
 
             (*itrack)->unique_vals(unique_vals);
             tot_num_vals += unique_vals.size();
@@ -216,15 +216,15 @@ SEXP emr_ids_vals_dist(SEXP _ids, SEXP _tracks, SEXP _stime, SEXP _etime, SEXP _
             scanner.report_progress(false);
             for (scanner.begin(riterator, NRTrackExprScanner::REAL_T, _stime, _etime, riterator, ScalarLogical(true), _filter); !scanner.isend(); scanner.next()) {
                 double val = scanner.real();
-                size_t val_size_t;                
-                memcpy(&val_size_t, &val, sizeof(val));                
-                if (val != -1 && ids.find(scanner.point().id) != ids.end() &&                    
-                    idval.find(pair<size_t, size_t>(val_size_t, (size_t)scanner.point().id)) == idval.end())
+                uint64_t val_size_t;                
+                memcpy(&val_size_t, &val, sizeof(val));
+                if (val != -1 && ids.find(scanner.point().id) != ids.end() &&
+                    idval.find(pair<uint64_t, uint64_t>(val_size_t, (uint64_t)scanner.point().id)) == idval.end())
                 {
                     int64_t val_int64_t;
                     memcpy(&val_int64_t, &val, sizeof(val));
-                    ++val2count[val_int64_t];                    
-                    idval.insert(pair<size_t, size_t>(val_size_t, (size_t)scanner.point().id));
+                    ++val2count[val_int64_t];
+                    idval.insert(pair<uint64_t, uint64_t>(val_size_t, (uint64_t)scanner.point().id));
                 }
             }
             progress.report(1);
@@ -256,7 +256,7 @@ SEXP emr_ids_vals_dist(SEXP _ids, SEXP _tracks, SEXP _stime, SEXP _etime, SEXP _
         for (int i = 0; i < NUM_COLS; i++)
             SET_STRING_ELT(col_names, i, mkChar(COL_NAMES[i]));
 
-        size_t idx = 0;
+        uint64_t idx = 0;
         vector<ValCount> valcounts;
 
         for (vector<Val2Count>::const_iterator ires = res.begin(); ires != res.end(); ++ires) {

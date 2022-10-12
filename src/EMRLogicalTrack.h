@@ -20,7 +20,7 @@ class EMRLogicalTrack {
         EMRLogicalTrack(const string& _source)
             : source(_source) { }                
 
-        size_t num_values() const { return values.size(); }
+        uint64_t num_values() const { return values.size(); }
 
         bool has_values() const { return !values.empty(); }
 

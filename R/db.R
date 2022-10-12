@@ -164,10 +164,36 @@ emr_db.init <- function(global.dir = NULL, user.dir = NULL, global.load.on.deman
 
 #' Initialize the examples database
 #'
+#' @description This function initializes the examples database. When \code{n_dbs} is more than 1, multiple
+#' databases are created.
+#'
+#' @param n_dbs number of databases to create
+#'
+#' @return None
+#'
+#' @examples
+#' emr_db.init_examples()
+#'
 #' @export
 #' @noRd
-emr_db.init_examples <- function() {
-    emr_db.connect(system.file("naryndb/test", package = "naryn"))
+emr_db.init_examples <- function(n_dbs = 1) {
+    db_dir <- tempdir()
+    utils::untar(system.file("testdb.tar.gz", package = "naryn"), exdir = db_dir)
+    db_dirs <- file.path(db_dir, "naryndb/test")
+
+    if (n_dbs > 1) {
+        for (i in 2:n_dbs) {
+            db_dir <- file.path(tempdir(), paste0("naryndb", i))
+            dir.create(db_dir, recursive = TRUE, showWarnings = FALSE)
+            utils::untar(system.file("testdb.tar.gz", package = "naryn"), exdir = db_dir)
+            unlink(file.path(db_dir, "naryndb/test/patients.dob.nrtrack"))
+            emr_db.connect(file.path(db_dir, "naryndb/test"))
+            emr_db.reload()
+            db_dirs <- c(db_dirs, file.path(db_dir, "naryndb/test"))
+        }
+    }
+
+    emr_db.connect(db_dirs)
 }
 
 
@@ -181,6 +207,11 @@ emr_db.init_examples <- function() {
 #' corrupted: existing tracks cannot be found, deleted ones continue to appear
 #' or a warning message is issued by Naryn itself recommending to run
 #' 'emr_db.reload'.
+#'
+#' @return None.
+#'
+#' @examples
+#' emr_db.reload()
 #'
 #' @seealso \code{\link{emr_db.connect}}, \code{\link{emr_track.ls}},
 #' \code{\link{emr_vtrack.ls}}
@@ -203,6 +234,13 @@ emr_db.reload <- function() {
 }
 
 #' Unload all tracks from naryn database
+#'
+#' @return None.
+#'
+#' @examples
+#' \donttest{
+#' emr_db.unload()
+#' }
 #'
 #' @export
 emr_db.unload <- function() {

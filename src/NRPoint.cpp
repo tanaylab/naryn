@@ -53,7 +53,7 @@ SEXP NRPoint::convert_points(const vector<EMRPoint> &points, unsigned num_cols, 
     rprotect(times = RSaneAllocVector(INTSXP, points.size()));
     rprotect(refs = RSaneAllocVector(INTSXP, points.size()));
 
-    for (size_t i = 0; i < points.size(); ++i)
+    for (uint64_t i = 0; i < points.size(); ++i)
         INTEGER(row_names)[i] = i + 1;
 
     for (int i = 0; i < NUM_POINT_COLS; i++)
@@ -61,14 +61,14 @@ SEXP NRPoint::convert_points(const vector<EMRPoint> &points, unsigned num_cols, 
 
     if (ppoints) {
         for (vector<EMRPoint *>::const_iterator ippoint = ppoints->begin(); ippoint != ppoints->end(); ++ippoint) {
-            size_t index = ippoint - ppoints->begin();
+            uint64_t index = ippoint - ppoints->begin();
             INTEGER(ids)[index] = (*ippoint)->id;
             INTEGER(times)[index] = (*ippoint)->timestamp.hour();
             INTEGER(refs)[index] = (*ippoint)->timestamp.refcount() == EMRTimeStamp::NA_REFCOUNT ? -1 : (*ippoint)->timestamp.refcount();
         }
     } else {
         for (EMRPoints::const_iterator ipoint = points.begin(); ipoint != points.end(); ++ipoint) {
-            size_t index = ipoint - points.begin();
+            uint64_t index = ipoint - points.begin();
             INTEGER(ids)[index] = ipoint->id;
             INTEGER(times)[index] = ipoint->timestamp.hour();
             INTEGER(refs)[index] = ipoint->timestamp.refcount() == EMRTimeStamp::NA_REFCOUNT ? -1 : ipoint->timestamp.refcount();
@@ -171,7 +171,7 @@ SEXP NRPoint::convert_ids(const vector<unsigned> &ids, unsigned num_cols, bool n
     rprotect(row_names = RSaneAllocVector(INTSXP, ids.size()));
 
     for (vector<unsigned>::const_iterator iid = ids.begin(); iid != ids.end(); ++iid) {
-        size_t index = iid - ids.begin();
+        uint64_t index = iid - ids.begin();
         INTEGER(rids)[index] = *iid;
         INTEGER(row_names)[index] = index + 1;
     }

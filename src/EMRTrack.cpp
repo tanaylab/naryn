@@ -110,13 +110,18 @@ EMRTrack *EMRTrack::unserialize(const char *name, const char *filename)
         if (!sb.st_size)
             TGLError<EMRTrack>(BAD_FORMAT, "Track file %s is empty (0)", filename);
 
+#if defined(__APPLE__)
+        if ((mem = mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0)) == MAP_FAILED)
+            verror("mmap failed on file %s: %s", filename, strerror(errno));
+#else
         if ((mem = mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE | MAP_POPULATE, fd, 0)) == MAP_FAILED)
             verror("mmap failed on file %s: %s", filename, strerror(errno));
+#endif
 
         close(fd);
         fd = -1;
 
-        size_t pos = 0;
+        uint64_t pos = 0;
     	int signature;
     	int track_type;
     	int data_type;
@@ -155,7 +160,7 @@ EMRTrack *EMRTrack::unserialize(const char *name, const char *filename)
         if (!track)
             TGLError<EMRTrack>(BAD_FORMAT, "Invalid format of a track %s (5)", name);
 
-        track->m_timestamp = sb.st_mtim;
+        track->m_timestamp = get_file_mtime(sb);
     	return track;
     }
     catch (...) {

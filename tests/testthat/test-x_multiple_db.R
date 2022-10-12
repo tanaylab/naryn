@@ -170,7 +170,6 @@ test_that("deletion of overriding track loads back the overridden track", {
 })
 
 test_that("emr_track.create overrides existing track", {
-
     # track2_2 is in db 2, we are creating a new track2_2 in EMR_UROOT
     expect_true("track2_2" %in% emr_track.ls())
     expect_true(emr_track.exists("track2_2", .naryn$EMR_ROOTS[2]))
@@ -693,7 +692,7 @@ test_that("emr_db.connect fails when db_id is a file instead of directory", {
     prev_roots <- .naryn$EMR_ROOTS
     fn <- tempfile()
     file.create(fn)
-    expect_error(emr_db.connect(fn), glue::glue("{fn} is not a directory"))
+    expect_error(emr_db.connect(fn))
     withr::defer({
         emr_db.connect(prev_roots)
     })

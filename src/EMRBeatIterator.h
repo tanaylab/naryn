@@ -25,7 +25,7 @@ protected:
     unsigned m_period;
     unsigned m_stime;
     unsigned m_etime;
-    size_t   m_id_idx{0};
+    uint64_t   m_id_idx{0};
     uint64_t m_num_steps;
     uint64_t m_num_steps4id;
 };
@@ -48,7 +48,7 @@ inline void EMRBeatIterator::init(unsigned period, bool keepref, unsigned stime,
 
 inline bool EMRBeatIterator::begin()
 {
-    size_t num_ids = g_db->num_ids();
+    uint64_t num_ids = g_db->num_ids();
     for (m_id_idx = 0; m_id_idx < num_ids; ++m_id_idx) {
         m_point.id = g_db->id(m_id_idx);
         if (g_db->is_in_subset(m_point.id)) {

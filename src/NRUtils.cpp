@@ -12,7 +12,7 @@ SEXP C_emr_annotate(SEXP _x, SEXP _y, SEXP _envir)
 
         vector<EMRPoint> xpoints;
         vector<EMRPoint> ypoints;
-        vector<pair<size_t, size_t>> x2y;   // maps a row from x to a row from y
+        vector<pair<uint64_t, uint64_t>> x2y;   // maps a row from x to a row from y
 
         NRPoint::convert_rpoints(_x, &xpoints, "x: ");
         NRPoint::convert_rpoints(_y, &ypoints, "y: ");
@@ -77,7 +77,7 @@ SEXP C_emr_annotate(SEXP _x, SEXP _y, SEXP _envir)
                 ++ymeta_col_offset;
         }
 
-        size_t num_cols = xlength(_x) + xlength(_y) - ymeta_col_offset;
+        uint64_t num_cols = xlength(_x) + xlength(_y) - ymeta_col_offset;
         vector<SEXP> rsrc_cols(num_cols);
         vector<SEXP> rtgt_cols(num_cols);
 
@@ -89,23 +89,23 @@ SEXP C_emr_annotate(SEXP _x, SEXP _y, SEXP _envir)
         rprotect(rcolnames = RSaneAllocVector(STRSXP, num_cols));
         rprotect(rrownames = RSaneAllocVector(INTSXP, x2y.size()));
 
-        for (size_t i = 0; i < (size_t)xlength(_x); ++i) {
+        for (uint64_t i = 0; i < (uint64_t)xlength(_x); ++i) {
             rsrc_cols[i] = VECTOR_ELT(_x, i);
             rprotect(rtgt_cols[i] = RSaneAllocVector(TYPEOF(rsrc_cols[i]), x2y.size()));
             copyMostAttrib(VECTOR_ELT(_x, i), rtgt_cols[i]);
             SET_STRING_ELT(rcolnames, i, STRING_ELT(getAttrib(_x, R_NamesSymbol), i));
         }
 
-        for (size_t i = ymeta_col_offset; i < (size_t)xlength(_y); ++i) {
-            size_t idx = xlength(_x) + i - ymeta_col_offset;
+        for (uint64_t i = ymeta_col_offset; i < (uint64_t)xlength(_y); ++i) {
+            uint64_t idx = xlength(_x) + i - ymeta_col_offset;
             rsrc_cols[idx] = VECTOR_ELT(_y, i);
             rprotect(rtgt_cols[idx] = RSaneAllocVector(TYPEOF(rsrc_cols[idx]), x2y.size()));
             copyMostAttrib(VECTOR_ELT(_y, i), rtgt_cols[idx]);
             SET_STRING_ELT(rcolnames, idx, STRING_ELT(getAttrib(_y, R_NamesSymbol), i));
         }
 
-        for (size_t i = 0; i < num_cols; ++i) {
-            bool from_x = i < (size_t)xlength(_x);
+        for (uint64_t i = 0; i < num_cols; ++i) {
+            bool from_x = i < (uint64_t)xlength(_x);
 
             if (isInteger(rsrc_cols[i]) || isFactor(rsrc_cols[i])) {
                 int *src_vals = INTEGER(rsrc_cols[i]);
@@ -137,14 +137,14 @@ SEXP C_emr_annotate(SEXP _x, SEXP _y, SEXP _envir)
                 verror("Unsupported column type \"%s\" found in a data frame of %s", type2char(TYPEOF(rsrc_cols[i])), from_x ? "x" : "y");
         }
 
-        for (size_t i = 0; i < x2y.size(); ++i)
+        for (uint64_t i = 0; i < x2y.size(); ++i)
             INTEGER(rrownames)[i] = i + 1;
 
-        for (size_t i = 0; i < (size_t)xlength(_x); ++i)
+        for (uint64_t i = 0; i < (uint64_t)xlength(_x); ++i)
             SET_VECTOR_ELT(ranswer, i, rtgt_cols[i]);
 
-        for (size_t i = ymeta_col_offset; i < (size_t)xlength(_y); ++i) {
-            size_t idx = xlength(_x) + i - ymeta_col_offset;
+        for (uint64_t i = ymeta_col_offset; i < (uint64_t)xlength(_y); ++i) {
+            uint64_t idx = xlength(_x) + i - ymeta_col_offset;
             SET_VECTOR_ELT(ranswer, idx, rtgt_cols[idx]);
         }
 

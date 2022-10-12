@@ -11,7 +11,7 @@ knitr::opts_chunk$set(
 options(tidyverse.quiet = TRUE)
 ```
 
-```{r setup, echo=FALSE}
+```{r setup}
 library(naryn)
 library(dplyr)
 library(ggplot2)

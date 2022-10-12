@@ -10,8 +10,12 @@
 #' @return None. The database is saved under the name `sample_db` in the specified directory.
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' emr_download_example_data()
+#' }
+#'
+#' \dontshow{
+#' unlink("sample_db", recursive = TRUE)
 #' }
 #'
 #' @export

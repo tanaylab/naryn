@@ -1,5 +1,5 @@
 #include <errno.h>
-#include <sys/timeb.h>
+#include <sys/time.h>
 #include <unistd.h>
 #include <set>
 #include <unordered_set>
@@ -30,13 +30,12 @@ const int NRTrackExprScanner::CHECK_MULTITASKING_TIME = 300;
 
 static uint64_t get_cur_clock()
 {
-	struct timeb tp;
-	ftime(&tp);
-	return tp.time * 1000 + tp.millitm;
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return tv.tv_sec * 1000 + tv.tv_usec / 1000;
 }
 
-NRTrackExprScanner::NRTrackExprScanner() :    
-	m_num_track_vars(0),
+NRTrackExprScanner::NRTrackExprScanner() :    	
     m_mtask_buf(NULL),
 	m_isend(true),
 	m_expr_vars()
@@ -252,7 +251,7 @@ bool NRTrackExprScanner::begin(const vector<string> &track_exprs, ValType valtyp
 void NRTrackExprScanner::report_progress()
 {
     m_num_evals += m_eval_buf_size;
-    if (m_num_evals > (size_t)m_report_step && m_do_report_progress) {
+    if (m_num_evals > (uint64_t)m_report_step && m_do_report_progress) {
         uint64_t curclock = get_cur_clock();
         double delta = curclock - m_last_report_clock;
 
@@ -292,7 +291,7 @@ void NRTrackExprScanner::start_multitasking()
 {
     vdebug("Checking possible switching to multitasking\n");
     double progress = m_itr.itr().size() ? m_itr.itr().idx() / (double)m_itr.itr().size() : 0.;
-    size_t estimated_runtime = progress ? CHECK_MULTITASKING_TIME + CHECK_MULTITASKING_TIME / progress : MIN_MULTITASKING_TIME;
+    uint64_t estimated_runtime = progress ? CHECK_MULTITASKING_TIME + CHECK_MULTITASKING_TIME / progress : MIN_MULTITASKING_TIME;
 
     g_naryn->reset_alarm();
 
@@ -301,7 +300,7 @@ void NRTrackExprScanner::start_multitasking()
 
     // switch to multitasking
     vdebug("Estimated run-time without multitasking: %g sec\n", estimated_runtime / 1000.);
-    if (estimated_runtime < (size_t)MIN_MULTITASKING_TIME)
+    if (estimated_runtime < (uint64_t)MIN_MULTITASKING_TIME)
         return;
 
     int num_cores = max(1, (int)sysconf(_SC_NPROCESSORS_ONLN));
@@ -310,7 +309,7 @@ void NRTrackExprScanner::start_multitasking()
     unsigned cur_id = m_itr.itr().point().id;
     vector<unsigned> ids_left;
 
-    for (size_t i = g_db->id2idx(cur_id); i < g_db->num_ids(); ++i) {
+    for (uint64_t i = g_db->id2idx(cur_id); i < g_db->num_ids(); ++i) {
         unsigned id = g_db->id(i);
         if (g_db->is_in_subset(id))
             ids_left.push_back(id);
@@ -347,13 +346,13 @@ void NRTrackExprScanner::start_multitasking()
     }
 
     for (int ikid = 0; ikid < num_kids; ++ikid) {
-        size_t ids_subset_size = ids_left.size() / (num_kids - ikid);
+        uint64_t ids_subset_size = ids_left.size() / (num_kids - ikid);
 
         vdebug("Calculating ids subset, size: %ld\n", ids_subset_size);
         ids_subset.clear();
         ids_subset.reserve(ids_subset_size);
-        for (size_t i = 0; i < ids_subset_size; ++i) {
-            size_t idx = (size_t)(unif_rand() * ids_left.size());
+        for (uint64_t i = 0; i < ids_subset_size; ++i) {
+            uint64_t idx = (uint64_t)(unif_rand() * ids_left.size());
             ids_subset.push_back(ids_left[idx]);
             swap(ids_left[idx], ids_left[ids_left.size() - 1]);
             ids_left.pop_back();
@@ -362,7 +361,7 @@ void NRTrackExprScanner::start_multitasking()
 
         if (!ids_subset.empty() && !g_naryn->launch_process()) { // kid process
             kid_main_loop(ids_subset);
-            exit(0);
+            rexit();
         }
         vdebug("Launched child %d/%d\n", ikid + 1, num_kids);
     }
@@ -374,7 +373,7 @@ void NRTrackExprScanner::start_multitasking()
     m_expr_itr_points.resize(m_eval_buf_limit);
     m_eval_doubles_mtask.resize(m_eval_exprs.size());
     m_eval_ints_mtask.resize(m_eval_exprs.size());
-    for (size_t i = 0; i < m_eval_exprs.size(); ++i) {
+    for (uint64_t i = 0; i < m_eval_exprs.size(); ++i) {
         m_eval_doubles_mtask[i].resize(m_eval_buf_limit);
         m_eval_ints_mtask[i].resize(m_eval_buf_limit);
         m_eval_doubles[i] = &m_eval_doubles_mtask[i].front();

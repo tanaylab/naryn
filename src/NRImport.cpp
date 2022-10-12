@@ -47,7 +47,7 @@ SEXP emr_import(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _src, SEXP _ad
                 verror("'db_id' (space) argument must be a string");
 
             categorical = asLogical(_categorical);
-            db_id = { CHAR(asChar(_db_id)) };
+            db_id = CHAR(asChar(_db_id));
 
             if (g_db->get_db_idx(db_id) == -1) {
                 verror("%s directory is not set", db_id.c_str());
@@ -71,7 +71,7 @@ SEXP emr_import(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _src, SEXP _ad
                 //Do not allowe writing a track with the same name to a db dir
                 //With lower priority. This will only confuse the user.
                 if (curr_db_idx > req_db_idx) {
-                    verror("Can not write track to %s the same track already exists in %s. This kind of write has no effect.", db_id, g_db->track_info(trackname)->db_id);
+                    verror("Can not write track to %s the same track already exists in %s. This kind of write has no effect.", db_id.c_str(), g_db->track_info(trackname)->db_id.c_str());
                 }
 
                 has_overlap = true;
