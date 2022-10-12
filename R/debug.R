@@ -12,14 +12,16 @@
 #' @seealso \code{\link{traceback}}
 #' @keywords ~trace ~error ~exception
 #' @examples
-#' \dontrun{
-#' emr_db.init_examples()
-#' f <- function() {
-#'     emr_screen("blablabla")
-#' }
-#' f()
-#' emr_traceback()
-#' }
+#'
+#' try({
+#'     emr_db.init_examples()
+#'     f <- function() {
+#'         emr_screen("blablabla")
+#'     }
+#'     f()
+#'     emr_traceback()
+#' })
+#'
 #' @export emr_traceback
 emr_traceback <- function(x = NULL, max.lines = getOption("deparse.max.lines")) {
     x <- NULL
