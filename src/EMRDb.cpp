@@ -219,7 +219,7 @@ void EMRDb::load_logical_tracks_from_disk() {
 
             // is it a normal file having file extension of a track?
             if (S_ISREG(fs.st_mode) &&
-                (size_t)len > LOGICAL_TRACK_FILE_EXT.size() &&
+                (uint64_t)len > LOGICAL_TRACK_FILE_EXT.size() &&
                 !strncmp(dirp->d_name + len - LOGICAL_TRACK_FILE_EXT.size(),
                          LOGICAL_TRACK_FILE_EXT.c_str(),
                          LOGICAL_TRACK_FILE_EXT.size()))
@@ -359,7 +359,7 @@ void EMRDb::clear_logical_tracks() {
 void EMRDb::load_logical_tracks() {
     Name2LogicalTrack track_list;
 
-    vdebug("Loading logical track list");
+    vdebug("Loading logical track list\n");
 
     BufferedFile bf;
     string filename = logical_tracks_filename();
@@ -381,7 +381,7 @@ void EMRDb::load_logical_tracks() {
         verror("stat failed on file %s: %s", bf.file_name().c_str(),
                strerror(errno));
 
-    if (m_logical_tracks_ts == fs.st_mtim)
+    if (m_logical_tracks_ts == get_file_mtime(fs))
     {
         vdebug("Up-to-date logical tracks are already in memory");
         bf.close();
@@ -461,7 +461,7 @@ void EMRDb::load_logical_tracks() {
         {
             bf.close();
 
-            m_logical_tracks_ts = fs.st_mtim;
+            m_logical_tracks_ts = get_file_mtime(fs);
             vdebug("Read %lu logical tracks", m_logical_tracks.size());
 
             if (g_naryn->debug())
@@ -502,7 +502,7 @@ void EMRDb::ids_subset(vector<unsigned> &ids, const char *src, double fraction,
     if (!ids.size() && !complementary)
         verror("Source ids are empty.");
 
-    size_t subset_size = (size_t)(ids.size() * fraction + .5);
+    uint64_t subset_size = (uint64_t)(ids.size() * fraction + .5);
 
     if ((!subset_size && !complementary) ||
         (subset_size == ids.size() && complementary))
@@ -514,9 +514,9 @@ void EMRDb::ids_subset(vector<unsigned> &ids, const char *src, double fraction,
     m_ids_subset_fraction = fraction;
     m_ids_subset_complementary = complementary;
 
-    for (size_t i = 0; i < subset_size; ++i)
+    for (uint64_t i = 0; i < subset_size; ++i)
     {
-        size_t idx = (size_t)(unif_rand() * (ids.size() - subset_size));
+        uint64_t idx = (uint64_t)(unif_rand() * (ids.size() - subset_size));
 
         if (!complementary)
             m_ids_subset.insert(ids[idx]);
@@ -584,7 +584,7 @@ void EMRDb::load_ids() {
                 verror("stat failed on file %s: %s", filename.c_str(),
                        strerror(errno));
 
-            if (m_ids_ts == sb.st_mtim)
+            if (m_ids_ts == get_file_mtime(sb))
             {   // the up-to-date ids file has
                 // already been read into memory
                 close(fd);
@@ -609,12 +609,19 @@ void EMRDb::load_ids() {
                 create_ids_file();
                 continue;
             }
-
+#if defined(__APPLE__)
+            if ((m_shmem_ids = mmap(NULL, m_shmem_ids_size, PROT_READ,
+                                    MAP_PRIVATE, fd, 0)) ==
+                MAP_FAILED)
+                verror("mmap failed on file %s: %s", filename.c_str(),
+                       strerror(errno));
+#else
             if ((m_shmem_ids = mmap(NULL, m_shmem_ids_size, PROT_READ,
                                     MAP_PRIVATE | MAP_POPULATE, fd, 0)) ==
                 MAP_FAILED)
                 verror("mmap failed on file %s: %s", filename.c_str(),
                        strerror(errno));
+#endif            
 
             close(fd);
             fd = -1;
@@ -646,10 +653,10 @@ void EMRDb::load_ids() {
             m_num_ids = (m_shmem_ids_size - sizeof(int) -
                          sizeof(m_dob_ts.tv_sec) - sizeof(m_dob_ts.tv_nsec)) /
                         sizeof(unsigned);
-            m_ids_ts = sb.st_mtim;
+            m_ids_ts = get_file_mtime(sb);
             m_ids_transact_ts = m_transact_id;
 
-            for (size_t i = 0; i < m_num_ids; ++i)
+            for (uint64_t i = 0; i < m_num_ids; ++i)
                 m_id2idx[m_ids[i]] = i;
 
             break;
@@ -726,13 +733,13 @@ bool EMRDb::rebuild_ids_file_on_dob_change() {
         verror("Failed to stat '%s' track: %s", DOB_TRACKNAME, strerror(errno));
     }
 
-    if (m_dob_ts != fs.st_mtim){
+    if (m_dob_ts != get_file_mtime(fs)){
         // remove an outdated version of dob track from the memory
         // (it is there if the session has already accessed dob track in the
         // past)
         Name2Track::iterator itrack = m_tracks.find(DOB_TRACKNAME);
         if (itrack != m_tracks.end() && itrack->second.track &&
-            fs.st_mtim != itrack->second.track->timestamp()){
+            get_file_mtime(fs) != itrack->second.track->timestamp()){
             delete itrack->second.track;
             itrack->second.track = NULL;
         }
@@ -978,13 +985,13 @@ void EMRDb::create_track_list_file(string db_id, BufferedFile *_pbf) {
                 verror("Failed to stat file %s: %s", filename, strerror(errno));
             }
                 
-            if (S_ISREG(fs.st_mode) && (size_t)len > TRACK_FILE_EXT.size() &&
+            if (S_ISREG(fs.st_mode) && (uint64_t)len > TRACK_FILE_EXT.size() &&
                 !strncmp(dirp->d_name + len - TRACK_FILE_EXT.size(),
                          TRACK_FILE_EXT.c_str(), TRACK_FILE_EXT.size())) {
                 string track_name(dirp->d_name, 0, len - TRACK_FILE_EXT.size());
                 track_list.emplace(
                     track_name,
-                    TrackInfo(NULL, track_filename(db_id, track_name), fs.st_mtim, db_id));
+                    TrackInfo(NULL, track_filename(db_id, track_name), get_file_mtime(fs), db_id));
             }
 
             check_interrupt();
@@ -1037,7 +1044,7 @@ void EMRDb::update_track_list_file(const Name2Track &tracks, string db_id, Buffe
 }
 
 void EMRDb::load_track_list(string db_id, BufferedFile &bf, bool force) {
-    vdebug("Loading %s track list before update\n", db_id);
+    vdebug("Loading %s track list before update\n", db_id.c_str());
     lock_track_list(db_id, bf, "r+");
     load_track_list(db_id, &bf, force);
 }
@@ -1076,7 +1083,7 @@ void EMRDb::load_track_list(string db_id, BufferedFile *_pbf, bool force){
         }
 
         // track list in memory is synced with the track list on disk
-        if ((m_track_list_ts[db_id] == fs.st_mtim) && !force) {
+        if ((m_track_list_ts[db_id] == get_file_mtime(fs)) && !force) {
             vdebug("Up-to-date %s track list is already in memory", db_id.c_str());
             if (g_naryn->debug()) {
                 int n = 0;
@@ -1136,7 +1143,7 @@ void EMRDb::load_track_list(string db_id, BufferedFile *_pbf, bool force){
             continue;
         }
 
-        m_track_list_ts[db_id] = fs.st_mtim;
+        m_track_list_ts[db_id] = get_file_mtime(fs);
         vdebug("Read %lu tracks", track_list.size());
 
         if (g_naryn->debug()) {
@@ -1156,9 +1163,8 @@ void EMRDb::load_track_list(string db_id, BufferedFile *_pbf, bool force){
     }
 
     for (auto &fresh_track : track_list) {
-
         Name2Track::iterator itrack = m_tracks.find(fresh_track.first);
-        
+
         if (itrack != m_tracks.end() && itrack->second.db_id != fresh_track.second.db_id){
 
             //Overriding mechanism
@@ -1170,8 +1176,10 @@ void EMRDb::load_track_list(string db_id, BufferedFile *_pbf, bool force){
                                                      m_track_names[itrack->second.db_id].end(), 
                                                      itrack->first);
 
-            m_track_names[itrack->second.db_id].erase(pos);
-
+            if (pos != m_track_names[itrack->second.db_id].end()){
+                m_track_names[itrack->second.db_id].erase(pos);
+            }
+            
             //when coming to override, save the cascade of dbs
             //already overridden. Then, add the latest one.
             fresh_track.second.dbs = itrack->second.dbs;
@@ -1454,7 +1462,7 @@ void EMRDb::load_tracks_attrs(string db_id, bool locked)
 
         // tracks attributes in memory are synced with the attributes file on
         // disk
-        if (m_tracks_attrs_ts[db_id] == fs.st_mtim)
+        if (m_tracks_attrs_ts[db_id] == get_file_mtime(fs))
         {
             vdebug("Up-to-date %s tracks attributes are already in memory", db_id.c_str());
             return;
@@ -1525,7 +1533,7 @@ void EMRDb::load_tracks_attrs(string db_id, bool locked)
             }
         }
 
-        m_tracks_attrs_ts[db_id] = fs.st_mtim;
+        m_tracks_attrs_ts[db_id] = get_file_mtime(fs);
         vdebug("Read %lu tracks with attributes",
                m_track2attrs[db_id].size());
         break;

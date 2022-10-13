@@ -11,7 +11,7 @@ knitr::opts_chunk$set(
 options(tidyverse.quiet = TRUE)
 ```
 
-```{r setup, echo=FALSE}
+```{r setup}
 library(naryn)
 library(dplyr)
 library(ggplot2)
@@ -143,7 +143,7 @@ heart_blood <- emr_extract(c("rbc_5y", "wbc_5y"), iterator = "dx.icd9_411", name
 head(heart_blood)
 ```
 
-We would like to also know how long before the diagnosis each test was performed, so we will create an additional virtual track, this time with a function that computes the difference between the time of the diagnosis and the earliest blood test. Also, we would like the time difference to be in the resolution of months, so we will give `emr_extract` a track expression that divides the time difference by 30 * 24 (the number of hours in a month), which is equivalent ot the `month` function:
+We would like to also know how long before the diagnosis each test was performed, so we will create an additional virtual track, this time with a function that computes the difference between the time of the diagnosis and the earliest blood test. Also, we would like the time difference to be in the resolution of months, so we will give `emr_extract` a track expression that divides the time difference by 30 * 24 (the number of hours in a month), which is equivalent to the `month` function:
 
 ```{r}
 emr_vtrack.create("rbc_5y_d", "lab.RBC", time.shift = c(-years(5), 0), func = "dt2.earliest")

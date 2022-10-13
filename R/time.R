@@ -26,7 +26,7 @@ emr_time2hour <- function(time) {
         stop("Usage: emr_time2hour(time)", call. = FALSE)
     }
 
-    .emr_call("emr_time2hour", time, new.env(parent = parent.frame()))
+    .emr_call("C_emr_time2hour", time, .emr_env())
 }
 
 
@@ -59,7 +59,7 @@ emr_time2dayofmonth <- function(time) {
         stop("Usage: emr_time2dayofmonth(time)", call. = FALSE)
     }
 
-    .emr_call("emr_time2dayofmonth", time, new.env(parent = parent.frame()))
+    .emr_call("C_emr_time2dayofmonth", time, .emr_env())
 }
 
 
@@ -92,7 +92,7 @@ emr_time2month <- function(time) {
         stop("Usage: emr_time2month(time)", call. = FALSE)
     }
 
-    .emr_call("emr_time2month", time, new.env(parent = parent.frame()))
+    .emr_call("C_emr_time2month", time, .emr_env())
 }
 
 
@@ -124,7 +124,7 @@ emr_time2year <- function(time) {
         stop("Usage: emr_time2year(time)", call. = FALSE)
     }
 
-    .emr_call("emr_time2year", time, new.env(parent = parent.frame()))
+    .emr_call("C_emr_time2year", time, .emr_env())
 }
 
 
@@ -169,7 +169,7 @@ emr_date2time <- function(day, month, year, hour = 0) {
         stop("Usage: emr_date2time(day, month, year, hour = 0)", call. = FALSE)
     }
 
-    .emr_call("emr_date2time", data.frame(hour, day, month, year), new.env(parent = parent.frame()))
+    .emr_call("C_emr_date2time", data.frame(hour, day, month, year), .emr_env())
 }
 
 #' Convert from internal time to year, month, day, hour
@@ -283,7 +283,7 @@ day <- function() {
 
 #' @export
 #' @rdname emr_time
-months.numeric <- function(n) {
+months <- function(n) {
     return(n * 30 * 24)
 }
 
@@ -350,5 +350,5 @@ emr_annotate <- function(x, y) {
         stop("Usage: emr_annotate(x, y)", call. = FALSE)
     }
 
-    .emr_call("emr_annotate", x, y, new.env(parent = parent.frame()))
+    .emr_call("C_emr_annotate", x, y, .emr_env())
 }

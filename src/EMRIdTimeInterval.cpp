@@ -28,9 +28,9 @@ void EMRIdTimeIntervals::sort_and_unify_overlaps(unsigned stime, unsigned etime)
 
     sort(begin(), end());
 
-    size_t cur_idx = 0;
+    uint64_t cur_idx = 0;
 
-    for (size_t i = 1; i < size(); i++) {
+    for (uint64_t i = 1; i < size(); i++) {
         if (at(cur_idx).id != at(i).id || at(cur_idx).tinterv.etime < at(i).tinterv.stime)
             at(++cur_idx) = at(i);
         // unite overlapping intervals

@@ -60,13 +60,13 @@
 #' the run-time of the later emerging sessions.
 #'
 #' Upon completion the connection is established with the database and a few
-#' global variables are added to the environment. These variables should not be
+#' variables are added to the .naryn environment. These variables should not be
 #' modified by the user!
 #'
 #' \tabular{lll}{
-#' EMR_GROOT \tab First db dir of tracks in the order of connections \cr
-#' EMR_UROOT \tab Last db dir of tracks in the order of connection (user dir) \cr
-#' EMR_ROOTS \tab Vector of directories (db_dirs) \cr
+#' .naryn$EMR_GROOT \tab First db dir of tracks in the order of connections \cr
+#' .naryn$EMR_UROOT \tab Last db dir of tracks in the order of connection (user dir) \cr
+#' .naryn$EMR_ROOTS \tab Vector of directories (db_dirs) \cr
 #' }
 #'
 #' \code{emr_db.init} is the old version of this function which
@@ -111,14 +111,14 @@ emr_db.connect <- function(db_dirs = NULL, load_on_demand = NULL, do_reload = FA
 
     # We set the groot to be the first
     # directory in the vector
-    EMR_GROOT <<- db_dirs[1]
+    assign("EMR_GROOT", db_dirs[1], envir = .naryn)
 
     # We set the uroot to be the last
     if (length(db_dirs) > 1) {
-        EMR_UROOT <<- utils::tail(db_dirs, n = 1)
+        assign("EMR_UROOT", utils::tail(db_dirs, n = 1), envir = .naryn)
     }
 
-    EMR_ROOTS <<- db_dirs
+    assign("EMR_ROOTS", db_dirs, envir = .naryn)
 
     if (is.null(load_on_demand)) {
         load_on_demand <- !logical(length(db_dirs))
@@ -128,14 +128,14 @@ emr_db.connect <- function(db_dirs = NULL, load_on_demand = NULL, do_reload = FA
 
     tryCatch(
         {
-            .emr_call("emr_dbinit", db_dirs, load_on_demand, do_reload, new.env(parent = parent.frame()), silent = TRUE)
+            .emr_call("emr_dbinit", db_dirs, load_on_demand, do_reload, .emr_env(), silent = TRUE)
             success <- TRUE
         },
         finally = {
             if (!success) {
-                remove("EMR_GROOT", envir = .GlobalEnv)
-                remove("EMR_UROOT", envir = .GlobalEnv)
-                remove("EMR_ROOTS", envir = .GlobalEnv)
+                remove("EMR_GROOT", envir = .naryn)
+                remove("EMR_UROOT", envir = .naryn)
+                remove("EMR_ROOTS", envir = .naryn)
             }
         }
     )
@@ -164,10 +164,36 @@ emr_db.init <- function(global.dir = NULL, user.dir = NULL, global.load.on.deman
 
 #' Initialize the examples database
 #'
+#' @description This function initializes the examples database. When \code{n_dbs} is more than 1, multiple
+#' databases are created.
+#'
+#' @param n_dbs number of databases to create
+#'
+#' @return None
+#'
+#' @examples
+#' emr_db.init_examples()
+#'
 #' @export
 #' @noRd
-emr_db.init_examples <- function() {
-    emr_db.connect(system.file("naryndb/test", package = "naryn"))
+emr_db.init_examples <- function(n_dbs = 1) {
+    db_dir <- tempdir()
+    utils::untar(system.file("testdb.tar.gz", package = "naryn"), exdir = db_dir)
+    db_dirs <- file.path(db_dir, "naryndb/test")
+
+    if (n_dbs > 1) {
+        for (i in 2:n_dbs) {
+            db_dir <- file.path(tempdir(), paste0("naryndb", i))
+            dir.create(db_dir, recursive = TRUE, showWarnings = FALSE)
+            utils::untar(system.file("testdb.tar.gz", package = "naryn"), exdir = db_dir)
+            unlink(file.path(db_dir, "naryndb/test/patients.dob.nrtrack"))
+            emr_db.connect(file.path(db_dir, "naryndb/test"))
+            emr_db.reload()
+            db_dirs <- c(db_dirs, file.path(db_dir, "naryndb/test"))
+        }
+    }
+
+    emr_db.connect(db_dirs)
 }
 
 
@@ -182,6 +208,11 @@ emr_db.init_examples <- function() {
 #' or a warning message is issued by Naryn itself recommending to run
 #' 'emr_db.reload'.
 #'
+#' @return None.
+#'
+#' @examples
+#' emr_db.reload()
+#'
 #' @seealso \code{\link{emr_db.connect}}, \code{\link{emr_track.ls}},
 #' \code{\link{emr_vtrack.ls}}
 #' @keywords ~db
@@ -195,8 +226,8 @@ emr_db.reload <- function() {
         },
         finally = {
             if (!success) {
-                remove("EMR_GROOT", envir = .GlobalEnv)
-                remove("EMR_UROOT", envir = .GlobalEnv)
+                remove("EMR_GROOT", envir = .naryn)
+                remove("EMR_UROOT", envir = .naryn)
             }
         }
     )
@@ -204,9 +235,16 @@ emr_db.reload <- function() {
 
 #' Unload all tracks from naryn database
 #'
+#' @return None.
+#'
+#' @examples
+#' \donttest{
+#' emr_db.unload()
+#' }
+#'
 #' @export
 emr_db.unload <- function() {
-    .emr_call("emr_dbunload", new.env(parent = parent.frame()), silent = TRUE)
+    .emr_call("emr_dbunload", .emr_env(), silent = TRUE)
 }
 
 #' Defines an ids subset
@@ -237,7 +275,7 @@ emr_db.subset <- function(src = "", fraction = NULL, complementary = NULL) {
     }
     .emr_checkroot()
 
-    .emr_call("emr_db_subset", src, fraction, complementary, new.env(parent = parent.frame()))
+    .emr_call("emr_db_subset", src, fraction, complementary, .emr_env())
 }
 
 
@@ -257,7 +295,7 @@ emr_db.subset <- function(src = "", fraction = NULL, complementary = NULL) {
 #' @export emr_db.subset.ids
 emr_db.subset.ids <- function() {
     .emr_checkroot()
-    .emr_call("emr_db_subset_ids", new.env(parent = parent.frame()))
+    .emr_call("emr_db_subset_ids", .emr_env())
 }
 
 
@@ -275,5 +313,5 @@ emr_db.subset.ids <- function() {
 #' @export emr_db.subset.info
 emr_db.subset.info <- function() {
     .emr_checkroot()
-    .emr_call("emr_db_subset_info", new.env(parent = parent.frame()))
+    .emr_call("emr_db_subset_info", .emr_env())
 }

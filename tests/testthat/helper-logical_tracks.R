@@ -22,7 +22,7 @@ clean_logical_tracks <- function() {
 }
 
 logical_track_path <- function(track) {
-    root <- get("EMR_GROOT", envir = .GlobalEnv)
+    root <- get("EMR_GROOT", envir = .naryn)
     file.path(root, "logical", glue::glue("{track}.ltrack"))
 }
 

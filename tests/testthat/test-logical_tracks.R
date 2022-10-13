@@ -233,7 +233,7 @@ test_that("logical tracks creation persists between R sessions", {
             emr_db.connect(db_dirs = root)
             return(emr_track.logical.ls())
         },
-        args = list(root = EMR_GROOT)
+        args = list(root = .naryn$EMR_GROOT)
     )
     expect_equal(res, c("logical_track_test_numeric", "logical_track_test1", "logical_track_test2"))
 })
@@ -250,7 +250,7 @@ test_that("logical tracks creation persists between R sessions for existing sess
             emr_track.logical.create("logical_track_test2", "ph1")
             emr_track.logical.create("logical_track_test_numeric", "track0")
         },
-        args = list(root = EMR_GROOT)
+        args = list(root = .naryn$EMR_GROOT)
     )
     expect_equal(emr_track.logical.ls(), c("logical_track_test1", "logical_track_test2", "logical_track_test_numeric"))
     a <- emr_extract("logical_track_test2", keepref = TRUE)
@@ -276,7 +276,7 @@ test_that("logical tracks creation persists between R sessions", {
             emr_db.connect(db_dirs = root)
             return(emr_track.logical.ls())
         },
-        args = list(root = EMR_GROOT)
+        args = list(root = .naryn$EMR_GROOT)
     )
     expect_equal(res, c("logical_track_test_numeric2", "logical_track_test2"))
 })
@@ -293,7 +293,7 @@ test_that("logical tracks deletion persists between R sessions for existing sess
             emr_db.connect(db_dirs = root)
             emr_track.logical.rm("logical_track_test1", force = TRUE)
         },
-        args = list(root = EMR_GROOT)
+        args = list(root = .naryn$EMR_GROOT)
     )
     expect_equal(emr_track.logical.ls(), "logical_track_test2")
 })
@@ -362,12 +362,12 @@ test_that("logical track returns a valid vtrack R object without values", {
     withr::defer(clean_logical_tracks())
     emr_track.logical.create("logical_track1", "ph1")
     emr_track.logical.create("logical_track_numeric", "track0")
-    res <- .emr_call("logical_track_vtrack", "logical_track1", new.env(parent = parent.frame()), silent = TRUE)
-    res_numeric <- .emr_call("logical_track_vtrack", "logical_track_numeric", new.env(parent = parent.frame()), silent = TRUE)
+    res <- .emr_call("logical_track_vtrack", "logical_track1", .emr_env(), silent = TRUE)
+    res_numeric <- .emr_call("logical_track_vtrack", "logical_track_numeric", .emr_env(), silent = TRUE)
     emr_vtrack.create("vt", "ph1", keepref = TRUE)
     emr_vtrack.create("vt_numeric", "track0", keepref = TRUE)
     # commented because logical field was added to local R object
-    # vt <- EMR_VTRACKS$vt
+    # vt <- .naryn$EMR_VTRACKS$vt
     vt <- emr_vtrack.info("vt")
     vt_numeric <- emr_vtrack.info("vt_numeric")
     expect_equal(vt, res)
@@ -379,15 +379,15 @@ test_that("logical track returns a valid vtrack R object without values", {
 test_that("logical track returns a valid vtrack R object with values", {
     withr::defer(clean_logical_tracks())
     emr_track.logical.create("logical_track1", "ph1", c(15, 16))
-    res <- .emr_call("logical_track_vtrack", "logical_track1", new.env(parent = parent.frame()), silent = TRUE)
+    res <- .emr_call("logical_track_vtrack", "logical_track1", .emr_env(), silent = TRUE)
     emr_vtrack.create("vt", "ph1", params = c(15, 16), keepref = TRUE)
     # commented because logical field was added to local R object
-    # vt <- EMR_VTRACKS$vt
+    # vt <- .naryn$EMR_VTRACKS$vt
     vt <- emr_vtrack.info("vt")
     expect_equal(vt, res)
 
     emr_track.logical.create("logical_track_numeric", "track0")
-    res <- .emr_call("logical_track_vtrack", "logical_track_numeric", new.env(parent = parent.frame()), silent = TRUE)
+    res <- .emr_call("logical_track_vtrack", "logical_track_numeric", .emr_env(), silent = TRUE)
     emr_vtrack.create("vt", "track0", keepref = TRUE)
     vt <- emr_vtrack.info("vt")
     expect_equal(vt, res)
@@ -1836,7 +1836,7 @@ test_that("emr_track.rm removes the track attributes for logical tracks", {
     initial_attrs <- emr_track.attr.export()
     emr_track.logical.create("l1", "track1")
     emr_track.attr.set("l1", "var1", "val1")
-    attrs_file <- file.path(EMR_GROOT, "logical", ".l1.attrs")
+    attrs_file <- file.path(.naryn$EMR_GROOT, "logical", ".l1.attrs")
     expect_true(file.exists(attrs_file))
     expect_equal(emr_track.attr.get("l1", "var1"), "val1")
     emr_track.rm("l1", force = TRUE)

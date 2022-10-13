@@ -12,14 +12,16 @@
 #' @seealso \code{\link{traceback}}
 #' @keywords ~trace ~error ~exception
 #' @examples
-#' \dontrun{
-#' emr_db.init_examples()
-#' f <- function() {
-#'     emr_screen("blablabla")
-#' }
-#' f()
-#' emr_traceback()
-#' }
+#'
+#' try({
+#'     emr_db.init_examples()
+#'     f <- function() {
+#'         emr_screen("blablabla")
+#'     }
+#'     f()
+#'     emr_traceback()
+#' })
+#'
 #' @export emr_traceback
 emr_traceback <- function(x = NULL, max.lines = getOption("deparse.max.lines")) {
     x <- NULL
@@ -36,7 +38,7 @@ emr_traceback <- function(x = NULL, max.lines = getOption("deparse.max.lines")) 
         fnames <- gsub("^(\\S+)\\s*\\(.*\\)$", "\\1", x, perl = TRUE)
 
         # get the indices of lib functions
-        libindices <- which(fnames %in% get(".EMR_FUNCS", envir = .GlobalEnv))
+        libindices <- which(fnames %in% get(".EMR_FUNCS", envir = .naryn))
 
         # cut whatever comes after the first lib function
         if (length(libindices) > 0) {

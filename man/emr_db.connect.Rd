@@ -90,13 +90,13 @@ daemon would pre-load all the tracks in advance and stay alive thus boosting
 the run-time of the later emerging sessions.
 
 Upon completion the connection is established with the database and a few
-global variables are added to the environment. These variables should not be
+variables are added to the .naryn environment. These variables should not be
 modified by the user!
 
 \tabular{lll}{
-EMR_GROOT \tab First db dir of tracks in the order of connections \cr
-EMR_UROOT \tab Last db dir of tracks in the order of connection (user dir) \cr
-EMR_ROOTS \tab Vector of directories (db_dirs) \cr
+.naryn$EMR_GROOT \tab First db dir of tracks in the order of connections \cr
+.naryn$EMR_UROOT \tab Last db dir of tracks in the order of connection (user dir) \cr
+.naryn$EMR_ROOTS \tab Vector of directories (db_dirs) \cr
 }
 
 \code{emr_db.init} is the old version of this function which

@@ -60,7 +60,7 @@ SEXP emr_track_create(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _expr, S
             //Do not allowe writing a track with the same name to a db dir
             //With lower priority. This will only confuse the user.
             if (curr_db_idx > req_db_idx) {
-                verror("Can not write track to %s the same track already exists in %s. This kind of write has no effect.", db_id, g_db->track_info(trackname)->db_id);
+                verror("Can not write track to %s the same track already exists in %s. This kind of write has no effect.", db_id.c_str(), g_db->track_info(trackname)->db_id.c_str());
             }
 
             has_overlap = true;

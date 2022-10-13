@@ -35,7 +35,7 @@ public:
     void pack(void *buf) const { *(TimeStamp *)buf = m_timestamp; }
     void unpack(const void *buf) { m_timestamp = *(TimeStamp *)buf; }
 
-    static constexpr size_t packed_size() { return sizeof(TimeStamp); }
+    static constexpr uint64_t packed_size() { return sizeof(TimeStamp); }
 
     string tostr() const;
 

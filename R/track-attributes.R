@@ -62,7 +62,7 @@ emr_track.attr.export <- function(track = NULL, attr = NULL, include_missing = F
     if (length(tracks_to_compute) == 0) {
         res <- data.frame(track = character(), attr = character(), value = character())
     } else {
-        res <- .emr_call("emr_get_tracks_attrs", tracks_to_compute, attr, new.env(parent = parent.frame()))
+        res <- .emr_call("emr_get_tracks_attrs", tracks_to_compute, attr, .emr_env())
     }
 
     if (include_missing) {
@@ -157,14 +157,14 @@ emr_track.attr.rm <- function(track, attr) {
 
     if (length(track) > 1) {
         purrr::walk(track, function(tr) {
-            .emr_call("emr_set_track_attr", tr, attr, NULL, FALSE, new.env(parent = parent.frame()))
+            .emr_call("emr_set_track_attr", tr, attr, NULL, FALSE, .emr_env())
         })
         dbs <- emr_track.dbs(track, dataframe = FALSE)
         purrr::walk(dbs, ~ {
-            .emr_call("update_tracks_attrs_file", .x, new.env(parent = parent.frame()))
+            .emr_call("update_tracks_attrs_file", .x, .emr_env())
         })
     } else {
-        .emr_call("emr_set_track_attr", track, attr, NULL, TRUE, new.env(parent = parent.frame()))
+        .emr_call("emr_set_track_attr", track, attr, NULL, TRUE, .emr_env())
     }
 
     retv <- 0 # suppress return value
@@ -219,14 +219,14 @@ emr_track.attr.set <- function(track, attr, value) {
 
     if (length(track) > 1) {
         purrr::pwalk(list(track, attr, value), function(tr, a, v) {
-            .emr_call("emr_set_track_attr", tr, a, v, FALSE, new.env(parent = parent.frame()))
+            .emr_call("emr_set_track_attr", tr, a, v, FALSE, .emr_env())
         })
         dbs <- emr_track.dbs(track, dataframe = FALSE)
         purrr::walk(dbs, ~ {
-            .emr_call("update_tracks_attrs_file", .x, new.env(parent = parent.frame()))
+            .emr_call("update_tracks_attrs_file", .x, .emr_env())
         })
     } else {
-        .emr_call("emr_set_track_attr", track, attr, value, TRUE, new.env(parent = parent.frame()))
+        .emr_call("emr_set_track_attr", track, attr, value, TRUE, .emr_env())
     }
 
     retv <- 0 # suppress return value

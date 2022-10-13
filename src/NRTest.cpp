@@ -28,7 +28,7 @@ SEXP test_parse_expr(SEXP r_expr, SEXP envir) {
         string expr = CHAR(STRING_ELT(r_expr, 0));
         vector<string> vars;
         get_expression_vars(expr, vars);        
-        for (size_t i = 0; i < vars.size(); ++i) {            
+        for (uint64_t i = 0; i < vars.size(); ++i) {            
             vdebug(vars[i].c_str());
         }
         return R_NilValue;
@@ -207,18 +207,18 @@ SEXP nrtest_regressiondb_create(SEXP envir)
 
         const int NUM_TRACKS = 11;
 
-        size_t num_vals[NUM_TRACKS] = { 100000L, 500000L, 2500000L, 100L, 500L, 2500L, 400L, 100000L, 2500000L, 100L, 200L };
+        uint64_t num_vals[NUM_TRACKS] = { 100000L, 500000L, 2500000L, 100L, 500L, 2500L, 400L, 100000L, 2500000L, 100L, 200L };
         bool is_categorical[NUM_TRACKS] = { false, false, false, false, false, false, true, true, true, false, true };
         bool is_global[NUM_TRACKS] = { true, true, true, true, true, true, true, true, true, false, false };
-        size_t max_patients = 1000L;
-        size_t max_time = 10000L;
-        size_t max_val = 1000L;
-        size_t max_val_categorical = 10L;
+        uint64_t max_patients = 1000L;
+        uint64_t max_time = 10000L;
+        uint64_t max_val = 1000L;
+        uint64_t max_val_categorical = 10L;
 
         for (int itrack = 0; itrack < NUM_TRACKS; itrack++) {
             EMRTrackData<float> data;
 
-            for (size_t ival = 0; ival < num_vals[itrack]; ++ival) {
+            for (uint64_t ival = 0; ival < num_vals[itrack]; ++ival) {
                 float val = is_categorical[itrack] ? (unsigned)(unif_rand() * max_val_categorical) : (unsigned)(unif_rand() * max_val);
                 unsigned id = (unsigned)(unif_rand() * max_patients);
                 unsigned hour = (unsigned)(unif_rand() * max_time);
@@ -804,10 +804,10 @@ SEXP emr_test_pipe(SEXP _num_processes, SEXP _timeout, SEXP _envir)
         }
 
         char buf[100];
-        size_t bytes_read = 0;
+        uint64_t bytes_read = 0;
 
         vdebug("Starting read test\n");
-        size_t timeout = asInteger(_timeout);
+        uint64_t timeout = asInteger(_timeout);
         Naryn::set_alarm(timeout * 1000);
         while (1) {
             if (Naryn::read_multitask_fifo(buf, sizeof(buf)) == EOF)

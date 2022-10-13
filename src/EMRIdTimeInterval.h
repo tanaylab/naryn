@@ -32,7 +32,7 @@ class EMRIdTimeIntervals : public std::vector<EMRIdTimeInterval> {
 public:
     void sort_and_unify_overlaps(unsigned stime, unsigned etime);
 
-    // returns the interval that matches the id and overlaps the time; if no overlap is found then the latest interval that preceeds the id/time is returned or end()
+    // returns the interval that matches the id and overlaps the time; if no overlap is found then the latest interval that precedes the id/time is returned or end()
     const_iterator lower_bound(unsigned id, unsigned time);
 };
 

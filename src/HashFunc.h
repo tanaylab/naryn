@@ -26,7 +26,7 @@ namespace std
 	// Ideally we would like the hash to be:
 	//      v1 | bit_reverse(v2)
 	// Yet bit_reverse requires quite some computational effort. So our hash is:
-	//      little_edian(v1) | big_endian(v2)
+	//      little_endian(v1) | big_endian(v2)
 	template<> struct hash< std::pair<uint64_t, uint64_t> >
 	{
 		uint64_t operator()(const std::pair<uint64_t, uint64_t> &v) const {
@@ -43,7 +43,7 @@ namespace std
     // Ideally we would like the hash to be:
     //      v1 | bit_reverse(v2)
     // Yet bit_reverse requires quite some computational effort. So our hash is:
-    //      little_edian(v1) | big_endian(v2)
+    //      little_endian(v1) | big_endian(v2)
     template<> struct hash< std::pair<unsigned, unsigned> >
     {
         size_t operator()(const std::pair<size_t, size_t> &v) const {

@@ -28,7 +28,6 @@ If both parameters are set, the iterator would go from \code{etime} until the ea
 times and \code{etime}.
 }
 \examples{
-\dontrun{
 iter <- emr_monthly_iterator(emr_date2time(1, 1, 2002), emr_date2time(1, 1, 2017))
 emr_extract("dense_track", iterator = iter, stime = 1, etime = 3)
 
@@ -40,6 +39,5 @@ emr_extract("dense_track", iterator = iter, stime = 1, etime = 3)
 
 iter <- emr_yearly_iterator(emr_date2time(1, 1, 2002), n = 4)
 emr_extract("dense_track", iterator = iter, stime = 1, etime = 3)
-}
 
 }

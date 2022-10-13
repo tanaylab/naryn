@@ -17,8 +17,8 @@ void NRIteratorFilter::init(SEXP filter, unsigned stime, unsigned etime)
     vector<SEXP> rfilter_names;
     vector<SEXP> filters;
     
-    // retrieve filter names (named filters are at a global variable called EMR_FILTERS)
-    rprotect(emr_filters = findVar(install("EMR_FILTERS"), g_naryn->env()));
+    // retrieve filter names (named filters are at a variable called EMR_FILTERS inside the .naryn environment)    
+    rprotect(emr_filters = findVar(install("EMR_FILTERS"), findVar(install(".naryn"), g_naryn->env())));
 
     if (!isNull(emr_filters) && !isSymbol(emr_filters)) {        
 
@@ -146,7 +146,7 @@ void NRIteratorFilter::build_subtree(vector<SEXP> &filters, vector<SEXP> &rfilte
 EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(vector<SEXP> &filters, vector<SEXP> &rfilter_names, const char *str,
                                                            bool operator_not, unsigned stime, unsigned etime)
 {
-    for (size_t i = 0; i < filters.size(); ++i) {
+    for (uint64_t i = 0; i < filters.size(); ++i) {
         for (int ifilter = 0; ifilter < Rf_length(rfilter_names[i]); ++ifilter) {
             const char *filter_name = CHAR(STRING_ELT(rfilter_names[i], ifilter));
 
@@ -488,7 +488,7 @@ int NRIteratorFilter::optimize_subtree(EMRIteratorFilterItem *tree, EMRIteratorF
             if (_end_nodes.size() > 3) {  // under 3 end nodes there is no room for optimization
                 int optimal_depth = 0;
 
-                for (size_t num = _end_nodes.size() - 1; num; num = num >> 1)
+                for (uint64_t num = _end_nodes.size() - 1; num; num = num >> 1)
                     ++optimal_depth;
 
                 if (optimal_depth < _depth) {

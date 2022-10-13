@@ -10,8 +10,14 @@
     res
 }
 
+.emr_env <- function() {
+    e <- new.env(parent = parent.frame(2))
+    assign(".naryn", .naryn, envir = e)
+    return(e)
+}
+
 .emr_checkroot <- function() {
-    if (!exists("EMR_GROOT", envir = .GlobalEnv) || is.null(get("EMR_GROOT", envir = .GlobalEnv))) {
+    if (!exists("EMR_GROOT", envir = .naryn) || is.null(get("EMR_GROOT", envir = .naryn))) {
         stop("Database root directory is not set. Please call emr_db.connect().", call. = FALSE)
     }
 }
@@ -19,6 +25,11 @@
 #' Get a vector of variables inside an expression
 #'
 #' @param expr string with a naryn expression
+#'
+#' @return vector of the variables inside an expression
+#'
+#' @examples
+#' .emr_expr_vars("a + b")
 #'
 #' @noRd
 #' @export

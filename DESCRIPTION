@@ -1,13 +1,19 @@
 Type: Package
 Package: naryn
-Title: Toolkit for Analysis of Medical Records
-Version: 2.6.8
+Title: Native Access Medical Record Retriever for High Yield Analytics
+Version: 2.6.9
 Authors@R: c(
     person("Misha", "Hoichman", , "misha@hoichman.com", role = "aut"),
     person("Aviezer", "Lifshitz", , "aviezer.lifshitz@weizmann.ac.il", role = c("aut", "cre")),
-    person("Ben", "Gilat", , "ben.gilat@weizmann.ac.il", role = "aut")
+    person("Ben", "Gilat", , "ben.gilat@weizmann.ac.il", role = "aut"),
+    person("Netta", "Mendelson-Cohen", , "Netta.Mendelsoncohen@weizmann.ac.il", role = "ctb"),
+    person("Rami", "Jaschek", , "rami.jaschek@weizmann.ac.il", role = "ctb"),
+    person("Weizmann Institute of Science", role = "cph")
   )
-Description: The `Naryn` package is a toolkit for medical records data analysis. It implements an efficient data structure for storing medical records, and provides a set of functions for data extraction, manipulation and analysis. 
+Description: A toolkit for medical records data analysis. The 'naryn'
+    package implements an efficient data structure for storing medical
+    records, and provides a set of functions for data extraction,
+    manipulation and analysis.
 License: MIT + file LICENSE
 BugReports: https://github.com/tanaylab/naryn/issues
 Depends: 
@@ -18,6 +24,7 @@ Imports:
     glue,
     lifecycle,
     magrittr,
+    parallel,
     purrr,
     stringr,
     tidyr
@@ -46,4 +53,4 @@ LazyLoad: yes
 NeedsCompilation: yes
 OS_type: unix
 RoxygenNote: 7.2.0
-SystemRequirements: GNU make, C++11
+SystemRequirements: C++11

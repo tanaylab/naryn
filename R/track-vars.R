@@ -100,9 +100,8 @@ emr_track.var.ls <- function(track, pattern = "", ignore.case = FALSE, perl = FA
         dirname <- .emr_track.var.dir(track)
     }
 
-    options(warn = -1) # disable warnings since dir() on non dir or non existing dir produces warnings
-    invisible(files <- dir(dirname))
-    options(warn = 0) # restore the warning behavior
+    # disable warnings since dir() on non dir or non existing dir produces warnings
+    suppressWarnings(invisible(files <- dir(dirname)))
     if (length(files) > 0 && pattern != "") {
         sort(grep(pattern, files, value = TRUE, ignore.case = ignore.case, perl = perl, fixed = fixed, useBytes = useBytes))
     } else {

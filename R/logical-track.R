@@ -1,5 +1,5 @@
 .emr_track.logical.dir <- function() {
-    dirname <- get("EMR_GROOT", envir = .GlobalEnv)
+    dirname <- get("EMR_GROOT", envir = .naryn)
     paste0(dirname, "/logical")
 }
 
@@ -37,8 +37,8 @@
 #' @return None.
 #'
 #' @examples
-#' \dontrun{
-#' emr_track.logical.create("logical_track", "categorical_track", values = c(2, 3))
+#' \donttest{
+#' emr_track.logical.create("logical_track_example", "categorical_track", values = c(2, 3))
 #'
 #' # multiple tracks
 #' emr_track.logical.create(
@@ -67,9 +67,9 @@ emr_track.logical.create <- function(track, src, values = NULL) {
             stop("Number of tracks is not equal to the number of entries in the values list", call. = FALSE)
         }
         purrr::pwalk(list(track, src, values), function(tr, sr, v) {
-            .emr_call("emr_create_logical", tr, sr, v, FALSE, new.env(parent = parent.frame()), silent = TRUE)
+            .emr_call("emr_create_logical", tr, sr, v, FALSE, .emr_env(), silent = TRUE)
         })
-        .emr_call("update_logical_tracks_file", new.env(parent = parent.frame()), silent = TRUE)
+        .emr_call("update_logical_tracks_file", .emr_env(), silent = TRUE)
     } else {
         if (is.list(values)) {
             if (length(values) != 1) {
@@ -77,7 +77,7 @@ emr_track.logical.create <- function(track, src, values = NULL) {
             }
             values <- unlist(values)
         }
-        .emr_call("emr_create_logical", track, src, values, TRUE, new.env(parent = parent.frame()), silent = TRUE)
+        .emr_call("emr_create_logical", track, src, values, TRUE, .emr_env(), silent = TRUE)
     }
 }
 
@@ -110,7 +110,7 @@ remove_logical_track <- function(track, force, rm_vars, update) {
 
         dirname1 <- .emr_track.logical.var.dir(track)
         dirname2 <- .emr_track.logical.pyvar.dir(track)
-        .emr_call("emr_remove_logical", track, update, new.env(parent = parent.frame()), silent = TRUE)
+        .emr_call("emr_remove_logical", track, update, .emr_env(), silent = TRUE)
 
         if (rm_vars && file.exists(dirname1)) {
             unlink(dirname1, recursive = TRUE)
@@ -135,7 +135,7 @@ emr_track.logical.rm <- function(track, force = FALSE, rm_vars = TRUE) {
     .emr_checkroot()
     if (length(track) > 1) {
         purrr::walk(track, remove_logical_track, force = force, rm_vars = rm_vars, update = FALSE)
-        .emr_call("update_logical_tracks_file", new.env(parent = parent.frame()), silent = TRUE)
+        .emr_call("update_logical_tracks_file", .emr_env(), silent = TRUE)
     } else if (length(track) == 1) {
         remove_logical_track(track, force = force, rm_vars = rm_vars, update = TRUE)
     }
@@ -149,13 +149,12 @@ emr_track.logical.rm <- function(track, force = FALSE, rm_vars = TRUE) {
 #' @return TRUE if \code{track} is a logical track and FALSE otherwise
 #'
 #' @examples
-#' \dontrun{
 #' emr_track.logical.exists("logical_track")
-#' }
+#'
 #' @export
 emr_track.logical.exists <- function(track) {
     .emr_checkroot()
-    purrr::map_lgl(track, ~ .emr_call("emr_is_logical", .x, new.env(parent = parent.frame()), silent = TRUE))
+    purrr::map_lgl(track, ~ .emr_call("emr_is_logical", .x, .emr_env(), silent = TRUE))
 }
 
 #' Returns information about a logical track
@@ -170,10 +169,9 @@ emr_track.logical.exists <- function(track) {
 #' @seealso \code{\link{emr_track.ls}}
 #' @keywords ~track ~info ~property
 #' @examples
-#' \dontrun{
 #' emr_db.init_examples()
 #' emr_track.logical.info("logical_track")
-#' }
+#'
 #' @export
 emr_track.logical.info <- function(track) {
     if (missing(track)) {
@@ -181,7 +179,7 @@ emr_track.logical.info <- function(track) {
     }
     .emr_checkroot()
 
-    .emr_call("emr_logical_track_info", track, new.env(parent = parent.frame()))
+    .emr_call("emr_logical_track_info", track, .emr_env())
 }
 
 random_filter_name <- function(pattern) {
@@ -201,9 +199,7 @@ random_filter_name <- function(pattern) {
 #'
 #'
 #' @examples
-#' \dontrun{
 #' .create_logical_track_filter("logical_track")
-#' }
 #' @export
 #' @noRd
 .create_logical_track_filter <- function(ltrack, filter = NULL, filter_name = NULL, env = parent.frame()) {
@@ -240,5 +236,5 @@ get_dependent_ltracks <- function(src) {
         stop("Source track does not exist or is not a physical track")
     }
     .emr_checkroot()
-    .emr_call("emr_ltrack_dependencies", src, new.env(parent = parent.frame()))
+    .emr_call("emr_ltrack_dependencies", src, .emr_env())
 }

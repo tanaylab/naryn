@@ -53,7 +53,7 @@ SEXP emr_covariance(SEXP _exprs, SEXP _breaks, SEXP _include_lowest, SEXP _right
             verror("Number of breaks sets must be equal to the number of tracks used");
 
         unsigned totalbins = bins_manager.get_total_bins();
-        size_t num_vals = totalbins * num_cov_exprs * num_cov_exprs;
+        uint64_t num_vals = totalbins * num_cov_exprs * num_cov_exprs;
         g_naryn->verify_max_data_size(num_vals, "Result");
 
         vector<AvgMatrix> avg_x(totalbins, AvgMatrix(num_cov_exprs, vector<Avg>(num_cov_exprs)));   // avg(x)   given y != Nan
@@ -70,8 +70,8 @@ SEXP emr_covariance(SEXP _exprs, SEXP _breaks, SEXP _include_lowest, SEXP _right
             int index = bins_manager.vals2idx(vals);
 
             if (index >= 0) {
-                for (size_t i = 0; i < num_cov_exprs; ++i) {
-                    for (size_t j = 0; j < num_cov_exprs; ++j) {
+                for (uint64_t i = 0; i < num_cov_exprs; ++i) {
+                    for (uint64_t j = 0; j < num_cov_exprs; ++j) {
                         double x = scanner.real(num_breaks_exprs + i);
                         double y = scanner.real(num_breaks_exprs + j);
 
@@ -100,10 +100,10 @@ SEXP emr_covariance(SEXP _exprs, SEXP _breaks, SEXP _include_lowest, SEXP _right
             stat[i] = REAL(rstat[i]);
         }
 
-        for (size_t ibin = 0; ibin < totalbins; ++ibin) {
+        for (uint64_t ibin = 0; ibin < totalbins; ++ibin) {
             for (int i = 0; i < (int)num_cov_exprs; ++i) {
                 for (int j = 0; j < (int)num_cov_exprs; ++j) {
-                    size_t idx = ibin + totalbins * i + totalbins * num_cov_exprs * j;
+                    uint64_t idx = ibin + totalbins * i + totalbins * num_cov_exprs * j;
 
                     stat[N][idx] = avg_x[ibin][i][j].n;
 

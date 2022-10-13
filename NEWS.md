@@ -1,3 +1,8 @@
+# naryn 2.6.9 
+
+* Removed global variables from the package - EMR_ROOTS, EMR_GROOT, EMR_UROOT, EMR_FILTERS and EMR_VTRACKS are now a part of a dedicated environment called `.naryn`. You can access them using `.naryn::EMR_ROOTS` etc. 
+
+
 # naryn 2.6.8 
 
 * Optimized the performance of the `emr_track.exists` function.
@@ -189,8 +194,8 @@ without parameters.
 
 # naryn 2.3.2
 
-*  New iterator type: [Id-Time](tiki-index.php?page=Id-Time "Id-Time") Intervals (dataframe with 'id', 'stime', 'etime' columns)
-*  New filter type: [Id-Time](tiki-index.php?page=Id-Time "Id-Time") Intervals
+*  New iterator type: "Id-Time" Intervals (dataframe with 'id', 'stime', 'etime' columns)
+*  New filter type: "Id-Time" Intervals
 
 # naryn 2.3.1
 
@@ -464,7 +469,7 @@ without parameters.
 *  Time intervals format for 5 & 6: data frame with the first columns named "stime" and "etime"
 *  Run-time optimization when OR is used in iterator filter
 *  Report error id-time list used for iterator / filter contains two records that differ only by reference when keepref == FALSE
-10.  Bug fix in filter when time after shift preceeds the epoch
+10.  Bug fix in filter when time after shift precedes the epoch
 11.  Bug fix in beat iterator: invalid progress report
 
 # naryn 1.1.3

@@ -1,9 +1,3 @@
-#ifndef _POSIX_C_SOURCE
-	#define _POSIX_C_SOURCE 199309
-	#include <time.h>
-	#undef _POSIX_C_SOURCE
-#endif
-
 #include <ctype.h>
 #include <dirent.h>
 #include <errno.h>
@@ -18,6 +12,17 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+
+#ifndef _POSIX_C_SOURCE
+	#define _POSIX_C_SOURCE 199309
+	#include <time.h>
+	#undef _POSIX_C_SOURCE
+#endif
+
+#if defined(__APPLE__)
+    #include <libproc.h>
+    #include <sys/proc_info.h>
+#endif
 
 #include "EMRDb.h"
 #include "naryn.h"
@@ -151,7 +156,7 @@ Naryn::~Naryn()
                 sem_close(s_fifo_sem);
 
             if (s_shm != (Shm *)MAP_FAILED)
-                munmap(s_shm, sizeof(Shm));
+                munmap((char*)s_shm, sizeof(Shm)); // needs to be char * for some versions of Solaris
 
             unlink(get_fifo_name().c_str());
         }
@@ -193,21 +198,21 @@ Naryn::~Naryn()
 string Naryn::get_shm_sem_name()
 {
 	char buf[100];
-	sprintf(buf, "naryn-shm-sem-%d", (int)getpid());
+	sprintf(buf, "/naryn_shm_sem_%d", (int)getpid());
 	return buf;
 }
 
 string Naryn::get_fifo_sem_name()
 {
 	char buf[100];
-	sprintf(buf, "naryn-fifo-sem-%d", (int)getpid());
+	sprintf(buf, "/naryn_fifo_sem_%d", (int)getpid());
 	return buf;
 }
 
 string Naryn::get_fifo_name()
 {
 	char buf[100];
-    sprintf(buf, "/tmp/naryn-fifo-%d", s_is_kid ? (int)getppid() : (int)getpid());
+    sprintf(buf, "/tmp/naryn_fifo_%d", s_is_kid ? (int)getppid() : (int)getpid());
 	return buf;
 }
 
@@ -299,22 +304,25 @@ pid_t Naryn::launch_process()
 
 		SEXP r_multitasking_stdout = GetOption(install("emr_multitasking_stdout"), R_NilValue);
 
-        if (!isLogical(r_multitasking_stdout) || !(int)LOGICAL(r_multitasking_stdout)[0]) {
-            if (!freopen("/dev/null", "w", stdout))
-                verror("Failed to open /dev/null");
+        int devnull;
+        if ((devnull = open("/dev/null", O_RDWR)) == -1){
+            verror("Failed to open /dev/null");
         }
 
-        if (!freopen("/dev/null", "w", stderr))
-            verror("Failed to open /dev/null");
+        if (!isLogical(r_multitasking_stdout) || !(int)LOGICAL(r_multitasking_stdout)[0]) {
+            dup2(devnull, STDOUT_FILENO);
+        }
 
-        if (!freopen("/dev/null", "r", stdin))
-            verror("Failed to open /dev/null");
+        dup2(devnull, STDIN_FILENO);
+        dup2(devnull, STDERR_FILENO);
+        close(devnull);
 
         // fifo was open for read by the parent
         close(s_fifo_fd);
 
-        if ((s_fifo_fd = open(get_fifo_name().c_str(), O_WRONLY)) == -1)
+        if ((s_fifo_fd = open(get_fifo_name().c_str(), O_WRONLY)) == -1){
             verror("open of fifo %s for write failed: %s", get_fifo_name().c_str(), strerror(errno));
+        }
 	}
 
 	return pid;
@@ -332,7 +340,7 @@ void Naryn::check_kids_state(bool ignore_errors)
                 vdebug("pid %d was identified as a child process\n", pid);
                 swap(*ipid, s_running_pids.back());
                 s_running_pids.pop_back();
-                if (!ignore_errors && !WIFEXITED(status))
+                if (!ignore_errors && !WIFEXITED(status) && WIFSIGNALED(status) && WTERMSIG(status) != NARYN_EXIT_SIG)
                     verror("Child process %d ended unexpectedly", (int)pid);
                 break;
             }
@@ -371,11 +379,11 @@ bool Naryn::wait_for_kids(int millisecs)
     return true;
 }
 
-int Naryn::read_multitask_fifo(void *buf, size_t bytes)
+int Naryn::read_multitask_fifo(void *buf, uint64_t bytes)
 {
     bool eof_reached = false;
     int retv;
-    size_t readlen = 0;
+    uint64_t readlen = 0;
     fd_set rfds;
     struct timeval tv;
 
@@ -424,7 +432,7 @@ int Naryn::read_multitask_fifo(void *buf, size_t bytes)
     return readlen;
 }
 
-void Naryn::write_multitask_fifo(const void *buf, size_t bytes)
+void Naryn::write_multitask_fifo(const void *buf, uint64_t bytes)
 {
     SemLocker sl(s_fifo_sem);
     if (write(s_fifo_fd, buf, bytes) == -1)
@@ -441,9 +449,10 @@ void Naryn::handle_error(const char *msg)
 				s_shm->error_msg[sizeof(s_shm->error_msg) - 1] = '\0';
 			}
 		}
-		exit(1);
-	} else
+		rexit();
+	} else {
 		errorcall(R_NilValue, msg);
+    }
 }
 
 void Naryn::verify_max_data_size(uint64_t data_size, const char *data_name)
@@ -549,18 +558,80 @@ void Naryn::sigchld_handler(int)
 
 void Naryn::get_open_fds(set<int> &fds)
 {
+#if defined(__APPLE__)
+    // This absolutely irrational code with all those funny reallocations and multiplication by 32 (haeh?) was inherited from here:
+    //      https://opensource.apple.com/source/Libc/Libc-825.26/darwin/proc_listpidspath.c.auto.html
+    // 
+    // It would be much more logical to call proc_pidinfo twice: the first time to get buf size and the second time to get the list
+    // of file descriptors. And indeed some internet sources advice to do that. However what is rational does not work and gives some
+    // 240 open file descriptors most of them are not vnodes at all. And even some of those who are vnodes, are complete junk. Smells
+    // like a memory leak. Probably the multiplication by 32 is really needed.
+    //
+    // All these problems come from the simple reason there is not manual for proc_pidinfo. Go figure why...
+	int	buf_used;
+    int fds_size = 0;
+    int num_fds;
+    unique_ptr<char[]> buf;
+
+	// get list of open file descriptors
+	buf_used = proc_pidinfo(getpid(), PROC_PIDLISTFDS, 0, NULL, 0);
+	if (buf_used <= 0)
+        return;
+
+	while (1) {
+		if (buf_used > fds_size) {
+			// if we need to allocate [more] space
+			while (buf_used > fds_size)
+				fds_size += (sizeof(struct proc_fdinfo) * 32);
+
+            buf = unique_ptr<char[]>(new char[fds_size]);
+		}
+
+		buf_used = proc_pidinfo(getpid(), PROC_PIDLISTFDS, 0, buf.get(), fds_size);
+		if (buf_used <= 0)
+            return;
+
+		if ((buf_used + sizeof(struct proc_fdinfo)) >= fds_size) {
+			// if not enough room in the buffer for an extra fd
+			buf_used = fds_size + sizeof(struct proc_fdinfo);
+			continue;
+		}
+
+		num_fds = buf_used / sizeof(struct proc_fdinfo);
+		break;
+	}
+
+    struct proc_fdinfo *fdinfo = (struct proc_fdinfo *)buf.get();
+    for (int i = 0; i < num_fds; ++i) {
+        if (fdinfo[i].proc_fdtype == PROX_FDTYPE_VNODE)
+            fds.insert(fdinfo[i].proc_fd);
+    }
+#else
+
+#ifdef __sun
+    #ifdef __XOPEN_OR_POSIX
+        #define _dirfd(dir) (dir->d_fd)
+    #else
+        #define _dirfd(dir) (dir->dd_fd)
+    #endif
+#else
+    #define _dirfd(dir) dirfd(dir)
+#endif
 	DIR *dir = opendir("/proc/self/fd");
 	struct dirent *dirp;
 
 	fds.clear();
-	while ((dirp = readdir(dir))) {
-		char *endptr;
-		int fd = strtol(dirp->d_name, &endptr, 10);
-		if (!*endptr && fd != dirfd(dir)) // name is a number (it can be also ".", "..", whatever...)
-			fds.insert(fd);
-	}
+    if (dir) {
+    	while ((dirp = readdir(dir))) {
+    		char *endptr;
+    		int fd = strtol(dirp->d_name, &endptr, 10);
+    		if (!*endptr && fd != _dirfd(dir)) // name is a number (it can be also ".", "..", whatever...)
+    			fds.insert(fd);
+    	}
 
-	closedir(dir);
+        closedir(dir);
+    }
+#endif
 }
 
 void rerror(const char *fmt, ...)
@@ -569,7 +640,7 @@ void rerror(const char *fmt, ...)
 	char buf[1000];
 
 	va_start(ap, fmt);
-	vsprintf(buf, fmt, ap);
+    vsnprintf(buf, sizeof(buf), fmt, ap);	
 	va_end(ap);
 
 	Naryn::handle_error(buf);
@@ -619,13 +690,12 @@ void vdebug(const char *fmt, ...)
 
         va_list ap;
     	va_start(ap, fmt);
-    	vprintf(fmt, ap);
+        vsnprintf(buf, sizeof(buf), fmt, ap);    	
         va_end(ap);
+        REprintf(buf);
 
         if (!*fmt || (*fmt && fmt[strlen(fmt) - 1] != '\n'))
             REprintf("\n");
-
-        fflush(stderr);
     }
 }
 
@@ -869,10 +939,10 @@ void get_expression_vars(const string &expr, vector<string>& vars){
     SEXP res = R_tryEval(e, g_naryn->env(), NULL);
     UNPROTECT(1);
 
-    size_t num_vars = Rf_length(res);    
+    uint64_t num_vars = Rf_length(res);    
     vars.reserve(num_vars);
 
-    for (size_t i = 0; i < num_vars; ++i){        
+    for (uint64_t i = 0; i < num_vars; ++i){        
         vars.push_back(CHAR(STRING_ELT(res, i)));
     }    
 }

@@ -25,7 +25,7 @@ public:
     void pack(void *buf) const;
     void unpack(const void *buf);
 
-    static size_t packed_size() { return sizeof(unsigned) + EMRTimeStamp::packed_size(); }
+    static uint64_t packed_size() { return sizeof(unsigned) + EMRTimeStamp::packed_size(); }
 
 	string tostr() const;
 

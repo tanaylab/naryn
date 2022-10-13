@@ -78,13 +78,12 @@ private:
         bool apply_filter();
     };
 
-	vector<string>   m_track_exprs;
-	unsigned         m_num_track_vars;
+	vector<string>   m_track_exprs;	
     ValType          m_valtype;
     bool             m_multitasking;
     char            *m_mtask_buf;
-    size_t           m_mtask_record_size;
-    size_t           m_mtask_buf_size;
+    uint64_t           m_mtask_record_size;
+    uint64_t           m_mtask_buf_size;
 
 	vector<SEXP>     m_eval_exprs;
 	vector<SEXP>     m_eval_bufs;
@@ -99,7 +98,7 @@ private:
 	unsigned         m_eval_buf_size;
 
 	int              m_last_progress_reported;
-	size_t           m_num_evals;
+	uint64_t           m_num_evals;
 	int              m_report_step;
 	uint64_t         m_last_report_clock;
 	EMRPoints        m_expr_itr_points;

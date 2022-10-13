@@ -19,8 +19,12 @@ None. The database is saved under the name `sample_db` in the specified director
 Download an example database which was simulated to include an example of a typical EMR database.
 }
 \examples{
-\dontrun{
+\donttest{
 emr_download_example_data()
+}
+
+\dontshow{
+unlink("sample_db", recursive = TRUE)
 }
 
 }

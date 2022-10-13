@@ -69,7 +69,7 @@ public:
 
     static void check_vtrack(const string &track, SEXP rvtrack);
 
-    static bool is_var(const string &str, size_t start, size_t end) {
+    static bool is_var(const string &str, uint64_t start, uint64_t end) {
         return (!start || !is_R_var_char(str[start - 1])) &&
                (end == str.size() || !is_R_var_char(str[end]));
     }
@@ -81,7 +81,6 @@ private:
 
 	TrackVars              m_track_vars;
 	IteratorManagers       m_imanagers;
-	int                    m_abs_hour;
 
 	IteratorManager     *add_imanager(const IteratorManager &imanager, EMRTrack *track, EMRTrack::Func func, unordered_set<double> &&vals, bool track_ownership);
 	TrackVar            &add_track_var(const string &track);
