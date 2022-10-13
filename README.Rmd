@@ -23,6 +23,12 @@ The `naryn` package is a toolkit for medical records data analysis. It implement
 ## Installation
 
 ```{r, eval=FALSE}
+install.packages("naryn")
+```
+
+Or for the latest development version:
+
+```{r, eval=FALSE}
 remotes::install_github("tanaylab/naryn")
 ```
 

@@ -16,6 +16,12 @@ Installation
 ------------
 
 ``` r
+install.packages("naryn")
+```
+
+Or for the latest development version:
+
+``` r
 remotes::install_github("tanaylab/naryn")
 ```
 
