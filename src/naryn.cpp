@@ -652,8 +652,9 @@ void verror(const char *fmt, ...)
 	char buf[1000];
 
     buf[0] = '\0';
-    if (g_naryn->debug())
+    if (g_naryn->debug()) {
         sprintf(buf, "[pid %d] ", (int)getpid());
+    }
 
 	va_start(ap, fmt);
 	vsnprintf(buf + strlen(buf), sizeof(buf), fmt, ap);

@@ -19,7 +19,7 @@ EMRTrack::DataFetcher::~DataFetcher() {
 void EMRTrack::DataFetcher::init(EMRTrack *track, bool track_ownership, unordered_set<double> &&vals) {
 	m_track = track;
     m_track_ownership = track_ownership;
-    m_vals2compare = move(vals);
+    m_vals2compare = std::move(vals);
 	m_data_idx = (unsigned)0;
 	m_rec_idx = (unsigned)0;
     m_last_id = 0;
@@ -44,7 +44,7 @@ void EMRTrack::Iterator::init(EMRTrack *track, unsigned stime, unsigned etime, u
     m_isend = false;
     m_stime = stime;
     m_etime = etime;
-    m_vals = move(vals);
+    m_vals = std::move(vals);
     m_expiration = expiration;
     m_vals_op = op;
 }

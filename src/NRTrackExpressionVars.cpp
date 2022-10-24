@@ -76,7 +76,7 @@ NRTrackExpressionVars::IteratorManager *NRTrackExpressionVars::add_imanager(cons
             verror("Reached the limit of maximal number of simultaneously used virtual tracks");
 
         m_imanagers.push_back(imanager);
-        m_imanagers.back().data_fetcher.init(track, track_ownership, move(vals));
+        m_imanagers.back().data_fetcher.init(track, track_ownership, std::move(vals));
         m_imanagers.back().data_fetcher.register_function(func);
         return &m_imanagers.back();
     }
@@ -364,7 +364,7 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
     }
 
     if (!only_check)
-        var.imanager = add_imanager(imanager, track, (EMRTrack::Func)ifunc, move(vals), track_ownership);
+        var.imanager = add_imanager(imanager, track, (EMRTrack::Func)ifunc, std::move(vals), track_ownership);
 }
 
 NRTrackExpressionVars::TrackVar &NRTrackExpressionVars::add_track_var(const string &track_name)

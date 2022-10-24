@@ -231,7 +231,7 @@ void EMRDb::load_logical_tracks_from_disk() {
 
                 if (ltrack.source.length() > 0)
                 {
-                    m_logical_tracks.emplace(ltrack_name, move(ltrack));
+                    m_logical_tracks.emplace(ltrack_name, std::move(ltrack));
                 }
                 else
                 {
@@ -464,8 +464,7 @@ void EMRDb::load_logical_tracks() {
             m_logical_tracks_ts = get_file_mtime(fs);
             vdebug("Read %lu logical tracks", m_logical_tracks.size());
 
-            if (g_naryn->debug())
-            {
+            if (g_naryn->debug()) {
                 int n = 0;
                 for (auto track : g_db->logical_track_names())
                 {
