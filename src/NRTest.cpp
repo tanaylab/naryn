@@ -518,7 +518,7 @@ SEXP nrtrack(SEXP _track, SEXP _envir)
 	// 		struct stat s;
 	// 		int len = strlen(dirp->d_name);
 
-	// 		sprintf(filename, "%s/%s", dirname, dirp->d_name);
+	// 		snprintf(filename, sizeof(filename), "%s/%s", dirname, dirp->d_name);
 	// 		if (stat(filename, &s))
 	// 			verror("Failed to stat file %s: %s", filename, strerror(errno));
 
@@ -594,7 +594,7 @@ SEXP nrtrack(SEXP _track, SEXP _envir)
 	// 		char filename[PATH_MAX + 100];
 
 	// 		REprintf("Writing track %d\n", idataset->first);
-	// 		sprintf(filename, "%s/t%d%s", g_db->grootdir().c_str(), idataset->first, EMRDb::TRACK_FILE_EXT.c_str());
+	// 		snprintf(filename, sizeof(filename), "%s/t%d%s", g_db->grootdir().c_str(), idataset->first, EMRDb::TRACK_FILE_EXT.c_str());
 	// 		EMRTrack::serialize(filename, false, *idataset->second);
 	// 	}
 
