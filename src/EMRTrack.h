@@ -131,7 +131,7 @@ protected:
         template <class T> friend class EMRTrackDense;
         template <class T> friend class EMRTrackSparse;
 
-		EMRTrack              *m_track;
+		EMRTrack              *m_track = NULL;
         bool                   m_track_ownership;
         unsigned               m_last_id;
         Func                   m_function;
@@ -308,9 +308,10 @@ inline EMRTrack::EMRTrack(const char *name, TrackType track_type, DataType data_
 
 inline EMRTrack::~EMRTrack()
 {
-    delete m_mem;
-    if (m_shmem != MAP_FAILED)
+    free(m_mem);
+    if (m_shmem != MAP_FAILED) {
         munmap(m_shmem, m_shmem_size);
+    }
 }
 
 template <class T>

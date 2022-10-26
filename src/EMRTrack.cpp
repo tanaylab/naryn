@@ -12,8 +12,9 @@
 //-------------------------------- EMRTrack::DataFetcher -----------------------------------
 
 EMRTrack::DataFetcher::~DataFetcher() {
-    if (m_track_ownership)
+    if (m_track != NULL && m_track_ownership){
         delete m_track;
+    }
 }
 
 void EMRTrack::DataFetcher::init(EMRTrack *track, bool track_ownership, unordered_set<double> &&vals) {
@@ -28,8 +29,9 @@ void EMRTrack::DataFetcher::init(EMRTrack *track, bool track_ownership, unordere
 }
 
 void EMRTrack::DataFetcher::register_function(EMRTrack::Func func) {
-	if (func == QUANTILE)
+	if (func == QUANTILE){
 		m_sp.init(g_naryn->max_data_size(), g_naryn->quantile_edge_data_size(), g_naryn->quantile_edge_data_size());
+    }
 
     m_function = func;
 }
