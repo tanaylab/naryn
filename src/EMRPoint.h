@@ -66,7 +66,7 @@ void EMRPoint::init(unsigned _id, TSArgs &&..._t)
 inline string EMRPoint::tostr() const
 {
 	char buf[200];
-	sprintf(buf, "id %d, %s", id, timestamp.tostr().c_str());
+	snprintf(buf, sizeof(buf), "id %d, %s", id, timestamp.tostr().c_str());
 	return buf;
 }
 

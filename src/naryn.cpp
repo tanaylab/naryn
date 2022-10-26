@@ -198,21 +198,21 @@ Naryn::~Naryn()
 string Naryn::get_shm_sem_name()
 {
 	char buf[100];
-	sprintf(buf, "/naryn_shm_sem_%d", (int)getpid());
+	snprintf(buf, sizeof(buf), "/naryn_shm_sem_%d", (int)getpid());
 	return buf;
 }
 
 string Naryn::get_fifo_sem_name()
 {
 	char buf[100];
-	sprintf(buf, "/naryn_fifo_sem_%d", (int)getpid());
+	snprintf(buf, sizeof(buf), "/naryn_fifo_sem_%d", (int)getpid());
 	return buf;
 }
 
 string Naryn::get_fifo_name()
 {
 	char buf[100];
-    sprintf(buf, "/tmp/naryn_fifo_%d", s_is_kid ? (int)getppid() : (int)getpid());
+    snprintf(buf, sizeof(buf), "/tmp/naryn_fifo_%d", s_is_kid ? (int)getppid() : (int)getpid());
 	return buf;
 }
 
@@ -653,7 +653,7 @@ void verror(const char *fmt, ...)
 
     buf[0] = '\0';
     if (g_naryn->debug()) {
-        sprintf(buf, "[pid %d] ", (int)getpid());
+        snprintf(buf, sizeof(buf), "[pid %d] ", (int)getpid());
     }
 
 	va_start(ap, fmt);

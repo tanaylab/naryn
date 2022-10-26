@@ -212,7 +212,7 @@ void EMRDb::load_logical_tracks_from_disk() {
             struct stat fs;
             int len = strlen(dirp->d_name);
 
-            sprintf(filename, "%s/%s", logical_tracks_dir().c_str(),
+            snprintf(filename, sizeof(filename), "%s/%s", logical_tracks_dir().c_str(),
                     dirp->d_name);
             if (stat(filename, &fs))
                 verror("Failed to stat file %s: %s", filename, strerror(errno));
@@ -978,7 +978,7 @@ void EMRDb::create_track_list_file(string db_id, BufferedFile *_pbf) {
             struct stat fs;
             int len = strlen(dirp->d_name);
 
-            sprintf(filename, "%s/%s", db_id.c_str(), dirp->d_name);
+            snprintf(filename, sizeof(filename), "%s/%s", db_id.c_str(), dirp->d_name);
 
             if (stat(filename, &fs)){
                 verror("Failed to stat file %s: %s", filename, strerror(errno));

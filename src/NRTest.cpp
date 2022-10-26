@@ -233,7 +233,7 @@ SEXP nrtest_regressiondb_create(SEXP envir)
 
             char filename[1000];
 
-            sprintf(filename, "%s/track%d%s", is_global[itrack] ? g_db->grootdir().c_str() : g_db->urootdir().c_str(), itrack, EMRDb::TRACK_FILE_EXT.c_str());
+            snprintf(filename, sizeof(filename), "%s/track%d%s", is_global[itrack] ? g_db->grootdir().c_str() : g_db->urootdir().c_str(), itrack, EMRDb::TRACK_FILE_EXT.c_str());
             EMRTrack::TrackType track_type = EMRTrack::serialize(filename, is_categorical[itrack], data);
             REprintf("Track %s created (%s)...\n", filename, EMRTrack::TRACK_TYPE_NAMES[track_type]);
 
@@ -245,7 +245,7 @@ SEXP nrtest_regressiondb_create(SEXP envir)
                 unsigned hour = (unsigned)(unif_rand() * max_time);
 
                 data.add(id, EMRTimeStamp(hour, 0), val);
-                sprintf(filename, "%s/track%d_sparse%s", g_db->grootdir().c_str(), itrack, EMRDb::TRACK_FILE_EXT.c_str());
+                snprintf(filename, sizeof(filename), "%s/track%d_sparse%s", g_db->grootdir().c_str(), itrack, EMRDb::TRACK_FILE_EXT.c_str());
                 EMRTrack::TrackType track_type = EMRTrack::serialize(filename, is_categorical[itrack], data);
                 REprintf("Track %s created (%s)...\n", filename, EMRTrack::TRACK_TYPE_NAMES[track_type]);
             }
