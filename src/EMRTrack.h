@@ -110,7 +110,7 @@ public:
 	class DataFetcher {
 	public:
 		DataFetcher() : m_track(NULL) {}
-		DataFetcher(EMRTrack *track, bool track_ownership, unordered_set<double> vals2compare) : m_track(NULL) { init(track, track_ownership, move(vals2compare)); }
+		DataFetcher(EMRTrack *track, bool track_ownership, unordered_set<double> vals2compare) : m_track(NULL) { init(track, track_ownership, std::move(vals2compare)); }
 
         ~DataFetcher();
 
@@ -255,7 +255,7 @@ inline EMRTrack::Iterator::Iterator(EMRTrack *track, unsigned stime, unsigned et
     m_track(NULL),
     m_isend(true)
 {
-    init(track, stime, etime, move(vals), expiration, op);
+    init(track, stime, etime, std::move(vals), expiration, op);
 }
 
 inline bool EMRTrack::Iterator::passed_operator(double val){
