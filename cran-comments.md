@@ -2,4 +2,5 @@
 
 0 errors | 0 warnings | 0 notes
 
-* Fixed compilation warning on MAC
+* Fixed compilation warnings on MAC
+* Fixed linking errors on gcc-ASAN and clang-ASAN
