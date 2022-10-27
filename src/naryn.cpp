@@ -690,8 +690,11 @@ void vdebug(const char *fmt, ...)
         REprintf("[DEBUG pid %d, %s.%03d] ", (int)getpid(), buf, (int)(tmnow.tv_usec / 1000));
 
         va_list ap;
-    	va_start(ap, fmt);
-        vsnprintf(buf, sizeof(buf), fmt, ap);    	
+    	va_start(ap, fmt);        
+        int ret = vsnprintf(buf, sizeof(buf), fmt, ap);
+        if (ret < 0){
+            TGLError("null format string");
+        }
         va_end(ap);
         REprintf(buf);
 
