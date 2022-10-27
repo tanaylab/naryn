@@ -1,5 +1,10 @@
 #include "EMRTimeStamp.h"
 
+const EMRTimeStamp::Hour     EMRTimeStamp::MAX_HOUR;
+const EMRTimeStamp::Hour     EMRTimeStamp::NA_HOUR;
+const EMRTimeStamp::Refcount EMRTimeStamp::MAX_REFCOUNT;
+const EMRTimeStamp::Refcount EMRTimeStamp::NA_REFCOUNT;
+
 void EMRTimeStamp::serialize(BufferedFile &bfile)
 {
     if (bfile.write(&m_timestamp, sizeof(m_timestamp)) != sizeof(m_timestamp)) {
