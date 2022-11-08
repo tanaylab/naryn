@@ -1,3 +1,7 @@
+# naryn 2.6.11
+
+* Fixed an additional clang warning.
+
 # naryn 2.6.10
 
 * removed `emr_traceback` function
