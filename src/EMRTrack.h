@@ -110,7 +110,7 @@ public:
 	class DataFetcher {
 	public:
 		DataFetcher() : m_track(NULL) {}
-		DataFetcher(EMRTrack *track, bool track_ownership, unordered_set<double> vals2compare) : m_track(NULL) { init(track, track_ownership, move(vals2compare)); }
+		DataFetcher(EMRTrack *track, bool track_ownership, unordered_set<double> vals2compare) : m_track(NULL) { init(track, track_ownership, std::move(vals2compare)); }
 
         ~DataFetcher();
 
@@ -131,7 +131,7 @@ protected:
         template <class T> friend class EMRTrackDense;
         template <class T> friend class EMRTrackSparse;
 
-		EMRTrack              *m_track;
+		EMRTrack              *m_track = NULL;
         bool                   m_track_ownership;
         unsigned               m_last_id;
         Func                   m_function;
@@ -255,7 +255,7 @@ inline EMRTrack::Iterator::Iterator(EMRTrack *track, unsigned stime, unsigned et
     m_track(NULL),
     m_isend(true)
 {
-    init(track, stime, etime, move(vals), expiration, op);
+    init(track, stime, etime, std::move(vals), expiration, op);
 }
 
 inline bool EMRTrack::Iterator::passed_operator(double val){
@@ -308,9 +308,10 @@ inline EMRTrack::EMRTrack(const char *name, TrackType track_type, DataType data_
 
 inline EMRTrack::~EMRTrack()
 {
-    delete m_mem;
-    if (m_shmem != MAP_FAILED)
+    free(m_mem);
+    if (m_shmem != MAP_FAILED) {
         munmap(m_shmem, m_shmem_size);
+    }
 }
 
 template <class T>

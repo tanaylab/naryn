@@ -9,7 +9,7 @@ extern SEXP emr_covariance(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
 extern SEXP emr_dbinit(SEXP, SEXP, SEXP, SEXP);
 extern SEXP emr_dbreload(SEXP);
 extern SEXP emr_dbunload(SEXP);
-extern SEXP emr_db_subset(SEXP, SEXP, SEXP);
+extern SEXP emr_db_subset(SEXP, SEXP, SEXP, SEXP);
 extern SEXP emr_db_subset_ids(SEXP);
 extern SEXP emr_db_subset_info(SEXP);
 extern SEXP emr_track_exists(SEXP, SEXP, SEXP);

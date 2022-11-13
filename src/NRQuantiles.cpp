@@ -104,7 +104,7 @@ SEXP C_emr_quantiles(SEXP _expr, SEXP _percentiles, SEXP _stime, SEXP _etime, SE
 
             REAL(answer)[ip->index] = medians[ip->index];
 
-            sprintf(buf, "%g", ip->percentile);
+            snprintf(buf, sizeof(buf), "%g", ip->percentile);
             SET_STRING_ELT(colnames, ip->index, mkChar(buf));
         }
 

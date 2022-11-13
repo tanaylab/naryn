@@ -34,7 +34,7 @@ inline void EMRInterval::init(unsigned _id, int _stime, int _etime, unsigned cha
 inline string EMRInterval::tostr() const
 {
 	char buf[100];
-	sprintf(buf, "id %d, time [%d, %d], ref %d", id, stime, etime, refcount);
+	snprintf(buf, sizeof(buf), "id %d, time [%d, %d], ref %d", id, stime, etime, refcount);
 	return buf;
 }
 

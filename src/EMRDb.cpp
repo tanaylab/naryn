@@ -30,12 +30,12 @@ const int EMRDb::IDS_SIGNATURE = 0xC0FFEE;
 
 EMRDb *g_db = NULL;
 
-EMRDb::~EMRDb()
-{
+EMRDb::~EMRDb() {
     clear_ids();
     for (Name2Track::iterator itrack = m_tracks.begin();
-         itrack != m_tracks.end(); ++itrack)
+         itrack != m_tracks.end(); ++itrack) {
         delete itrack->second.track;
+    }
 }
 
 EMRTrack *EMRDb::track(const string &track) {
@@ -212,7 +212,7 @@ void EMRDb::load_logical_tracks_from_disk() {
             struct stat fs;
             int len = strlen(dirp->d_name);
 
-            sprintf(filename, "%s/%s", logical_tracks_dir().c_str(),
+            snprintf(filename, sizeof(filename), "%s/%s", logical_tracks_dir().c_str(),
                     dirp->d_name);
             if (stat(filename, &fs))
                 verror("Failed to stat file %s: %s", filename, strerror(errno));
@@ -231,7 +231,7 @@ void EMRDb::load_logical_tracks_from_disk() {
 
                 if (ltrack.source.length() > 0)
                 {
-                    m_logical_tracks.emplace(ltrack_name, move(ltrack));
+                    m_logical_tracks.emplace(ltrack_name, std::move(ltrack));
                 }
                 else
                 {
@@ -464,8 +464,7 @@ void EMRDb::load_logical_tracks() {
             m_logical_tracks_ts = get_file_mtime(fs);
             vdebug("Read %lu logical tracks", m_logical_tracks.size());
 
-            if (g_naryn->debug())
-            {
+            if (g_naryn->debug()) {
                 int n = 0;
                 for (auto track : g_db->logical_track_names())
                 {
@@ -979,7 +978,7 @@ void EMRDb::create_track_list_file(string db_id, BufferedFile *_pbf) {
             struct stat fs;
             int len = strlen(dirp->d_name);
 
-            sprintf(filename, "%s/%s", db_id.c_str(), dirp->d_name);
+            snprintf(filename, sizeof(filename), "%s/%s", db_id.c_str(), dirp->d_name);
 
             if (stat(filename, &fs)){
                 verror("Failed to stat file %s: %s", filename, strerror(errno));

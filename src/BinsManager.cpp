@@ -93,7 +93,7 @@ void BinsManager::set_dims(SEXP dim, SEXP dimnames, SEXP breaks_set) const
 
             for (vector<double>::const_iterator ival = vals.begin(); ival < vals.end(); ++ival) {
                 char buf[100];
-                sprintf(buf, "%d", (int)*ival);
+                snprintf(buf, sizeof(buf), "%d", (int)*ival);
                 SET_STRING_ELT(dimname, ival - vals.begin(), mkChar(buf));
                 INTEGER(breaks)[ival - vals.begin()] = (int)*ival;
             }
@@ -106,10 +106,11 @@ void BinsManager::set_dims(SEXP dim, SEXP dimnames, SEXP breaks_set) const
 
     		for (int j = 0; j < numbins; j++) {
     			char buf[100];
-                if (m_right)
-                    sprintf(buf, "%c%g,%g]", j || !m_include_lowest ? '(' : '[', bin_finder.get_breaks()[j], bin_finder.get_breaks()[j + 1]);
-                else
-                    sprintf(buf, "[%g,%g%c", bin_finder.get_breaks()[j], bin_finder.get_breaks()[j + 1], j != numbins - 1 || !m_include_lowest ? ')' : ']');
+                if (m_right) {
+                    snprintf(buf, sizeof(buf), "%c%g,%g]", j || !m_include_lowest ? '(' : '[', bin_finder.get_breaks()[j], bin_finder.get_breaks()[j + 1]);
+                } else {
+                    snprintf(buf, sizeof(buf), "[%g,%g%c", bin_finder.get_breaks()[j], bin_finder.get_breaks()[j + 1], j != numbins - 1 || !m_include_lowest ? ')' : ']');
+                }
     			SET_STRING_ELT(dimname, j, mkChar(buf));
                 REAL(breaks)[j] = bin_finder.get_breaks()[j];
     		}

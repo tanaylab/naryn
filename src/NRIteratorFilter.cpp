@@ -179,7 +179,7 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(vector<SEXP> &filter
             unordered_set<double> vals(logical_track->values.begin(),
                                        logical_track->values.end());
             filter->m_itr = new EMRTrackIterator(track, filter->m_keepref,
-                                                 stime, etime, move(vals));
+                                                 stime, etime, std::move(vals));
             return filter;
         }
 
@@ -405,7 +405,7 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const 
                 verror("Filter %s: operator of type %s is must be passed with one 'val'", name, op);
             }
 
-            filter->m_itr = new EMRTrackIterator(track, filter->m_keepref, _stime, _etime, move(vals), expiration, op_enum);
+            filter->m_itr = new EMRTrackIterator(track, filter->m_keepref, _stime, _etime, std::move(vals), expiration, op_enum);
         } else if (asLogical(use_values)) {   // id-time or id-time-value
 
             EMRTrackData<float> data;
@@ -426,7 +426,7 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const 
                 double expiration = check_expiration(rexpiration, filter->m_keepref, 0, name);
                 EMRTrack::Iterator::OPS op_enum = check_op(op, name);
 
-                filter->m_itr = new EMRTrackIterator(track_from_df, filter->m_keepref, _stime, _etime, move(vals), expiration, op_enum); //add opp enum
+                filter->m_itr = new EMRTrackIterator(track_from_df, filter->m_keepref, _stime, _etime, std::move(vals), expiration, op_enum); //add opp enum
 
             } catch (TGLException &e) {
                 verror("Failed to create filter from data frame with values");

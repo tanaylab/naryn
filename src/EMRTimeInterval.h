@@ -50,7 +50,7 @@ inline EMRTimeInterval::EMRTimeInterval(EMRTimeStamp::Hour _stime, EMRTimeStamp:
 inline string EMRTimeInterval::tostr() const
 {
 	char buf[200];
-	sprintf(buf, "(%d, %d)", stime, etime);
+	snprintf(buf, sizeof(buf), "(%d, %d)", stime, etime);
 	return buf;
 }
 

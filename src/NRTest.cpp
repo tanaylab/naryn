@@ -233,7 +233,7 @@ SEXP nrtest_regressiondb_create(SEXP envir)
 
             char filename[1000];
 
-            sprintf(filename, "%s/track%d%s", is_global[itrack] ? g_db->grootdir().c_str() : g_db->urootdir().c_str(), itrack, EMRDb::TRACK_FILE_EXT.c_str());
+            snprintf(filename, sizeof(filename), "%s/track%d%s", is_global[itrack] ? g_db->grootdir().c_str() : g_db->urootdir().c_str(), itrack, EMRDb::TRACK_FILE_EXT.c_str());
             EMRTrack::TrackType track_type = EMRTrack::serialize(filename, is_categorical[itrack], data);
             REprintf("Track %s created (%s)...\n", filename, EMRTrack::TRACK_TYPE_NAMES[track_type]);
 
@@ -245,7 +245,7 @@ SEXP nrtest_regressiondb_create(SEXP envir)
                 unsigned hour = (unsigned)(unif_rand() * max_time);
 
                 data.add(id, EMRTimeStamp(hour, 0), val);
-                sprintf(filename, "%s/track%d_sparse%s", g_db->grootdir().c_str(), itrack, EMRDb::TRACK_FILE_EXT.c_str());
+                snprintf(filename, sizeof(filename), "%s/track%d_sparse%s", g_db->grootdir().c_str(), itrack, EMRDb::TRACK_FILE_EXT.c_str());
                 EMRTrack::TrackType track_type = EMRTrack::serialize(filename, is_categorical[itrack], data);
                 REprintf("Track %s created (%s)...\n", filename, EMRTrack::TRACK_TYPE_NAMES[track_type]);
             }
@@ -518,7 +518,7 @@ SEXP nrtrack(SEXP _track, SEXP _envir)
 	// 		struct stat s;
 	// 		int len = strlen(dirp->d_name);
 
-	// 		sprintf(filename, "%s/%s", dirname, dirp->d_name);
+	// 		snprintf(filename, sizeof(filename), "%s/%s", dirname, dirp->d_name);
 	// 		if (stat(filename, &s))
 	// 			verror("Failed to stat file %s: %s", filename, strerror(errno));
 
@@ -594,7 +594,7 @@ SEXP nrtrack(SEXP _track, SEXP _envir)
 	// 		char filename[PATH_MAX + 100];
 
 	// 		REprintf("Writing track %d\n", idataset->first);
-	// 		sprintf(filename, "%s/t%d%s", g_db->grootdir().c_str(), idataset->first, EMRDb::TRACK_FILE_EXT.c_str());
+	// 		snprintf(filename, sizeof(filename), "%s/t%d%s", g_db->grootdir().c_str(), idataset->first, EMRDb::TRACK_FILE_EXT.c_str());
 	// 		EMRTrack::serialize(filename, false, *idataset->second);
 	// 	}
 
