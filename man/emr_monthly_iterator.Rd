@@ -29,10 +29,10 @@ times and \code{etime}.
 }
 \examples{
 iter <- emr_monthly_iterator(emr_date2time(1, 1, 2002), emr_date2time(1, 1, 2017))
+# note that the examples database doesn't include actual dates, so the results are empty
 emr_extract("dense_track", iterator = iter, stime = 1, etime = 3)
 
 iter <- emr_monthly_iterator(emr_date2time(1, 1, 2002), n = 15)
 emr_extract("dense_track", iterator = iter, stime = 1, etime = 3)
-
 
 }
