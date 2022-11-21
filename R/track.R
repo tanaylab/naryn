@@ -203,7 +203,6 @@ emr_track.addto <- function(track, src, force = FALSE) {
 #' @keywords ~track ~create
 #' @export emr_track.create
 emr_track.create <- function(track, space = .naryn$EMR_UROOT, categorical, expr, stime = NULL, etime = NULL, iterator = NULL, keepref = FALSE, filter = NULL, override = FALSE) {
-
     # when space is missing, writing for the last db in the order of connections
     if (missing(space)) {
         if ((!exists("EMR_UROOT", envir = .naryn) || is.null(get("EMR_UROOT", envir = .naryn)))) {
@@ -702,11 +701,12 @@ emr_track.mv <- function(src, tgt, space = NULL) {
 #'     src = "dense_track", func = "earliest",
 #'     time.shift = c(-5, 5)
 #' )
-#' emr_extract(c(
-#'     "dense_track",
-#'     "emr_track.percentile(\"dense_track\", v1, FALSE)"
-#' ),
-#' keepref = TRUE, names = c("col1", "col2")
+#' emr_extract(
+#'     c(
+#'         "dense_track",
+#'         "emr_track.percentile(\"dense_track\", v1, FALSE)"
+#'     ),
+#'     keepref = TRUE, names = c("col1", "col2")
 #' )
 #' @export emr_track.percentile
 emr_track.percentile <- function(track, val, lower = TRUE) {

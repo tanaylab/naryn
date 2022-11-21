@@ -39,11 +39,12 @@ emr_vtrack.create("v1",
     src = "dense_track", func = "earliest",
     time.shift = c(-5, 5)
 )
-emr_extract(c(
-    "dense_track",
-    "emr_track.percentile(\"dense_track\", v1, FALSE)"
-),
-keepref = TRUE, names = c("col1", "col2")
+emr_extract(
+    c(
+        "dense_track",
+        "emr_track.percentile(\"dense_track\", v1, FALSE)"
+    ),
+    keepref = TRUE, names = c("col1", "col2")
 )
 }
 \seealso{

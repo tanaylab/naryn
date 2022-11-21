@@ -52,5 +52,5 @@ Language: en-US
 LazyLoad: yes
 NeedsCompilation: yes
 OS_type: unix
-RoxygenNote: 7.2.0
+RoxygenNote: 7.2.2
 SystemRequirements: C++11
