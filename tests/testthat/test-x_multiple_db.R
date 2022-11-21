@@ -292,7 +292,6 @@ test_that("overriding hierarchy on connect works as expected", {
 })
 
 test_that("overriding mechanism works with mv, when a track is renamed it is no longer overriding/overridden", {
-
     # track7 is in all dbs, change its name in db4
     # it should allow the once overridden track7 in
     # db3 to be discoverable
@@ -547,7 +546,6 @@ test_that("trying to connect with non unique dbs throws an error", {
 
 
 test_that("emr_track.import throws error when trying to override existing track if created in lower order db", {
-
     # track2_2 is in db 2, we are creating a new track2_2 in db 1
     expect_true("track2_2" %in% emr_track.ls())
     expect_true(emr_track.exists("track2_2", .naryn$EMR_ROOTS[2]))
@@ -563,7 +561,6 @@ test_that("emr_track.import throws error when trying to override existing track 
 })
 
 test_that("emr_track.create throws error when trying to override existing track if created in lower order db", {
-
     # track2_2 is in db 2, we are creating a new track2_2 in db 1
     expect_true("track2_2" %in% emr_track.ls())
     expect_true(emr_track.exists("track2_2", .naryn$EMR_ROOTS[2]))
