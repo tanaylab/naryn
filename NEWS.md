@@ -1,7 +1,10 @@
+# naryn 2.6.12
+
+* Fixed: hang when all iterator intervals were outside of `stime` and `etime`. 
+
 # naryn 2.6.11
 
 * Fixed an additional clang warning.
-* Fixed: hang when all iterator intervals were outside of `stime` and `etime`. 
 
 # naryn 2.6.10
 
