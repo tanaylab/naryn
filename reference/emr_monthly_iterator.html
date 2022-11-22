@@ -22,7 +22,7 @@ times and etime."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">naryn</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">2.6.9</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">2.6.12</span>
       </span>
     </div>
 
@@ -111,6 +111,7 @@ times and <code>etime</code>.</p>
     <div id="ref-examples">
     <h2>Examples</h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">iter</span> <span class="op">&lt;-</span> <span class="fu">emr_monthly_iterator</span><span class="op">(</span><span class="fu"><a href="emr_date2time.html">emr_date2time</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">2002</span><span class="op">)</span>, <span class="fu"><a href="emr_date2time.html">emr_date2time</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">2017</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># note that the examples database doesn't include actual dates, so the results are empty</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"dense_track"</span>, iterator <span class="op">=</span> <span class="va">iter</span>, stime <span class="op">=</span> <span class="fl">1</span>, etime <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   id    time ref dense_track</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1  5 1182720  -1         NaN</span>
@@ -135,32 +136,6 @@ times and <code>etime</code>.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 7 28 1182720  -1         NaN</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 8 33 1182720  -1         NaN</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 9 40 1182720  -1         NaN</span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">iter</span> <span class="op">&lt;-</span> <span class="fu">emr_yearly_iterator</span><span class="op">(</span><span class="fu"><a href="emr_date2time.html">emr_date2time</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">2002</span><span class="op">)</span>, <span class="fu"><a href="emr_date2time.html">emr_date2time</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">2017</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"dense_track"</span>, iterator <span class="op">=</span> <span class="va">iter</span>, stime <span class="op">=</span> <span class="fl">1</span>, etime <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   id    time ref dense_track</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1  5 1190736  -1         NaN</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 10 1190736  -1         NaN</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 22 1190736  -1         NaN</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 24 1190736  -1         NaN</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5 25 1190736  -1         NaN</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6 27 1190736  -1         NaN</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7 28 1190736  -1         NaN</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8 33 1190736  -1         NaN</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 9 40 1190736  -1         NaN</span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">iter</span> <span class="op">&lt;-</span> <span class="fu">emr_yearly_iterator</span><span class="op">(</span><span class="fu"><a href="emr_date2time.html">emr_date2time</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">2002</span><span class="op">)</span>, n <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"dense_track"</span>, iterator <span class="op">=</span> <span class="va">iter</span>, stime <span class="op">=</span> <span class="fl">1</span>, etime <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   id    time ref dense_track</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1  5 1190736  -1         NaN</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 10 1190736  -1         NaN</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 22 1190736  -1         NaN</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 24 1190736  -1         NaN</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5 25 1190736  -1         NaN</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6 27 1190736  -1         NaN</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7 28 1190736  -1         NaN</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8 33 1190736  -1         NaN</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 9 40 1190736  -1         NaN</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

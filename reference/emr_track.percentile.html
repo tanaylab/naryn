@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">naryn</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">2.6.9</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">2.6.12</span>
       </span>
     </div>
 
@@ -122,11 +122,12 @@ relative number of track values lower or equal than 'val'.</p>
 <span class="r-in"><span>    src <span class="op">=</span> <span class="st">"dense_track"</span>, func <span class="op">=</span> <span class="st">"earliest"</span>,</span></span>
 <span class="r-in"><span>    time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">5</span>, <span class="fl">5</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>    <span class="st">"dense_track"</span>,</span></span>
-<span class="r-in"><span>    <span class="st">"emr_track.percentile(\"dense_track\", v1, FALSE)"</span></span></span>
-<span class="r-in"><span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>keepref <span class="op">=</span> <span class="cn">TRUE</span>, names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"col1"</span>, <span class="st">"col2"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="emr_extract.html">emr_extract</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>        <span class="st">"dense_track"</span>,</span></span>
+<span class="r-in"><span>        <span class="st">"emr_track.percentile(\"dense_track\", v1, FALSE)"</span></span></span>
+<span class="r-in"><span>    <span class="op">)</span>,</span></span>
+<span class="r-in"><span>    keepref <span class="op">=</span> <span class="cn">TRUE</span>, names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"col1"</span>, <span class="st">"col2"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    id time ref col1 col2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1  22    1   3   13 0.20</span>
