@@ -132,7 +132,7 @@ protected:
         template <class T> friend class EMRTrackSparse;
 
 		EMRTrack              *m_track = NULL;
-        bool                   m_track_ownership;
+        bool                   m_track_ownership = false;
         unsigned               m_last_id;
         Func                   m_function;
         unordered_set<double>  m_vals2compare;
