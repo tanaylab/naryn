@@ -134,7 +134,7 @@ protected:
 		EMRTrack              *m_track = NULL;
         bool                   m_track_ownership = false;
         unsigned               m_last_id;
-        Func                   m_function;
+        Func                   m_function = AVG;
         unordered_set<double>  m_vals2compare;
 		unsigned               m_data_idx;   // last patient idx that is greater or equal than the last query
 		unsigned               m_rec_idx;    // last record idx that is greater or equal than the last query
