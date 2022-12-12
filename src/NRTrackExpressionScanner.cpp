@@ -106,9 +106,11 @@ void NRTrackExprScanner::define_r_vars(unsigned eval_buf_limit)
     runprotect(m_ritr_times);
     rprotect(m_ritr_times = RSaneAllocVector(REALSXP, m_eval_buf_limit));
     m_itr_times = REAL(m_ritr_times);
-    for (unsigned i = 0; i < eval_buf_limit; ++i)
+    for (unsigned i = 0; i < eval_buf_limit; ++i){
         m_itr_times[i] = 0;
-    defineVar(install("EMR_TIME"), m_ritr_times, findVar(install(".GlobalEnv"), g_naryn->env()));
+    }
+    SEXP env = findVar(install(".GlobalEnv"), g_naryn->env());
+    defineVar(install("EMR_TIME"), m_ritr_times, env);
 
     for (unsigned iexpr = 0; iexpr < m_track_exprs.size(); ++iexpr) {
         const NRTrackExpressionVars::TrackVar *var = m_expr_vars.var(m_track_exprs[iexpr].c_str());

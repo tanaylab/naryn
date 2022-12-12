@@ -1,3 +1,8 @@
+# naryn 2.6.13 
+
+* Fixed c++ clang-UBSAN and gcc-UBSAN errors.  
+* Fixed `rchk` warnings.
+
 # naryn 2.6.12
 
 * Fixed: hang when all iterator intervals were outside of `stime` and `etime`. 
