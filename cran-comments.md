@@ -4,4 +4,4 @@
 
 * Fixed c++ clang-UBSAN and gcc-UBSAN errors.  
 * Fixed `rchk` warnings
-* A link to macbuilder test results: https://mac.R-project.org/macbuilder/results/1669043901-a634a1f89e7ba428/
+* A link to macbuilder test results: https://mac.r-project.org/macbuilder/results/1670826523-e949bb2ebb31caf0/
