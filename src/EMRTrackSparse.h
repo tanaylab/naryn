@@ -108,9 +108,9 @@ EMRTrackSparse<T>::EMRTrackSparse(const char *name, DataType data_type, unsigned
     m_sorted_unique_vals = (T *)((char *)m_shmem + pos);
     pos += m_num_percentiles * sizeof(T);
 
-    if (is_categorical())
+    if (is_categorical()) {
         m_percentiles = NULL;
-    else {
+    } else {
         if (pos + m_num_percentiles * sizeof(float) > m_shmem_size)
             TGLError(BAD_FORMAT, "Invalid format of track %s (3)\n", name);
 

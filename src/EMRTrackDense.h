@@ -51,7 +51,7 @@ protected:
 #pragma pack(pop)
 
     unsigned  m_num_recs{0};
-    uint64_t    m_num_percentiles{0};
+    uint64_t  m_num_percentiles{0};
     unsigned *m_data{NULL};
     Rec      *m_recs{NULL};
     float    *m_percentiles{NULL};
@@ -94,8 +94,9 @@ EMRTrackDense<T>::EMRTrackDense(const char *name, DataType data_type, unsigned f
     read_datum(m_shmem, pos, m_shmem_size, m_num_recs, name);
     read_datum(m_shmem, pos, m_shmem_size, m_num_percentiles, name);
 
-    if (pos + data_size() * sizeof(*m_data) + m_num_recs * sizeof(*m_recs) + m_num_percentiles * sizeof(T) > m_shmem_size)
+    if (pos + data_size() * sizeof(*m_data) + m_num_recs * sizeof(*m_recs) + m_num_percentiles * sizeof(T) > m_shmem_size){
         TGLError(BAD_FORMAT, "Invalid format of track %s (2)\n", name);
+    }
 
     m_data = (unsigned *)((char *)m_shmem + pos);
     pos += data_size() * sizeof(*m_data);
@@ -106,9 +107,9 @@ EMRTrackDense<T>::EMRTrackDense(const char *name, DataType data_type, unsigned f
     m_sorted_unique_vals = (T *)((char *)m_shmem + pos);
     pos += m_num_percentiles * sizeof(T);
 
-    if (is_categorical())
+    if (is_categorical()) {
         m_percentiles = NULL;
-    else {
+    } else {
         if (pos + m_num_percentiles * sizeof(float) > m_shmem_size)
             TGLError(BAD_FORMAT, "Invalid format of track %s (3)\n", name);
 
@@ -267,8 +268,9 @@ void EMRTrackDense<T>::unique_vals(vector<double> &vals) const
     else {
         vals.clear();
         vals.reserve(m_num_percentiles);
-        for (uint64_t i = 0; i < m_num_percentiles; ++i)
+        for (uint64_t i = 0; i < m_num_percentiles; ++i){
             vals.push_back((double)m_sorted_unique_vals[i]);
+        }
     }
 }
 

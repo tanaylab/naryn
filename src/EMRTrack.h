@@ -132,9 +132,9 @@ protected:
         template <class T> friend class EMRTrackSparse;
 
 		EMRTrack              *m_track = NULL;
-        bool                   m_track_ownership;
+        bool                   m_track_ownership = false;
         unsigned               m_last_id;
-        Func                   m_function;
+        Func                   m_function = AVG;
         unordered_set<double>  m_vals2compare;
 		unsigned               m_data_idx;   // last patient idx that is greater or equal than the last query
 		unsigned               m_rec_idx;    // last record idx that is greater or equal than the last query
@@ -196,8 +196,8 @@ protected:
     uint64_t          m_shmem_size;
     struct timespec m_timestamp;
     string          m_name;
-	TrackType       m_track_type;
-	DataType        m_data_type;
+	TrackType       m_track_type = SPARSE;
+	DataType        m_data_type = DOUBLE;
     unsigned        m_flags;
     EMRTrack        *m_base_track{NULL};     // if the track is intermediate (for virtual track queries), then base track is the one that is used as a source
     unsigned        m_min_id;
