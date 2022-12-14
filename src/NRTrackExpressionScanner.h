@@ -239,14 +239,16 @@ inline bool NRTrackExprScanner::eval_next()
                             m_track_exprs[iexpr].c_str(), Rf_length(m_eval_bufs[iexpr]), m_eval_buf_limit);
                 if (isReal(m_eval_bufs[iexpr])) {
                     if (m_valtype != REAL_T) {
-                        defineVar(install("EMR_ERROR_EXPR"), m_eval_bufs[iexpr], findVar(install(".GlobalEnv"), g_naryn->env()));
+                        SEXP env = findVar(install(".GlobalEnv"), g_naryn->env());
+                        defineVar(install("EMR_ERROR_EXPR"), m_eval_bufs[iexpr], env);
                         verror("Expression \"%s\" does not produce a numeric result.\n"
                                 "The result of the last expression evaluation was saved in EMR_ERROR_EXPR variable.", m_track_exprs[iexpr].c_str());
                     }
                     m_eval_doubles[iexpr] = REAL(m_eval_bufs[iexpr]);
                 } else if (isLogical(m_eval_bufs[iexpr])) {
                     if (m_valtype != LOGICAL_T) {
-                        defineVar(install("EMR_ERROR_EXPR"), m_eval_bufs[iexpr], findVar(install(".GlobalEnv"), g_naryn->env()));
+                        SEXP env = findVar(install(".GlobalEnv"), g_naryn->env());
+                        defineVar(install("EMR_ERROR_EXPR"), m_eval_bufs[iexpr], env);
                         verror("Expression \"%s\" does not produce a logical result.\n"
                                 "The result of the last expression evaluation was saved in EMR_ERROR_EXPR variable.", m_track_exprs[iexpr].c_str());
                     }

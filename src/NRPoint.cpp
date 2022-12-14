@@ -21,18 +21,20 @@ SEXP NRPoint::convert_points(const vector<EMRPoint> &points, unsigned num_cols, 
         ppoints->clear();
         ppoints->reserve(points.size());
 
-        if (!points.empty())
+        if (!points.empty()){
             ppoints->push_back((EMRPoint *)&points.front());
 
-        for (vector<EMRPoint>::const_iterator ipoint = points.begin() + 1; ipoint < points.end(); ++ipoint) {
-            ppoints->push_back((EMRPoint *)&*ipoint);
-            need_sort = need_sort | (*ipoint < *(ipoint - 1));
+            for (vector<EMRPoint>::const_iterator ipoint = points.begin() + 1; ipoint < points.end(); ++ipoint) {
+                ppoints->push_back((EMRPoint *)&*ipoint);
+                need_sort = need_sort | (*ipoint < *(ipoint - 1));
+            }
         }
 
-        if (do_sort && need_sort)
+        if (do_sort && need_sort){
             sort(ppoints->begin(), ppoints->end(), EMRPPointsSort());
-        else
+        } else {
             ppoints = NULL;
+        }
     }
 
 
