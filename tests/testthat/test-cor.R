@@ -98,11 +98,10 @@ test_that("emr_cor works when dataframe = TRUE", {
     expect_warning(res_non_df <- emr_cor("track0", c(0, 10, 500, 1000), cor.exprs = c("track0", "track1", "track2", "track3"), iterator = 1, stime = 20, etime = 5000, keepref = FALSE, dataframe = FALSE))
 
     expect_true(all(res_non_df$n == res$n))
-    expect_true(all(res_non_df$e == res$e, na.rm = TRUE))
-    expect_true(all(res_non_df$var == res$var, na.rm = TRUE))
-    expect_true(all(res_non_df$cov == res$cov, na.rm = TRUE))
-    expect_true(all(res_non_df$cor == res$cor, na.rm = TRUE))
-
+    expect_true(all.equal(as.vector(res_non_df$e), res$e))
+    expect_true(all.equal(as.vector(res_non_df$var), res$var))
+    expect_true(all.equal(as.vector(res_non_df$cov), res$cov))
+    expect_true(all.equal(as.vector(res_non_df$cor), res$cor))
     expect_true(is.factor(res$i))
     expect_true(is.factor(res$j))
     expect_equal(levels(res$i), c("track0", "track1", "track2", "track3"))
