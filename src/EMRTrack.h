@@ -12,6 +12,7 @@
 #include <sys/stat.h>
 #include <unordered_set>
 #include <vector>
+#include <cstdint>
 
 #include "EMR.h"
 #include "BinFinder.h"

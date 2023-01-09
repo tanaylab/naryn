@@ -1,3 +1,7 @@
+# naryn 2.6.14 
+
+* Added <cstdint> include in order to compile with gcc13
+
 # naryn 2.6.13 
 
 * Fixed c++ clang-UBSAN and gcc-UBSAN errors.  

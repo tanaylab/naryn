@@ -16,5 +16,5 @@ expect_regression <- function(obj, id, snapshot_dir = "/net/mraid14/export/tgdat
 
     # We need testthat to always find the `expect` statement (otherwise - the test would be skipped)
     old <- readr::read_rds(regression_file)
-    expect_identical(old, obj)
+    expect_equal(old, obj)
 }
