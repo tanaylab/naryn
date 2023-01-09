@@ -2,6 +2,7 @@
 #define EMRITERATORFILTERITEM_H_INCLUDED
 
 #include <stdio.h>
+#include <cstdint>
 
 #include "EMRPoint.h"
 #include "EMRTrackExpressionIterator.h"

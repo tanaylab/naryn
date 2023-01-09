@@ -3,6 +3,7 @@
 
 #include "EMRPoint.h"
 #include "EMRTrack.h"
+#include <cstdint>
 
 struct NRPoint {
     enum Errors { BAD_FORMAT, BAD_VALUE };

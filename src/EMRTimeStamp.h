@@ -3,6 +3,7 @@
 
 #include <string.h>
 #include <string>
+#include <cstdint>
 
 #include "BufferedFile.h"
 #include "TGLException.h"
