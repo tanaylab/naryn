@@ -1,3 +1,7 @@
+# naryn 2.6.14.9000
+
+* Added `string_to_var` and `var_to_string` functions to generate valid variable names from strings.
+
 # naryn 2.6.14 
 
 * Added <cstdint> include in order to compile with gcc13
