@@ -2,6 +2,7 @@
 
 * Added `string_to_var` and `var_to_string` functions to generate valid variable names from strings.
 * `emr_track.rm` can now accept multiple tracks as input. 
+* Do not allow importing patients that do not apear at `patients.dob`.
 
 # naryn 2.6.14 
 

@@ -106,12 +106,13 @@
 #' @param src file name or data-frame containing the track records
 #' @param force if 'TRUE', suppresses user confirmation for addition to
 #' logical tracks
+#' @param remove_unknown if 'TRUE', removes unknown ids (ids that are not present at 'patients.dob' track) from the data. Otherwise, an error is thrown.
 #' @return None.
 #' @seealso \code{\link{emr_track.import}}, \code{\link{emr_track.create}},
 #' \code{\link{emr_db.init}}, \code{\link{emr_track.ls}}
 #' @keywords ~import
 #' @export emr_track.addto
-emr_track.addto <- function(track, src, force = FALSE) {
+emr_track.addto <- function(track, src, force = FALSE, remove_unknown = FALSE) {
     if (missing(track) || missing(src)) {
         stop("Usage: emr_track.addto(track, src)", call. = FALSE)
     }
@@ -172,7 +173,7 @@ emr_track.addto <- function(track, src, force = FALSE) {
         }
     }
 
-    .emr_call("emr_import", track, NULL, NULL, src, TRUE, .emr_env())
+    .emr_call("emr_import", track, NULL, NULL, src, TRUE, force, remove_unknown, .emr_env())
 }
 
 #' Creates a track from a track expression
@@ -347,13 +348,15 @@ emr_track.ids <- function(track) {
 #' @param categorical if 'TRUE' track is marked as categorical
 #' @param src file name or data-frame containing the track records
 #' @param override Boolean indicating whether the creation intends to override an existing track (default FALSE)
+#' @param remove_unknown if 'TRUE', removes unknown ids (ids that are not present at 'patients.dob' track) from the data. Otherwise, an error is thrown.
+#'
 #' @return None.
 #' @seealso \code{\link{emr_track.addto}}, \code{\link{emr_track.create}},
 #' \code{\link{emr_track.readonly}}, \code{\link{emr_db.init}},
 #' \code{\link{emr_track.ls}}
 #' @keywords ~import
 #' @export emr_track.import
-emr_track.import <- function(track, space, categorical, src, override = FALSE) {
+emr_track.import <- function(track, space, categorical, src, override = FALSE, remove_unknown = FALSE) {
     # when space is missing, writing for the last db in the order of connections
     if (missing(space)) {
         if ((!exists("EMR_UROOT", envir = .naryn) || is.null(get("EMR_UROOT", envir = .naryn)))) {
@@ -376,7 +379,7 @@ emr_track.import <- function(track, space, categorical, src, override = FALSE) {
     }
 
     db_id <- ._emr_backward_comp_space(space)
-    .emr_call("emr_import", track, db_id, categorical, src, FALSE, override, .emr_env())
+    .emr_call("emr_import", track, db_id, categorical, src, FALSE, override, remove_unknown, .emr_env())
 }
 
 

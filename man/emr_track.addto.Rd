@@ -4,7 +4,7 @@
 \alias{emr_track.addto}
 \title{Adds new records to a track}
 \usage{
-emr_track.addto(track, src, force = FALSE)
+emr_track.addto(track, src, force = FALSE, remove_unknown = FALSE)
 }
 \arguments{
 \item{track}{track name}
@@ -13,6 +13,8 @@ emr_track.addto(track, src, force = FALSE)
 
 \item{force}{if 'TRUE', suppresses user confirmation for addition to
 logical tracks}
+
+\item{remove_unknown}{if 'TRUE', removes unknown ids (ids that are not present at 'patients.dob' track) from the data. Otherwise, an error is thrown.}
 }
 \value{
 None.
