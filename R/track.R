@@ -800,7 +800,7 @@ emr_track.readonly <- function(track, readonly = NULL) {
 #' 'emr_track.rm' requires the user to interactively confirm the deletion. Set
 #' 'force' to 'TRUE' to suppress the user prompt.
 #'
-#' @param track track name
+#' @param track one or more track names to delete
 #' @param force if 'TRUE', suppresses user confirmation of a named track removal
 #' @return None.
 #' @seealso \code{\link{emr_track.create}}, \code{\link{emr_track.mv}},
@@ -811,6 +811,23 @@ emr_track.rm <- function(track, force = FALSE) {
     if (missing(track)) {
         stop("Usage: emr_track.rm(track, force = FALSE)", call. = FALSE)
     }
+
+    if (length(track) > 1) {
+        tryCatch(
+            {
+                purrr::walk(track, remove_track, force = force, update = FALSE)
+            },
+            finally = {
+                emr_db.reload()
+            }
+        )
+        emr_db.reload()
+    } else {
+        remove_track(track, force = force, update = TRUE)
+    }
+}
+
+remove_track <- function(track, force = TRUE, update = TRUE) {
     .emr_checkroot()
     if (!emr_track.exists(track)) {
         if (force) {
@@ -868,7 +885,7 @@ emr_track.rm <- function(track, force = FALSE) {
             emr_track.logical.rm(ltrack, force = TRUE)
         }
 
-        .emr_call("emr_track_rm", track, .emr_env())
+        .emr_call("emr_track_rm", track, update, new.env(parent = parent.frame()))
 
         if (file.exists(dirname1)) {
             unlink(dirname1, recursive = TRUE)
@@ -879,8 +896,6 @@ emr_track.rm <- function(track, force = FALSE) {
         }
     }
 }
-
-
 
 #' Returns track values
 #'

@@ -49,3 +49,15 @@ test_that("emr_track.ls responds to creation and deletion", {
     emr_track.rm("test_track1", TRUE)
     expect_false("test_track1" %in% emr_track.ls())
 })
+
+test_that("emr_track.ls responds deletion of multiple tracks", {
+    emr_track.rm("test_track1", TRUE)
+    emr_track.rm("test_track2", TRUE)
+    emr_track.create("test_track1", "user", FALSE, "track0+2", keepref = FALSE)
+    emr_track.create("test_track2", "user", FALSE, "track0+2", keepref = FALSE)
+    expect_true("test_track1" %in% emr_track.ls())
+    expect_true("test_track2" %in% emr_track.ls())
+    emr_track.rm(c("test_track1", "test_track2"), TRUE)
+    expect_false("test_track1" %in% emr_track.ls())
+    expect_false("test_track2" %in% emr_track.ls())
+})
