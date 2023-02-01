@@ -29,12 +29,12 @@ protected:
 //------------------------------ IMPLEMENTATION ----------------------------------------
 
 inline EMRTrackIterator::EMRTrackIterator(EMRTrack *track, bool keepref, unsigned stime, unsigned etime, unordered_set<double> &&vals, EMRTimeStamp::Hour expiration, EMRTrack::Iterator::OPS op){
-    init(track, keepref, stime, etime, move(vals), expiration, op);
+    init(track, keepref, stime, etime, std::move(vals), expiration, op);
 }
 
 inline void EMRTrackIterator::init(EMRTrack *track, bool keepref, unsigned stime, unsigned etime, unordered_set<double> &&vals, EMRTimeStamp::Hour expiration, EMRTrack::Iterator::OPS op){
     m_keepref = keepref;
-    m_itr.init(track, stime, etime, move(vals), expiration, op);
+    m_itr.init(track, stime, etime, std::move(vals), expiration, op);
 }
 
 inline bool EMRTrackIterator::begin()

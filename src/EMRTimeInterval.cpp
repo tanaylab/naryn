@@ -5,8 +5,9 @@
 
 void EMRTimeIntervals::sort_and_unify_overlaps(unsigned stime, unsigned etime)
 {
-    if (empty())
+    if (empty()){
         return;
+    }
 
     for (vector<EMRTimeInterval>::iterator iinterv = begin(); iinterv < end(); ) {
         if (iinterv->stime > iinterv->etime)
@@ -17,6 +18,9 @@ void EMRTimeIntervals::sort_and_unify_overlaps(unsigned stime, unsigned etime)
             if (iinterv != end() - 1)
                 *iinterv = back();
             pop_back();
+            if (empty()){
+                return;
+            }
             continue;
         }
 

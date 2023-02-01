@@ -106,9 +106,11 @@ void NRTrackExprScanner::define_r_vars(unsigned eval_buf_limit)
     runprotect(m_ritr_times);
     rprotect(m_ritr_times = RSaneAllocVector(REALSXP, m_eval_buf_limit));
     m_itr_times = REAL(m_ritr_times);
-    for (unsigned i = 0; i < eval_buf_limit; ++i)
+    for (unsigned i = 0; i < eval_buf_limit; ++i){
         m_itr_times[i] = 0;
-    defineVar(install("EMR_TIME"), m_ritr_times, findVar(install(".GlobalEnv"), g_naryn->env()));
+    }
+    SEXP env = findVar(install(".GlobalEnv"), g_naryn->env());
+    defineVar(install("EMR_TIME"), m_ritr_times, env);
 
     for (unsigned iexpr = 0; iexpr < m_track_exprs.size(); ++iexpr) {
         const NRTrackExpressionVars::TrackVar *var = m_expr_vars.var(m_track_exprs[iexpr].c_str());
@@ -222,15 +224,24 @@ bool NRTrackExprScanner::begin(const vector<string> &track_exprs, ValType valtyp
         }
 	}
 
-    if (isNull(filter) && (typeid(m_itr.itr()) == typeid(EMRBeatIterator) || typeid(m_itr.itr()) == typeid(EMRBeatExtIterator)) &&
-        g_naryn->beat_itr_warning_size() != (uint64_t)-1 && m_itr.itr().size() > g_naryn->beat_itr_warning_size())
-    {
-        if (typeid(m_itr.itr()) == typeid(EMRBeatIterator))
-            vwarning("The Beat Iterator is going to produce %llu points.\n"
-                     "To improve performance please consider using a filter.\n", m_itr.itr().size());
-        else
-            vwarning("The Extended Beat Iterator might produce up to %llu points.\n"
-                     "To improve performance please consider using a filter.\n", m_itr.itr().size());
+    if (isNull(filter)){
+        const EMRTrackExpressionIterator &itr = m_itr.itr();
+        if ((typeid(itr) == typeid(EMRBeatIterator) ||
+             typeid(itr) == typeid(EMRBeatExtIterator)) &&
+            g_naryn->beat_itr_warning_size() != (uint64_t)-1 &&
+            itr.size() > g_naryn->beat_itr_warning_size()) {
+          if (typeid(itr) == typeid(EMRBeatIterator)) {
+            vwarning(
+                "The Beat Iterator is going to produce %llu points.\n"
+                "To improve performance please consider using a filter.\n",
+                itr.size());
+          } else {
+            vwarning(
+                "The Extended Beat Iterator might produce up to %llu points.\n"
+                "To improve performance please consider using a filter.\n",
+                itr.size());
+          }
+        }
     }
 
 	m_num_evals = 0;

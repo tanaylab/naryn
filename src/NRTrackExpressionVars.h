@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 #include <string.h>
+#include <cstdint>
 
 #include <R.h>
 #include <Rinternals.h>

@@ -42,7 +42,7 @@ public:
 inline string EMRIdTimeInterval::tostr() const
 {
 	char buf[200];
-	sprintf(buf, "(%u, %s)", id, tinterv.tostr().c_str());
+	snprintf(buf, sizeof(buf), "(%u, %s)", id, tinterv.tostr().c_str());
 	return buf;
 }
 

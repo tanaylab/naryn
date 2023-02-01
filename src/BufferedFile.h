@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <string>
 #include <vector>
+#include <cstdint>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>

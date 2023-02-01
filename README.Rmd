@@ -6,9 +6,9 @@ output:
 
 ```{r, echo = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  fig.path = "README-"
+    collapse = TRUE,
+    comment = "#>",
+    fig.path = "README-"
 )
 ```
 
@@ -21,6 +21,12 @@ knitr::opts_chunk$set(
 The `naryn` package is a toolkit for medical records data analysis. It implements an efficient data structure for storing medical records, and provides a set of functions for data extraction, manipulation and analysis. 
 
 ## Installation
+
+```{r, eval=FALSE}
+install.packages("naryn")
+```
+
+Or for the latest development version:
 
 ```{r, eval=FALSE}
 remotes::install_github("tanaylab/naryn")

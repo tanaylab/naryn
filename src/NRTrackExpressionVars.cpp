@@ -76,7 +76,7 @@ NRTrackExpressionVars::IteratorManager *NRTrackExpressionVars::add_imanager(cons
             verror("Reached the limit of maximal number of simultaneously used virtual tracks");
 
         m_imanagers.push_back(imanager);
-        m_imanagers.back().data_fetcher.init(track, track_ownership, move(vals));
+        m_imanagers.back().data_fetcher.init(track, track_ownership, std::move(vals));
         m_imanagers.back().data_fetcher.register_function(func);
         return &m_imanagers.back();
     }
@@ -284,17 +284,22 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
             double id2 = isReal(rids2) ? REAL(rids2)[i] : INTEGER(rids2)[i];
             int time_shift = 0;
 
-            if (time_shift_used)
+            if (time_shift_used) {
                 time_shift = isReal(rtime_shift) ? REAL(rtime_shift)[i] : INTEGER(rtime_shift)[i];
+            }
 
-            if (!g_db->id_exists((unsigned)id1) || id1 != (int)id1)
+            if (!g_db->id_exists((unsigned)id1) || id1 != (int)id1) {
                 verror("Virtual track %s: invalid source id (%g) within 'id.map'", vtrack.c_str(), id1);
-            if (!g_db->id_exists((unsigned)id2) || id2 != (int)id2)
+            }
+
+            if (!g_db->id_exists((unsigned)id2) || id2 != (int)id2) {
                 verror("Virtual track %s: invalid target id (%g) within 'id.map'", vtrack.c_str(), id2);
+            }
 
             IdMap::const_iterator iid_map = imanager.id_map.find((unsigned)id1);
-            if (iid_map != imanager.id_map.end())
+            if (iid_map != imanager.id_map.end()) {
                 verror("Virtual track %s: id (%d) is mapped more than once within 'id.map'", vtrack.c_str(), (unsigned)id1);
+            }
 
             imanager.id_map[(unsigned)id1] = {(unsigned)id2, time_shift};
         }
@@ -336,16 +341,18 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
                                    min((int)etime + imanager.eshift, (int)EMRTimeStamp::MAX_HOUR),
                                    false, R_NilValue, true, rfilter); !scanner.isend(); scanner.next())
                 {
-                    if (track->data_type() == EMRTrack::FLOAT)
+                    if (track->data_type() == EMRTrack::FLOAT) {
                         track_data_float.add(scanner.point().id, scanner.point().timestamp, scanner.real());
-                    else
+                    } else {
                         track_data_double.add(scanner.point().id, scanner.point().timestamp, scanner.real());
+                    }
                 }
 
-                if (track->data_type() == EMRTrack::FLOAT)
+                if (track->data_type() == EMRTrack::FLOAT) {
                     track = EMRTrack::construct((vtrack + ".filtered").c_str(), track, track->flags(), track_data_float);
-                else
+                } else {
                     track = EMRTrack::construct((vtrack + ".filtered").c_str(), track, track->flags(), track_data_double);
+                }
 
                 track_ownership = true;
                 imanager.filter = rfilter;
@@ -363,8 +370,9 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
         var.logical_track_source = CHAR(STRING_ELT(rlsource, 0));        
     }
 
-    if (!only_check)
-        var.imanager = add_imanager(imanager, track, (EMRTrack::Func)ifunc, move(vals), track_ownership);
+    if (!only_check) {
+        var.imanager = add_imanager(imanager, track, (EMRTrack::Func)ifunc, std::move(vals), track_ownership);
+    }
 }
 
 NRTrackExpressionVars::TrackVar &NRTrackExpressionVars::add_track_var(const string &track_name)

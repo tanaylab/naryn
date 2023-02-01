@@ -3,6 +3,7 @@
 
 #include <sys/time.h>
 #include <utility>
+#include <cstdint>
 
 using namespace std::rel_ops;
 

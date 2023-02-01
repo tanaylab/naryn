@@ -9,7 +9,7 @@ extern SEXP emr_covariance(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
 extern SEXP emr_dbinit(SEXP, SEXP, SEXP, SEXP);
 extern SEXP emr_dbreload(SEXP);
 extern SEXP emr_dbunload(SEXP);
-extern SEXP emr_db_subset(SEXP, SEXP, SEXP);
+extern SEXP emr_db_subset(SEXP, SEXP, SEXP, SEXP);
 extern SEXP emr_db_subset_ids(SEXP);
 extern SEXP emr_db_subset_info(SEXP);
 extern SEXP emr_track_exists(SEXP, SEXP, SEXP);
@@ -50,7 +50,7 @@ extern SEXP C_emr_time2month(SEXP, SEXP);
 extern SEXP C_emr_time2year(SEXP, SEXP);
 extern SEXP C_emr_date2time(SEXP, SEXP);
 extern SEXP emr_track_mv(SEXP, SEXP, SEXP, SEXP);
-extern SEXP emr_track_rm(SEXP, SEXP);
+extern SEXP emr_track_rm(SEXP, SEXP, SEXP);
 extern SEXP emr_track_info(SEXP, SEXP);
 extern SEXP emr_track_ids(SEXP, SEXP);
 extern SEXP emr_track_unique(SEXP, SEXP);

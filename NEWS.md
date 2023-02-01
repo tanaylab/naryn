@@ -1,6 +1,29 @@
-# naryn 2.6.10 
+# naryn 2.6.14.9000
 
+* Added `string_to_var` and `var_to_string` functions to generate valid variable names from strings.
 * `emr_track.rm` can now accept multiple tracks as input. 
+
+# naryn 2.6.14 
+
+* Added <cstdint> include in order to compile with gcc13
+
+# naryn 2.6.13 
+
+* Fixed c++ clang-UBSAN and gcc-UBSAN errors.  
+* Fixed `rchk` warnings.
+
+# naryn 2.6.12
+
+* Fixed: hang when all iterator intervals were outside of `stime` and `etime`. 
+
+# naryn 2.6.11
+
+* Fixed an additional clang warning.
+
+# naryn 2.6.10
+
+* removed `emr_traceback` function
+* Fixed C++ compilation warnings and possible memory leaks.
 
 # naryn 2.6.9 
 

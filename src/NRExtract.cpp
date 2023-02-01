@@ -110,7 +110,7 @@ SEXP C_emr_extract(SEXP _exprs, SEXP _names, SEXP _tidy, SEXP _sort, SEXP _stime
             vector<EMRPoint *> ppoints;
             SEXP answer = NRPoint::convert_points(out_points, NRPoint::NUM_POINT_COLS + num_exprs, false, do_sort, &ppoints);
 
-             for (unsigned iexpr = 0; iexpr < num_exprs; ++iexpr) {
+            for (unsigned iexpr = 0; iexpr < num_exprs; ++iexpr) {
                  SEXP rexpr_vals;
                  rprotect(rexpr_vals = RSaneAllocVector(REALSXP, values[iexpr].size()));
                  for (vector<EMRPoint *>::const_iterator ippoint = ppoints.begin(); ippoint != ppoints.end(); ++ippoint)

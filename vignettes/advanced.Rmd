@@ -9,8 +9,8 @@ vignette: >
   
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
+    collapse = TRUE,
+    comment = "#>"
 )
 ```
 
@@ -449,7 +449,7 @@ Pattern Matching | `emr_track.ls`, <br /> `emr_track.global.ls`, <br /> `emr_tra
 Time shift parameter (used in various functions) | `time.shift` is a numeric or a vector of two numerics. | `time_shift` is a numeric or a list of two numerics. |     
 Calculating Distribution | `emr_dist` returns N-dimensional `vector` with labels (dimension names) | `dist` return N-dimensional `numpy.ndarray` without labels. |    
 Calculating Correlation Statistics | `emr_cor`: <br /> For N-dimensional binning the returned value `r` may be addressed as: <br /> `r$cor[bin1,...,binN,i,j]`, where `i` and `j` are indices of `cor.exprs`. | `cor`: <br /> For N-dimensional binning the returned value `r` may be addressed as: <br /> `r['cor'][bin1,...,binN,i,j]`, where `i` and `j` are indices of `cor_exprs`. |     
-Others | `emr_annotate` <br /> <br /> <br /> <br /> <br /> `emr_traceback` | Not implemented, use <br /> `pandas.DataFrame.merge` <br /> or <br /> `pandas.merge_sorted` <br /> instead. <br /> <br /> Not implemented, not applicable.  | 
+Others | `emr_annotate` <br /> <br /> <br /> <br /> <br /> | Not implemented, use <br /> `pandas.DataFrame.merge` <br /> or <br /> `pandas.merge_sorted` <br /> instead. <br /> <br /> | 
 
 
 ### Options

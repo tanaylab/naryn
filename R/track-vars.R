@@ -49,9 +49,18 @@ emr_track.var.get <- function(track, var) {
     }
 
     f <- file(filename, "rb")
-    val <- unserialize(f)
+    tryCatch(
+        {
+            val <- unserialize(f)
+        },
+        error = function(e) {
+            stop(sprintf("Error reading variable %s from track %s: %s. Check that the file %s is not corrupt.", var, track, e$message, filename), call. = FALSE)
+        }
+    )
+
     close(f)
-    val
+
+    return(val)
 }
 
 

@@ -3,6 +3,7 @@
 
 #include <unordered_set>
 #include <vector>
+#include <cstdint>
 
 #include "EMR.h"
 #include "naryn.h"

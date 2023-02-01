@@ -12,6 +12,7 @@
 #include <sys/stat.h>
 #include <unordered_set>
 #include <vector>
+#include <cstdint>
 
 #include "EMR.h"
 #include "BinFinder.h"
@@ -110,7 +111,7 @@ public:
 	class DataFetcher {
 	public:
 		DataFetcher() : m_track(NULL) {}
-		DataFetcher(EMRTrack *track, bool track_ownership, unordered_set<double> vals2compare) : m_track(NULL) { init(track, track_ownership, move(vals2compare)); }
+		DataFetcher(EMRTrack *track, bool track_ownership, unordered_set<double> vals2compare) : m_track(NULL) { init(track, track_ownership, std::move(vals2compare)); }
 
         ~DataFetcher();
 
@@ -131,10 +132,10 @@ protected:
         template <class T> friend class EMRTrackDense;
         template <class T> friend class EMRTrackSparse;
 
-		EMRTrack              *m_track;
-        bool                   m_track_ownership;
+		EMRTrack              *m_track = NULL;
+        bool                   m_track_ownership = false;
         unsigned               m_last_id;
-        Func                   m_function;
+        Func                   m_function = AVG;
         unordered_set<double>  m_vals2compare;
 		unsigned               m_data_idx;   // last patient idx that is greater or equal than the last query
 		unsigned               m_rec_idx;    // last record idx that is greater or equal than the last query
@@ -196,8 +197,8 @@ protected:
     uint64_t          m_shmem_size;
     struct timespec m_timestamp;
     string          m_name;
-	TrackType       m_track_type;
-	DataType        m_data_type;
+	TrackType       m_track_type = SPARSE;
+	DataType        m_data_type = DOUBLE;
     unsigned        m_flags;
     EMRTrack        *m_base_track{NULL};     // if the track is intermediate (for virtual track queries), then base track is the one that is used as a source
     unsigned        m_min_id;
@@ -255,7 +256,7 @@ inline EMRTrack::Iterator::Iterator(EMRTrack *track, unsigned stime, unsigned et
     m_track(NULL),
     m_isend(true)
 {
-    init(track, stime, etime, move(vals), expiration, op);
+    init(track, stime, etime, std::move(vals), expiration, op);
 }
 
 inline bool EMRTrack::Iterator::passed_operator(double val){
@@ -308,9 +309,10 @@ inline EMRTrack::EMRTrack(const char *name, TrackType track_type, DataType data_
 
 inline EMRTrack::~EMRTrack()
 {
-    delete m_mem;
-    if (m_shmem != MAP_FAILED)
+    free(m_mem);
+    if (m_shmem != MAP_FAILED) {
         munmap(m_shmem, m_shmem_size);
+    }
 }
 
 template <class T>

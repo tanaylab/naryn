@@ -3,6 +3,7 @@
 
 #include <string.h>
 #include <string>
+#include <cstdint>
 
 #include "BufferedFile.h"
 #include "TGLException.h"
@@ -52,7 +53,7 @@ private:
 inline string EMRTimeStamp::tostr() const
 {
     char buf[100];
-    sprintf(buf, "(hour %d, ref %d)", (int)hour(), (int)refcount());
+    snprintf(buf, sizeof(buf), "(hour %d, ref %d)", (int)hour(), (int)refcount());
     return buf;
 }
 
