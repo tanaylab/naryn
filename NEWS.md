@@ -1,6 +1,7 @@
 # naryn 2.6.14.9000
 
 * Added `string_to_var` and `var_to_string` functions to generate valid variable names from strings.
+* `emr_track.rm` can now accept multiple tracks as input. 
 
 # naryn 2.6.14 
 
@@ -27,7 +28,6 @@
 # naryn 2.6.9 
 
 * Removed global variables from the package - EMR_ROOTS, EMR_GROOT, EMR_UROOT, EMR_FILTERS and EMR_VTRACKS are now a part of a dedicated environment called `.naryn`. You can access them using `.naryn::EMR_ROOTS` etc. 
-
 
 # naryn 2.6.8 
 

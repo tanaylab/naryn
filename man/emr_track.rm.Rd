@@ -7,7 +7,7 @@
 emr_track.rm(track, force = FALSE)
 }
 \arguments{
-\item{track}{track name}
+\item{track}{one or more track names to delete}
 
 \item{force}{if 'TRUE', suppresses user confirmation of a named track removal}
 }
