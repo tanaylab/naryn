@@ -4,7 +4,14 @@
 \alias{emr_track.import}
 \title{Imports a track from a file or data-frame}
 \usage{
-emr_track.import(track, space, categorical, src, override = FALSE)
+emr_track.import(
+  track,
+  space,
+  categorical,
+  src,
+  override = FALSE,
+  remove_unknown = FALSE
+)
 }
 \arguments{
 \item{track}{the name of the newly created track}
@@ -16,6 +23,8 @@ emr_track.import(track, space, categorical, src, override = FALSE)
 \item{src}{file name or data-frame containing the track records}
 
 \item{override}{Boolean indicating whether the creation intends to override an existing track (default FALSE)}
+
+\item{remove_unknown}{if 'TRUE', removes unknown ids (ids that are not present at 'patients.dob' track) from the data. Otherwise, an error is thrown.}
 }
 \value{
 None.
