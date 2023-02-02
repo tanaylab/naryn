@@ -1,5 +1,6 @@
 load_test_db()
 
+# not that the test db has a missing patient from 'patients.dob' track (2510). It only exists in 'ph1' track.
 test_that("emr_track.import from data frame works", {
     a <- emr_extract("track1", keepref = TRUE, names = "value")
     emr_track.import("temp_track", "global", categorical = FALSE, src = a)
@@ -13,14 +14,14 @@ test_that("emr_track.import from data frame works", {
     b <- emr_extract("u_temp_track", keepref = TRUE, names = "value")
     expect_equal(a, b)
 
-    a <- emr_extract("ph1", keepref = TRUE, names = "value")
+    a <- emr_extract("track6", keepref = TRUE, names = "value")
     emr_track.import("temp_track1", "global", categorical = TRUE, src = a)
     withr::defer(emr_track.rm("temp_track1", force = TRUE))
     b <- emr_extract("temp_track1", keepref = TRUE, names = "value")
     expect_equal(a, b)
 
 
-    a <- emr_extract("ph1", keepref = TRUE, names = "value")
+    a <- emr_extract("track6", keepref = TRUE, names = "value")
     emr_track.import("u_temp_track1", "user", categorical = TRUE, src = a)
     withr::defer(emr_track.rm("u_temp_track1", force = TRUE))
     b <- emr_extract("u_temp_track1", keepref = TRUE, names = "value")
@@ -44,7 +45,7 @@ test_that("emr_track.import from file works", {
     b <- emr_extract("u_temp_track", keepref = TRUE, names = "value")
     expect_equal(a, b)
 
-    a <- emr_extract("ph1", keepref = TRUE, names = "value")
+    a <- emr_extract("track6", keepref = TRUE, names = "value")
     fn <- tempfile()
     readr::write_tsv(a, fn, col_names = FALSE)
     emr_track.import("temp_track1", "global", categorical = TRUE, src = fn)
@@ -53,7 +54,7 @@ test_that("emr_track.import from file works", {
     expect_equal(a, b)
 
 
-    a <- emr_extract("ph1", keepref = TRUE, names = "value")
+    a <- emr_extract("track6", keepref = TRUE, names = "value")
     fn <- tempfile()
     readr::write_tsv(a, fn, col_names = FALSE)
     emr_track.import("u_temp_track1", "user", categorical = TRUE, src = fn)
@@ -121,4 +122,104 @@ test_that("creating a virtual track with duplicate values still fails", {
     emr_vtrack.create("vt", src = list(b, FALSE))
     expect_error(emr_extract("vt"))
     expect_error(emr_extract("vt", iterator = "track1"))
+})
+
+# test remove unknown with a data frame
+
+test_that("emr_track.import failes with unknown id", {
+    withr::defer(emr_track.rm("test", force = TRUE))
+    expect_error(emr_track.import("test", .naryn$EMR_GROOT, categorical = TRUE, src = data.frame(id = 2000, time = 5, value = 1)))
+    expect_true(!emr_track.exists("test"))
+})
+
+test_that("emr_track.import failes with multiple unknown ids", {
+    a <- emr_extract("track1", keepref = TRUE, names = "value")
+    a <- rbind(a, data.frame(id = 2000, time = 5, ref = 0, value = 1))
+    a <- rbind(a, data.frame(id = 3000, time = 6, ref = 0, value = 1))
+
+    withr::defer(emr_track.rm("test", force = TRUE))
+    expect_error(emr_track.import("test", .naryn$EMR_GROOT, categorical = TRUE, src = a))
+    expect_true(!emr_track.exists("test"))
+})
+
+test_that("emr_track.import works when remove_unknown is TRUE", {
+    a <- emr_extract("track1", keepref = TRUE, names = "value")
+    a <- rbind(a, data.frame(id = 2000, time = 5, ref = 0, value = 1))
+    a <- rbind(a, data.frame(id = 3000, time = 6, ref = 0, value = 1))
+
+    withr::defer(emr_track.rm("test", force = TRUE))
+    emr_track.import("test", .naryn$EMR_GROOT, categorical = TRUE, src = a, remove_unknown = TRUE)
+    expect_true(emr_track.exists("test"))
+    expect_true(all(!(c(2000, 3000) %in% emr_extract("test")$id)))
+})
+
+# test remove unknown with a file
+test_that("emr_track.import failes with unknown id", {
+    fn <- tempfile()
+    readr::write_tsv(data.frame(id = 2000, time = 5, ref = 0, value = 1), fn, col_names = FALSE)
+    withr::defer(emr_track.rm("test", force = TRUE))
+    expect_error(emr_track.import("test", .naryn$EMR_GROOT, categorical = TRUE, src = fn))
+    expect_true(!emr_track.exists("test"))
+})
+
+test_that("emr_track.import failes with multiple unknown ids", {
+    a <- emr_extract("track1", keepref = TRUE, names = "value")
+    a <- rbind(a, data.frame(id = 2000, time = 5, ref = 0, value = 1))
+    a <- rbind(a, data.frame(id = 3000, time = 6, ref = 0, value = 1))
+
+    fn <- tempfile()
+    readr::write_tsv(a, fn, col_names = FALSE)
+
+    withr::defer(emr_track.rm("test", force = TRUE))
+    expect_error(emr_track.import("test", .naryn$EMR_GROOT, categorical = TRUE, src = fn))
+    expect_true(!emr_track.exists("test"))
+})
+
+test_that("emr_track.import works when remove_unknown is TRUE", {
+    a <- emr_extract("track1", keepref = TRUE, names = "value")
+    a <- rbind(a, data.frame(id = 2000, time = 5, ref = 0, value = 1))
+    a <- rbind(a, data.frame(id = 3000, time = 6, ref = 0, value = 1))
+
+    fn <- tempfile()
+    readr::write_tsv(a, fn, col_names = FALSE)
+
+    withr::defer(emr_track.rm("test", force = TRUE))
+    emr_track.import("test", .naryn$EMR_GROOT, categorical = TRUE, src = fn, remove_unknown = TRUE)
+    expect_true(emr_track.exists("test"))
+    expect_true(all(!(c(2000, 3000) %in% emr_extract("test")$id)))
+})
+
+
+test_that("emr_track.addto fails with unknown ids", {
+    a <- emr_extract("track1", keepref = TRUE, names = "value")
+    emr_track.import("temp_track", "global", categorical = FALSE, src = a)
+    withr::defer(emr_track.rm("temp_track", force = TRUE))
+    expect_error(emr_track.addto("temp_track", data.frame(id = 2000, time = 5, ref = 0, value = 1)))
+})
+
+test_that("emr_track.addto works with remove_unknown", {
+    a <- emr_extract("track1", keepref = TRUE, names = "value")
+    emr_track.import("temp_track", "global", categorical = FALSE, src = a)
+    withr::defer(emr_track.rm("temp_track", force = TRUE))
+    emr_track.addto("temp_track", data.frame(id = 2000, time = 5, ref = 0, value = 1), remove_unknown = TRUE)
+    expect_true(all(!(c(2000) %in% emr_extract("temp_track")$id)))
+})
+
+test_that("emr_track.addto fails with unknown ids with a file", {
+    a <- emr_extract("track1", keepref = TRUE, names = "value")
+    fn <- tempfile()
+    readr::write_tsv(a, fn, col_names = FALSE)
+    emr_track.import("temp_track", "global", categorical = FALSE, src = fn)
+    withr::defer(emr_track.rm("temp_track", force = TRUE))
+    expect_error(emr_track.addto("temp_track", data.frame(id = 2000, time = 5, ref = 0, value = 1)))
+})
+
+test_that("emr_track.addto works with remove_unknown with a file", {
+    a <- emr_extract("track1", keepref = TRUE, names = "value")
+    fn <- tempfile()
+    readr::write_tsv(a, fn, col_names = FALSE)
+    emr_track.import("temp_track", "global", categorical = FALSE, src = fn)
+    withr::defer(emr_track.rm("temp_track", force = TRUE))
+    emr_track.addto("temp_track", data.frame(id = 2000, time = 5, ref = 0, value = 1), remove_unknown = TRUE)
+    expect_true(all(!(c(2000) %in% emr_extract("temp_track")$id)))
 })

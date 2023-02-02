@@ -10,7 +10,7 @@
 
 extern "C" {
 
-SEXP emr_import(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _src, SEXP _add, SEXP _override, SEXP _envir)
+SEXP emr_import(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _src, SEXP _add, SEXP _override, SEXP _remove_unknown, SEXP _envir)
 {
     try {
         Naryn naryn(_envir);
@@ -21,9 +21,12 @@ SEXP emr_import(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _src, SEXP _ad
         bool do_add = asLogical(_add);
         string trackname = { CHAR(asChar(_track)) };
         string track_filename;
+        bool is_patients_dob = trackname == string(g_db->dob_trackname());
+        bool patients_dob_exists;
         bool categorical;
         bool has_overlap = false;
         bool toverride = asLogical(_override);
+        bool remove_unknown = asLogical(_remove_unknown);
         string db_id;
         EMRTrackData<float> data;
         
@@ -31,12 +34,13 @@ SEXP emr_import(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _src, SEXP _ad
             EMRTrack *track = g_db->track(trackname);
             const EMRDb::TrackInfo *track_info = g_db->track_info(trackname);
 
-            if (!track)
+            if (!track){
                 verror("Track %s not found", trackname.c_str());
+            }
 
             track_filename = track_info->filename;
             categorical = track->is_categorical();
-            db_id = track_info->db_id;
+            db_id = track_info->db_id;            
             track->data_recs(data);
         } else {
             
@@ -105,8 +109,9 @@ SEXP emr_import(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _src, SEXP _ad
             int ref;
             float val;
 
-            if (bfile.open(filename, "r"))
+            if (bfile.open(filename, "r")){
                 verror("Failed to open file %s for reading: %s", filename, strerror(errno));
+            }
 
             while (1) {
                 lineno += split_line_by_space_chars(bfile, fields, NRPoint::NUM_PVAL_COLS);
@@ -125,42 +130,64 @@ SEXP emr_import(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _src, SEXP _ad
                 }
 
                 id = strtol(fields[NRPoint::ID].c_str(), &endptr, 10);
-                if (*endptr || id < 0)
+                if (*endptr || id < 0){
                     verror("%s, line %d: invalid id", filename, lineno);
-
+                }
                 hour = strtol(fields[NRPoint::TIME].c_str(), &endptr, 10);
-                if (*endptr || hour < 0 || (EMRTimeStamp::Hour)hour > EMRTimeStamp::MAX_HOUR)
+                if (*endptr || hour < 0 || (EMRTimeStamp::Hour)hour > EMRTimeStamp::MAX_HOUR){
                     verror("%s, line %d: invalid time", filename, lineno);
+                }
 
                 ref = strtol(fields[NRPoint::REF].c_str(), &endptr, 10);
-                if (*endptr || (ref < 0 && ref != -1) || ref > EMRTimeStamp::MAX_REFCOUNT)
+                if (*endptr || (ref < 0 && ref != -1) || ref > EMRTimeStamp::MAX_REFCOUNT){
                     verror("%s, line %d: invalid reference", filename, lineno);
+                }
 
                 val = strtod(fields[NRPoint::VALUE].c_str(), &endptr);
-                if (*endptr)
+                if (*endptr){
                     verror("%s, line %d: invalid data format", filename, lineno);
+                }
 
                 data.add(id, EMRTimeStamp((EMRTimeStamp::Hour)hour, (EMRTimeStamp::Refcount)ref), val);
 
                 check_interrupt();
             }
-        } else
+        } else {            
             NRPoint::convert_rpoints_vals(_src, data, "'src': ");
+        }
+
+        // deal with patients.dob unknown ids
+        patients_dob_exists = g_db->track_name_exists(g_db->dob_trackname(), db_id);
+
+        if (!is_patients_dob && patients_dob_exists) {
+            if (remove_unknown) {
+                data.data.erase(std::remove_if(data.data.begin(), data.data.end(),
+                                           [](const EMRTrackData<float>::DataRec& v) { return !g_db->id_exists(v.id); }),
+                            data.data.end());
+            } else {
+                for (size_t i = 0; i < data.data.size(); i++) {
+                    if (!g_db->id_exists(data.data[i].id)) {
+                        verror("id %d does not exist in the database (in '%s' track)", data.data[i].id, g_db->dob_trackname());
+                    }
+                }
+            }
+        }
+
 
         if (access(track_filename.c_str(), F_OK) != -1) {
             string tmp_filename = track_filename + ".tmp";
             EMRTrack::serialize(tmp_filename.c_str(), categorical ? EMRTrack::IS_CATEGORICAL : 0, data);
             unlink(track_filename.c_str());
             FileUtils::move_file(tmp_filename.c_str(), track_filename.c_str());
-        } else
+        } else {
             EMRTrack::serialize(track_filename.c_str(), categorical, data);
+        }
         
         if (has_overlap){
             g_db->unload_track(trackname.c_str(), true, true);
         }
         g_db->load_track(trackname.c_str(), db_id);
-        
-    } catch (TGLException &e) {
+        } catch (TGLException &e) {
         rerror("%s", e.msg());
     } catch (const bad_alloc &e) {
         rerror("Out of memory");
