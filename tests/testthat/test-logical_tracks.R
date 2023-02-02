@@ -962,6 +962,7 @@ test_that("emr_ids_coverage works", {
     emr_track.logical.create("l18", "ph1", 18)
 
     df <- emr_extract("ph1", keepref = TRUE)
+    emr_track.addto("patients.dob", src = data.frame(id = 2510, time = 0, ref = -1, value = 0))
     emr_track.import("p15", space = "global", categorical = TRUE, src = df %>% dplyr::filter(ph1 == 15) %>% dplyr::select(id, time, ref, value = ph1))
     emr_track.import("p18", space = "global", categorical = TRUE, src = df %>% dplyr::filter(ph1 == 18) %>% dplyr::select(id, time, ref, value = ph1))
     withr::defer(emr_track.rm("p15", force = TRUE))
@@ -1038,6 +1039,7 @@ test_that("emr_ids_vals_coverage works", {
     emr_track.logical.create("l18", "ph1", 18)
 
     df <- emr_extract("ph1", keepref = TRUE)
+    emr_track.addto("patients.dob", src = data.frame(id = 2510, time = 0, ref = -1, value = 0))
     emr_track.import("p15", space = "global", categorical = TRUE, src = df %>% dplyr::filter(ph1 == 15) %>% dplyr::select(id, time, ref, value = ph1))
     emr_track.import("p18", space = "global", categorical = TRUE, src = df %>% dplyr::filter(ph1 == 18) %>% dplyr::select(id, time, ref, value = ph1))
     withr::defer(emr_track.rm("p15", force = TRUE))
@@ -1105,6 +1107,7 @@ test_that("emr_track.ids works on logical tracks", {
     emr_track.logical.create("l15", "ph1", 15)
     emr_track.logical.create("l18", "ph1", 18)
 
+    emr_track.addto("patients.dob", src = data.frame(id = 2510, time = 0, ref = -1, value = 0))
     df <- emr_extract("ph1", keepref = TRUE)
     emr_track.import("p15", space = "global", categorical = TRUE, src = df %>% dplyr::filter(ph1 == 15) %>% dplyr::select(id, time, ref, value = ph1))
     emr_track.import("p18", space = "global", categorical = TRUE, src = df %>% dplyr::filter(ph1 == 18) %>% dplyr::select(id, time, ref, value = ph1))
@@ -1133,6 +1136,7 @@ test_that("emr_track.ids works on logical tracks with dense source", {
     emr_track.logical.create("l9", "track8", 9)
     emr_track.logical.create("l2", "track8", 2)
 
+    emr_track.addto("patients.dob", src = data.frame(id = 2510, time = 0, ref = -1, value = 0))
     df <- emr_extract("track8", keepref = TRUE)
     emr_track.import("p9", space = "global", categorical = TRUE, src = df %>% dplyr::filter(track8 == 9) %>% dplyr::select(id, time, ref, value = track8))
     emr_track.import("p2", space = "global", categorical = TRUE, src = df %>% dplyr::filter(track8 == 2) %>% dplyr::select(id, time, ref, value = track8))
