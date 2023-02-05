@@ -60,6 +60,8 @@ reference:
     - starts_with("emr_track.var")
   - title: Other
     contents:
-    - '`emr_download_example_data`'    
+    - '`emr_download_example_data`'   
+    - '`string_to_var`'
+    - '`var_to_string`' 
     - '`naryn-package`'
 
