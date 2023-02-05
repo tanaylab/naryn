@@ -231,4 +231,10 @@
   <url>
     <loc>/reference/pipe.html</loc>
   </url>
+  <url>
+    <loc>/reference/string_to_var.html</loc>
+  </url>
+  <url>
+    <loc>/reference/var_to_string.html</loc>
+  </url>
 </urlset>
