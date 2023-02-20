@@ -191,9 +191,9 @@ emr_date2time <- function(day, month, year, hour = 0) {
 #' @export
 emr_time2date <- function(time) {
     data.frame(
-        day = emr_time2dayofmonth(time),
-        month = emr_time2month(time),
         year = emr_time2year(time),
+        month = emr_time2month(time),
+        day = emr_time2dayofmonth(time),
         hour = emr_time2hour(time)
     )
 }

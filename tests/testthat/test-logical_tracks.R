@@ -1894,3 +1894,13 @@ test_that("emr_track.rm of multiple tracks removes the track attributes for logi
     expect_false(file.exists(attrs_file1))
     expect_false(file.exists(attrs_file2))
 })
+
+test_that("logical tracks are reloaded after switching dbs", {
+    withr::defer(clean_logical_tracks())
+    emr_track.logical.create("l1", "track1")
+    first_db <- emr_db.ls()[1]
+    load_test_db()
+    expect_length(emr_track.logical.ls(), 0)
+    emr_db.connect(first_db)
+    expect_equal(emr_track.logical.ls(), "l1")
+})

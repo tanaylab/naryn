@@ -171,7 +171,7 @@ protected:
 
     unsigned          m_transact_id{1};
     Name2Track        m_tracks;
-    struct timespec   m_logical_tracks_ts{0, 0};
+    unordered_map<string, struct timespec> m_logical_tracks_ts;    
     Name2LogicalTrack m_logical_tracks;
 
     vector<string>                              m_rootdirs;
