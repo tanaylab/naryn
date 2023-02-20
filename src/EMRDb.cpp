@@ -353,7 +353,8 @@ void EMRDb::update_logical_tracks_file() {
 }
 
 void EMRDb::clear_logical_tracks() {
-    m_logical_tracks.clear();
+    m_logical_tracks.clear();    
+    m_logical_tracks_ts[m_rootdirs[0]] = {0, 0};
 }
 
 void EMRDb::load_logical_tracks() {
@@ -381,7 +382,7 @@ void EMRDb::load_logical_tracks() {
         verror("stat failed on file %s: %s", bf.file_name().c_str(),
                strerror(errno));
 
-    if (m_logical_tracks_ts == get_file_mtime(fs))
+    if (m_logical_tracks_ts[m_rootdirs[0]] == get_file_mtime(fs))
     {
         vdebug("Up-to-date logical tracks are already in memory");
         bf.close();
@@ -461,7 +462,7 @@ void EMRDb::load_logical_tracks() {
         {
             bf.close();
 
-            m_logical_tracks_ts = get_file_mtime(fs);
+            m_logical_tracks_ts[m_rootdirs[0]] = get_file_mtime(fs);
             vdebug("Read %lu logical tracks", m_logical_tracks.size());
 
             if (g_naryn->debug()) {

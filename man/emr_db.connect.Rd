@@ -4,6 +4,7 @@
 \alias{emr_db.connect}
 \alias{emr_db.init_examples}
 \alias{emr_db.init}
+\alias{emr_db.ls}
 \title{Initializes connection with Naryn Database}
 \usage{
 emr_db.connect(db_dirs = NULL, load_on_demand = NULL, do_reload = FALSE)
@@ -15,6 +16,8 @@ emr_db.init(
   user.load.on.demand = TRUE,
   do.reload = FALSE
 )
+
+emr_db.ls()
 }
 \arguments{
 \item{db_dirs}{vector of db directories}
@@ -101,6 +104,8 @@ modified by the user!
 
 \code{emr_db.init} is the old version of this function which
 is now deprecated.
+
+\code{emr_db.ls} lists all the currently connected databases.
 }
 \seealso{
 \code{\link{emr_db.reload}}, \code{\link{emr_track.import}},

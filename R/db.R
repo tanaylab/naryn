@@ -72,6 +72,10 @@
 #' \code{emr_db.init} is the old version of this function which
 #' is now deprecated.
 #'
+#' \code{emr_db.ls} lists all the currently connected databases.
+#'
+#'
+#'
 #' @aliases emr_db.connect emr_db.init_examples
 #' @param db_dirs vector of db directories
 #' @param load_on_demand vector of booleans, same length as db_dirs, if load_on_demand[i] is FALSE, tracks from db_dirs[i] will be pre-loaded, or a single 'TRUE' or 'FALSE' to set \code{load_on_demand} for all the databases. If NULL is passed, \code{load_on_demand} is set to TRUE on all the databases
@@ -161,6 +165,11 @@ emr_db.init <- function(global.dir = NULL, user.dir = NULL, global.load.on.deman
     emr_db.connect(db_dirs = db_dirs, load_on_demand = load_on_demand, do_reload = do.reload)
 }
 
+#' @export
+#' @rdname emr_db.connect
+emr_db.ls <- function() {
+    .naryn$EMR_ROOTS
+}
 
 #' Initialize the examples database
 #'
