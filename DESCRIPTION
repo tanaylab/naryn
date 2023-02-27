@@ -28,7 +28,8 @@ Imports:
     parallel,
     purrr,
     stringr,
-    tidyr
+    tidyr,
+    yaml
 Suggests: 
     brio,
     callr,

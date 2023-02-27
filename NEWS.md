@@ -4,6 +4,7 @@
 * `emr_track.rm` can now accept multiple tracks as input. 
 * Do not allow importing patients that do not appear at `patients.dob`.
 * Fixed issue #83
+* Added entries - a key/value store for storing simple strings and numbers in a `naryn` database. See `emr_entries.ls`, `emr_entries.get`, `emr_entries.set`, `emr_entries.rm` and `emr_entries.reload`.
 
 # naryn 2.6.14 
 
