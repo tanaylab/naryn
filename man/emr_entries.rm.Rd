@@ -19,7 +19,7 @@ Remove an entry
 }
 \examples{
 emr_db.init_examples()
-emr_entries.rm("record1")
+emr_entries.rm("entry1")
 emr_entries.ls()
 
 }

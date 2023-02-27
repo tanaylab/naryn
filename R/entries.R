@@ -28,7 +28,7 @@ emr_entries.reload <- function(db_dir = NULL) {
 #'
 #' @examples
 #' emr_db.init_examples()
-#' emr_entries.get("record1")
+#' emr_entries.get("entry1")
 #'
 #' @inheritParams emr_entries.reload
 #' @export
@@ -86,8 +86,8 @@ update_entries_file <- function(db_dir) {
 #'
 #' @examples
 #' emr_db.init_examples()
-#' emr_entries.set("record1", "new value")
-#' emr_entries.get("record1")
+#' emr_entries.set("entry1", "new value")
+#' emr_entries.get("entry1")
 #'
 #' @inheritParams emr_entries.reload
 #' @export
@@ -112,7 +112,7 @@ emr_entries.set <- function(key, value, db_dir = NULL) {
 #'
 #' @examples
 #' emr_db.init_examples()
-#' emr_entries.rm("record1")
+#' emr_entries.rm("entry1")
 #' emr_entries.ls()
 #'
 #' @inheritParams emr_entries.reload

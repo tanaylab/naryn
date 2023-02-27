@@ -21,7 +21,7 @@ Set an entry
 }
 \examples{
 emr_db.init_examples()
-emr_entries.set("record1", "new value")
-emr_entries.get("record1")
+emr_entries.set("entry1", "new value")
+emr_entries.get("entry1")
 
 }

@@ -19,6 +19,6 @@ Get an entry
 }
 \examples{
 emr_db.init_examples()
-emr_entries.get("record1")
+emr_entries.get("entry1")
 
 }
