@@ -5,6 +5,7 @@
 #' @noRd
 .naryn <- new.env(parent = emptyenv())
 .naryn$entries <- list()
+.naryn$entries_timestamp <- list()
 
 .onLoad <- function(lib, pkg) {
 }

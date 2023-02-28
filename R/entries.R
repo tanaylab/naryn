@@ -14,9 +14,21 @@ emr_entries.reload <- function(db_dir = NULL) {
         db_dir <- emr_db.ls()[1]
     }
 
-    if (file.exists(file.path(db_dir, "entries.yaml"))) {
+    entries_file <- file.path(db_dir, "entries.yaml")
+
+    if (file.exists(entries_file)) {
+        # compare timestamps to see if we need to reload
+        entries_timestamp <- file.info(entries_file)$mtime
+
+        if (!is.null(.naryn$entries[[db_dir]]) &&
+            !is.null(.naryn$entries_timestamp[[db_dir]]) &&
+            entries_timestamp == .naryn$entries_timestamp[[db_dir]]) {
+            return()
+        }
+
         entries <- yaml::read_yaml(file.path(db_dir, "entries.yaml"))
         .naryn$entries[[db_dir]] <- entries
+        .naryn$entries_timestamp[[db_dir]] <- entries_timestamp
     }
 }
 
@@ -37,9 +49,7 @@ emr_entries.get <- function(key, db_dir = NULL) {
         db_dir <- emr_db.ls()[1]
     }
 
-    if (is.null(.naryn$entries[[db_dir]])) {
-        emr_entries.reload(db_dir)
-    }
+    emr_entries.reload(db_dir)
 
     .naryn$entries[[db_dir]][[key]]
 }
@@ -59,11 +69,15 @@ emr_entries.get_all <- function(db_dir = NULL) {
         db_dir <- emr_db.ls()[1]
     }
 
-    if (is.null(.naryn$entries[[db_dir]])) {
-        emr_entries.reload(db_dir)
-    }
+    emr_entries.reload(db_dir)
 
     .naryn$entries[[db_dir]]
+}
+
+update_entries_timestamp <- function(db_dir) {
+    entries_file <- file.path(db_dir, "entries.yaml")
+    entries_timestamp <- file.info(entries_file)$mtime
+    .naryn$entries_timestamp[[db_dir]] <- entries_timestamp
 }
 
 update_entries_file <- function(db_dir) {
@@ -75,6 +89,8 @@ update_entries_file <- function(db_dir) {
     }
 
     yaml::write_yaml(entries, entries_file)
+
+    update_entries_timestamp(db_dir)
 }
 
 #' Set an entry
@@ -96,9 +112,7 @@ emr_entries.set <- function(key, value, db_dir = NULL) {
         db_dir <- emr_db.ls()[1]
     }
 
-    if (is.null(.naryn$entries[[db_dir]])) {
-        emr_entries.reload(db_dir)
-    }
+    emr_entries.reload(db_dir)
 
     .naryn$entries[[db_dir]][[key]] <- value
     update_entries_file(db_dir)
@@ -122,9 +136,7 @@ emr_entries.rm <- function(key, db_dir = NULL) {
         db_dir <- emr_db.ls()[1]
     }
 
-    if (is.null(.naryn$entries[[db_dir]])) {
-        emr_entries.reload(db_dir)
-    }
+    emr_entries.reload(db_dir)
 
     .naryn$entries[[db_dir]][[key]] <- NULL
     update_entries_file(db_dir)
@@ -145,9 +157,7 @@ emr_entries.rm_all <- function(db_dir = NULL) {
         db_dir <- emr_db.ls()[1]
     }
 
-    if (is.null(.naryn$entries[[db_dir]])) {
-        emr_entries.reload(db_dir)
-    }
+    emr_entries.reload(db_dir)
 
     .naryn$entries[[db_dir]] <- list()
     update_entries_file(db_dir)
@@ -169,9 +179,7 @@ emr_entries.ls <- function(db_dir = NULL) {
         db_dir <- emr_db.ls()[1]
     }
 
-    if (is.null(.naryn$entries[[db_dir]])) {
-        emr_entries.reload(db_dir)
-    }
+    emr_entries.reload(db_dir)
 
     keys <- names(.naryn$entries[[db_dir]])
     if (is.null(keys)) {
