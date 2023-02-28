@@ -10,7 +10,7 @@ emr_entries.reload(db_dir = NULL)
 \item{db_dir}{The directory of the database to reload entries from}
 }
 \value{
-None
+None. If the entries were reloaded - the file timestamp is returned invisibly.
 }
 \description{
 Reload entries from disk

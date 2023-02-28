@@ -2,7 +2,7 @@
 #'
 #' @param db_dir The directory of the database to reload entries from
 #'
-#' @return None
+#' @return None. If the entries were reloaded - the file timestamp is returned invisibly.
 #'
 #' @examples
 #' emr_db.init_examples()

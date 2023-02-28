@@ -128,6 +128,3 @@ test_that("timestamp is changed after setting a value", {
     ts1 <- .naryn$entries_timestamp[[emr_db.ls()[1]]]
     expect_true(ts != ts1)
 })
-
-
-
