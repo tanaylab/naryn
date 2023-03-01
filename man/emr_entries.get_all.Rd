@@ -7,10 +7,10 @@
 emr_entries.get_all(db_dir = NULL)
 }
 \arguments{
-\item{db_dir}{The directory of the database to reload entries from}
+\item{db_dir}{One or more database directories to reload entries from. If NULL - the first database is used.}
 }
 \value{
-A list of entries
+A list of entries. For multiple databases, a named list of database entries is returned.
 }
 \description{
 Get all entries

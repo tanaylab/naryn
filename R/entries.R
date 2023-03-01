@@ -1,6 +1,6 @@
 #' Reload entries from disk
 #'
-#' @param db_dir The directory of the database to reload entries from
+#' @param db_dir One or more database directories to reload entries from. If NULL - the first database is used.
 #'
 #' @return None. If the entries were reloaded - the file timestamp is returned invisibly.
 #'
@@ -12,6 +12,10 @@
 emr_entries.reload <- function(db_dir = NULL) {
     if (is.null(db_dir)) {
         db_dir <- emr_db.ls()[1]
+    }
+
+    if (length(db_dir) > 1) {
+        return(apply_entries_multiple_db(db_dir, emr_entries.reload, ret = FALSE))
     }
 
     entries_file <- file.path(db_dir, "entries.yaml")
@@ -32,11 +36,31 @@ emr_entries.reload <- function(db_dir = NULL) {
     }
 }
 
+#' Apply an entries function to multiple databases
+#'
+#' @param db_dir A vector of database directories
+#' @param fun The function to apply
+#' @param ret Whether to return the result
+#' @param ... Additional arguments to pass to the function
+#'
+#' @return The result of the function. If ret is FALSE, NULL is returned.
+#'
+#'
+#' @noRd
+apply_entries_multiple_db <- function(db_dir, fun, ret = TRUE, ...) {
+    if (ret) {
+        res <- purrr::map(db_dir, fun, ...)
+        names(res) <- db_dir
+        return(res)
+    }
+    purrr::walk(db_dir, fun, ...)
+}
+
 #' Get an entry
 #'
 #' @param key The key of the entry to get
 #'
-#' @return The entry. If the key does not exist, NULL is returned.
+#' @return The entry. If the key does not exist, NULL is returned. For multiple databases, a named list of database entries is returned.
 #'
 #' @examples
 #' emr_db.init_examples()
@@ -49,6 +73,10 @@ emr_entries.get <- function(key, db_dir = NULL) {
         db_dir <- emr_db.ls()[1]
     }
 
+    if (length(db_dir) > 1) {
+        return(apply_entries_multiple_db(db_dir, emr_entries.get, key = key, ret = TRUE))
+    }
+
     emr_entries.reload(db_dir)
 
     .naryn$entries[[db_dir]][[key]]
@@ -56,7 +84,7 @@ emr_entries.get <- function(key, db_dir = NULL) {
 
 #' Get all entries
 #'
-#' @return A list of entries
+#' @return A list of entries. For multiple databases, a named list of database entries is returned.
 #'
 #' @examples
 #' emr_db.init_examples()
@@ -67,6 +95,10 @@ emr_entries.get <- function(key, db_dir = NULL) {
 emr_entries.get_all <- function(db_dir = NULL) {
     if (is.null(db_dir)) {
         db_dir <- emr_db.ls()[1]
+    }
+
+    if (length(db_dir) > 1) {
+        return(apply_entries_multiple_db(db_dir, emr_entries.get_all, ret = TRUE))
     }
 
     emr_entries.reload(db_dir)
@@ -112,6 +144,10 @@ emr_entries.set <- function(key, value, db_dir = NULL) {
         db_dir <- emr_db.ls()[1]
     }
 
+    if (length(db_dir) > 1) {
+        return(apply_entries_multiple_db(db_dir, emr_entries.set, key = key, value = value, ret = FALSE))
+    }
+
     emr_entries.reload(db_dir)
 
     .naryn$entries[[db_dir]][[key]] <- value
@@ -120,7 +156,7 @@ emr_entries.set <- function(key, value, db_dir = NULL) {
 
 #' Remove an entry
 #'
-#' @param key The key of the entry to remove
+#' @param key The key of the entry to remove. If the key does not exist, nothing happens.
 #'
 #' @return None
 #'
@@ -134,6 +170,10 @@ emr_entries.set <- function(key, value, db_dir = NULL) {
 emr_entries.rm <- function(key, db_dir = NULL) {
     if (is.null(db_dir)) {
         db_dir <- emr_db.ls()[1]
+    }
+
+    if (length(db_dir) > 1) {
+        return(apply_entries_multiple_db(db_dir, emr_entries.rm, key = key, ret = FALSE))
     }
 
     emr_entries.reload(db_dir)
@@ -157,6 +197,10 @@ emr_entries.rm_all <- function(db_dir = NULL) {
         db_dir <- emr_db.ls()[1]
     }
 
+    if (length(db_dir) > 1) {
+        return(apply_entries_multiple_db(db_dir, emr_entries.rm_all, ret = FALSE))
+    }
+
     emr_entries.reload(db_dir)
 
     .naryn$entries[[db_dir]] <- list()
@@ -166,7 +210,7 @@ emr_entries.rm_all <- function(db_dir = NULL) {
 
 #' List entries
 #'
-#' @return A list of entries
+#' @return A vector of entry names. For multiple databases, a named list of database entries is returned.
 #'
 #' @examples
 #' emr_db.init_examples()
@@ -177,6 +221,10 @@ emr_entries.rm_all <- function(db_dir = NULL) {
 emr_entries.ls <- function(db_dir = NULL) {
     if (is.null(db_dir)) {
         db_dir <- emr_db.ls()[1]
+    }
+
+    if (length(db_dir) > 1) {
+        return(apply_entries_multiple_db(db_dir, emr_entries.ls, ret = TRUE))
     }
 
     emr_entries.reload(db_dir)

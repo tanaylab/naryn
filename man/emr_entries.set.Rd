@@ -11,7 +11,7 @@ emr_entries.set(key, value, db_dir = NULL)
 
 \item{value}{The value of the entry to set. This can be anything that can be serialized to YAML}
 
-\item{db_dir}{The directory of the database to reload entries from}
+\item{db_dir}{One or more database directories to reload entries from. If NULL - the first database is used.}
 }
 \value{
 None

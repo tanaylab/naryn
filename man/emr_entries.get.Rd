@@ -9,10 +9,10 @@ emr_entries.get(key, db_dir = NULL)
 \arguments{
 \item{key}{The key of the entry to get}
 
-\item{db_dir}{The directory of the database to reload entries from}
+\item{db_dir}{One or more database directories to reload entries from. If NULL - the first database is used.}
 }
 \value{
-The entry. If the key does not exist, NULL is returned.
+The entry. If the key does not exist, NULL is returned. For multiple databases, a named list of database entries is returned.
 }
 \description{
 Get an entry

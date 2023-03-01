@@ -128,3 +128,70 @@ test_that("timestamp is changed after setting a value", {
     ts1 <- .naryn$entries_timestamp[[emr_db.ls()[1]]]
     expect_true(ts != ts1)
 })
+
+# multiple databases
+
+# reload
+test_that("emr_entries.reload() works with multiple databases", {
+    emr_db.init_examples(2)
+    expect_equal(emr_entries.get("entry1", db_dir = emr_db.ls()[1]), "value1")
+    expect_equal(emr_entries.get("entry1", db_dir = emr_db.ls()[2]), "value1")
+})
+
+# get
+test_that("emr_entries.get() works with multiple databases", {
+    emr_db.init_examples(2)
+    res <- list("value1", "value1")
+    names(res) <- emr_db.ls()
+
+    expect_equal(emr_entries.get("entry1", emr_db.ls()), res)
+})
+
+
+# get_all
+test_that("emr_entries.get_all() works with multiple databases", {
+    emr_db.init_examples(2)
+    res <- list(list(entry1 = "value1", entry2 = 60427L, entry3 = c("value1", "value2", "value3")), list(entry1 = "value1", entry2 = 60427L, entry3 = c("value1", "value2", "value3")))
+    names(res) <- emr_db.ls()
+
+    expect_equal(emr_entries.get_all(emr_db.ls()), res)
+})
+
+# rm
+test_that("emr_entries.rm() works with multiple databases", {
+    emr_db.init_examples(2)
+    emr_entries.rm("entry1", emr_db.ls())
+    res <- list(NULL, NULL)
+    names(res) <- emr_db.ls()
+
+    expect_equal(emr_entries.get("entry1", emr_db.ls()), res)
+})
+
+# rm_all
+test_that("emr_entries.rm_all() works with multiple databases", {
+    emr_db.init_examples(2)
+    emr_entries.rm_all(emr_db.ls())
+    res <- list(list(), list())
+    names(res) <- emr_db.ls()
+
+    expect_equal(emr_entries.get_all(emr_db.ls()), res)
+})
+
+# set
+test_that("emr_entries.set() works with multiple databases", {
+    emr_db.init_examples(2)
+    emr_entries.set("entry1", "new value", emr_db.ls())
+    res <- list("new value", "new value")
+    names(res) <- emr_db.ls()
+
+    expect_equal(emr_entries.get("entry1", emr_db.ls()), res)
+})
+
+# ls
+test_that("emr_entries.ls() works with multiple databases", {
+    emr_db.init_examples(2)
+    res <- list(c("entry1", "entry2", "entry3"), c("entry1", "entry2", "entry3"))
+    names(res) <- emr_db.ls()
+
+    expect_equal(emr_entries.ls(emr_db.ls()), res)
+})

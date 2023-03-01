@@ -144,7 +144,7 @@ emr_db.connect <- function(db_dirs = NULL, load_on_demand = NULL, do_reload = FA
         }
     )
 
-    purrr::walk(db_dirs, emr_entries.reload)
+    emr_entries.reload(db_dirs)
 }
 
 #' @export emr_db.init

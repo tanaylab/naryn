@@ -7,7 +7,7 @@
 emr_entries.rm_all(db_dir = NULL)
 }
 \arguments{
-\item{db_dir}{The directory of the database to reload entries from}
+\item{db_dir}{One or more database directories to reload entries from. If NULL - the first database is used.}
 }
 \value{
 None

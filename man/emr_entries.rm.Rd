@@ -7,9 +7,9 @@
 emr_entries.rm(key, db_dir = NULL)
 }
 \arguments{
-\item{key}{The key of the entry to remove}
+\item{key}{The key of the entry to remove. If the key does not exist, nothing happens.}
 
-\item{db_dir}{The directory of the database to reload entries from}
+\item{db_dir}{One or more database directories to reload entries from. If NULL - the first database is used.}
 }
 \value{
 None
