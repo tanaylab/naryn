@@ -60,7 +60,7 @@ apply_entries_multiple_db <- function(db_dir, fun, ret = TRUE, ...) {
 #'
 #' @param key The key of the entry to get
 #'
-#' @return The entry. If the key does not exist, NULL is returned. For multiple databases, a named list of database entries is returned.
+#' @return The entry value. If the key does not exist, NULL is returned. For multiple databases, a named list of database entries is returned.
 #'
 #' @examples
 #' emr_db.init_examples()

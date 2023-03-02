@@ -12,7 +12,7 @@ emr_entries.get(key, db_dir = NULL)
 \item{db_dir}{One or more database directories to reload entries from. If NULL - the first database is used.}
 }
 \value{
-The entry. If the key does not exist, NULL is returned. For multiple databases, a named list of database entries is returned.
+The entry value. If the key does not exist, NULL is returned. For multiple databases, a named list of database entries is returned.
 }
 \description{
 Get an entry
