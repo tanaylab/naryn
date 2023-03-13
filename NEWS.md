@@ -5,6 +5,7 @@
 * `emr_track.rm` can now accept multiple tracks as input. 
 * Do not allow importing patients that do not appear at `patients.dob`.
 * Fixed issue #83
+* Fix: `emr_track.rm` returned an error when given `character(0)`.
 
 # naryn 2.6.14 
 

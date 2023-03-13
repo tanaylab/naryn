@@ -825,7 +825,7 @@ emr_track.rm <- function(track, force = FALSE) {
             }
         )
         emr_db.reload()
-    } else {
+    } else if (length(track) == 1) {
         remove_track(track, force = force, update = TRUE)
     }
 }

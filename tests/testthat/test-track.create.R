@@ -100,3 +100,8 @@ test_that("emr_track.mv works with different values", {
     expect_true(emr_track.exists("test_track2"))
     withr::defer(emr_track.rm("test_track2", TRUE))
 })
+
+test_that("emr_track.rm doesn't fail when given character(0)", {
+    emr_track.rm(character(0))
+    expect_true(TRUE)
+})
