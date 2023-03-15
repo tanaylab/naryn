@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">naryn</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">2.6.14.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">2.6.15</span>
       </span>
     </div>
 
@@ -67,11 +67,14 @@
     </div>
 
     <div class="section level2">
-<h2 class="page-header" data-toc-text="2.6.14.9000" id="naryn-26149000">naryn 2.6.14.9000<a class="anchor" aria-label="anchor" href="#naryn-26149000"></a></h2>
-<ul><li>Added <code>string_to_var</code> and <code>var_to_string</code> functions to generate valid variable names from strings.</li>
+<h2 class="page-header" data-toc-text="2.6.15" id="naryn-2615">naryn 2.6.15<a class="anchor" aria-label="anchor" href="#naryn-2615"></a></h2>
+<ul><li>Added entries - a key/value store for storing simple strings and numbers in a <code>naryn</code> database. See <code>emr_entries.ls</code>, <code>emr_entries.get</code>, <code>emr_entries.set</code>, <code>emr_entries.rm</code> and <code>emr_entries.reload</code>.</li>
+<li>Added <code>string_to_var</code> and <code>var_to_string</code> functions to generate valid variable names from strings.</li>
 <li>
 <code>emr_track.rm</code> can now accept multiple tracks as input.</li>
 <li>Do not allow importing patients that do not appear at <code>patients.dob</code>.</li>
+<li>Fixed issue <a href="https://github.com/tanaylab/naryn/issues/83" class="external-link">#83</a></li>
+<li>Fix: <code>emr_track.rm</code> returned an error when given <code>character(0)</code>.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="2.6.14" id="naryn-2614">naryn 2.6.14<small>2023-01-09</small><a class="anchor" aria-label="anchor" href="#naryn-2614"></a></h2>

@@ -61,6 +61,27 @@
     <loc>/reference/emr_download_example_data.html</loc>
   </url>
   <url>
+    <loc>/reference/emr_entries.get.html</loc>
+  </url>
+  <url>
+    <loc>/reference/emr_entries.get_all.html</loc>
+  </url>
+  <url>
+    <loc>/reference/emr_entries.ls.html</loc>
+  </url>
+  <url>
+    <loc>/reference/emr_entries.reload.html</loc>
+  </url>
+  <url>
+    <loc>/reference/emr_entries.rm.html</loc>
+  </url>
+  <url>
+    <loc>/reference/emr_entries.rm_all.html</loc>
+  </url>
+  <url>
+    <loc>/reference/emr_entries.set.html</loc>
+  </url>
+  <url>
     <loc>/reference/emr_extract.html</loc>
   </url>
   <url>

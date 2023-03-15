@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">naryn</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">2.6.14.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">2.6.15</span>
       </span>
     </div>
 
@@ -155,6 +155,7 @@ a filter which returns all the values of <code>src</code></p>
     <h2>Examples</h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="emr_db.connect.html">emr_db.init_examples</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
 <span class="r-in"><span><span class="fu">emr_filter.create</span><span class="op">(</span><span class="st">"f1"</span>, <span class="st">"dense_track"</span>, time.shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">emr_filter.create</span><span class="op">(</span><span class="st">"f2"</span>, <span class="st">"dense_track"</span>, keepref <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"sparse_track"</span>, filter <span class="op">=</span> <span class="st">"!f1 &amp; f2"</span><span class="op">)</span></span></span>

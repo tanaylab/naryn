@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">naryn</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">2.6.14.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">2.6.15</span>
       </span>
     </div>
 
@@ -92,15 +92,16 @@
     <h2>Examples</h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="emr_db.connect.html">emr_db.init_examples</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># 30 January, 1938, 6:00 - birthday of Islam Karimov</span></span></span>
 <span class="r-in"><span><span class="va">t1</span> <span class="op">&lt;-</span> <span class="fu"><a href="emr_date2time.html">emr_date2time</a></span><span class="op">(</span><span class="fl">30</span>, <span class="fl">1</span>, <span class="fl">1938</span>, <span class="fl">6</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># September 2, 2016, 7:00 - death of Islam Karimov</span></span></span>
 <span class="r-in"><span><span class="va">t2</span> <span class="op">&lt;-</span> <span class="fu"><a href="emr_date2time.html">emr_date2time</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">9</span>, <span class="fl">2016</span>, <span class="fl">7</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">emr_time2date</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">t1</span>, <span class="va">t2</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   day month year hour</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1  30     1 1938    6</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2   2     9 2016    7</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   year month day hour</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 1938     1  30    6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 2016     9   2    7</span>
 </code></pre></div>
     </div>
   </div>

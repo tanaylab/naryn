@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">naryn</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">2.6.14.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">2.6.15</span>
       </span>
     </div>
 
@@ -80,7 +80,9 @@
 <span>  global.load.on.demand <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  user.load.on.demand <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  do.reload <span class="op">=</span> <span class="cn">FALSE</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">emr_db.ls</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -161,6 +163,7 @@ variables are added to the .naryn environment. These variables should not be
 modified by the user!</p>
 <table class="table table"><tr><td>.naryn$EMR_GROOT</td><td>First db dir of tracks in the order of connections</td><td>.naryn$EMR_UROOT</td></tr><tr><td>Last db dir of tracks in the order of connection (user dir)</td><td>.naryn$EMR_ROOTS</td><td>Vector of directories (db_dirs)</td></tr></table><p><code>emr_db.init</code> is the old version of this function which
 is now deprecated.</p>
+<p><code>emr_db.ls</code> lists all the currently connected databases.</p>
     </div>
     <div id="see-also">
     <h2>See also</h2>
