@@ -1,6 +1,7 @@
 # naryn 2.6.16
 
 * Added some examples to the documentation.
+* Fix: crash when calling `emr_track.create` with `expr=''`
 
 # naryn 2.6.15
 

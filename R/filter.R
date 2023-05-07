@@ -58,7 +58,8 @@
 
 .emr_parse_exprs <- function(expr) {
     res <- c()
-    if (!is.null(expr)) {
+
+    if (!is.null(expr) && expr != "") {
         res <- all.vars(as.list(parse(text = expr))[[1]])
     }
     return(res)
