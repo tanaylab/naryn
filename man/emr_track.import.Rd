@@ -48,6 +48,32 @@ file should not contain a header.
 
 (see "User Manual" for more info).
 }
+\examples{
+emr_db.init_examples()
+
+# import from data frame
+emr_track.import(
+    "new_track",
+    categorical = TRUE,
+    src = data.frame(id = c(5, 10), time = c(1, 2), value = c(10, 20))
+)
+
+# import from file
+fn <- tempfile()
+write.table(
+    data.frame(id = c(5, 10), time = c(1, 2), reference = c(1, 1), value = c(10, 20)),
+    file = fn, sep = "\t", row.names = FALSE, col.names = FALSE
+)
+emr_track.import("new_track1", categorical = TRUE, src = fn)
+
+# create an empty track
+emr_track.import(
+    "empty_track",
+    categorical = TRUE,
+    src = data.frame(id = numeric(), time = numeric(), value = numeric())
+)
+
+}
 \seealso{
 \code{\link{emr_track.addto}}, \code{\link{emr_track.create}},
 \code{\link{emr_track.readonly}}, \code{\link{emr_db.init}},

@@ -1,3 +1,7 @@
+# naryn 2.6.16
+
+* Added some examples to the documentation.
+
 # naryn 2.6.15
 
 * Added entries - a key/value store for storing simple strings and numbers in a `naryn` database. See `emr_entries.ls`, `emr_entries.get`, `emr_entries.set`, `emr_entries.rm` and `emr_entries.reload`.

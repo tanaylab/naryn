@@ -2,4 +2,4 @@
 
 0 errors | 0 warnings | 0 notes
 
-* Added <cstdint> include in order to compile with gcc13
+* This version added a new `entries` concept + some additional bug fixes.
