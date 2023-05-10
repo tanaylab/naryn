@@ -1,3 +1,8 @@
+# naryn 2.6.17
+
+* New functions: `emr_vtrack.name` and `emr_vtrack.create_from_name` allow creating virtual tracks 
+with standard names. 
+
 # naryn 2.6.16
 
 * Added some examples to the documentation.
