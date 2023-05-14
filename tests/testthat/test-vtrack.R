@@ -625,6 +625,34 @@ test_that("emr_vtrack.clear works", {
     expect_equal(emr_vtrack.ls(), character(0))
 })
 
+test_that("logical_to_varname works correctly", {
+    expect_equal(logical_to_varname("x > 10 & y < 20"), "x__gt__10__and__y__lt__20")
+    expect_equal(logical_to_varname("x = 5 | y != 7"), "x__eq__5__or__y__not____eq__7")
+    expect_equal(logical_to_varname("(a & b) | c"), "__ob__a__and__b__cb____or__c")
+    expect_equal(logical_to_varname("a = b & (c < d | e > f)"), "a__eq__b__and____ob__c__lt__d__or__e__gt__f__cb__")
+    expect_error(logical_to_varname("invalid__gt__string"), "Invalid input")
+})
+
+test_that("varname_to_logical works correctly", {
+    expect_equal(varname_to_logical("x__gt__10__and__y__lt__20"), gsub(" ", "", "x > 10 & y < 20"))
+    expect_equal(varname_to_logical("x__eq__5__or__y__not____eq__7"), gsub(" ", "", "x = 5 | y != 7"))
+    expect_equal(varname_to_logical("__ob__a__and__b__cb____or__c"), gsub(" ", "", "(a & b) | c"))
+    expect_equal(varname_to_logical("a__eq__b__and____ob__c__lt__d__or__e__gt__f__cb__"), gsub(" ", "", "a = b & (c < d | e > f)"))
+})
+
+# Test that conversion is reversible
+test_that("conversion is reversible", {
+    original_expr1 <- "x > 10 & y < 20"
+    original_expr2 <- "x = 5 | y != 7"
+    original_expr3 <- "(a & b) | c"
+    original_expr4 <- "a = b & (c < d | e > f)"
+    expect_equal(varname_to_logical(logical_to_varname(original_expr1)), gsub(" ", "", original_expr1))
+    expect_equal(varname_to_logical(logical_to_varname(original_expr2)), gsub(" ", "", original_expr2))
+    expect_equal(varname_to_logical(logical_to_varname(original_expr3)), gsub(" ", "", original_expr3))
+    expect_equal(varname_to_logical(logical_to_varname(original_expr4)), gsub(" ", "", original_expr4))
+})
+
+
 test_that("emr_vtrack.from_name works", {
     emr_vtrack.clear()
     emr_vtrack.create("v1", "track2", func = "dt2.latest", keepref = FALSE, time.shift = c(-10, 20))
@@ -654,6 +682,25 @@ test_that("emr_vtrack.from_name works with filter", {
     emr_filter.create("filter1", "track2", keepref = TRUE)
     emr_vtrack.create("v1", "track2", keepref = TRUE, filter = "filter1")
     name <- emr_vtrack.name(src = "track2", params = NULL, keepref = TRUE, filter = "filter1")
+    emr_vtrack.create_from_name(name)
+    expect_equal(.naryn$EMR_VTRACKS[[name]], .naryn$EMR_VTRACKS$v1)
+})
+
+test_that("emr_vtrack.from_name works with a 'not' filter", {
+    emr_vtrack.clear()
+    emr_filter.create("filter1", "track2", keepref = TRUE)
+    emr_vtrack.create("v1", "track2", keepref = TRUE, filter = "!filter1")
+    name <- emr_vtrack.name(src = "track2", params = NULL, keepref = TRUE, filter = "!filter1")
+    emr_vtrack.create_from_name(name)
+    expect_equal(.naryn$EMR_VTRACKS[[name]], .naryn$EMR_VTRACKS$v1)
+})
+
+test_that("emr_vtrack.from_name works with a complex filter", {
+    emr_vtrack.clear()
+    emr_filter.create("filter1", "track2", keepref = TRUE)
+    emr_filter.create("filter2", "track1", keepref = TRUE)
+    emr_vtrack.create("v1", "track2", keepref = TRUE, filter = "!filter1 & filter2")
+    name <- emr_vtrack.name(src = "track2", params = NULL, keepref = TRUE, filter = "!filter1 & filter2")
     emr_vtrack.create_from_name(name)
     expect_equal(.naryn$EMR_VTRACKS[[name]], .naryn$EMR_VTRACKS$v1)
 })

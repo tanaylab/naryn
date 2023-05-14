@@ -1,3 +1,7 @@
+# naryn 2.6.18 
+
+* Fix: deal with complex filters in `emr_vtrack.name` and `emr_vtrack.create_from_name`.
+
 # naryn 2.6.17
 
 * New functions: `emr_vtrack.name` and `emr_vtrack.create_from_name` allow creating virtual tracks 
