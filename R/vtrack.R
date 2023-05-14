@@ -211,6 +211,7 @@ emr_vtrack.create_from_name <- function(vtrack_name) {
         filter <- NULL
     } else {
         filter <- parsed_str[, 2]
+        filter <- varname_to_logical(filter)
     }
 
     emr_vtrack.create(vtrack_name, src = src_str, func = func_str, params = params_list, keepref = keepref, time.shift = time_shift, id.map = NULL, filter = filter)

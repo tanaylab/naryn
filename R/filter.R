@@ -45,17 +45,6 @@
     return(intersect(val, ltrack_info$values))
 }
 
-.str_to_operator <- function(str) {
-    convertor <- c("eq" = "=", "lt" = "<", "lte" = "<=", "gt" = ">", "gte" = ">=")
-    return(convertor[str])
-}
-
-.operator_to_str <- function(op) {
-    convertor <- c("=" = "eq", "<" = "lt", "<=" = "lte", ">" = "gt", ">=" = "gte")
-    return(convertor[op])
-}
-
-
 .emr_parse_exprs <- function(expr) {
     res <- c()
 

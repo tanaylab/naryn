@@ -43,6 +43,16 @@ get_expiration_str <- function(expiration) {
     }
 }
 
+.str_to_operator <- function(str) {
+    convertor <- c("eq" = "=", "lt" = "<", "lte" = "<=", "gt" = ">", "gte" = ">=")
+    return(convertor[str])
+}
+
+.operator_to_str <- function(op) {
+    convertor <- c("=" = "eq", "<" = "lt", "<=" = "lte", ">" = "gt", ">=" = "gte")
+    return(convertor[op])
+}
+
 get_operator_str <- function(operator) {
     if (operator != "=") {
         operator <- .operator_to_str(operator)
@@ -59,6 +69,7 @@ get_params_str <- function(params) {
 
 get_filter_str <- function(filter) {
     if (!is.null(filter)) {
+        filter <- logical_to_varname(filter)
         return(glue::glue("filter_{filter}."))
     } else {
         return("")
@@ -71,4 +82,73 @@ get_func_str <- function(func) {
     } else {
         return("func_")
     }
+}
+
+#' Convert a logical expression to a valid variable name
+#'
+#' This function converts a logical expression into a valid R variable name by
+#' replacing special characters with special strings. It also checks if any
+#' special string is present in the input and aborts with an error message in
+#' such case. Note that spaces are removed from the input.
+#'
+#' @param logic_expr A string containing a logical expression to be converted.
+#'
+#' @return A string that represents a valid R variable name.
+#'
+#' @examples
+#' logical_to_varname("x > 10 & y < 20")
+#'
+#' @noRd
+logical_to_varname <- function(logic_expr) {
+    # Check if any of the special strings is present in the input
+    special_strings <- c("__gt__", "__lt__", "__eq__", "__and__", "__or__", "__not__", "__ob__", "__cb__")
+    for (special_string in special_strings) {
+        if (grepl(special_string, logic_expr)) {
+            cli::cli_abort("Invalid input: {.val {logic_expr}} contains a special string: {.val {special_string}}")
+        }
+    }
+
+    # Continue with the conversion
+    logic_expr <- gsub(" ", "", logic_expr) # remove spaces
+    logic_expr <- gsub(">", "__gt__", logic_expr)
+    logic_expr <- gsub("<", "__lt__", logic_expr)
+    logic_expr <- gsub("=", "__eq__", logic_expr)
+    logic_expr <- gsub("&", "__and__", logic_expr)
+    logic_expr <- gsub("\\|", "__or__", logic_expr)
+    logic_expr <- gsub("!", "__not__", logic_expr)
+    logic_expr <- gsub("\\(", "__ob__", logic_expr) # opening bracket
+    logic_expr <- gsub("\\)", "__cb__", logic_expr) # closing bracket
+
+    # Ensure the first character is not a digit
+    if (grepl("^[0-9]", logic_expr)) {
+        logic_expr <- paste0("__", logic_expr)
+    }
+    return(logic_expr)
+}
+
+#' Convert a valid variable name back to its original logical expression
+#'
+#' This function converts a valid R variable name back to its original logical
+#' expression by replacing special strings with their corresponding special characters.
+#'
+#' @param var_name A string that represents a valid R variable name.
+#'
+#' @return A string that represents the original logical expression.
+#'
+#' @examples
+#' varname_to_logical("x__gt__10__and__y__lt__20")
+#'
+#' @noRd
+varname_to_logical <- function(var_name) {
+    var_name <- gsub("__gt__", ">", var_name)
+    var_name <- gsub("__lt__", "<", var_name)
+    var_name <- gsub("__eq__", "=", var_name)
+    var_name <- gsub("__and__", "&", var_name)
+    var_name <- gsub("__or__", "|", var_name)
+    var_name <- gsub("__not__", "!", var_name)
+    var_name <- gsub("__ob__", "(", var_name) # opening bracket
+    var_name <- gsub("__cb__", ")", var_name) # closing bracket
+
+
+    return(var_name)
 }
