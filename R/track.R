@@ -203,8 +203,8 @@ emr_track.addto <- function(track, src, force = FALSE, remove_unknown = FALSE) {
 #' @examples
 #' emr_db.init_examples()
 #'
-#' emr_track.create("new_track", expr = "dense_track * 2", categorical = FALSE)
-#' emr_extract("new_track")
+#' emr_track.create("new_dense_track", expr = "dense_track * 2", categorical = FALSE)
+#' emr_extract("new_dense_track")
 #'
 #' @seealso \code{\link{emr_track.import}}, \code{\link{emr_track.addto}},
 #' \code{\link{emr_track.rm}}, \code{\link{emr_track.readonly}},

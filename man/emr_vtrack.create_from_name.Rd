@@ -18,12 +18,14 @@ Create a virtual track from an automatically generated name
 \examples{
 
 emr_db.init_examples()
-filter_name <- emr_filter.name("dense_track", time.shift = c(2, 4))
+emr_filter.create("f_dense_track", "dense_track", time.shift = c(2, 4))
+
 name <- emr_vtrack.name("dense_track",
     time.shift = 1,
     func = "max",
-    filter = filter_name
+    filter = "f_dense_track"
 )
+
 emr_vtrack.create_from_name(name)
 }
 \seealso{

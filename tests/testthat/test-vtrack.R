@@ -686,6 +686,13 @@ test_that("emr_vtrack.from_name works with filter", {
     expect_equal(.naryn$EMR_VTRACKS[[name]], .naryn$EMR_VTRACKS$v1)
 })
 
+test_that("emr_vtrack.from_name fails with a filter name that has a dot", {
+    emr_vtrack.clear()
+    emr_filter.create("filter1.savta", "track2", keepref = TRUE)
+    emr_vtrack.create("v1", "track2", keepref = TRUE, filter = "filter1.savta")
+    expect_error(name <- emr_vtrack.name(src = "track2", params = NULL, keepref = TRUE, filter = "filter1.savta"))
+})
+
 test_that("emr_vtrack.from_name works with a 'not' filter", {
     emr_vtrack.clear()
     emr_filter.create("filter1", "track2", keepref = TRUE)

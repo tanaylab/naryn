@@ -122,8 +122,8 @@ emr_extract("emr_time2dayofmonth(EMR_TIME)", iterator = "sparse_track") \cr
 \examples{
 emr_db.init_examples()
 
-emr_track.create("new_track", expr = "dense_track * 2", categorical = FALSE)
-emr_extract("new_track")
+emr_track.create("new_dense_track", expr = "dense_track * 2", categorical = FALSE)
+emr_extract("new_dense_track")
 
 }
 \seealso{

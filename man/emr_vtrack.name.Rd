@@ -27,7 +27,7 @@ emr_vtrack.name(
 
 \item{id.map}{a named list specifying the mapping of the IDs between the source data and the virtual track}
 
-\item{filter}{a character vector specifying the filter(s) applied to the virtual track}
+\item{filter}{a character vector specifying the filter(s) applied to the virtual track. Note that the filter name cannot contain the character '.'}
 }
 \value{
 a default name for the virtual track

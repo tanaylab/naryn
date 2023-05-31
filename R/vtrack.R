@@ -88,7 +88,7 @@
 #' @param keepref a logical value indicating whether the virtual track should keep the reference column(s) of the source data
 #' @param time.shift a numeric vector specifying the time shift(s) applied to the virtual track
 #' @param id.map a named list specifying the mapping of the IDs between the source data and the virtual track
-#' @param filter a character vector specifying the filter(s) applied to the virtual track
+#' @param filter a character vector specifying the filter(s) applied to the virtual track. Note that the filter name cannot contain the character '.'
 #'
 #' @return a default name for the virtual track
 #'
@@ -122,6 +122,10 @@ emr_vtrack.name <- function(src, func = NULL, params = NULL, keepref = FALSE, ti
     params_str <- get_params_str(params)
     keepref_str <- get_keepref_str(keepref)
     time_shift_str <- get_time_shift_str(time.shift)
+    if (any(grepl("\\.", filter))) {
+        stop("Cannot generate automatic virtual track name when filter contains '.'", call. = FALSE)
+    }
+
     filter_str <- get_filter_str(filter)
 
     vtrack_name <- glue::glue("vt_{src_str}{func_str}{params_str}{keepref_str}{time_shift_str}{filter_str}")
@@ -144,12 +148,14 @@ emr_vtrack.name <- function(src, func = NULL, params = NULL, keepref = FALSE, ti
 #' @examples
 #'
 #' emr_db.init_examples()
-#' filter_name <- emr_filter.name("dense_track", time.shift = c(2, 4))
+#' emr_filter.create("f_dense_track", "dense_track", time.shift = c(2, 4))
+#'
 #' name <- emr_vtrack.name("dense_track",
 #'     time.shift = 1,
 #'     func = "max",
-#'     filter = filter_name
+#'     filter = "f_dense_track"
 #' )
+#'
 #' emr_vtrack.create_from_name(name)
 #' @export
 emr_vtrack.create_from_name <- function(vtrack_name) {
