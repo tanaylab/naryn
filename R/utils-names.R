@@ -67,6 +67,12 @@ get_params_str <- function(params) {
     return(glue::glue("params_{p}.", p = paste(sort(unique(params)), collapse = "_")))
 }
 
+emr_vtrack.parse_params <- function(params_str) {
+    params <- strsplit(params_str, "_")[[1]]
+    params <- as.numeric(params)
+    return(params)
+}
+
 get_filter_str <- function(filter) {
     if (!is.null(filter)) {
         filter <- logical_to_varname(filter)
@@ -104,7 +110,7 @@ logical_to_varname <- function(logic_expr) {
     special_strings <- c("__gt__", "__lt__", "__eq__", "__and__", "__or__", "__not__", "__ob__", "__cb__")
     for (special_string in special_strings) {
         if (grepl(special_string, logic_expr)) {
-            cli::cli_abort("Invalid input: {.val {logic_expr}} contains a special string: {.val {special_string}}")
+            stop(glue::glue("Invalid input: {logic_expr} contains a special string: {special_string}"), .call = FALSE)
         }
     }
 

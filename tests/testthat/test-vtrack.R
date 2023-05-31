@@ -669,6 +669,14 @@ test_that("emr_vtrack.from_name works with keepref=TRUE", {
     expect_equal(.naryn$EMR_VTRACKS[[name]], .naryn$EMR_VTRACKS$v1)
 })
 
+test_that("emr_vtrack.from_name works with params", {
+    emr_vtrack.clear()
+    name <- emr_vtrack.name(src = "ph1", func = "dt2.latest", params = c(2:5), keepref = FALSE)
+    emr_vtrack.create_from_name(name)
+    emr_vtrack.create("v1", "ph1", func = "dt2.latest", params = c(2:5), keepref = FALSE)
+    expect_equal(.naryn$EMR_VTRACKS[[name]], .naryn$EMR_VTRACKS$v1)
+})
+
 test_that("emr_vtrack.from_name works without time shift", {
     emr_vtrack.clear()
     emr_vtrack.create("v1", "track2", func = "dt2.latest", keepref = FALSE)

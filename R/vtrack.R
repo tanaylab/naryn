@@ -179,7 +179,7 @@ emr_vtrack.create_from_name <- function(vtrack_name) {
     }
 
     # params
-    parsed_str <- stringr::str_match(vtrack_name, "\\bparams_\\{(.+?)\\}")
+    parsed_str <- stringr::str_match(vtrack_name, "\\bparams_(.+?)\\.kr")
     parsed_str[, 2] <- gsub("\\..+", "", parsed_str[, 2])
     if (is.na(parsed_str[, 2])) {
         params_list <- NULL
