@@ -428,6 +428,7 @@ void EMRTrackSparse<T>::set_vals4data(DataFetcher &df, const EMRInterval &interv
 {
     while (1) {
         if (df.m_rec_idx >= end_rec_idx || (int)m_recs[df.m_rec_idx].timestamp.hour() > interv.etime) {
+            // if df.func equals to EXISTS, set df.m_val to 0
             set_nan_vals(df);
             break;
         }

@@ -1,3 +1,8 @@
+# naryn 2.6.19
+
+* fix: `emr_vtrack.create` with `func="exists"` returned NA instead of 0 when the track didn't have any value at the iterator interval.
+
+
 # naryn 2.6.18 
 
 * Fix: deal with complex filters in `emr_vtrack.name` and `emr_vtrack.create_from_name`.
