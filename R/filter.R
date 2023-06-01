@@ -7,7 +7,7 @@
 #' @examples
 #' .emr_filter("f > 1")
 #'
-#' @noRd
+#' @keywords internal
 #' @export
 .emr_filter <- function(filter) {
     eval(parse(text = sprintf("substitute(%s)", filter)))

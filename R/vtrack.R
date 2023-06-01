@@ -6,11 +6,16 @@
 #' @return a list with the parameters of the virtual track
 #'
 #' @examples
-#' emr_vtrack.create("a")
-#' .emr_vtrack.get("vt")
+#' emr_db.init_examples()
 #'
+#' emr_vtrack.create("vtrack1", "dense_track",
+#'     time.shift = 1,
+#'     func = "max"
+#' )
+#' .emr_vtrack.get("vtrack1")
+#'
+#' @keywords internal
 #' @export
-#' @noRd
 .emr_vtrack.get <- function(vtrackstr, adjust_logical = TRUE) {
     if (!emr_vtrack.exists(vtrackstr)) {
         stop(sprintf("Virtual track %s does not exist", vtrackstr), call. = FALSE)

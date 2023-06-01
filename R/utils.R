@@ -31,7 +31,7 @@
 #' @examples
 #' .emr_expr_vars("a + b")
 #'
-#' @noRd
+#' @keywords internal
 #' @export
 .emr_expr_vars <- function(expr) {
     res <- c()

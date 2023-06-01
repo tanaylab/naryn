@@ -1,3 +1,7 @@
+# naryn 2.6.20
+
+* fixed some CRAN warnings.
+
 # naryn 2.6.19
 
 * fix: `emr_vtrack.create` with `func="exists"` returned NA instead of 0 when the track didn't have any value at the iterator interval.
