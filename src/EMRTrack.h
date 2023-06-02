@@ -497,7 +497,7 @@ EMRTrack::TrackType EMRTrack::serialize(const char *filename, unsigned flags, EM
 
 inline void EMRTrack::set_nan_vals(EMRTrack::DataFetcher &df)
 {
-    df.m_val = df.m_function == SIZE ? 0 : numeric_limits<float>::quiet_NaN();
+    df.m_val = (df.m_function == SIZE || df.m_function == EXISTS) ? 0 : numeric_limits<float>::quiet_NaN();
 
     if (df.m_function == QUANTILE)
         df.m_sp.reset();

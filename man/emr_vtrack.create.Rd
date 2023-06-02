@@ -16,7 +16,7 @@ emr_vtrack.create(
 )
 }
 \arguments{
-\item{vtrack}{virtual track name.}
+\item{vtrack}{virtual track name. If 'NULL' is used, a unique name is generated.}
 
 \item{src}{data source. either a track name or a list of two members: ID-Time Values table (see "User
 Manual") and a logical. If the logical is 'TRUE', the data in the table is treated as categorical, otherwise as quantitative.}

@@ -197,24 +197,28 @@ emr_track.addto <- function(track, src, force = FALSE, remove_unknown = FALSE) {
 #' @param keepref If 'TRUE' references are preserved in the iterator
 #' @param filter Iterator filter
 #' @param override Boolean indicating whether the creation intends to override an existing track (default FALSE)
+#'
 #' @return None.
+#'
+#' @examples
+#' emr_db.init_examples()
+#'
+#' emr_track.create("new_dense_track", expr = "dense_track * 2", categorical = FALSE)
+#' emr_extract("new_dense_track")
+#'
 #' @seealso \code{\link{emr_track.import}}, \code{\link{emr_track.addto}},
 #' \code{\link{emr_track.rm}}, \code{\link{emr_track.readonly}},
 #' \code{\link{emr_track.ls}}, \code{\link{emr_track.exists}}
 #' @keywords ~track ~create
 #' @export emr_track.create
-emr_track.create <- function(track, space = .naryn$EMR_UROOT, categorical, expr, stime = NULL, etime = NULL, iterator = NULL, keepref = FALSE, filter = NULL, override = FALSE) {
+emr_track.create <- function(track, space, categorical, expr, stime = NULL, etime = NULL, iterator = NULL, keepref = FALSE, filter = NULL, override = FALSE) {
     # when space is missing, writing for the last db in the order of connections
     if (missing(space)) {
-        if ((!exists("EMR_UROOT", envir = .naryn) || is.null(get("EMR_UROOT", envir = .naryn)))) {
-            space <- .naryn$EMR_GROOT
-        } else {
-            space <- .naryn$EMR_UROOT
-        }
+        space <- emr_db.ls()[length(emr_db.ls())]
     }
 
     if (missing(track) || missing(categorical) || missing(expr)) {
-        stop("Usage: emr_track.create(track, space = .naryn$EMR_GROOT, categorical, expr, stime = NULL, etime = NULL, iterator = NULL, keepref = FALSE, filter = NULL)", call. = FALSE)
+        stop("Usage: emr_track.create(track, space, categorical, expr, stime = NULL, etime = NULL, iterator = NULL, keepref = FALSE, filter = NULL)", call. = FALSE)
     }
     .emr_checkroot()
 
@@ -351,6 +355,32 @@ emr_track.ids <- function(track) {
 #' @param remove_unknown if 'TRUE', removes unknown ids (ids that are not present at 'patients.dob' track) from the data. Otherwise, an error is thrown.
 #'
 #' @return None.
+#'
+#' @examples
+#' emr_db.init_examples()
+#'
+#' # import from data frame
+#' emr_track.import(
+#'     "new_track",
+#'     categorical = TRUE,
+#'     src = data.frame(id = c(5, 10), time = c(1, 2), value = c(10, 20))
+#' )
+#'
+#' # import from file
+#' fn <- tempfile()
+#' write.table(
+#'     data.frame(id = c(5, 10), time = c(1, 2), reference = c(1, 1), value = c(10, 20)),
+#'     file = fn, sep = "\t", row.names = FALSE, col.names = FALSE
+#' )
+#' emr_track.import("new_track1", categorical = TRUE, src = fn)
+#'
+#' # create an empty track
+#' emr_track.import(
+#'     "empty_track",
+#'     categorical = TRUE,
+#'     src = data.frame(id = numeric(), time = numeric(), value = numeric())
+#' )
+#'
 #' @seealso \code{\link{emr_track.addto}}, \code{\link{emr_track.create}},
 #' \code{\link{emr_track.readonly}}, \code{\link{emr_db.init}},
 #' \code{\link{emr_track.ls}}
@@ -359,12 +389,9 @@ emr_track.ids <- function(track) {
 emr_track.import <- function(track, space, categorical, src, override = FALSE, remove_unknown = FALSE) {
     # when space is missing, writing for the last db in the order of connections
     if (missing(space)) {
-        if ((!exists("EMR_UROOT", envir = .naryn) || is.null(get("EMR_UROOT", envir = .naryn)))) {
-            space <- .naryn$EMR_GROOT
-        } else {
-            space <- .naryn$EMR_UROOT
-        }
+        space <- emr_db.ls()[length(emr_db.ls())]
     }
+
     if (missing(track) || missing(src) || missing(categorical)) {
         stop("Usage: emr_track.import(track, space, categorical, src)", call. = FALSE)
     }

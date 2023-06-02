@@ -7,7 +7,7 @@
 #' @examples
 #' .emr_filter("f > 1")
 #'
-#' @noRd
+#' @keywords internal
 #' @export
 .emr_filter <- function(filter) {
     eval(parse(text = sprintf("substitute(%s)", filter)))
@@ -45,20 +45,10 @@
     return(intersect(val, ltrack_info$values))
 }
 
-.str_to_operator <- function(str) {
-    convertor <- c("eq" = "=", "lt" = "<", "lte" = "<=", "gt" = ">", "gte" = ">=")
-    return(convertor[str])
-}
-
-.operator_to_str <- function(op) {
-    convertor <- c("=" = "eq", "<" = "lt", "<=" = "lte", ">" = "gt", ">=" = "gte")
-    return(convertor[op])
-}
-
-
 .emr_parse_exprs <- function(expr) {
     res <- c()
-    if (!is.null(expr)) {
+
+    if (!is.null(expr) && expr != "") {
         res <- all.vars(as.list(parse(text = expr))[[1]])
     }
     return(res)
@@ -270,47 +260,14 @@ emr_filter.name <- function(src, keepref = FALSE, time.shift = NULL, val = NULL,
         stop("Cannot generate automatic filter name when source is a data.frame", call. = FALSE)
     }
 
-    if (keepref) {
-        keepref_str <- "krT."
-    } else {
-        keepref_str <- "krF."
-    }
+    src_str <- get_src_str(src)
+    keepref_str <- get_keepref_str(keepref)
+    val_str <- get_val_str(val)
+    time_shift_str <- get_time_shift_str(time.shift)
+    expiration_str <- get_expiration_str(expiration)
+    operator_str <- get_operator_str(operator)
 
-    if (!is.null(val)) {
-        val <- formatC(val, format = "fg") # do not use scientific notation
-        val_str <- glue::glue("vals_{vals}.", vals = paste(sort(unique(val)), collapse = "_"))
-    } else {
-        val_str <- ""
-    }
-
-    if (!is.null(time.shift)) {
-        time.shift <- formatC(time.shift, format = "fg") # do not use scientific notation
-        if (length(time.shift) == 1) {
-            time.shift_str <- glue::glue("ts_{time.shift}.")
-        } else if (length(time.shift) == 2) {
-            time.shift_str <- glue::glue("ts_{time.shift[1]}_{time.shift[2]}.")
-        } else {
-            stop("cannot parse time.shift argument", .call = FALSE)
-        }
-    } else {
-        time.shift_str <- ""
-    }
-
-    if (!is.null(expiration)) {
-        expiration <- formatC(expiration, format = "fg") # do not use scientific notation
-        expiration_str <- glue::glue("exp_{expiration}.")
-    } else {
-        expiration_str <- ""
-    }
-
-    if (operator != "=") {
-        operator <- .operator_to_str(operator)
-        operator_str <- glue::glue("op_{operator}")
-    } else {
-        operator_str <- ""
-    }
-
-    filter_name <- glue::glue("f_{src}.{keepref_str}{val_str}{time.shift_str}{expiration_str}{operator_str}")
+    filter_name <- glue::glue("f_{src_str}{keepref_str}{val_str}{time_shift_str}{expiration_str}{operator_str}")
 
     filter_name <- gsub("-", "minus", filter_name)
     filter_name <- gsub("\\.$", "", filter_name)
@@ -394,7 +351,7 @@ emr_filter.create_from_name <- function(filter) {
         time.shift <- gsub("minus", "-", time.shift)
         time.shift <- as.numeric(time.shift)
         if (any(is.na(time.shift))) {
-            stop("Couldn't parse time.shift. Did you create the name using emr_track.name?", call. = FALSE)
+            stop("Couldn't parse time.shift. Did you create the name using emr_filter.name?", call. = FALSE)
         }
     }
 

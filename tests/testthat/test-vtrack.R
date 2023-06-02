@@ -624,3 +624,142 @@ test_that("emr_vtrack.clear works", {
     emr_vtrack.clear()
     expect_equal(emr_vtrack.ls(), character(0))
 })
+
+test_that("logical_to_varname works correctly", {
+    expect_equal(logical_to_varname("x > 10 & y < 20"), "x__gt__10__and__y__lt__20")
+    expect_equal(logical_to_varname("x = 5 | y != 7"), "x__eq__5__or__y__not____eq__7")
+    expect_equal(logical_to_varname("(a & b) | c"), "__ob__a__and__b__cb____or__c")
+    expect_equal(logical_to_varname("a = b & (c < d | e > f)"), "a__eq__b__and____ob__c__lt__d__or__e__gt__f__cb__")
+    expect_error(logical_to_varname("invalid__gt__string"), "Invalid input")
+})
+
+test_that("varname_to_logical works correctly", {
+    expect_equal(varname_to_logical("x__gt__10__and__y__lt__20"), gsub(" ", "", "x > 10 & y < 20"))
+    expect_equal(varname_to_logical("x__eq__5__or__y__not____eq__7"), gsub(" ", "", "x = 5 | y != 7"))
+    expect_equal(varname_to_logical("__ob__a__and__b__cb____or__c"), gsub(" ", "", "(a & b) | c"))
+    expect_equal(varname_to_logical("a__eq__b__and____ob__c__lt__d__or__e__gt__f__cb__"), gsub(" ", "", "a = b & (c < d | e > f)"))
+})
+
+# Test that conversion is reversible
+test_that("conversion is reversible", {
+    original_expr1 <- "x > 10 & y < 20"
+    original_expr2 <- "x = 5 | y != 7"
+    original_expr3 <- "(a & b) | c"
+    original_expr4 <- "a = b & (c < d | e > f)"
+    expect_equal(varname_to_logical(logical_to_varname(original_expr1)), gsub(" ", "", original_expr1))
+    expect_equal(varname_to_logical(logical_to_varname(original_expr2)), gsub(" ", "", original_expr2))
+    expect_equal(varname_to_logical(logical_to_varname(original_expr3)), gsub(" ", "", original_expr3))
+    expect_equal(varname_to_logical(logical_to_varname(original_expr4)), gsub(" ", "", original_expr4))
+})
+
+
+test_that("emr_vtrack.from_name works", {
+    emr_vtrack.clear()
+    emr_vtrack.create("v1", "track2", func = "dt2.latest", keepref = FALSE, time.shift = c(-10, 20))
+    name <- emr_vtrack.name(src = "track2", func = "dt2.latest", params = NULL, keepref = FALSE, time.shift = c(-10, 20))
+    emr_vtrack.create_from_name(name)
+    expect_equal(.naryn$EMR_VTRACKS[[name]], .naryn$EMR_VTRACKS$v1)
+})
+
+test_that("emr_vtrack.from_name works with keepref=TRUE", {
+    emr_vtrack.clear()
+    emr_vtrack.create("v1", "track2", keepref = TRUE)
+    name <- emr_vtrack.name(src = "track2", params = NULL, keepref = TRUE)
+    emr_vtrack.create_from_name(name)
+    expect_equal(.naryn$EMR_VTRACKS[[name]], .naryn$EMR_VTRACKS$v1)
+})
+
+test_that("emr_vtrack.from_name works with params", {
+    emr_vtrack.clear()
+    name <- emr_vtrack.name(src = "ph1", func = "dt2.latest", params = c(2:5), keepref = FALSE)
+    emr_vtrack.create_from_name(name)
+    emr_vtrack.create("v1", "ph1", func = "dt2.latest", params = c(2:5), keepref = FALSE)
+    expect_equal(.naryn$EMR_VTRACKS[[name]], .naryn$EMR_VTRACKS$v1)
+})
+
+test_that("emr_vtrack.from_name works without time shift", {
+    emr_vtrack.clear()
+    emr_vtrack.create("v1", "track2", func = "dt2.latest", keepref = FALSE)
+    name <- emr_vtrack.name(src = "track2", func = "dt2.latest", params = NULL, keepref = FALSE)
+    emr_vtrack.create_from_name(name)
+    expect_equal(.naryn$EMR_VTRACKS[[name]], .naryn$EMR_VTRACKS$v1)
+})
+
+test_that("emr_vtrack.from_name works with filter", {
+    emr_vtrack.clear()
+    emr_filter.create("filter1", "track2", keepref = TRUE)
+    emr_vtrack.create("v1", "track2", keepref = TRUE, filter = "filter1")
+    name <- emr_vtrack.name(src = "track2", params = NULL, keepref = TRUE, filter = "filter1")
+    emr_vtrack.create_from_name(name)
+    expect_equal(.naryn$EMR_VTRACKS[[name]], .naryn$EMR_VTRACKS$v1)
+})
+
+test_that("emr_vtrack.from_name fails with a filter name that has a dot", {
+    emr_vtrack.clear()
+    emr_filter.create("filter1.savta", "track2", keepref = TRUE)
+    emr_vtrack.create("v1", "track2", keepref = TRUE, filter = "filter1.savta")
+    expect_error(name <- emr_vtrack.name(src = "track2", params = NULL, keepref = TRUE, filter = "filter1.savta"))
+})
+
+test_that("emr_vtrack.from_name works with a 'not' filter", {
+    emr_vtrack.clear()
+    emr_filter.create("filter1", "track2", keepref = TRUE)
+    emr_vtrack.create("v1", "track2", keepref = TRUE, filter = "!filter1")
+    name <- emr_vtrack.name(src = "track2", params = NULL, keepref = TRUE, filter = "!filter1")
+    emr_vtrack.create_from_name(name)
+    expect_equal(.naryn$EMR_VTRACKS[[name]], .naryn$EMR_VTRACKS$v1)
+})
+
+test_that("emr_vtrack.from_name works with a complex filter", {
+    emr_vtrack.clear()
+    emr_filter.create("filter1", "track2", keepref = TRUE)
+    emr_filter.create("filter2", "track1", keepref = TRUE)
+    emr_vtrack.create("v1", "track2", keepref = TRUE, filter = "!filter1 & filter2")
+    name <- emr_vtrack.name(src = "track2", params = NULL, keepref = TRUE, filter = "!filter1 & filter2")
+    emr_vtrack.create_from_name(name)
+    expect_equal(.naryn$EMR_VTRACKS[[name]], .naryn$EMR_VTRACKS$v1)
+})
+
+test_that("emr_vtrack.from_name works with filter and time shift", {
+    emr_vtrack.clear()
+    emr_filter.create("filter1", "track2", keepref = FALSE)
+    emr_vtrack.create("v1", "track2", func = "dt2.latest", keepref = FALSE, filter = "filter1", time.shift = c(-10, 20))
+    name <- emr_vtrack.name(src = "track2", func = "dt2.latest", params = NULL, keepref = FALSE, filter = "filter1", time.shift = c(-10, 20))
+    emr_vtrack.create_from_name(name)
+    expect_equal(.naryn$EMR_VTRACKS[[name]], .naryn$EMR_VTRACKS$v1)
+})
+
+
+test_that("emr_vtrack.name generates the correct name for a virtual track", {
+    # Test with all parameters provided
+    name <- emr_vtrack.name(src = "test_src", func = "test_func", params = c(1, 2, 3), keepref = TRUE, time.shift = 1.5, id.map = NULL, filter = "filter1")
+    expect_equal(name, "vt_test_src.func_test_func.params_1_2_3.krT.ts_1.5.filter_filter1")
+
+    # Test with missing parameters
+    name <- emr_vtrack.name(src = "test_src", func = "test_func", params = NULL, keepref = FALSE, time.shift = NULL, id.map = NULL, filter = NULL)
+    expect_equal(name, "vt_test_src.func_test_func.params_.krF")
+
+    # Test with NULL func
+    name <- emr_vtrack.name(src = "test_src", func = NULL, params = c(1, 2), keepref = FALSE, time.shift = NULL, id.map = NULL, filter = NULL)
+    expect_equal(name, "vt_test_src.func_params_1_2.krF")
+
+    # Test with NULL params
+    name <- emr_vtrack.name(src = "test_src", func = "test_func", params = NULL, keepref = FALSE, time.shift = NULL, id.map = NULL, filter = NULL)
+    expect_equal(name, "vt_test_src.func_test_func.params_.krF")
+
+    # Test with NULL time.shift
+    name <- emr_vtrack.name(src = "test_src", func = "test_func", params = c(1, 2), keepref = FALSE, time.shift = NULL, id.map = NULL, filter = "filter1")
+    expect_equal(name, "vt_test_src.func_test_func.params_1_2.krF.filter_filter1")
+
+    # Test with NULL filter
+    name <- emr_vtrack.name(src = "test_src", func = "test_func", params = c(1, 2), keepref = FALSE, time.shift = 2.5, id.map = NULL, filter = NULL)
+    expect_equal(name, "vt_test_src.func_test_func.params_1_2.krF.ts_2.5")
+
+    expect_error(emr_vtrack.name(src = data.frame(), func = "test_func", params = c(1, 2), keepref = FALSE, time.shift = NULL, id.map = NULL, filter = NULL), "Cannot generate automatic virtual track name when source is not a character vector")
+
+    # Test with non-character src
+    expect_error(emr_vtrack.name(src = 1:5, func = "test_func", params = c(1, 2), keepref = FALSE, time.shift = NULL, id.map = NULL, filter = NULL), "Cannot generate automatic virtual track name when source is not a character vector")
+
+    # Test with non-NULL id.map
+    expect_error(emr_vtrack.name(src = "test_src", func = "test_func", params = c(1, 2), keepref = FALSE, time.shift = NULL, id.map = list(id1 = c(1, 2)), filter = NULL), "Cannot generate automatic virtual track name when id.map is not NULL")
+})

@@ -1,3 +1,30 @@
+# naryn 2.6.21
+
+* Removed C++11 specification from Makevars.
+
+# naryn 2.6.20
+
+* fixed some CRAN warnings.
+
+# naryn 2.6.19
+
+* fix: `emr_vtrack.create` with `func="exists"` returned NA instead of 0 when the track didn't have any value at the iterator interval.
+
+
+# naryn 2.6.18 
+
+* Fix: deal with complex filters in `emr_vtrack.name` and `emr_vtrack.create_from_name`.
+
+# naryn 2.6.17
+
+* New functions: `emr_vtrack.name` and `emr_vtrack.create_from_name` allow creating virtual tracks 
+with standard names. 
+
+# naryn 2.6.16
+
+* Added some examples to the documentation.
+* Fix: crash when calling `emr_track.create` with `expr=''`
+
 # naryn 2.6.15
 
 * Added entries - a key/value store for storing simple strings and numbers in a `naryn` database. See `emr_entries.ls`, `emr_entries.get`, `emr_entries.set`, `emr_entries.rm` and `emr_entries.reload`.

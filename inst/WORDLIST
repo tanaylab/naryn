@@ -24,6 +24,7 @@ UBSAN
 UROOT
 VTRACKS
 WBC
+YAML
 Yay
 addto
 attr
@@ -89,4 +90,5 @@ umask
 vals
 vectorial
 virtuals
+vt
 vtrack

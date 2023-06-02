@@ -1,7 +1,7 @@
 Type: Package
 Package: naryn
 Title: Native Access Medical Record Retriever for High Yield Analytics
-Version: 2.6.15
+Version: 2.6.21
 Authors@R: c(
     person("Misha", "Hoichman", , "misha@hoichman.com", role = "aut"),
     person("Aviezer", "Lifshitz", , "aviezer.lifshitz@weizmann.ac.il", role = c("aut", "cre")),
@@ -15,7 +15,7 @@ Description: A toolkit for medical records data analysis. The 'naryn'
     records, and provides a set of functions for data extraction,
     manipulation and analysis.
 License: MIT + file LICENSE
-URL: https://tanaylab.github.io/naryn
+URL: https://tanaylab.github.io/naryn/
 BugReports: https://github.com/tanaylab/naryn/issues
 Depends: 
     R (>= 3.0.0),
@@ -55,4 +55,3 @@ LazyLoad: yes
 NeedsCompilation: yes
 OS_type: unix
 RoxygenNote: 7.2.3
-SystemRequirements: C++11
