@@ -1,3 +1,7 @@
+# naryn 2.6.21
+
+* Removed C++11 specification from Makevars.
+
 # naryn 2.6.20
 
 * fixed some CRAN warnings.
