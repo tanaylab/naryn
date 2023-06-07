@@ -437,6 +437,28 @@ test_that("emr_filter.info works", {
     )
 })
 
+test_that("emr_filters.info works", {
+    emr_filter.clear()
+    emr_filter.create("f1", "track1", keepref = FALSE, time.shift = c(-10, 20))
+    emr_filter.create("f2", "track2", keepref = FALSE, time.shift = c(-10, 30))
+    expect_equal(
+        emr_filters.info("f1 & (f2 | f2)"),
+        list(
+            f1 = list(
+                src = "track1", time_shift = c(-10, 20), keepref = FALSE,
+                val = NULL, expiration = NULL, operator = "=", use_values = FALSE
+            ),
+            f2 = list(
+                src = "track2", time_shift = c(-10, 30), keepref = FALSE,
+                val = NULL, expiration = NULL, operator = "=", use_values = FALSE
+            )
+        )
+    )
+
+    expect_error(emr_filters.info("f1 & savta"))
+    expect_equal(emr_filters.info(""), list())
+})
+
 test_that("emr_filter.create works with -1 as val (kr issues)", {
     emr_filter.clear()
     df <- data.frame(id = 1, time = c(1, 2, 2), value = c(-1, 4, 3), ref = c(0, 0, 1))

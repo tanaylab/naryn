@@ -801,6 +801,32 @@ emr_filter.info <- function(filter) {
     .emr_filter.get(filter)
 }
 
+#' Returns the filter definition of named filters given a filter expression
+#'
+#' @param filter a filter expression
+#'
+#' @return a list of named filters
+#'
+#' @seealso \code{\link{emr_filter.info}}
+#' @keywords ~filter
+#'
+#' @examples
+#' emr_db.init_examples()
+#' emr_filter.create("f1", "dense_track", time.shift = c(2, 4))
+#' emr_filter.create("f2", "dense_track", time.shift = c(2, 4))
+#' emr_filter.create("f3", "dense_track", time.shift = c(2, 4))
+#' emr_filters.info("f1 | (f2 & f3)")
+#'
+#' @export
+emr_filters.info <- function(filter) {
+    filter_names <- unique(.emr_expr_vars(filter))
+
+    filters <- purrr::map(filter_names, emr_filter.info)
+    names(filters) <- filter_names
+
+    return(filters)
+}
+
 
 
 #' Returns a list of named filters
