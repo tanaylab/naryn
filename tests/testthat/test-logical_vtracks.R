@@ -75,10 +75,10 @@ test_that("emr_vtrack.create works on logical track without values", {
 
     expect_equal(t1, t2)
 
-    emr_vtrack.create("vt", src = "l1", params = c(15, 16))
+    emr_vtrack.create("vt", src = "ph1", params = c(15, 16))
     emr_vtrack.create("vt_ph", src = "l1", params = c(15, 16))
 
-    t1 <- emr_extract("l1", names = c("val"))
+    t1 <- emr_extract("vt", names = c("val"))
     t2 <- emr_extract("vt_ph", names = c("val"))
 
     expect_equal(t1, t2)

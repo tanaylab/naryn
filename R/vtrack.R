@@ -61,7 +61,12 @@
     }
 
     if (is.null(ltrack_info$values)) {
-        return(NULL)
+        source_info <- emr_track.info(ltrack_info$source)
+        if (source_info$categorical) {
+            return(params)
+        } else {
+            return(NULL)
+        }
     }
 
     if (is.null(params)) {
