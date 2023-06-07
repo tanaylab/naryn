@@ -1,5 +1,6 @@
 # naryn 2.6.21.9000
 
+* Added `emr_filters.info` that returns filters information given a filter expression (e.g. `f1 | f2`).
 * Bug fix: vtrack on logical track to categorical track with no parameters returned an wrong results.
 
 # naryn 2.6.21
