@@ -1,3 +1,7 @@
+# naryn 2.6.21.9000
+
+* Bug fix: vtrack on logical track to categorical track with no parameters returned an wrong results.
+
 # naryn 2.6.21
 
 * Removed C++11 specification from Makevars.
