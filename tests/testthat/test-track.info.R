@@ -8,6 +8,7 @@ test_that("error when track doesn't exist", {
 test_that("emr_track.info works dense track", {
     track_info <- emr_track.info("track4")
     track_info$path <- NULL
+    track_info$modification_time <- NULL
     expect_equal(
         track_info,
         list(
@@ -21,6 +22,7 @@ test_that("emr_track.info works dense track", {
 test_that("emr_track.info works sparse track", {
     track_info <- emr_track.info("track1_sparse")
     track_info$path <- NULL
+    track_info$modification_time <- NULL
     expect_equal(
         track_info,
         list(
@@ -30,4 +32,17 @@ test_that("emr_track.info works sparse track", {
             max.time = 9999L
         )
     )
+})
+
+test_that("emr_track.info sets the modification time", {
+    track_info <- emr_track.info("track4")
+    expect_true(track_info$modification_time > 0)
+})
+
+test_that("emr_track.info changes the modification time when track is updated", {
+    track_info <- emr_track.info("track4")
+    emr_track.rm("track4", force = TRUE)
+    emr_track.create("track4", "user", FALSE, "track0", keepref = TRUE)
+    track_info2 <- emr_track.info("track4")
+    expect_true(track_info2$modification_time > track_info$modification_time)
 })

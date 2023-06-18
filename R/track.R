@@ -436,10 +436,14 @@ emr_track.info <- function(track) {
 
     if (is.character(track) && emr_track.logical.exists(track)) {
         ltrack <- emr_track.logical.info(track)
-        .emr_call("emr_logical_track_user_info", track, ltrack$source, NULL, NULL, ltrack$source, TRUE, .emr_filter(.create_logical_track_filter(track)), c(.naryn$EMR_ROOTS), .emr_env())
+        res <- .emr_call("emr_logical_track_user_info", track, ltrack$source, NULL, NULL, ltrack$source, TRUE, .emr_filter(.create_logical_track_filter(track)), c(.naryn$EMR_ROOTS), .emr_env())
     } else {
-        .emr_call("emr_track_info", track, .emr_env())
+        res <- .emr_call("emr_track_info", track, .emr_env())
     }
+
+    res$modification_time <- file.info(res$path)$mtime
+
+    return(res)
 }
 
 .emr_track_dbs <- function(track, dataframe, func, c_func) {

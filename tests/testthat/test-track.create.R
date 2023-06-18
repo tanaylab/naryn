@@ -23,6 +23,7 @@ test_that("emr_track.create works", {
 
     track.info <- emr_track.info("test_track1")
     track.info$path <- NULL
+    track.info$modification_time <- NULL
     expect_equal(
         track.info,
         list(
