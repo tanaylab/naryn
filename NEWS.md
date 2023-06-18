@@ -1,7 +1,9 @@
-# naryn 2.6.21.9000
+# naryn 2.6.22
 
 * Added `emr_filters.info` that returns filters information given a filter expression (e.g. `f1 | f2`).
 * Bug fix: vtrack on logical track to categorical track with no parameters returned an wrong results.
+* Fixed clang-UBSAN error when creating an empty track.
+* Added "modification_time" to `emr_track.info`.
 
 # naryn 2.6.21
 

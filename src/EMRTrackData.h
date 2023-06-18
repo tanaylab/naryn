@@ -64,6 +64,10 @@ template <class T>
 void EMRTrackData<T>::finalize(const bool& unify) {
     bool finalized = true;
 
+    if (data.empty()) {
+        return;
+    }
+    
     for (auto idata = data.begin() + 1; idata < data.end(); ++idata) {
         if (*idata < *(idata - 1)) {
             finalized = false;

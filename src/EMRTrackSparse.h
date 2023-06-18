@@ -246,17 +246,35 @@ void EMRTrackSparse<T>::serialize(BufferedFile &bfile, EMRTrackData<T> &track_da
 
 	if (bfile.write(&num_unique_ids, sizeof(num_unique_ids)) != sizeof(num_unique_ids) ||
         bfile.write(&num_recs, sizeof(num_recs)) != sizeof(num_recs) ||
-        bfile.write(&num_percentiles, sizeof(num_percentiles)) != sizeof(num_percentiles) ||
-        bfile.write(&data.front(), sizeof(Data) * data.size()) != sizeof(Data) * data.size() ||
-        bfile.write(&recs.front(), sizeof(Rec) * recs.size()) != sizeof(Rec) * recs.size() ||
-        (num_percentiles &&
-        (bfile.write(&sorted_unique_vals[0], sizeof(sorted_unique_vals[0]) * num_percentiles) != sizeof(sorted_unique_vals[0]) * num_percentiles ||
-        (!(flags & IS_CATEGORICAL) && bfile.write(&percentiles[0], sizeof(percentiles[0]) * num_percentiles) != sizeof(percentiles[0]) * num_percentiles))))
+        bfile.write(&num_percentiles, sizeof(num_percentiles)) != sizeof(num_percentiles))
     {
 		if (bfile.error())
 			TGLError<EMRTrack>(FILE_ERROR, "Failed to write a track file %s: %s", bfile.file_name().c_str(), strerror(errno));
 		TGLError<EMRTrack>(FILE_ERROR, "Failed to write a track file %s", bfile.file_name().c_str());
 	}
+
+    if (num_unique_ids != 0){
+        if (bfile.write(&data.front(), sizeof(Data) * data.size()) !=
+            sizeof(Data) * data.size() || 
+            bfile.write(&recs.front(), sizeof(Rec) * recs.size()) !=
+            sizeof(Rec) * recs.size()){
+            if (bfile.error())
+                TGLError<EMRTrack>(FILE_ERROR, "Failed to write a track file %s: %s", bfile.file_name().c_str(), strerror(errno));        
+            }
+    }    
+
+    if ((num_percentiles &&
+         (bfile.write(&sorted_unique_vals[0],
+                      sizeof(sorted_unique_vals[0]) * num_percentiles) !=
+              sizeof(sorted_unique_vals[0]) * num_percentiles ||
+          (!(flags & IS_CATEGORICAL) &&
+           bfile.write(&percentiles[0],
+                       sizeof(percentiles[0]) * num_percentiles) !=
+               sizeof(percentiles[0]) * num_percentiles)))){
+        if (bfile.error()){
+            TGLError<EMRTrack>(FILE_ERROR, "Failed to write a track file %s: %s", bfile.file_name().c_str(), strerror(errno));        
+        }
+    }
 }
 
 template <class T>
