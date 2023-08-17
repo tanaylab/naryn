@@ -1,5 +1,3 @@
-
-
 #' Toolkit for medical records data analysis
 #'
 #' 'naryn' package is intended to help users to efficiently analyze data in

@@ -1,4 +1,3 @@
-
 #' Tests if an object was changed since the last run.
 #' If an rds file named \code{snapshot_dir/id.rds} exists its contents are compared with \{obj},
 #' otherwise the file is created.
