@@ -1,4 +1,3 @@
-
 #' Calculates correlation statistics for pairs of track expressions
 #'
 #' Calculates correlation statistics for pairs of track expressions.

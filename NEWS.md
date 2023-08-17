@@ -1,3 +1,7 @@
+# naryn 2.6.23 
+
+* Fixed memory misalignment errors.
+
 # naryn 2.6.22
 
 * Added `emr_filters.info` that returns filters information given a filter expression (e.g. `f1 | f2`).
