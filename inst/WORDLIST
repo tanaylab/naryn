@@ -1,4 +1,5 @@
 Analytics
+CPP
 Ctrl
 EHR
 EMR
@@ -11,6 +12,7 @@ MAXID
 MAXTIME
 MINID
 MINTIME
+Makevars
 NA's
 NaN
 PARAM
