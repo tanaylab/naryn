@@ -28,6 +28,21 @@
     <loc>/news/index.html</loc>
   </url>
   <url>
+    <loc>/reference/dot-create_logical_track_filter.html</loc>
+  </url>
+  <url>
+    <loc>/reference/dot-emr_expr_vars.html</loc>
+  </url>
+  <url>
+    <loc>/reference/dot-emr_filter.html</loc>
+  </url>
+  <url>
+    <loc>/reference/dot-emr_vtrack.get.html</loc>
+  </url>
+  <url>
+    <loc>/reference/dot-naryn.html</loc>
+  </url>
+  <url>
     <loc>/reference/emr_annotate.html</loc>
   </url>
   <url>
@@ -110,6 +125,9 @@
   </url>
   <url>
     <loc>/reference/emr_filter.rm.html</loc>
+  </url>
+  <url>
+    <loc>/reference/emr_filters.info.html</loc>
   </url>
   <url>
     <loc>/reference/emr_ids_coverage.html</loc>
@@ -232,6 +250,9 @@
     <loc>/reference/emr_vtrack.create.html</loc>
   </url>
   <url>
+    <loc>/reference/emr_vtrack.create_from_name.html</loc>
+  </url>
+  <url>
     <loc>/reference/emr_vtrack.exists.html</loc>
   </url>
   <url>
@@ -239,6 +260,9 @@
   </url>
   <url>
     <loc>/reference/emr_vtrack.ls.html</loc>
+  </url>
+  <url>
+    <loc>/reference/emr_vtrack.name.html</loc>
   </url>
   <url>
     <loc>/reference/emr_vtrack.rm.html</loc>

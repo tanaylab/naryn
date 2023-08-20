@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">naryn</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">2.6.15</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">2.6.23</span>
       </span>
     </div>
 
@@ -74,7 +74,7 @@
     <div id="ref-usage">
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">emr_track.create</span><span class="op">(</span></span>
 <span>  <span class="va">track</span>,</span>
-<span>  space <span class="op">=</span> <span class="va">.naryn</span><span class="op">$</span><span class="va">EMR_UROOT</span>,</span>
+<span>  <span class="va">space</span>,</span>
 <span>  <span class="va">categorical</span>,</span>
 <span>  <span class="va">expr</span>,</span>
 <span>  stime <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -207,6 +207,31 @@ emr_extract("emr_time2dayofmonth(EMR_TIME)", iterator = "sparse_track") <br></p>
 <code><a href="emr_track.ls.html">emr_track.ls</a></code>, <code><a href="emr_track.exists.html">emr_track.exists</a></code></p></div>
     </div>
 
+    <div id="ref-examples">
+    <h2>Examples</h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="emr_db.connect.html">emr_db.init_examples</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu">emr_track.create</span><span class="op">(</span><span class="st">"new_dense_track"</span>, expr <span class="op">=</span> <span class="st">"dense_track * 2"</span>, categorical <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
+<span class="r-in"><span><span class="fu"><a href="emr_extract.html">emr_extract</a></span><span class="op">(</span><span class="st">"new_dense_track"</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    id time ref new_dense_track</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1  22    1  -1              26</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2  24    1  -1              26</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3  25    1  -1              20</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4  25    2  -1              48</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5  25    3  -1              68</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6  25    6  -1             122</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7  25    8  -1             164</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8  25    9  -1             186</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9  25   10  -1             208</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10 25   12  -1             248</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11 27   23  -1             468</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12 27   50  -1            1000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13 28    1  -1              26</span>
+<span class="r-in"><span></span></span>
+</code></pre></div>
+    </div>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top"><h2 data-toc-skip>Contents</h2>
