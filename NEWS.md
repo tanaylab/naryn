@@ -1,3 +1,7 @@
+# naryn 2.6.24
+
+* Allow filters names with a dot when creating an automatic virtual track name.
+
 # naryn 2.6.23 
 
 * Fixed memory misalignment errors.

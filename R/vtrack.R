@@ -132,9 +132,6 @@ emr_vtrack.name <- function(src, func = NULL, params = NULL, keepref = FALSE, ti
     params_str <- get_params_str(params)
     keepref_str <- get_keepref_str(keepref)
     time_shift_str <- get_time_shift_str(time.shift)
-    if (any(grepl("\\.", filter))) {
-        stop("Cannot generate automatic virtual track name when filter contains '.'", call. = FALSE)
-    }
 
     filter_str <- get_filter_str(filter)
 
@@ -222,7 +219,6 @@ emr_vtrack.create_from_name <- function(vtrack_name) {
 
     # filter
     parsed_str <- stringr::str_match(vtrack_name, "\\.filter_(.*)")
-    parsed_str[, 2] <- gsub("\\..+", "", parsed_str[, 2])
     if (is.na(parsed_str[, 2])) {
         filter <- NULL
     } else {
