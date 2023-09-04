@@ -2,6 +2,7 @@
 
 [![CRAN
 status](https://www.r-pkg.org/badges/version/naryn)](https://CRAN.R-project.org/package=naryn)
+[![R-CMD-check](https://github.com/tanaylab/naryn/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/tanaylab/naryn/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 naryn
