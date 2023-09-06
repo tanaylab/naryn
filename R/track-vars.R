@@ -222,8 +222,9 @@ emr_track.var.set <- function(track, var, value) {
 
     filename <- paste(dirname, var, sep = "/")
 
-    # save the variable
-    f <- file(filename, "wb")
+    tmpfile <- tempfile(tmpdir = dirname)
+    f <- file(tmpfile, "wb")
     serialize(value, f)
     close(f)
+    file.rename(tmpfile, filename)
 }
