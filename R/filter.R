@@ -469,7 +469,7 @@ emr_filter.create <- function(filter, src, keepref = FALSE, time.shift = NULL, v
 
     auto_filter <- FALSE
     if (is.null(filter)) {
-        filter <- emr_filter.name(src, keepref, time.shift, val, expiration)
+        filter <- emr_filter.name(src, keepref, time.shift, val, expiration, operator)
         auto_filter <- TRUE
     }
 
