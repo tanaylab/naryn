@@ -451,7 +451,7 @@ void Naryn::handle_error(const char *msg)
 		}
 		rexit();
 	} else {
-		errorcall(R_NilValue, msg);
+		errorcall(R_NilValue, "%s", msg);
     }
 }
 
@@ -675,7 +675,7 @@ void vwarning(const char *fmt, ...)
 	vsnprintf(buf, sizeof(buf), fmt, ap);
 	va_end(ap);
 
-	Rf_warningcall_immediate(R_NilValue, buf);
+	Rf_warningcall_immediate(R_NilValue, "%s", buf);
 }
 
 void vdebug(const char *fmt, ...)
@@ -696,7 +696,7 @@ void vdebug(const char *fmt, ...)
             TGLError("null format string");
         }
         va_end(ap);
-        REprintf(buf);
+        REprintf("%s", buf);
 
         if (!*fmt || (*fmt && fmt[strlen(fmt) - 1] != '\n'))
             REprintf("\n");
