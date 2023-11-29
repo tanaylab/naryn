@@ -34,7 +34,7 @@ Generate a default name for a naryn filter
 }
 \details{
 Given filter parameters, generate a name with the following format:
-"f_{src}.kr{keepref}.vals_{val}.ts_{time.shift}.exp_{expiration}.op_{operator}"
+"f_(src).kr(keepref).vals_(val).ts_(time.shift).exp_(expiration).op_(operator)"
 Where for 'val' and 'time.shift' the values are separated by an
 underscore.
 

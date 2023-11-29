@@ -54,7 +54,7 @@ parameter which can be any of the db_dirs supplied in emr_db.connect
 
 
 There are a few types of iterators:
-\itemize{
+\describe{
  \item{Track iterator: }{Track iterator returns the points (including the reference) from the specified track. Track name is specified as a string. If `keepref=FALSE` the reference of each point is set to `-1` \cr
 Example: \cr \cr
 # Returns the level of glucose one hour after the insulin shot was made \cr
@@ -111,6 +111,7 @@ emr_extract("dense_track", iterator = iter, stime = 1, etime = 3) \cr
 }
 \item{Implicit Iterator: }{The iterator is set implicitly if its value remains `NULL` (which is the default). In that case the track expression is analyzed and searched for track names. If all the track variables or virtual track variables point to the same track, this track is used as a source for a track iterator. If more then one track appears in the track expression, an error message is printed out notifying ambiguity.}
 }
+
 
 Revealing Current Iterator Time:
 During the evaluation of a track expression one can access a specially defined variable named `EMR_TIME` (Python: `TIME`). This variable contains a vector (`numpy.ndarray` in Python) of current iterator times. The length of the vector matches the length of the track variable (which is a vector too). \cr

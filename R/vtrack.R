@@ -85,7 +85,7 @@
 #' Generate a default name for a virtual track
 #'
 #' Given virtual track parameters, generate a name with the following format:
-#' "vt_{src}.func_{func}.params_{params}.kr{keepref}.ts_{time.shift}.id_{id.map}.filter_{filter}"
+#' "vt_(src).func_(func).params_(params).kr(keepref).ts_(time.shift).id_(id.map).filter_(filter)"
 #' Where for 'params', 'time.shift', and 'id.map', the values are separated by an
 #' underscore.
 #'
