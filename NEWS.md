@@ -1,3 +1,9 @@
+# naryn 2.6.25
+
+* Fixed clang warnings.
+* Fix: filter name to include operator when name is automatically generated
+
+
 # naryn 2.6.24
 
 * Allow filters names with a dot when creating an automatic virtual track name.
