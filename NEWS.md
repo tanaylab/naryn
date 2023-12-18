@@ -1,6 +1,7 @@
 # naryn 2.6.26 
 
 * Fixed compilation warnings on M1 Mac.
+* Added `emr_time2posix`, `emr_posix2time`,  `emr_time2char` and `emr_char2time` functions.
 
 # naryn 2.6.25
 
