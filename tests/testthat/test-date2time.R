@@ -211,3 +211,57 @@ test_that("periodic iterators fail when not given etime and n", {
     expect_error(emr_monthly_iterator(emr_date2time(1, 1, 2002)))
     expect_error(emr_yearly_iterator(emr_date2time(1, 1, 2002)))
 })
+
+test_that("emr_time2posix returns correct POSIXct object without hour", {
+    time <- emr_date2time(30, 1, 1938, 6)
+    expected <- as.POSIXct("1938-01-30", format = "%Y-%m-%d", tz = "UTC")
+    result <- emr_time2posix(time, show_hour = FALSE)
+    expect_equal(result, expected)
+})
+
+test_that("emr_time2posix returns correct POSIXct object with hour", {
+    time <- emr_date2time(30, 1, 1938, 6)
+    expected <- as.POSIXct("1938-01-30 06:00:00", format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
+    result <- emr_time2posix(time, show_hour = TRUE)
+    expect_equal(result, expected)
+})
+
+test_that("emr_time2char returns correct character string without hour", {
+    time <- emr_date2time(30, 1, 1938, 6)
+    expected <- "1938-01-30"
+    result <- emr_time2char(time, show_hour = FALSE)
+    expect_equal(result, expected)
+})
+
+test_that("emr_time2char returns correct character string with hour", {
+    time <- emr_date2time(30, 1, 1938, 6)
+    expected <- "1938-01-30 06:00:00"
+    result <- emr_time2char(time, show_hour = TRUE)
+    expect_equal(result, expected)
+})
+
+# Test emr_time2posix function
+test_that("emr_time2posix converts EMR time to POSIXct", {
+    # Test case 1: EMR time with hour
+    time1 <- emr_date2time(30, 1, 1938, 6)
+    expected1 <- as.POSIXct("1938-01-30 06:00:00", tz = "UTC")
+    expect_equal(emr_time2posix(time1, show_hour = TRUE), expected1)
+
+    # Test case 2: EMR time without hour
+    time2 <- emr_date2time(2, 9, 2016, 0)
+    expected2 <- as.POSIXct("2016-09-02", tz = "UTC")
+    expect_equal(emr_time2posix(time2, show_hour = FALSE), expected2)
+})
+
+# Test emr_time2char function
+test_that("emr_time2char converts time to character format", {
+    # Test case 1: Time with hour
+    time1 <- emr_date2time(30, 1, 1938, 6)
+    expected1 <- "1938-01-30 06:00:00"
+    expect_equal(emr_time2char(time1, show_hour = TRUE), expected1)
+
+    # Test case 2: Time without hour
+    time2 <- emr_date2time(2, 9, 2016, 0)
+    expected2 <- "2016-09-02"
+    expect_equal(emr_time2char(time2, show_hour = FALSE), expected2)
+})
