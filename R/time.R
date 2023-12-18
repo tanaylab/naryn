@@ -198,6 +198,91 @@ emr_time2date <- function(time) {
     )
 }
 
+#' Convert EMR time to POSIXct
+#'
+#' These function converts EMR time to POSIXct format. It takes the EMR time as input and returns the corresponding POSIXct object.
+#'
+#' @param time The EMR time to be converted.
+#' @param show_hour Logical value indicating whether to include the hour in the output. Default is FALSE.
+#' @param tz Time zone to be used for the output POSIXct object. Default is "UTC".
+#'
+#' @return A POSIXct object representing the converted time.
+#'
+#' @examples
+#' # 30 January, 1938, 6:00 - birthday of Islam Karimov
+#' t1 <- emr_date2time(30, 1, 1938, 6)
+#' # September 2, 2016, 7:00 - death of Islam Karimov
+#' t2 <- emr_date2time(2, 9, 2016, 7)
+#'
+#' emr_time2posix(c(t1, t2))
+#' emr_time2posix(c(t1, t2), show_hour = TRUE)
+#'
+#' emr_posix2time(emr_time2posix(c(t1, t2), show_hour = TRUE))
+#'
+#' # Note that when show_hour = FALSE, the hour is set to 0
+#' # and therefore the results would be different from the original time values
+#' emr_posix2time(emr_time2posix(c(t1, t2)))
+#'
+#' @export
+emr_time2posix <- function(time, show_hour = FALSE, tz = "UTC") {
+    year <- emr_time2year(time)
+    month <- emr_time2month(time)
+    day <- emr_time2dayofmonth(time)
+
+    if (show_hour) {
+        hour <- emr_time2hour(time)
+        return(as.POSIXct(paste(year, month, day, hour, sep = "-"), format = "%Y-%m-%d-%H", tz = tz))
+    }
+
+    return(as.POSIXct(paste(year, month, day, sep = "-"), format = "%Y-%m-%d", tz = tz))
+}
+
+#' Convert time to character format
+#'
+#' This function converts a given time value to a character format in the form of "%Y-%m-%d" or "%Y-%m-%d %H:%M:%S" depending on the value of the `show_hour` parameter.
+#'
+#' @param time The time value to be converted.
+#' @param show_hour Logical value indicating whether to include the hour in the output. Default is FALSE.
+#'
+#' @return A character string representing the converted time value.
+#'
+#' @examples
+#' # 30 January, 1938, 6:00 - birthday of Islam Karimov
+#' t1 <- emr_date2time(30, 1, 1938, 6)
+#' # September 2, 2016, 7:00 - death of Islam Karimov
+#' t2 <- emr_date2time(2, 9, 2016, 7)
+#'
+#' emr_time2char(c(t1, t2))
+#' emr_time2char(c(t1, t2), show_hour = TRUE)
+#'
+#' emr_char2time(emr_time2char(c(t1, t2), show_hour = TRUE))
+#'
+#' # Note that when show_hour = FALSE, the hour is set to 0
+#' # and therefore the results would be different from the original time values
+#' emr_char2time(emr_time2char(c(t1, t2)))
+#'
+#' @export
+emr_time2char <- function(time, show_hour = FALSE) {
+    as.character(emr_time2posix(time, show_hour = show_hour))
+}
+
+#' @rdname emr_time2posix
+#' @export
+emr_posix2time <- function(posix, tz = "UTC") {
+    day <- as.numeric(format(posix, "%d"))
+    month <- as.numeric(format(posix, "%m"))
+    year <- as.numeric(format(posix, "%Y"))
+    hour <- as.numeric(format(posix, "%H"))
+
+    return(emr_date2time(day, month, year, hour))
+}
+
+#' @rdname emr_time2char
+#' @export
+emr_char2time <- function(char, tz = "UTC") {
+    return(emr_posix2time(as.POSIXct(char, tz = tz)))
+}
+
 #' Convert time periods to internal time format
 #'
 #' Convert time periods to internal time format
