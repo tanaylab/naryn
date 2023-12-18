@@ -7,12 +7,14 @@
 \usage{
 emr_time2char(time, show_hour = FALSE)
 
-emr_char2time(char, tz = "UTC")
+emr_char2time(char)
 }
 \arguments{
 \item{time}{The time value to be converted.}
 
 \item{show_hour}{Logical value indicating whether to include the hour in the output. Default is FALSE.}
+
+\item{char}{A character string to be converted to EMR time.}
 }
 \value{
 A character string representing the converted time value.

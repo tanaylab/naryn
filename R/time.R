@@ -205,6 +205,7 @@ emr_time2date <- function(time) {
 #' @param time The EMR time to be converted.
 #' @param show_hour Logical value indicating whether to include the hour in the output. Default is FALSE.
 #' @param tz Time zone to be used for the output POSIXct object. Default is "UTC".
+#' @param posix A POSIXct object to be converted to EMR time.
 #'
 #' @return A POSIXct object representing the converted time.
 #'
@@ -243,6 +244,7 @@ emr_time2posix <- function(time, show_hour = FALSE, tz = "UTC") {
 #'
 #' @param time The time value to be converted.
 #' @param show_hour Logical value indicating whether to include the hour in the output. Default is FALSE.
+#' @param char A character string to be converted to EMR time.
 #'
 #' @return A character string representing the converted time value.
 #'
@@ -268,7 +270,7 @@ emr_time2char <- function(time, show_hour = FALSE) {
 
 #' @rdname emr_time2posix
 #' @export
-emr_posix2time <- function(posix, tz = "UTC") {
+emr_posix2time <- function(posix) {
     day <- as.numeric(format(posix, "%d"))
     month <- as.numeric(format(posix, "%m"))
     year <- as.numeric(format(posix, "%Y"))
@@ -279,8 +281,8 @@ emr_posix2time <- function(posix, tz = "UTC") {
 
 #' @rdname emr_time2char
 #' @export
-emr_char2time <- function(char, tz = "UTC") {
-    return(emr_posix2time(as.POSIXct(char, tz = tz)))
+emr_char2time <- function(char) {
+    return(emr_posix2time(as.POSIXct(char)))
 }
 
 #' Convert time periods to internal time format
