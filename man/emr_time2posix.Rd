@@ -7,7 +7,7 @@
 \usage{
 emr_time2posix(time, show_hour = FALSE, tz = "UTC")
 
-emr_posix2time(posix, tz = "UTC")
+emr_posix2time(posix)
 }
 \arguments{
 \item{time}{The EMR time to be converted.}
@@ -15,6 +15,8 @@ emr_posix2time(posix, tz = "UTC")
 \item{show_hour}{Logical value indicating whether to include the hour in the output. Default is FALSE.}
 
 \item{tz}{Time zone to be used for the output POSIXct object. Default is "UTC".}
+
+\item{posix}{A POSIXct object to be converted to EMR time.}
 }
 \value{
 A POSIXct object representing the converted time.
