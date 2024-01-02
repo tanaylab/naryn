@@ -1,3 +1,7 @@
+# naryn 2.6.27
+
+* Fix: do not truncate expression names in `emr_extract` when `tidy=TRUE`.
+
 # naryn 2.6.26 
 
 * Added `emr_time2posix`, `emr_posix2time`,  `emr_time2char` and `emr_char2time` functions.

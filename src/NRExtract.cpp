@@ -79,7 +79,7 @@ SEXP C_emr_extract(SEXP _exprs, SEXP _names, SEXP _tidy, SEXP _sort, SEXP _stime
 
             for (unsigned iexpr = 0; iexpr < (unsigned)num_exprs; ++iexpr) {
                 if (isNull(_names))
-                    SET_STRING_ELT(rexprs, iexpr, mkChar(get_bound_colname(CHAR(STRING_ELT(_exprs, iexpr))).c_str()));
+                    SET_STRING_ELT(rexprs, iexpr, STRING_ELT(_exprs, iexpr));
                 else
                     SET_STRING_ELT(rexprs, iexpr, STRING_ELT(_names, iexpr));
             }
