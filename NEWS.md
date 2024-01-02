@@ -1,3 +1,7 @@
+# naryn 2.6.27
+
+* Fix: do not truncate expression names in `emr_extract` when `tidy=TRUE`.
+
 # naryn 2.6.26 
 
 * Fixed compilation warnings on M1 Mac.
