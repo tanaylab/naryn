@@ -2,4 +2,4 @@
 
 0 errors | 0 warnings | 0 notes
 
-* Fixed clang warnings.
+* Fixed compilation warnings on M1 Mac.

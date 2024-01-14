@@ -1,3 +1,7 @@
+# naryn 2.6.26 
+
+* Fixed compilation warnings on M1 Mac.
+
 # naryn 2.6.25
 
 * Fixed clang warnings.
