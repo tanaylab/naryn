@@ -83,8 +83,6 @@ emr_track.attr.export <- function(track = NULL, attr = NULL, include_missing = F
     return(res)
 }
 
-
-
 #' Returns the value of the track attribute
 #'
 #' Returns the value of the track attribute.
