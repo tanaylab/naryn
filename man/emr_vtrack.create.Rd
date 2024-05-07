@@ -80,8 +80,8 @@ parameters combinations.
 CATEGORICAL DATA SOURCE
 
 \tabular{lll}{ FUNC \tab PARAM \tab DESCRIPTION \cr value \tab vals/NULL
-\tab A source value or -1 if there is more than one. \cr exists \tab vals
-\tab 1 if any of the 'vals' exist otherwise 0. \cr sample \tab NULL \tab
+\tab A source value or -1 if there is more than one. \cr exists \tab vals/NULL
+\tab 1 if any of the 'vals' exist otherwise 0. NULL indicates the existence of any value\cr sample \tab NULL \tab
 Uniformly sampled source value. \cr sample.time \tab NULL \tab Time of the
 uniformly sampled source value. \cr frequent \tab vals/NULL \tab The most
 frequent source value or -1 if there is more than one value. \cr size \tab
