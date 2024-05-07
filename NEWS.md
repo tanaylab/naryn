@@ -1,6 +1,7 @@
 # naryn 2.6.28 
 
 * Fix: `emr_track.mv` did not move track attributes. 
+* "exists" virtual track function without parameters now checks for existance of any value.
 
 # naryn 2.6.27
 
