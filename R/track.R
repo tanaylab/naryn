@@ -670,6 +670,8 @@ emr_track.mv <- function(src, tgt, space = NULL) {
         stop(sprintf("Filter %s already exists", tgt), call. = FALSE)
     }
 
+    attrs <- emr_track.attr.export(src)
+
     if (emr_track.logical.exists(src)) {
         ltrack <- emr_track.logical.info(src)
         emr_track.logical.rm(src, force = TRUE)
@@ -701,6 +703,13 @@ emr_track.mv <- function(src, tgt, space = NULL) {
 
     if (file.exists(dirname2)) {
         .emr_dir.mv(dirname2, .emr_track.pyvar.dir(tgt))
+    }
+
+    # if track has atributes - move them as well
+    if (nrow(attrs) > 0) {
+        purrr::walk2(attrs$attr, attrs$value, ~ {
+            emr_track.attr.set(tgt, .x, .y)
+        })
     }
 }
 

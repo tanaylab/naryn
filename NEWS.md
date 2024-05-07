@@ -1,3 +1,7 @@
+# naryn 2.6.28 
+
+* Fix: `emr_track.mv` did not move track attributes. 
+
 # naryn 2.6.27
 
 * Fix: do not truncate expression names in `emr_extract` when `tidy=TRUE`.
