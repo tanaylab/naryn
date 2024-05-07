@@ -42,8 +42,6 @@ extern SEXP emr_logical_track_user_info(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
 extern SEXP C_emr_quantiles(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP C_emr_screen(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP C_emr_summary(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-extern SEXP emr_test_pipe(SEXP, SEXP, SEXP);
-extern SEXP emr_test_eval(SEXP, SEXP, SEXP);
 extern SEXP C_emr_time2hour(SEXP, SEXP);
 extern SEXP C_emr_time2dayofmonth(SEXP, SEXP);
 extern SEXP C_emr_time2month(SEXP, SEXP);
@@ -106,9 +104,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"emr_logical_track_user_info", (DL_FUNC) &emr_logical_track_user_info, 9},
     {"C_emr_quantiles", (DL_FUNC) &C_emr_quantiles, 8},
     {"C_emr_screen", (DL_FUNC) &C_emr_screen, 8},
-    {"C_emr_summary", (DL_FUNC) &C_emr_summary, 7},
-    {"emr_test_pipe", (DL_FUNC) &emr_test_pipe, 3},
-    {"emr_test_eval", (DL_FUNC) &emr_test_eval, 3},
+    {"C_emr_summary", (DL_FUNC) &C_emr_summary, 7},    
     {"C_emr_time2hour", (DL_FUNC) &C_emr_time2hour, 2},
     {"C_emr_time2dayofmonth", (DL_FUNC) &C_emr_time2dayofmonth, 2},
     {"C_emr_time2month", (DL_FUNC) &C_emr_time2month, 2},
