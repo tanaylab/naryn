@@ -198,9 +198,6 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
             } else {
                 var.percentile = numeric_limits<double>::quiet_NaN();
 
-                if (ifunc == EMRTrack::EXISTS && isNull(rparams))
-                    verror("Virtual track %s: function %s requires an additional parameter", vtrack.c_str(), func.c_str());
-
                 if (is_categorical) {
                     if (!isNull(rparams)) {       
                         // params are a single NA value   

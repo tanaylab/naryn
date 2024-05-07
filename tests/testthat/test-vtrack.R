@@ -28,10 +28,13 @@ test_that("emr_vtrack works", {
     expect_equal(vt_name, "v1")
 })
 
-test_that("function exists requires an additional parameter", {
+test_that("function exists without additional parameters looks for all of them", {
     emr_vtrack.clear()
-    expect_error(emr_vtrack.create("v1", "track6", func = "exists"))
-    expect_error(emr_extract("v1"))
+    emr_vtrack.create("v1", "track6", func = "exists")
+    emr_vtrack.create("size", "track6", func = "size")
+    res <- emr_extract(c("v1", "size"), iterator = "track1") %>%
+        mutate(f = as.numeric(size > 0))
+    expect_equal(res$f, res$v1)
 })
 
 test_that("emr_vtrack works", {
