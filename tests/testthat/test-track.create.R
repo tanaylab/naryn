@@ -102,6 +102,28 @@ test_that("emr_track.mv works with different values", {
     withr::defer(emr_track.rm("test_track2", TRUE))
 })
 
+test_that("emr_track.mv moves track attribues as well", {
+    emr_track.rm("test_track1", TRUE)
+    emr_track.create("test_track1", "user", FALSE, "track0+2", keepref = FALSE)
+    emr_track.attr.set("test_track1", "test_attr", "value")
+    emr_track.mv("test_track1", "test_track2")
+    expect_false(emr_track.exists("test_track1"))
+    expect_true(emr_track.exists("test_track2"))
+    expect_equal(emr_track.attr.get("test_track2", "test_attr"), "value")
+    withr::defer(emr_track.rm("test_track2", TRUE))
+})
+
+test_that("emr_track.mv moves track vars as well", {
+    emr_track.rm("test_track1", TRUE)
+    emr_track.create("test_track1", "user", FALSE, "track0+2", keepref = FALSE)
+    emr_track.var.set("test_track1", "test_var", 1:10)
+    emr_track.mv("test_track1", "test_track2")
+    expect_false(emr_track.exists("test_track1"))
+    expect_true(emr_track.exists("test_track2"))
+    expect_equal(emr_track.var.get("test_track2", "test_var"), 1:10)
+    withr::defer(emr_track.rm("test_track2", TRUE))
+})
+
 test_that("emr_track.rm doesn't fail when given character(0)", {
     emr_track.rm(character(0))
     expect_true(TRUE)
