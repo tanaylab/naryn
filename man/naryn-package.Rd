@@ -15,4 +15,29 @@ For a complete list of help resources, use \code{library(help = "naryn")}.
 More information about the options can be found in 'User manual' of the
 package.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://tanaylab.github.io/naryn/}
+  \item Report bugs at \url{https://github.com/tanaylab/naryn/issues}
+}
+
+}
+\author{
+\strong{Maintainer}: Aviezer Lifshitz \email{aviezer.lifshitz@weizmann.ac.il}
+
+Authors:
+\itemize{
+  \item Misha Hoichman \email{misha@hoichman.com}
+  \item Ben Gilat \email{ben.gilat@weizmann.ac.il}
+}
+
+Other contributors:
+\itemize{
+  \item Netta Mendelson-Cohen \email{Netta.Mendelsoncohen@weizmann.ac.il} [contributor]
+  \item Rami Jaschek \email{rami.jaschek@weizmann.ac.il} [contributor]
+  \item Weizmann Institute of Science [copyright holder]
+}
+
+}
 \keyword{package}
