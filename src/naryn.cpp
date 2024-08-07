@@ -680,25 +680,43 @@ void vwarning(const char *fmt, ...)
 
 void vdebug(const char *fmt, ...)
 {
-    if (g_naryn->debug()) {
+    if (g_naryn->debug())
+    {
         struct timeval tmnow;
         struct tm *tm;
-        char buf[30];
+        char timebuf[30];
         gettimeofday(&tmnow, NULL);
         tm = localtime(&tmnow.tv_sec);
-        strftime(buf, sizeof(buf), "%H:%M:%S", tm);
-        REprintf("[DEBUG pid %d, %s.%03d] ", (int)getpid(), buf, (int)(tmnow.tv_usec / 1000));
+        strftime(timebuf, sizeof(timebuf), "%H:%M:%S", tm);
 
+        // Print the timestamp and pid
+        REprintf("[DEBUG pid %d, %s.%03d] ", (int)getpid(), timebuf, (int)(tmnow.tv_usec / 1000));
+
+        // Use a vector to store the formatted string
+        std::vector<char> buf;
         va_list ap;
-    	va_start(ap, fmt);        
-        int ret = vsnprintf(buf, sizeof(buf), fmt, ap);
-        if (ret < 0){
-            TGLError("null format string");
-        }
-        va_end(ap);
-        REprintf("%s", buf);
+        va_start(ap, fmt);
 
-        if (!*fmt || (*fmt && fmt[strlen(fmt) - 1] != '\n'))
+        // Determine required buffer size
+        va_list ap_copy;
+        va_copy(ap_copy, ap);
+        int size = vsnprintf(nullptr, 0, fmt, ap_copy) + 1; // +1 for null terminator
+        va_end(ap_copy);
+
+        if (size > 0)
+        {
+            buf.resize(size);
+            vsnprintf(buf.data(), size, fmt, ap);
+            REprintf("%s", buf.data());
+        }
+        else
+        {
+            REprintf("Error in formatting debug message");
+        }
+
+        va_end(ap);
+
+        if (!*fmt || fmt[strlen(fmt) - 1] != '\n')
             REprintf("\n");
     }
 }
