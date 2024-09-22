@@ -116,7 +116,7 @@ void EMRDb::cache_tracks() {
         if (m_load_on_demand[db_idx])
             continue;
 
-        vdebug("Caching %s tracks", m_rootdirs[db_idx].c_str());
+        vdebug(7, "Caching %s tracks", m_rootdirs[db_idx].c_str());
 
         int n = 0;
 
@@ -128,12 +128,12 @@ void EMRDb::cache_tracks() {
                 track.second.track = EMRTrack::unserialize(
                     track.first.c_str(), track.second.filename.c_str());
                 if (n++ < 5)
-                    vdebug("Track %s cached", track.first.c_str());
+                    vdebug(7, "Track %s cached", track.first.c_str());
                 if (track.second.track->timestamp() > track.second.timestamp)
                     outdated_db = true;
             }
             if (n > 5)
-                vdebug("%d tracks cached (only first 5 listed)", n);
+                vdebug(7, "%d tracks cached (only first 5 listed)", n);
 
             check_interrupt();
             progress.report(1);
@@ -165,18 +165,18 @@ void EMRDb::cache_tracks() {
 }
 
 void EMRDb::lock_logical_track_list(BufferedFile &lock, const char *mode) {
-    vdebug("MODE: %s", mode);
+    vdebug(7, "MODE: %s", mode);
     if (!lock.opened()) {
         string filename = logical_tracks_filename();
         if (lock.open(filename.c_str(), mode, true))
             verror("Failed to open file %s: %s", filename.c_str(),
                    strerror(errno));
         if (!strcmp(mode, "r"))
-            vdebug("R lock acquired for logical tracks file\n");
+            vdebug(7, "R lock acquired for logical tracks file\n");
         else if (!strcmp(mode, "w"))
-            vdebug("W lock acquired for logical tracks file\n");
+            vdebug(7, "W lock acquired for logical tracks file\n");
         else
-            vdebug("R/W lock acquired for logical tracks file\n");
+            vdebug(7, "R/W lock acquired for logical tracks file\n");
     }
 }
 
@@ -317,7 +317,7 @@ void EMRDb::update_logical_tracks_file() {
 
     lock_logical_track_list(bf, "w");
 
-    vdebug("Creating %s with %lu logical tracks", filename.c_str(),
+    vdebug(7, "Creating %s with %lu logical tracks", filename.c_str(),
            m_logical_tracks.size());
     if (bf.open(filename.c_str(), "w"))
     {
@@ -360,7 +360,7 @@ void EMRDb::clear_logical_tracks() {
 void EMRDb::load_logical_tracks() {
     Name2LogicalTrack track_list;
 
-    vdebug("Loading logical track list\n");
+    vdebug(7, "Loading logical track list\n");
 
     BufferedFile bf;
     string filename = logical_tracks_filename();
@@ -384,7 +384,7 @@ void EMRDb::load_logical_tracks() {
 
     if (m_logical_tracks_ts[m_rootdirs[0]] == get_file_mtime(fs))
     {
-        vdebug("Up-to-date logical tracks are already in memory");
+        vdebug(7, "Up-to-date logical tracks are already in memory");
         bf.close();
         return;
     }
@@ -463,16 +463,16 @@ void EMRDb::load_logical_tracks() {
             bf.close();
 
             m_logical_tracks_ts[m_rootdirs[0]] = get_file_mtime(fs);
-            vdebug("Read %lu logical tracks", m_logical_tracks.size());
+            vdebug(7, "Read %lu logical tracks", m_logical_tracks.size());
 
             if (g_naryn->debug()) {
                 int n = 0;
                 for (auto track : g_db->logical_track_names())
                 {
-                    vdebug("%d. %s\n", n + 1, track.c_str());
+                    vdebug(7, "%d. %s\n", n + 1, track.c_str());
                     if (++n >= 5)
                     {
-                        vdebug("(Only the first %d logical tracks are listed)\n", n);
+                        vdebug(7, "(Only the first %d logical tracks are listed)\n", n);
                         break;
                     }
                 }
@@ -551,7 +551,7 @@ void EMRDb::load_ids() {
 
     try
     {
-        vdebug("Loading ids...\n");
+        vdebug(7, "Loading ids...\n");
 
         string filename = ids_filename();
         struct stat sb;
@@ -571,14 +571,14 @@ void EMRDb::load_ids() {
             memset(&fl, 0, sizeof(fl));
             fl.l_type = F_RDLCK;
 
-            vdebug("Acquiring write lock for %s\n", filename.c_str());
+            vdebug(7, "Acquiring write lock for %s\n", filename.c_str());
             while (fcntl(fd, F_SETLKW, &fl) == -1)
             {
                 if (errno != EINTR)
                     verror("Locking file %s: %s", filename.c_str(),
                            strerror(errno));
             }
-            vdebug("Lock set\n", filename.c_str());
+            vdebug(7, "Lock set\n", filename.c_str());
 
             if (fstat(fd, &sb) == -1)
                 verror("stat failed on file %s: %s", filename.c_str(),
@@ -592,11 +592,11 @@ void EMRDb::load_ids() {
                 if (rebuild_ids_file_on_dob_change())
                     continue;
                 m_ids_transact_ts = m_transact_id;
-                vdebug("Up-to-date ids are already in memory\n");
+                vdebug(7, "Up-to-date ids are already in memory\n");
                 return;
             }
 
-            vdebug("Loading IDs file\n");
+            vdebug(7, "Loading IDs file\n");
             clear_ids();
 
             m_shmem_ids_size = sb.st_size;
@@ -676,7 +676,7 @@ void EMRDb::create_ids_file() {
 
     try
     {
-        vdebug("Creating IDs file\n");
+        vdebug(7, "Creating IDs file\n");
         string filename = ids_filename();
         fd = creat(filename.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH); // rwrwrw
 
@@ -714,7 +714,7 @@ void EMRDb::create_ids_file() {
     }
     catch (TGLException &e)
     {
-        vdebug("%s", e.msg());
+        vdebug(7, "%s", e.msg());
         close(fd); // closing fd will also release the lock (see: fcntl,
                    // F_SETLKW)
         unlink(ids_filename().c_str());
@@ -744,7 +744,7 @@ bool EMRDb::rebuild_ids_file_on_dob_change() {
             itrack->second.track = NULL;
         }
 
-        vdebug("'%s' track had been updated, rebuilding %s file\n",
+        vdebug(7, "'%s' track had been updated, rebuilding %s file\n",
                DOB_TRACKNAME, ids_filename().c_str());
         create_ids_file();
         return true;
@@ -811,7 +811,7 @@ void EMRDb::validate_rootdirs(const vector<string>& rootdirs){
 
 void EMRDb::init(const vector<string>& rootdirs, const vector<bool>& dirs_load_on_demand, const bool& do_reload) {
 
-    vdebug("EMRDb::init()\n");
+    vdebug(7, "EMRDb::init()\n");
 
     validate_rootdirs(rootdirs);
 
@@ -884,7 +884,7 @@ void EMRDb::refresh(bool force) {
 #else
         verror("Database was not loaded. Please call db_connect.");
 #endif
-    vdebug("EMRDb::refresh()\n");
+    vdebug(7, "EMRDb::refresh()\n");
     ++m_transact_id;
 
     for (auto db_id = m_rootdirs.begin(); db_id != m_rootdirs.end(); db_id++) {
@@ -904,7 +904,7 @@ void EMRDb::reload() {
         verror("Database was not loaded. Please call db_connect.");
 #endif
 
-    vdebug("EMRDb::reload()\n");
+    vdebug(7, "EMRDb::reload()\n");
 
     for (auto db_id = m_rootdirs.begin(); db_id != m_rootdirs.end(); db_id++){
         create_track_list_file(*db_id, NULL);
@@ -924,7 +924,7 @@ void EMRDb::lock_track_lists(vector<BufferedFile> &locks, const char *mode) {
 
 void EMRDb::lock_track_list(string db_id, BufferedFile &lock, const char *mode){
 
-    vdebug("MODE: %s", mode);
+    vdebug(7, "MODE: %s", mode);
 
     if (!lock.opened()) {
 
@@ -935,13 +935,13 @@ void EMRDb::lock_track_list(string db_id, BufferedFile &lock, const char *mode){
                    strerror(errno));
 
         if (!strcmp(mode, "r"))
-            vdebug("R lock acquired\n");
+            vdebug(7, "R lock acquired\n");
 
         else if (!strcmp(mode, "w"))
-            vdebug("W lock acquired\n");
+            vdebug(7, "W lock acquired\n");
 
         else
-            vdebug("R/W lock acquired\n");
+            vdebug(7, "R/W lock acquired\n");
     }
 }
 
@@ -949,14 +949,14 @@ void EMRDb::lock_track_list(string db_id, BufferedFile &lock, const char *mode){
 void EMRDb::create_track_list_file(string db_id, BufferedFile *_pbf) {
     DIR *dir = NULL;
 
-    vdebug("Rescanning %s dir to acquire list of tracks", db_id.c_str());
+    vdebug(7, "Rescanning %s dir to acquire list of tracks", db_id.c_str());
 
     try {
         BufferedFile bf;
         BufferedFile *pbf = _pbf ? _pbf : &bf;
 
         if (!_pbf) {
-            vdebug("Opening %s track list for write", db_id.c_str());
+            vdebug(7, "Opening %s track list for write", db_id.c_str());
             // Lock the file for writing before scan to prevent concurrent scan
             // at the same time. If not done, an earlier scan might write its
             // results to track list file after a later scan.
@@ -1013,7 +1013,7 @@ void EMRDb::create_track_list_file(string db_id, BufferedFile *_pbf) {
 
 void EMRDb::update_track_list_file(const Name2Track &tracks, string db_id, BufferedFile &bf) {
 
-    vdebug("Writing %ld %s tracks to track list file", tracks.size(), db_id.c_str());
+    vdebug(7, "Writing %ld %s tracks to track list file", tracks.size(), db_id.c_str());
 
     bf.seek(0, SEEK_SET); // rewind the file position
     bool in_dbs = false;
@@ -1044,7 +1044,7 @@ void EMRDb::update_track_list_file(const Name2Track &tracks, string db_id, Buffe
 }
 
 void EMRDb::load_track_list(string db_id, BufferedFile &bf, bool force) {
-    vdebug("Loading %s track list before update\n", db_id.c_str());
+    vdebug(7, "Loading %s track list before update\n", db_id.c_str());
     lock_track_list(db_id, bf, "r+");
     load_track_list(db_id, &bf, force);
 }
@@ -1059,7 +1059,7 @@ void EMRDb::load_track_list(string db_id, BufferedFile *_pbf, bool force){
         string filename = track_list_filename(db_id);
 
         if (!_pbf){
-            vdebug("Loading %s track list\n", db_id.c_str());
+            vdebug(7, "Loading %s track list\n", db_id.c_str());
         }
             
         if (!_pbf && pbf->open(filename.c_str(), "r", true)) {
@@ -1072,7 +1072,7 @@ void EMRDb::load_track_list(string db_id, BufferedFile *_pbf, bool force){
         }
 
         if (!_pbf){
-            vdebug("R lock acquired\n");
+            vdebug(7, "R lock acquired\n");
         }
 
         pbf->seek(0, SEEK_SET); // rewind the file position
@@ -1084,13 +1084,13 @@ void EMRDb::load_track_list(string db_id, BufferedFile *_pbf, bool force){
 
         // track list in memory is synced with the track list on disk
         if ((m_track_list_ts[db_id] == get_file_mtime(fs)) && !force) {
-            vdebug("Up-to-date %s track list is already in memory", db_id.c_str());
+            vdebug(7, "Up-to-date %s track list is already in memory", db_id.c_str());
             if (g_naryn->debug()) {
                 int n = 0;
                 for (auto track : m_track_names[db_id]) {
-                    vdebug("%d. %s\n", n + 1, track.c_str());
+                    vdebug(7, "%d. %s\n", n + 1, track.c_str());
                     if (++n >= 5) {
-                        vdebug("(Only the first %d tracks are listed)\n", n);
+                        vdebug(7, "(Only the first %d tracks are listed)\n", n);
                         break;
                     }
                 }
@@ -1144,17 +1144,17 @@ void EMRDb::load_track_list(string db_id, BufferedFile *_pbf, bool force){
         }
 
         m_track_list_ts[db_id] = get_file_mtime(fs);
-        vdebug("Read %lu tracks", track_list.size());
+        vdebug(7, "Read %lu tracks", track_list.size());
 
         if (g_naryn->debug()) {
 
             int n = 0;
             for (auto track : track_list)
             {
-                vdebug("%d. %s\n", n + 1, track.first.c_str());
+                vdebug(7, "%d. %s\n", n + 1, track.first.c_str());
                 if (++n >= 5)
                 {
-                    vdebug("(Only the first %d tracks are listed)\n", n);
+                    vdebug(7, "(Only the first %d tracks are listed)\n", n);
                     break;
                 }
             }
@@ -1213,12 +1213,12 @@ void EMRDb::load_track_list(string db_id, BufferedFile *_pbf, bool force){
                 itrack->second.track = NULL;
 
             } if (n++ < 5){
-                vdebug("Keep track %s in memory", fresh_track.first.c_str());
+                vdebug(7, "Keep track %s in memory", fresh_track.first.c_str());
             }
         }
     }
     if (n > 5)
-        vdebug("%d tracks kept in memory (only first 5 listed)", n);
+        vdebug(7, "%d tracks kept in memory (only first 5 listed)", n);
 
     // Clear the old tracks
     for (auto itrack = m_tracks.begin(); itrack != m_tracks.end();)
@@ -1247,7 +1247,7 @@ void EMRDb::load_track(const char *track_name, const string& db_id){
     string filename = track_filename(db_id, track_name);
     Name2Track::iterator itrack = m_tracks.find(track_name);
 
-    vdebug("Adding track %s to DB\n", track_name);
+    vdebug(7, "Adding track %s to DB\n", track_name);
 
     if (itrack == m_tracks.end()){
         m_track_names[db_id].push_back(track_name);
@@ -1285,7 +1285,7 @@ void EMRDb::unload_track(const char *track_name, const bool& overridden, const b
 
     if (itr != m_track_names[db_id].end()) {
         m_track_names[db_id].erase(itr);
-        vdebug("Unloaded track %s from memory", track_name);
+        vdebug(7, "Unloaded track %s from memory", track_name);
     }
 
     //If the track was overriding another track
@@ -1464,7 +1464,7 @@ void EMRDb::load_tracks_attrs(string db_id, bool locked)
         // disk
         if (m_tracks_attrs_ts[db_id] == get_file_mtime(fs))
         {
-            vdebug("Up-to-date %s tracks attributes are already in memory", db_id.c_str());
+            vdebug(7, "Up-to-date %s tracks attributes are already in memory", db_id.c_str());
             return;
         }
 
@@ -1534,7 +1534,7 @@ void EMRDb::load_tracks_attrs(string db_id, bool locked)
         }
 
         m_tracks_attrs_ts[db_id] = get_file_mtime(fs);
-        vdebug("Read %lu tracks with attributes",
+        vdebug(7, "Read %lu tracks with attributes",
                m_track2attrs[db_id].size());
         break;
     }
@@ -1563,7 +1563,7 @@ void EMRDb::create_tracks_attrs_file(string db_id, bool locked)
     
     m_track2attrs[db_id].clear();
 
-    vdebug("Scanning tracks in %s space for attributes\n", db_id.c_str());
+    vdebug(7, "Scanning tracks in %s space for attributes\n", db_id.c_str());
 
     for (const auto &name2track_info : m_tracks){
 
@@ -1593,7 +1593,7 @@ void EMRDb::create_tracks_attrs_file(string db_id, bool locked)
 
     progress.report_last();
 
-    vdebug("Found %lu tracks with attributes\n",
+    vdebug(7, "Found %lu tracks with attributes\n",
            m_track2attrs[db_id].size());
     update_tracks_attrs_file(db_id, true);
 }
@@ -1612,7 +1612,7 @@ void EMRDb::update_tracks_attrs_file(string db_id, bool locked) {
     BufferedFile bf;
     string filename = tracks_attrs_filename(db_id);
 
-    vdebug("Creating %s with attributes from %lu tracks", filename.c_str(), m_track2attrs[db_id].size());
+    vdebug(7, "Creating %s with attributes from %lu tracks", filename.c_str(), m_track2attrs[db_id].size());
 
     if (bf.open(filename.c_str(), "w")){
         verror("Failed to open file %s: %s", filename.c_str(), strerror(errno));

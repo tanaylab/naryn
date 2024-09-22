@@ -108,7 +108,7 @@ Naryn::Naryn(SEXP _env, bool check_db) :
 	if (s_ref_count == 1)
 		g_naryn = this;
 
-    vdebug("Starting Naryn\n");
+    vdebug(7, "Starting Naryn\n");
     if (check_db) {
         if (!g_db)
             verror("Database was not loaded. Please call emr_db.init.");
@@ -119,7 +119,7 @@ Naryn::Naryn(SEXP _env, bool check_db) :
 
 Naryn::~Naryn()
 {
-    vdebug("Ending Naryn\n");
+    vdebug(7, "Ending Naryn\n");
 	s_ref_count--;
 
 	if (!s_ref_count) {
@@ -133,7 +133,7 @@ Naryn::~Naryn()
 
                 // kill all the remaining child processes
                 for (vector<pid_t>::const_iterator ipid = s_running_pids.begin(); ipid != s_running_pids.end(); ++ipid) {
-                    vdebug("Forcefully terminating process %d\n", *ipid);
+                    vdebug(7, "Forcefully terminating process %d\n", *ipid);
                     kill(*ipid, SIGTERM);
                 }
             }
@@ -145,7 +145,7 @@ Naryn::~Naryn()
                 if (s_running_pids.empty())
                     break;
 
-                vdebug("Waiting for %ld child processes to end\n", s_running_pids.size());
+                vdebug(7, "Waiting for %ld child processes to end\n", s_running_pids.size());
                 sigsuspend(&sb.oldsigset);
             }
 
@@ -218,7 +218,7 @@ string Naryn::get_fifo_name()
 
 void Naryn::prepare4multitasking()
 {
-    vdebug("Cleaning old semaphores\n");
+    vdebug(7, "Cleaning old semaphores\n");
 	if (s_shm_sem == SEM_FAILED) {
 		sem_unlink(get_shm_sem_name().c_str()); // remove a semaphore if it was somehow not cleaned from the previous invocation of the lib
 		if ((s_shm_sem = sem_open(get_shm_sem_name().c_str(), O_CREAT | O_EXCL, 0644, 1)) == SEM_FAILED)
@@ -239,7 +239,7 @@ void Naryn::prepare4multitasking()
         sem_unlink(get_fifo_sem_name().c_str());
     }
 
-    vdebug("Creating FIFO channel\n");
+    vdebug(7, "Creating FIFO channel\n");
     if (s_fifo_fd == -1) {
         unlink(get_fifo_name().c_str());
 
@@ -254,7 +254,7 @@ void Naryn::prepare4multitasking()
 #endif
     }
 
-    vdebug("Allocating shared memory for internal communication\n");
+    vdebug(7, "Allocating shared memory for internal communication\n");
 	if (s_shm == (Shm *)MAP_FAILED) {
 		s_shm = (Shm *)mmap(NULL, sizeof(Shm), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 
@@ -275,7 +275,7 @@ pid_t Naryn::launch_process()
 	if (s_kid_index >= MAX_KIDS) 
 		verror("Too many child processes");
 
-    vdebug("SemLock\n");
+    vdebug(7, "SemLock\n");
 
 	check_interrupt();
 
@@ -285,14 +285,14 @@ pid_t Naryn::launch_process()
 			verror("%s", s_shm->error_msg);
 	}
 
-    vdebug("fork\n");
+    vdebug(7, "fork\n");
 	pid_t pid = fork(); 
 
 	if (pid == -1)
         verror("fork failed: %s", strerror(errno));
 
 	if (pid) { // a parent process
-        vdebug("%d: child process %d has been launched\n", getpid(), pid);
+        vdebug(7, "%d: child process %d has been launched\n", getpid(), pid);
         s_running_pids.push_back(pid);
         ++s_kid_index;
     } else {   // a child process
@@ -334,10 +334,10 @@ void Naryn::check_kids_state(bool ignore_errors)
     pid_t pid;
 
     while ((pid = waitpid((pid_t)-1, &status, WNOHANG)) > 0) {
-        vdebug("pid %d has ended\n", pid);
+        vdebug(7, "pid %d has ended\n", pid);
         for (vector<pid_t>::iterator ipid = s_running_pids.begin(); ipid != s_running_pids.end(); ++ipid) {
             if (*ipid == pid) {
-                vdebug("pid %d was identified as a child process\n", pid);
+                vdebug(7, "pid %d was identified as a child process\n", pid);
                 swap(*ipid, s_running_pids.back());
                 s_running_pids.pop_back();
                 if (!ignore_errors && !WIFEXITED(status) && WIFSIGNALED(status) && WTERMSIG(status) != NARYN_EXIT_SIG)
@@ -354,7 +354,7 @@ bool Naryn::wait_for_kids(int millisecs)
     set_rel_timeout(millisecs, timeout);
 
     while (1) {
-        vdebug("SIGINT fired? %d\n", s_sigint_fired);
+        vdebug(7, "SIGINT fired? %d\n", s_sigint_fired);
         check_interrupt();
         check_kids_state(false);
 
@@ -365,11 +365,11 @@ bool Naryn::wait_for_kids(int millisecs)
         }
 
         if (s_running_pids.empty()) {
-            vdebug("No more running child processes\n");
+            vdebug(7, "No more running child processes\n");
             return false;
         }
 
-        vdebug("still running %ld child processes (%d, ...)\n", s_running_pids.size(), s_running_pids.front());
+        vdebug(7, "still running %ld child processes (%d, ...)\n", s_running_pids.size(), s_running_pids.front());
 
         if (nanosleep(&timeout, &remaining))
             timeout = remaining;
@@ -498,6 +498,11 @@ void Naryn::load_options()
     rvar = GetOption(install("emr_debug"), R_NilValue);
     if (isLogical(rvar)){
         m_debug = asLogical(rvar);
+    }
+
+    rvar = GetOption(install("emr_debug_level"), R_NilValue);
+    if ((isReal(rvar) || isInteger(rvar)) && asInteger(rvar) >= 0){
+        m_debug_level = asInteger(rvar);
     }
 
     rvar = GetOption(install("emr_multitasking"), R_NilValue);
@@ -678,9 +683,9 @@ void vwarning(const char *fmt, ...)
 	Rf_warningcall_immediate(R_NilValue, "%s", buf);
 }
 
-void vdebug(const char *fmt, ...)
+void vdebug(int level, const char *fmt, ...)
 {
-    if (g_naryn->debug())
+    if (g_naryn->debug() && g_naryn->debug_level() >= level)
     {
         struct timeval tmnow;
         struct tm *tm;

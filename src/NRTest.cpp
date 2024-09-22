@@ -800,13 +800,13 @@
 //                 while (1)
 //                     Naryn::write_multitask_fifo(buf, sizeof(buf));
 //             }
-//             vdebug("Launched child process %d/%d\n", i + 1, num_processes);
+//             vdebug(7, "Launched child process %d/%d\n", i + 1, num_processes);
 //         }
 
 //         char buf[100];
 //         uint64_t bytes_read = 0;
 
-//         vdebug("Starting read test\n");
+//         vdebug(7, "Starting read test\n");
 //         uint64_t timeout = asInteger(_timeout);
 //         Naryn::set_alarm(timeout * 1000);
 //         while (1) {
@@ -821,7 +821,7 @@
 //             check_interrupt();
 //         }
 
-//         vdebug("End\n");
+//         vdebug(7, "End\n");
 //         REprintf("Received: %ld bytes, rate: %ld bytes / sec\n", bytes_read, bytes_read / timeout);
 // 	} catch (TGLException &e) {
 // 		rerror("%s", e.msg());

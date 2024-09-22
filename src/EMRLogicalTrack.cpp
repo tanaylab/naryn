@@ -6,7 +6,7 @@ bool EMRLogicalTrack::serialize(const char* filename){
     if (bf.open(filename, "w", true))
         verror("Failed to open file %s: %s", filename, strerror(errno));
 
-    vdebug("Creating logical track at: %s ", filename); 
+    vdebug(7, "Creating logical track at: %s ", filename); 
 
     bf.write(this->source.c_str(), this->source.size() + 1);
 

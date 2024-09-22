@@ -79,9 +79,9 @@ SEXP emr_create_logical(SEXP _track, SEXP _src, SEXP _values, SEXP _update, SEXP
             }
 
             if (g_naryn->debug()) {
-                vdebug("values: ");
+                vdebug(7, "values: ");
                 for (auto i = values.begin(); i != values.end(); ++i)
-                    vdebug("%d ", *i);
+                    vdebug(7, "%d ", *i);
             }
 
             g_db->add_logical_track(trackname.c_str(), sourcename.c_str(),
@@ -128,7 +128,7 @@ SEXP emr_remove_logical(SEXP _track, SEXP _update, SEXP _envir) {
                    trackname.c_str());
         }
         g_db->remove_logical_track(trackname.c_str(), asLogical(_update));
-        vdebug("Removed logical track: %s", trackname.c_str());
+        vdebug(7, "Removed logical track: %s", trackname.c_str());
 
     } catch (TGLException &e) {
         rerror("%s", e.msg());

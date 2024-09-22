@@ -469,7 +469,7 @@ EMRTrack::TrackType EMRTrack::serialize(const char *filename, unsigned flags, EM
         maxtime = 0;
     }
 
-    vdebug("Creating a track file %s\n", filename);
+    vdebug(7, "Creating a track file %s\n", filename);
 	if (bfile.open(filename, "w"))
 		TGLError<EMRTrack>(FILE_ERROR, "Opening a track file %s: %s", filename, strerror(errno));
 

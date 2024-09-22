@@ -200,17 +200,17 @@ bool NRTrackExprScanner::begin(SEXP track_exprs, ValType valtype, SEXP rstime, S
 bool NRTrackExprScanner::begin(const vector<string> &track_exprs, ValType valtype, unsigned stime, unsigned etime, bool is_implicit_scope,
                                SEXP iterator_policy, bool keepref, SEXP filter)
 {
-    vdebug("Parsing track expressions\n");
+    vdebug(7, "Parsing track expressions\n");
 	check(track_exprs, stime, etime, is_implicit_scope, iterator_policy, keepref, filter);
 
     m_valtype = valtype;
     m_multitasking = false;
 
 	// check whether m_eval_buf_limit == 1000 will correctly work for the expression
-    vdebug("Defining R variables\n");
+    vdebug(7, "Defining R variables\n");
     define_r_vars(g_naryn->eval_buf_size());
 
-    vdebug("Determining evaluation buffer size\n");
+    vdebug(7, "Determining evaluation buffer size\n");
 	for (unsigned iexpr = 0; iexpr < m_track_exprs.size(); ++iexpr) {
         if (m_eval_exprs[iexpr] != R_NilValue) {
             SEXP res = eval_in_R(m_eval_exprs[iexpr], g_naryn->env());
@@ -300,7 +300,7 @@ void NRTrackExprScanner::report_progress()
 
 void NRTrackExprScanner::start_multitasking()
 {
-    vdebug("Checking possible switching to multitasking\n");
+    vdebug(7, "Checking possible switching to multitasking\n");
     double progress = m_itr.itr().size() ? m_itr.itr().idx() / (double)m_itr.itr().size() : 0.;
     uint64_t estimated_runtime = progress ? CHECK_MULTITASKING_TIME + CHECK_MULTITASKING_TIME / progress : MIN_MULTITASKING_TIME;
 
@@ -310,12 +310,12 @@ void NRTrackExprScanner::start_multitasking()
         return;
 
     // switch to multitasking
-    vdebug("Estimated run-time without multitasking: %g sec\n", estimated_runtime / 1000.);
+    vdebug(7, "Estimated run-time without multitasking: %g sec\n", estimated_runtime / 1000.);
     if (estimated_runtime < (uint64_t)MIN_MULTITASKING_TIME)
         return;
 
     int num_cores = max(1, (int)sysconf(_SC_NPROCESSORS_ONLN));
-    vdebug("Detected %d cores\n", num_cores);
+    vdebug(7, "Detected %d cores\n", num_cores);
 
     unsigned cur_id = m_itr.itr().point().id;
     vector<unsigned> ids_left;
@@ -325,7 +325,7 @@ void NRTrackExprScanner::start_multitasking()
         if (g_db->is_in_subset(id))
             ids_left.push_back(id);
     }
-    vdebug("%ld ids left (total ids: %ld)\n", ids_left.size(), g_db->num_ids());
+    vdebug(7, "%ld ids left (total ids: %ld)\n", ids_left.size(), g_db->num_ids());
 
     // depending on the estimated run-time set the number of kids on a value between min_processes and max_processes
     int min_processes = min(g_naryn->min_processes() - 1, num_cores - 1);
@@ -338,7 +338,7 @@ void NRTrackExprScanner::start_multitasking()
     if (num_kids <= 1)
         return;
 
-    vdebug("Opening %d child processes\n", num_kids);
+    vdebug(7, "Opening %d child processes\n", num_kids);
 
     vector<unsigned> ids_subset;
 
@@ -359,7 +359,7 @@ void NRTrackExprScanner::start_multitasking()
     for (int ikid = 0; ikid < num_kids; ++ikid) {
         uint64_t ids_subset_size = ids_left.size() / (num_kids - ikid);
 
-        vdebug("Calculating ids subset, size: %ld\n", ids_subset_size);
+        vdebug(7, "Calculating ids subset, size: %ld\n", ids_subset_size);
         ids_subset.clear();
         ids_subset.reserve(ids_subset_size);
         for (uint64_t i = 0; i < ids_subset_size; ++i) {
@@ -368,13 +368,13 @@ void NRTrackExprScanner::start_multitasking()
             swap(ids_left[idx], ids_left[ids_left.size() - 1]);
             ids_left.pop_back();
         }
-        vdebug("Subset is ready\n");
+        vdebug(7, "Subset is ready\n");
 
         if (!ids_subset.empty() && !g_naryn->launch_process()) { // kid process
             kid_main_loop(ids_subset);
             rexit();
         }
-        vdebug("Launched child %d/%d\n", ikid + 1, num_kids);
+        vdebug(7, "Launched child %d/%d\n", ikid + 1, num_kids);
     }
 
     m_multitasking = true;
@@ -395,7 +395,7 @@ void NRTrackExprScanner::start_multitasking()
 
     delete []m_mtask_buf;
     m_mtask_buf = new char[m_mtask_buf_size];
-    vdebug("end of start_multitasking\n");
+    vdebug(7, "end of start_multitasking\n");
 }
 
 void NRTrackExprScanner::kid_main_loop(vector<unsigned> &ids_subset)

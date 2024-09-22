@@ -76,7 +76,7 @@ SEXP emr_track_mv(SEXP _srctrack, SEXP _tgttrack, SEXP _db_id, SEXP _envir)
         }
 
         string tgt_fname = db_id + string("/") + tgt_trackname + EMRDb::TRACK_FILE_EXT;
-        vdebug("Moving track file %s to %s\n", src_track_info->filename.c_str(), tgt_fname.c_str());
+        vdebug(7, "Moving track file %s to %s\n", src_track_info->filename.c_str(), tgt_fname.c_str());
         FileUtils::move_file(src_track_info->filename.c_str(), tgt_fname.c_str());
 
         if (mv_to_override) {
@@ -109,14 +109,14 @@ SEXP emr_track_rm(SEXP _track, SEXP _update, SEXP _envir)
         }
 
 		const char *trackname = CHAR(STRING_ELT(_track, 0));
-        vdebug("Removing track %s\n", trackname);
+        vdebug(7, "Removing track %s\n", trackname);
         const EMRDb::TrackInfo *track_info = g_db->track_info(trackname);
 
         if (!track_info){
             verror("Track %s does not exist", trackname);
         }
 
-        vdebug("Removing track file %s\n", track_info->filename.c_str());
+        vdebug(7, "Removing track file %s\n", track_info->filename.c_str());
         if (unlink(track_info->filename.c_str())){
             verror("Deleting file %s: %s", track_info->filename.c_str(), strerror(errno));
         }

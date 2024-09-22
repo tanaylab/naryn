@@ -1,3 +1,8 @@
+# naryn 2.6.29
+
+* Fix: release stale locks on NFS file systems. 
+* Added an `emr_debug_level` option to control the verbosity of the debug messages at the C++ level (7: debug, 6: info, 5: warning, 4: error, 3: critical, 2: fatal, 1: none). Default is 7.
+
 # naryn 2.6.28 
 
 * Fix: `emr_track.mv` did not move track attributes. 

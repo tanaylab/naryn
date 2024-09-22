@@ -53,7 +53,7 @@ void verror(const char *fmt, ...);
 
 void vwarning(const char *fmt, ...);
 
-void vdebug(const char *fmt, ...);
+void vdebug(int level, const char *fmt, ...);
 
 // Use rprotect instead of PROTECT!
 SEXP rprotect(SEXP &expr);
@@ -162,6 +162,9 @@ public:
     // true if debug prints are allowed
     bool debug() const { return m_debug; }
 
+    // debug level
+    int debug_level() const { return m_debug_level; }
+
     // Returns true if multitasking option is switched on
     bool multitasking_avail() const { return m_multitasking_avail; }
 
@@ -247,6 +250,7 @@ protected:
 	set<int>                    m_old_open_fds;
 
     bool                        m_debug{false};
+    int                         m_debug_level{7};
     bool                        m_multitasking_avail{false};
     int                         m_min_processes{4};
     int                         m_max_processes{20};
