@@ -60,8 +60,8 @@ int BufferedFile::open(const char *path, const char *mode, bool lock) {
                 
                 // Generate a random suffix for the temporary file
                 char temp_suffix[16];
-                snprintf(temp_suffix, sizeof(temp_suffix), "-%06d", rand() % 1000000);
-                
+                snprintf(temp_suffix, sizeof(temp_suffix), "-%06d", (int)(unif_rand() * 1000000));
+
                 string temp_filename = m_filename + temp_suffix;
                 vdebug(7, "Generated temporary filename: %s\n", temp_filename.c_str());
 
