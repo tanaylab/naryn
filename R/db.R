@@ -129,7 +129,6 @@ emr_db.connect <- function(db_dirs = NULL, load_on_demand = NULL, do_reload = FA
     }
 
     success <- FALSE
-    print(sprintf("Connecting to %s", paste(db_dirs, collapse = ", ")))
 
     tryCatch(
         {
