@@ -1,5 +1,5 @@
 load_test_db <- function(testdb_dir = tempfile(pattern = "testdb_", tmpdir = test_path("..")),
-                         image_dir = "/net/mraid14/export/tgdata/db/tgdb/emr/naryn_testdb/") {
+                         image_dir = "/net/mraid20/export/tgdata/db/tgdb/emr/naryn_testdb/") {
     dir.create(testdb_dir)
 
     # Note: we should change this to download.file from a public link
@@ -10,7 +10,7 @@ load_test_db <- function(testdb_dir = tempfile(pattern = "testdb_", tmpdir = tes
 }
 
 load_minimock_db <- function() {
-    load_test_db(image_dir = "/net/mraid14/export/tgdata/db/tgdb/emr/minimock")
+    load_test_db(image_dir = "/net/mraid20/export/tgdata/db/tgdb/emr/minimock")
 }
 
 
@@ -27,7 +27,7 @@ load_test_dbs <- function() {
     })
 
     purrr::walk2(c(1:4), testdb_dirs, ~ {
-        system(glue::glue("cp -rf /net/mraid14/export/tgdata/db/tgdb/emr/nr_test_db_{.x}/ {.y}"))
+        system(glue::glue("cp -rf /net/mraid20/export/tgdata/db/tgdb/emr/nr_test_db_{.x}/ {.y}"))
     })
 
     emr_db.connect(db_dirs = testdb_dirs, do_reload = TRUE)

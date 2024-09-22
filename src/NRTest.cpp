@@ -1,26 +1,26 @@
-// #include <dirent.h>
-// #include <limits.h>
-// #include <unistd.h>
-// #include <sys/stat.h>
-// #include <sys/types.h>
-// #include <iostream>
+#include <dirent.h>
+#include <limits.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <iostream>
 
-// #include "EMRDb.h"
-// #include "EMRProgressReporter.h"
-// #include "EMRTimesIterator.h"
-// #include "EMRTrack.h"
-// #include "EMRTrackIterator.h"
-// #include "naryn.h"
-// #include "NRIteratorFilter.h"
-// #include "NRTimeInterval.h"
-// #include "strutil.h"
+#include "EMRDb.h"
+#include "EMRProgressReporter.h"
+#include "EMRTimesIterator.h"
+#include "EMRTrack.h"
+#include "EMRTrackIterator.h"
+#include "naryn.h"
+#include "NRIteratorFilter.h"
+#include "NRTimeInterval.h"
+#include "strutil.h"
 
-// #include <R_ext/BLAS.h>
-// #include <R_ext/Parse.h>
+#include <R_ext/BLAS.h>
+#include <R_ext/Parse.h>
 
-// typedef unordered_map<int, EMRTrackData<float> *> Datasets;
+typedef unordered_map<int, EMRTrackData<float> *> Datasets;
 
-// extern "C" {
+extern "C" {
 
 // SEXP test_parse_expr(SEXP r_expr, SEXP envir) {
 //     try {
@@ -41,24 +41,24 @@
 //     return R_NilValue;
 // }
 
-// SEXP logical_track_vtrack(SEXP _track, SEXP envir){
-//     try {
-//         Naryn naryn(envir);        
-//         const char *trackname = CHAR(STRING_ELT(_track, 0));        
-//         const EMRLogicalTrack *ltrack = g_db->logical_track(trackname);
+SEXP logical_track_vtrack(SEXP _track, SEXP envir){
+    try {
+        Naryn naryn(envir);        
+        const char *trackname = CHAR(STRING_ELT(_track, 0));        
+        const EMRLogicalTrack *ltrack = g_db->logical_track(trackname);
         
-//         if (!ltrack) verror("Track %s does not exist", trackname);
+        if (!ltrack) verror("Track %s does not exist", trackname);
         
-//         return (ltrack->vtrack());
+        return (ltrack->vtrack());
 
-//     } catch (TGLException &e) {
-//         rerror("%s", e.msg());
-//     } catch (const bad_alloc &e) {
-//         rerror("Out of memory");
-//     }
+    } catch (TGLException &e) {
+        rerror("%s", e.msg());
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 
-//     return R_NilValue;
-// }
+    return R_NilValue;
+}
 
 // SEXP netta_bug(SEXP envir) {
 //     try {
@@ -876,5 +876,5 @@
 // 	rreturn(R_NilValue);
 // }
 
-// }
+}
 
