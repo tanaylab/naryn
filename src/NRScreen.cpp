@@ -2,6 +2,9 @@
 #include "NRPoint.h"
 #include "NRTrackExpressionScanner.h"
 
+#ifndef R_NO_REMAP
+#  define R_NO_REMAP
+#endif
 #include <R.h>
 #include <Rinternals.h>
 
@@ -16,13 +19,13 @@ SEXP C_emr_screen(SEXP _expr, SEXP _sort, SEXP _stime, SEXP _etime, SEXP _iterat
 	try {
         Naryn naryn(_envir);
 
-		if (!isString(_expr) || Rf_length(_expr) != 1)
+		if (!Rf_isString(_expr) || Rf_length(_expr) != 1)
 			verror("The value of 'expr' parameter must be a string");
 
-        if (!isLogical(_sort) && Rf_length(_sort) != 1)
+        if (!Rf_isLogical(_sort) && Rf_length(_sort) != 1)
             verror("The value of 'sort' parameter must be logical");
 
-        int do_sort = asLogical(_sort);
+        int do_sort = Rf_asLogical(_sort);
 
         if (do_sort == NA_LOGICAL)
             verror("The value of 'sort' parameter cannot be NA");

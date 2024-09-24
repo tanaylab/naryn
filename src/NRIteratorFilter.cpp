@@ -18,19 +18,19 @@ void NRIteratorFilter::init(SEXP filter, unsigned stime, unsigned etime)
     vector<SEXP> filters;
     
     // retrieve filter names (named filters are at a variable called EMR_FILTERS inside the .naryn environment)    
-    rprotect(emr_filters = findVar(install("EMR_FILTERS"), findVar(install(".naryn"), g_naryn->env())));
+    rprotect(emr_filters = Rf_findVar(Rf_install("EMR_FILTERS"), Rf_findVar(Rf_install(".naryn"), g_naryn->env())));
 
-    if (!isNull(emr_filters) && !isSymbol(emr_filters)) {        
+    if (!Rf_isNull(emr_filters) && !Rf_isSymbol(emr_filters)) {        
 
-        if (!isVector(emr_filters) ) {
+        if (!Rf_isVector(emr_filters) ) {
             verror("Invalid format of EMR_FILTERS variable (1).\n"
                    "To continue working with filters please remove this variable from the environment.");
         }
 
         filters.push_back(emr_filters);
-        SEXP filter_names = getAttrib(filters.back(), R_NamesSymbol);
-        if (!isVector(filters.back()) ||
-            (Rf_length(filters.back()) && !isString(filter_names)) ||
+        SEXP filter_names = Rf_getAttrib(filters.back(), R_NamesSymbol);
+        if (!Rf_isVector(filters.back()) ||
+            (Rf_length(filters.back()) && !Rf_isString(filter_names)) ||
             (Rf_length(filter_names) != Rf_length(filters.back()))) {
             verror(
                 "Invalid format of EMR_FILTERS variable (2).\n"
@@ -41,7 +41,7 @@ void NRIteratorFilter::init(SEXP filter, unsigned stime, unsigned etime)
         rfilter_names.push_back(filter_names);
     }
 
-    if (isLanguage(filter)) {
+    if (Rf_isLanguage(filter)) {
         try {
             build_subtree(filters, rfilter_names, filter, &m_tree, false, stime, etime, 0);
             if (!m_tree->is_leaf()) {
@@ -55,11 +55,11 @@ void NRIteratorFilter::init(SEXP filter, unsigned stime, unsigned etime)
             throw;
         }
     } else {
-        if ((!isString(filter) && !isSymbol(filter)) || Rf_length(filter) != 1){
+        if ((!Rf_isString(filter) && !Rf_isSymbol(filter)) || Rf_length(filter) != 1){
             verror("Invalid filter (1)");
         }
 
-        m_tree = create_filter_item(filters, rfilter_names, CHAR(asChar(filter)), false, stime, etime);
+        m_tree = create_filter_item(filters, rfilter_names, CHAR(Rf_asChar(filter)), false, stime, etime);
     }
 }
 
@@ -71,16 +71,16 @@ void NRIteratorFilter::build_subtree(vector<SEXP> &filters, vector<SEXP> &rfilte
     while (1) {
         SEXP data = CAR(filter);
 
-        if (isLanguage(data)) {
+        if (Rf_isLanguage(data)) {
             if (idx > 2)
                 verror("Syntax error in filter (2)");
             build_subtree(filters, rfilter_names, data, *tree ? &(*tree)->m_child[idx - 1] : tree, operator_not, stime, etime, depth + 1);
         } else {
-            const char *str = CHAR(asChar(data));
+            const char *str = CHAR(Rf_asChar(data));
 
             if (!idx && !strcmp(str, "(")) {
                 filter = CDR(filter);
-                if (isNull(filter))
+                if (Rf_isNull(filter))
                     verror("Syntax error in filter (3)");
                 continue;
             }
@@ -104,7 +104,7 @@ void NRIteratorFilter::build_subtree(vector<SEXP> &filters, vector<SEXP> &rfilte
 //REprintf("! (not: %d)\n", operator_not);
                     operator_not = !operator_not;
                     filter = CDR(filter);
-                    if (isNull(filter))
+                    if (Rf_isNull(filter))
                         verror("Syntax error in filter (4)");
                     continue;
                 } else if (!strlen(str))
@@ -117,7 +117,7 @@ void NRIteratorFilter::build_subtree(vector<SEXP> &filters, vector<SEXP> &rfilte
 //REprintf("  ");
 //REprintf("track %s surrounded by brackets (not: %d)\n", str, operator_not);
 
-                    if (!isNull(CDR(filter)))
+                    if (!Rf_isNull(CDR(filter)))
                         verror("Syntax error in filter (6)");
 
                     *tree = create_filter_item(filters, rfilter_names, str, operator_not, stime, etime);
@@ -136,7 +136,7 @@ void NRIteratorFilter::build_subtree(vector<SEXP> &filters, vector<SEXP> &rfilte
         }
 
         filter = CDR(filter);
-        if (isNull(filter))
+        if (Rf_isNull(filter))
             break;
 
         ++idx;
@@ -183,7 +183,7 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(vector<SEXP> &filter
             return filter;
         }
 
-        SEXP rval = findVar(install(str), g_naryn->env());
+        SEXP rval = Rf_findVar(Rf_install(str), g_naryn->env());
         bool success = false;
 
         EMRPoints points;
@@ -275,16 +275,16 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(vector<SEXP> &filter
 
 int NRIteratorFilter::check_expiration(SEXP rexpiration, bool keepref, bool categorical,const char *name) {
     double expiration = 0;
-    if (isNull(rexpiration))
+    if (Rf_isNull(rexpiration))
         expiration = 0;
-    else if ((!isReal(rexpiration) && !isInteger(rexpiration)) || Rf_length(rexpiration) != 1)
+    else if ((!Rf_isReal(rexpiration) && !Rf_isInteger(rexpiration)) || Rf_length(rexpiration) != 1)
         verror("Filter %s: 'expiration' must be a positive integer", name);
     else if (keepref)
         verror("Filter %s: 'expiration' cannot be used when keepref is 'TRUE'", name);
     else if (!categorical)
         verror("Filter %s: 'expiration' can be used only with categorical tracks", name);
     else {
-        expiration = asReal(rexpiration);
+        expiration = Rf_asReal(rexpiration);
         if (expiration < 1 || expiration != (int)expiration)
             verror("Filter %s: 'expiration' must be a positive integer", name);
         if (expiration > EMRTimeStamp::MAX_HOUR)
@@ -327,17 +327,17 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const 
 
         SEXP rtshift = get_rvector_col(rfilter, "time_shift", name, false);
 
-        if (isNull(rtshift))
+        if (Rf_isNull(rtshift))
             filter->m_sshift = filter->m_eshift = 0;
         else {
-            if (!(isReal(rtshift) || isInteger(rtshift)) || Rf_length(rtshift) < 1 || Rf_length(rtshift) > 2)
+            if (!(Rf_isReal(rtshift) || Rf_isInteger(rtshift)) || Rf_length(rtshift) < 1 || Rf_length(rtshift) > 2)
                 verror("Filter %s: 'time.shift' must be an integer or a pair of integers", name);
 
             if (Rf_length(rtshift) == 1)
-                filter->m_sshift = filter->m_eshift = isReal(rtshift) ? (int)REAL(rtshift)[0] : INTEGER(rtshift)[0];
+                filter->m_sshift = filter->m_eshift = Rf_isReal(rtshift) ? (int)REAL(rtshift)[0] : INTEGER(rtshift)[0];
             else {
-                filter->m_sshift = isReal(rtshift) ? (int)REAL(rtshift)[0] : INTEGER(rtshift)[0];
-                filter->m_eshift = isReal(rtshift) ? (int)REAL(rtshift)[1] : INTEGER(rtshift)[1];
+                filter->m_sshift = Rf_isReal(rtshift) ? (int)REAL(rtshift)[0] : INTEGER(rtshift)[0];
+                filter->m_eshift = Rf_isReal(rtshift) ? (int)REAL(rtshift)[1] : INTEGER(rtshift)[1];
                 if (filter->m_sshift > filter->m_eshift)
                     swap(filter->m_sshift, filter->m_eshift);
             }
@@ -357,11 +357,11 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const 
 
         SEXP rkeepref = get_rvector_col(rfilter, "keepref", name, true);
 
-        if (!isLogical(rkeepref) || Rf_length(rkeepref) != 1 || asLogical(rkeepref) == NA_LOGICAL){
+        if (!Rf_isLogical(rkeepref) || Rf_length(rkeepref) != 1 || Rf_asLogical(rkeepref) == NA_LOGICAL){
             verror("Filter %s: 'keepref' must be a logical value", name);
         }
             
-        filter->m_keepref = asLogical(rkeepref);
+        filter->m_keepref = Rf_asLogical(rkeepref);
 
         if (filter->m_keepref && (filter->m_sshift || filter->m_eshift)){
             verror("Filter %s: 'time.shift' is not allowed when keepref is 'TRUE'", name);
@@ -375,7 +375,7 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const 
 
         const char *op = CHAR(STRING_ELT(rop, 0));
 
-        if (isString(rsrc)) { // track name
+        if (Rf_isString(rsrc)) { // track name
             if (Rf_length(rsrc) != 1)
                 verror("Filter %s: invalid 'src'", name);
 
@@ -389,24 +389,24 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const 
             if (Rf_length(rval) > 1 && !track->is_categorical())
                 verror("Filter %s: 'val' parameter must be a single value with numerical tracks", name);
 
-            if (!isNull(rval) && (!isReal(rval) && !isInteger(rval)))
+            if (!Rf_isNull(rval) && (!Rf_isReal(rval) && !Rf_isInteger(rval)))
                 verror("Filter %s: 'val' must be a numeric vector", name);
 
             unordered_set<double> vals;
             for (int i = 0; i < Rf_length(rval); ++i)
                 // The track might contain its data as float and not double. In this case a track value might not be equal to its double representation,
                 // like (float)0.3 != (double)0.3. So let's "downgrade" all our values to the least precise type.
-                vals.insert(isReal(rval) ? (float)REAL(rval)[i] : (float)INTEGER(rval)[i]);
+                vals.insert(Rf_isReal(rval) ? (float)REAL(rval)[i] : (float)INTEGER(rval)[i]);
 
             double expiration = check_expiration(rexpiration, filter->m_keepref, track->is_categorical(), name);
             EMRTrack::Iterator::OPS op_enum = check_op(op, name);
 
-            if ((op_enum != EMRTrack::Iterator::OPS::eq) && isNull(rval)) {
+            if ((op_enum != EMRTrack::Iterator::OPS::eq) && Rf_isNull(rval)) {
                 verror("Filter %s: operator of type %s is must be passed with one 'val'", name, op);
             }
 
             filter->m_itr = new EMRTrackIterator(track, filter->m_keepref, _stime, _etime, std::move(vals), expiration, op_enum);
-        } else if (asLogical(use_values)) {   // id-time or id-time-value
+        } else if (Rf_asLogical(use_values)) {   // id-time or id-time-value
 
             EMRTrackData<float> data;
             EMRTrack* track_from_df;
@@ -415,12 +415,12 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const 
                 NRPoint::convert_rpoints_vals(rsrc, data, "'src': "); 
                 track_from_df = EMRTrack::construct(name, EMRTrack::Func::VALUE, 0, data);
 
-                if (isNull(rval))
+                if (Rf_isNull(rval))
                     verror("Can not set 'use_value' to TRUE, when 'val' parameter is NULL");
 
                 unordered_set<double> vals;
                 for (int i = 0; i < Rf_length(rval); ++i){
-                    vals.insert(isReal(rval) ? (float)REAL(rval)[i] : (float)INTEGER(rval)[i]);
+                    vals.insert(Rf_isReal(rval) ? (float)REAL(rval)[i] : (float)INTEGER(rval)[i]);
                 }
 
                 double expiration = check_expiration(rexpiration, filter->m_keepref, 0, name);
@@ -438,10 +438,10 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(SEXP rfilter, const 
             try {
                 NRPoint::convert_rpoints(rsrc, &points);
                 
-                if (!isNull(rval))
+                if (!Rf_isNull(rval))
                     verror("'val' parameter can not be used with dataframe without values as source");
 
-                if (!isNull(rexpiration))
+                if (!Rf_isNull(rexpiration))
                     verror("'expiration' parameter can be used only with tracks");
 
                 filter->m_itr = new EMRPointsIterator(points, filter->m_keepref, _stime, _etime);
@@ -554,7 +554,7 @@ SEXP emr_check_named_filter(SEXP _filter, SEXP _name, SEXP _envir)
 	try {
 		Naryn naryn(_envir);
 
-        if (!isString(_name) || Rf_length(_name) != 1)
+        if (!Rf_isString(_name) || Rf_length(_name) != 1)
             verror("Name of the filter is not a string");
 
 		NRIteratorFilter::check_named_filter(_filter, CHAR(STRING_ELT(_name, 0)));
@@ -571,7 +571,7 @@ SEXP emr_check_filter_attr_src(SEXP _src, SEXP _envir)
 	try {
 		Naryn naryn(_envir);
 
-        if (isString(_src) && Rf_length(_src) == 1) {
+        if (Rf_isString(_src) && Rf_length(_src) == 1) {
             const char *trackname = CHAR(STRING_ELT(_src, 0));
             if (!g_db->track(trackname))
                 verror("Track %s does not exist", trackname);
@@ -599,16 +599,16 @@ SEXP emr_check_filter_attr_time_shift(SEXP _tshift, SEXP _envir)
 		Naryn naryn(_envir);
 
 		// check the arguments
-        if (!(isReal(_tshift) || isInteger(_tshift)) || Rf_length(_tshift) < 1 || Rf_length(_tshift) > 2)
+        if (!(Rf_isReal(_tshift) || Rf_isInteger(_tshift)) || Rf_length(_tshift) < 1 || Rf_length(_tshift) > 2)
             verror("'time.shift' must be an integer or a pair of integers");
 
         int sshift, eshift;
 
         if (Rf_length(_tshift) == 1)
-            sshift = eshift = isReal(_tshift) ? (int)REAL(_tshift)[0] : INTEGER(_tshift)[0];
+            sshift = eshift = Rf_isReal(_tshift) ? (int)REAL(_tshift)[0] : INTEGER(_tshift)[0];
         else {
-            sshift = isReal(_tshift) ? (int)REAL(_tshift)[0] : INTEGER(_tshift)[0];
-            eshift = isReal(_tshift) ? (int)REAL(_tshift)[1] : INTEGER(_tshift)[1];
+            sshift = Rf_isReal(_tshift) ? (int)REAL(_tshift)[0] : INTEGER(_tshift)[0];
+            eshift = Rf_isReal(_tshift) ? (int)REAL(_tshift)[1] : INTEGER(_tshift)[1];
         }
 
         if (sshift < -(int)EMRTimeStamp::MAX_HOUR || sshift > (int)EMRTimeStamp::MAX_HOUR ||
@@ -629,12 +629,12 @@ SEXP emr_check_filter_attr_expiration(SEXP _expiration, SEXP _envir)
 
 		// check the arguments
         double expiration;
-        if (isNull(_expiration))
+        if (Rf_isNull(_expiration))
             expiration = 0;
-        else if ((!isReal(_expiration) && !isInteger(_expiration)) || Rf_length(_expiration) != 1)
+        else if ((!Rf_isReal(_expiration) && !Rf_isInteger(_expiration)) || Rf_length(_expiration) != 1)
             verror("'expiration' must be a positive integer");
         else {
-            expiration = asReal(_expiration);
+            expiration = Rf_asReal(_expiration);
             if (expiration < 1 || expiration != (int)expiration)
                 verror("'expiration' must be a positive integer");
             if (expiration > EMRTimeStamp::MAX_HOUR)

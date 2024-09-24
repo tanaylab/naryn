@@ -59,7 +59,7 @@ SEXP NRPoint::convert_points(const vector<EMRPoint> &points, unsigned num_cols, 
         INTEGER(row_names)[i] = i + 1;
 
     for (int i = 0; i < NUM_POINT_COLS; i++)
-        SET_STRING_ELT(col_names, i, mkChar(COL_NAMES[i]));
+        SET_STRING_ELT(col_names, i, Rf_mkChar(COL_NAMES[i]));
 
     if (ppoints) {
         for (vector<EMRPoint *>::const_iterator ippoint = ppoints->begin(); ippoint != ppoints->end(); ++ippoint) {
@@ -81,9 +81,9 @@ SEXP NRPoint::convert_points(const vector<EMRPoint> &points, unsigned num_cols, 
     SET_VECTOR_ELT(answer, TIME, times);
     SET_VECTOR_ELT(answer, REF, refs);
 
-    setAttrib(answer, R_NamesSymbol, col_names);
-    setAttrib(answer, R_ClassSymbol, mkString("data.frame"));
-    setAttrib(answer, R_RowNamesSymbol, row_names);
+    Rf_setAttrib(answer, R_NamesSymbol, col_names);
+    Rf_setAttrib(answer, R_ClassSymbol, Rf_mkString("data.frame"));
+    Rf_setAttrib(answer, R_RowNamesSymbol, row_names);
 
     return answer;
 }
@@ -99,12 +99,12 @@ void NRPoint::convert_rpoints(SEXP rpoints, vector<EMRPoint> *points, const char
             rpoints = eval_in_R(PRCODE(rpoints), PRENV(rpoints));
     }
 
-    if (!isVector(rpoints))
+    if (!Rf_isVector(rpoints))
         TGLError<NRPoint>(BAD_FORMAT, "%sInvalid format of id-time points", error_msg_prefix);
 
-    SEXP colnames = getAttrib(rpoints, R_NamesSymbol);
+    SEXP colnames = Rf_getAttrib(rpoints, R_NamesSymbol);
 
-    if (!isString(colnames) || Rf_length(colnames) < NUM_POINT_COLS - 1)
+    if (!Rf_isString(colnames) || Rf_length(colnames) < NUM_POINT_COLS - 1)
         TGLError<NRPoint>(BAD_FORMAT, "%sInvalid format of id-time points", error_msg_prefix);
 
     for (unsigned i = 0; i < NUM_POINT_COLS; i++) {
@@ -126,31 +126,31 @@ void NRPoint::convert_rpoints(SEXP rpoints, vector<EMRPoint> *points, const char
         }
     }
 
-    if ((!isReal(ids) && !isInteger(ids)) || (!isReal(hours) && !isInteger(hours)) || ((refs != R_NilValue) && !isReal(refs) && !isInteger(refs))){
+    if ((!Rf_isReal(ids) && !Rf_isInteger(ids)) || (!Rf_isReal(hours) && !Rf_isInteger(hours)) || ((refs != R_NilValue) && !Rf_isReal(refs) && !Rf_isInteger(refs))){
         TGLError<NRPoint>(BAD_FORMAT, "%sInvalid format of id-time points", error_msg_prefix);
     }
 
 
     for (unsigned i = 0; i < num_points; i++) {
-        if ((isReal(ids) && std::isnan(REAL(ids)[i])) || (isReal(hours) && std::isnan(REAL(hours)[i])) || ((refs != R_NilValue) && isReal(refs) && std::isnan(REAL(refs)[i]))){
+        if ((Rf_isReal(ids) && std::isnan(REAL(ids)[i])) || (Rf_isReal(hours) && std::isnan(REAL(hours)[i])) || ((refs != R_NilValue) && Rf_isReal(refs) && std::isnan(REAL(refs)[i]))){
             TGLError<NRPoint>(BAD_VALUE, "%sInvalid format of id-time points, row %d", error_msg_prefix, i + 1);
         }
 
-        int id = isReal(ids) ? REAL(ids)[i] : INTEGER(ids)[i];
-        int hour = isReal(hours) ? REAL(hours)[i] : INTEGER(hours)[i];
+        int id = Rf_isReal(ids) ? REAL(ids)[i] : INTEGER(ids)[i];
+        int hour = Rf_isReal(hours) ? REAL(hours)[i] : INTEGER(hours)[i];
         int ref = -1;
 
         if (refs != R_NilValue)
-            ref = isReal(refs) ? REAL(refs)[i] : INTEGER(refs)[i];
+            ref = Rf_isReal(refs) ? REAL(refs)[i] : INTEGER(refs)[i];
 
-        if (isReal(ids) && REAL(ids)[i] != id)
+        if (Rf_isReal(ids) && REAL(ids)[i] != id)
             TGLError<NRPoint>(BAD_VALUE, "%sInvalid id at id-time points, row %d", error_msg_prefix, i + 1);
 
-        if ((isReal(hours) && REAL(hours)[i] != hour) || hour < 0 ||
+        if ((Rf_isReal(hours) && REAL(hours)[i] != hour) || hour < 0 ||
             (EMRTimeStamp::Hour)hour > EMRTimeStamp::MAX_HOUR)
             TGLError<NRPoint>(BAD_VALUE, "%sInvalid time at id-time points, row %d", error_msg_prefix, i + 1);
 
-        if ((refs != R_NilValue && isReal(refs) && REAL(refs)[i] != ref )|| ref < -1 || ref > EMRTimeStamp::MAX_REFCOUNT)
+        if ((refs != R_NilValue && Rf_isReal(refs) && REAL(refs)[i] != ref )|| ref < -1 || ref > EMRTimeStamp::MAX_REFCOUNT)
             TGLError<NRPoint>(BAD_VALUE, "%sInvalid reference at id-time points, row %d", error_msg_prefix, i + 1);
 
 		points->push_back(EMRPoint(id, EMRTimeStamp((EMRTimeStamp::Hour)hour, (EMRTimeStamp::Refcount)ref)));
@@ -178,12 +178,12 @@ SEXP NRPoint::convert_ids(const vector<unsigned> &ids, unsigned num_cols, bool n
         INTEGER(row_names)[index] = index + 1;
     }
 
-    SET_STRING_ELT(col_names, 0, mkChar("id"));
+    SET_STRING_ELT(col_names, 0, Rf_mkChar("id"));
     SET_VECTOR_ELT(answer, 0, rids);
 
-    setAttrib(answer, R_NamesSymbol, col_names);
-    setAttrib(answer, R_ClassSymbol, mkString("data.frame"));
-    setAttrib(answer, R_RowNamesSymbol, row_names);
+    Rf_setAttrib(answer, R_NamesSymbol, col_names);
+    Rf_setAttrib(answer, R_ClassSymbol, Rf_mkString("data.frame"));
+    Rf_setAttrib(answer, R_RowNamesSymbol, row_names);
 
     return answer;
 }
@@ -199,24 +199,24 @@ void NRPoint::convert_rids(SEXP rids, vector<unsigned> *ids, const char *error_m
             rids = eval_in_R(PRCODE(rids), PRENV(rids));
     }
 
-    if (!isVector(rids))
+    if (!Rf_isVector(rids))
         TGLError<NRPoint>(BAD_FORMAT, "%sInvalid format of ids", error_msg_prefix);
 
-    SEXP colnames = getAttrib(rids, R_NamesSymbol);
+    SEXP colnames = Rf_getAttrib(rids, R_NamesSymbol);
 
-    if (!isString(colnames) || Rf_length(colnames) < 1 || strcmp(CHAR(STRING_ELT(colnames, 0)), "id"))
+    if (!Rf_isString(colnames) || Rf_length(colnames) < 1 || strcmp(CHAR(STRING_ELT(colnames, 0)), "id"))
         TGLError<NRPoint>(BAD_FORMAT, "%sInvalid format of ids", error_msg_prefix);
 
     SEXP rvids = VECTOR_ELT(rids, 0);
 
-    if (isReal(rvids)) {
+    if (Rf_isReal(rvids)) {
         for (int i = 0; i < Rf_length(rvids); ++i) {
             double id = REAL(rvids)[i];
             if (id < 0 || (double)(int)id != id)
                 TGLError<NRPoint>(BAD_VALUE, "%sInvalid id at row %d", error_msg_prefix, i + 1);
             ids->push_back((unsigned)id);
         }
-    } else if (isInteger(rvids)) {
+    } else if (Rf_isInteger(rvids)) {
         for (int i = 0; i < Rf_length(rvids); ++i) {
             int id = INTEGER(rvids)[i];
             if (id < 0)

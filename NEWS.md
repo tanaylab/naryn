@@ -1,3 +1,7 @@
+# naryn 2.6.29 
+
+* Fixed *noRemap* additional issue by adding `Rf_` prefix in the c++ code.
+
 # naryn 2.6.28 
 
 * Fix: `emr_track.mv` did not move track attributes. 

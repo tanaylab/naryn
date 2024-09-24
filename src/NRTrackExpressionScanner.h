@@ -140,7 +140,7 @@ inline void NRTrackExprScanner::IteratorWithFilter::init(EMRTrackExpressionItera
     m_isend = true;
     delete m_itr;
     m_itr = itr;
-    if (!isNull(filter))
+    if (!Rf_isNull(filter))
         m_filter.init(filter, stime, etime);
 }
 
@@ -238,25 +238,25 @@ inline bool NRTrackExprScanner::eval_next()
                 if (Rf_length(m_eval_bufs[iexpr]) != (int)m_eval_buf_limit)
                     verror("Evaluation of expression \"%s\" produces a vector of size %d while expecting size %d",
                             m_track_exprs[iexpr].c_str(), Rf_length(m_eval_bufs[iexpr]), m_eval_buf_limit);
-                if (isReal(m_eval_bufs[iexpr])) {
+                if (Rf_isReal(m_eval_bufs[iexpr])) {
                     if (m_valtype != REAL_T) {
-                        SEXP env = findVar(install(".GlobalEnv"), g_naryn->env());
-                        defineVar(install("EMR_ERROR_EXPR"), m_eval_bufs[iexpr], env);
+                        SEXP env = Rf_findVar(Rf_install(".GlobalEnv"), g_naryn->env());
+                        Rf_defineVar(Rf_install("EMR_ERROR_EXPR"), m_eval_bufs[iexpr], env);
                         verror("Expression \"%s\" does not produce a numeric result.\n"
                                 "The result of the last expression evaluation was saved in EMR_ERROR_EXPR variable.", m_track_exprs[iexpr].c_str());
                     }
                     m_eval_doubles[iexpr] = REAL(m_eval_bufs[iexpr]);
-                } else if (isLogical(m_eval_bufs[iexpr])) {
+                } else if (Rf_isLogical(m_eval_bufs[iexpr])) {
                     if (m_valtype != LOGICAL_T) {
-                        SEXP env = findVar(install(".GlobalEnv"), g_naryn->env());
-                        defineVar(install("EMR_ERROR_EXPR"), m_eval_bufs[iexpr], env);
+                        SEXP env = Rf_findVar(Rf_install(".GlobalEnv"), g_naryn->env());
+                        Rf_defineVar(Rf_install("EMR_ERROR_EXPR"), m_eval_bufs[iexpr], env);
                         verror("Expression \"%s\" does not produce a logical result.\n"
                                 "The result of the last expression evaluation was saved in EMR_ERROR_EXPR variable.", m_track_exprs[iexpr].c_str());
                     }
                     m_eval_ints[iexpr] = LOGICAL(m_eval_bufs[iexpr]);
                 } else
                     verror("Evaluation of expression \"%s\" produces a vector of unsupported type %s",
-                            m_track_exprs[iexpr].c_str(), type2char(TYPEOF(m_eval_bufs[iexpr])));
+                            m_track_exprs[iexpr].c_str(), Rf_type2char(TYPEOF(m_eval_bufs[iexpr])));
             }
         }
 

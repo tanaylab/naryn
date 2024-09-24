@@ -15,18 +15,18 @@ SEXP emr_import(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _src, SEXP _ad
     try {
         Naryn naryn(_envir);
 
-        if (!isString(_track) || Rf_length(_track) != 1)
+        if (!Rf_isString(_track) || Rf_length(_track) != 1)
             verror("'track' argument must be a string");
 
-        bool do_add = asLogical(_add);
-        string trackname = { CHAR(asChar(_track)) };
+        bool do_add = Rf_asLogical(_add);
+        string trackname = { CHAR(Rf_asChar(_track)) };
         string track_filename;
         bool is_patients_dob = trackname == string(g_db->dob_trackname());
         bool patients_dob_exists;
         bool categorical;
         bool has_overlap = false;
-        bool toverride = asLogical(_override);
-        bool remove_unknown = asLogical(_remove_unknown);
+        bool toverride = Rf_asLogical(_override);
+        bool remove_unknown = Rf_asLogical(_remove_unknown);
         string db_id;
         EMRTrackData<float> data;
         
@@ -44,14 +44,14 @@ SEXP emr_import(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _src, SEXP _ad
             track->data_recs(data);
         } else {
             
-            if (!isLogical(_categorical) || Rf_length(_categorical) != 1 || asLogical(_categorical) == NA_LOGICAL)
+            if (!Rf_isLogical(_categorical) || Rf_length(_categorical) != 1 || Rf_asLogical(_categorical) == NA_LOGICAL)
                 verror("'categorical' argument must be logical");
 
-            if (!isString(_db_id) || Rf_length(_db_id) != 1)
+            if (!Rf_isString(_db_id) || Rf_length(_db_id) != 1)
                 verror("'db_id' (space) argument must be a string");
 
-            categorical = asLogical(_categorical);
-            db_id = CHAR(asChar(_db_id));
+            categorical = Rf_asLogical(_categorical);
+            db_id = CHAR(Rf_asChar(_db_id));
 
             if (g_db->get_db_idx(db_id) == -1) {
                 verror("%s directory is not set", db_id.c_str());
@@ -94,11 +94,11 @@ SEXP emr_import(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _src, SEXP _ad
                 verror("File %s already exists", track_filename.c_str());
         }
 
-        if (isString(_src)) {
+        if (Rf_isString(_src)) {
             if (Rf_length(_src) != 1)
                 verror("Invalid format of 'src' argument");
 
-            const char *filename = CHAR(asChar(_src));
+            const char *filename = CHAR(Rf_asChar(_src));
 
             BufferedFile bfile;
             vector<string> fields;
