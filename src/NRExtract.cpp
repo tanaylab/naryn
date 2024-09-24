@@ -11,27 +11,27 @@ SEXP C_emr_extract(SEXP _exprs, SEXP _names, SEXP _tidy, SEXP _sort, SEXP _stime
 	try {
         Naryn naryn(_envir);
 
-		if (!isString(_exprs) || Rf_length(_exprs) < 1)
+		if (!Rf_isString(_exprs) || Rf_length(_exprs) < 1)
 			verror("\"expr\" argument must be a vector of strings");
 
-        if (!isLogical(_tidy) && Rf_length(_tidy) != 1)
+        if (!Rf_isLogical(_tidy) && Rf_length(_tidy) != 1)
             verror("\"tidy\" argument must be logical");
 
-        int tidy = asLogical(_tidy);
+        int tidy = Rf_asLogical(_tidy);
 
         if (tidy == NA_LOGICAL)
             verror("\"tidy\" argument cannot be NA");
 
-        if (!isLogical(_sort) && Rf_length(_sort) != 1)
+        if (!Rf_isLogical(_sort) && Rf_length(_sort) != 1)
             verror("\"sort\" argument must be logical");
 
-        int do_sort = asLogical(_sort);
+        int do_sort = Rf_asLogical(_sort);
 
         if (do_sort == NA_LOGICAL)
             verror("\"sort\" argument cannot be NA");
 
-		if (!isNull(_names)) {
-			if (!isString(_names))
+		if (!Rf_isNull(_names)) {
+			if (!Rf_isString(_names))
 				verror("\"names\" argument must be a vector of strings");
 			if (Rf_length(_names) != Rf_length(_exprs))
 				verror("Length of \"names\" argument must match the number of track expressions");
@@ -78,21 +78,21 @@ SEXP C_emr_extract(SEXP _exprs, SEXP _names, SEXP _tidy, SEXP _sort, SEXP _stime
             }
 
             for (unsigned iexpr = 0; iexpr < (unsigned)num_exprs; ++iexpr) {
-                if (isNull(_names))
+                if (Rf_isNull(_names))
                     SET_STRING_ELT(rexprs, iexpr, STRING_ELT(_exprs, iexpr));
                 else
                     SET_STRING_ELT(rexprs, iexpr, STRING_ELT(_names, iexpr));
             }
 
-            SEXP col_names = getAttrib(answer, R_NamesSymbol);
+            SEXP col_names = Rf_getAttrib(answer, R_NamesSymbol);
             for (unsigned i = 0; i < NUM_COLS; ++i)
-                SET_STRING_ELT(col_names, NRPoint::NUM_POINT_COLS + i, mkChar(COLNAMES[i]));
+                SET_STRING_ELT(col_names, NRPoint::NUM_POINT_COLS + i, Rf_mkChar(COLNAMES[i]));
 
             SET_VECTOR_ELT(answer, NRPoint::NUM_POINT_COLS + EXPR, rexpr_idx);
             SET_VECTOR_ELT(answer, NRPoint::NUM_POINT_COLS + VAL, rexpr_vals);
 
-            setAttrib(rexpr_idx, R_LevelsSymbol, rexprs);
-            setAttrib(rexpr_idx, R_ClassSymbol, mkString("factor"));
+            Rf_setAttrib(rexpr_idx, R_LevelsSymbol, rexprs);
+            Rf_setAttrib(rexpr_idx, R_ClassSymbol, Rf_mkString("factor"));
 
             return answer;
         } else {
@@ -118,10 +118,10 @@ SEXP C_emr_extract(SEXP _exprs, SEXP _names, SEXP _tidy, SEXP _sort, SEXP _stime
                  SET_VECTOR_ELT(answer, NRPoint::NUM_POINT_COLS + iexpr, rexpr_vals);
             }
 
-            SEXP col_names = getAttrib(answer, R_NamesSymbol);
+            SEXP col_names = Rf_getAttrib(answer, R_NamesSymbol);
             for (unsigned iexpr = 0; iexpr < num_exprs; ++iexpr) {
-                if (isNull(_names))
-                    SET_STRING_ELT(col_names, NRPoint::NUM_POINT_COLS + iexpr, mkChar(get_bound_colname(CHAR(STRING_ELT(_exprs, iexpr))).c_str()));
+                if (Rf_isNull(_names))
+                    SET_STRING_ELT(col_names, NRPoint::NUM_POINT_COLS + iexpr, Rf_mkChar(get_bound_colname(CHAR(STRING_ELT(_exprs, iexpr))).c_str()));
                 else
                     SET_STRING_ELT(col_names, NRPoint::NUM_POINT_COLS + iexpr, STRING_ELT(_names, iexpr));
             }

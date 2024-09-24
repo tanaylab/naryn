@@ -20,18 +20,18 @@ extern "C" {
 // strings at m_logical_track_names;
 SEXP emr_create_logical(SEXP _track, SEXP _src, SEXP _values, SEXP _update, SEXP _envir) {
     try {
-        Naryn naryn(_envir, asLogical(_update));
+        Naryn naryn(_envir, Rf_asLogical(_update));
 
 
-        if (!isString(_track) || Rf_length(_track) != 1)
+        if (!Rf_isString(_track) || Rf_length(_track) != 1)
             verror("'track' argument must be a string");
 
 
-        if (!isLogical(_update)){
+        if (!Rf_isLogical(_update)){
             verror("update argument must be a logical value");
         }
 
-        string sourcename = {CHAR(asChar(_src))};
+        string sourcename = {CHAR(Rf_asChar(_src))};
         const EMRDb::TrackInfo *source_track_info = g_db->track_info(sourcename);
         if (!source_track_info){
             verror("Source track %s not found", sourcename.c_str());
@@ -48,11 +48,11 @@ SEXP emr_create_logical(SEXP _track, SEXP _src, SEXP _values, SEXP _update, SEXP
         }
 
         EMRTrack *source_track = g_db->track(sourcename);
-        if (!source_track->is_categorical() && !isNull(_values)) {
+        if (!source_track->is_categorical() && !Rf_isNull(_values)) {
             verror("Source track is not categorical and values were passed");
         }
 
-        string trackname = {CHAR(asChar(_track))};
+        string trackname = {CHAR(Rf_asChar(_track))};
         EMRDb::check_track_name(trackname);
 
         if (g_db->logical_track(trackname)) {
@@ -64,15 +64,15 @@ SEXP emr_create_logical(SEXP _track, SEXP _src, SEXP _values, SEXP _update, SEXP
             verror("Track %s already exists", trackname.c_str());
         }
 
-        if (isNull(_values) || g_db->track(trackname)){ // no values
-            g_db->add_logical_track(trackname.c_str(), sourcename.c_str(), true, asLogical(_update));
+        if (Rf_isNull(_values) || g_db->track(trackname)){ // no values
+            g_db->add_logical_track(trackname.c_str(), sourcename.c_str(), true, Rf_asLogical(_update));
         } else {
             int num_values = Rf_length(_values);
             vector<int> values(num_values);
             
-            if (isReal(_values)){
+            if (Rf_isReal(_values)){
                 values.assign(REAL(_values), REAL(_values) + num_values);
-            } else if (isInteger(_values)){
+            } else if (Rf_isInteger(_values)){
                 values.assign(INTEGER(_values), INTEGER(_values) + num_values);
             } else {
                 verror("invalid values parameter (it is not numeric)");
@@ -85,7 +85,7 @@ SEXP emr_create_logical(SEXP _track, SEXP _src, SEXP _values, SEXP _update, SEXP
             }
 
             g_db->add_logical_track(trackname.c_str(), sourcename.c_str(),
-                                    values, true, asLogical(_update));
+                                    values, true, Rf_asLogical(_update));
         }
 
     } catch (TGLException &e) {
@@ -113,12 +113,12 @@ SEXP update_logical_tracks_file(SEXP _envir) {
 
 SEXP emr_remove_logical(SEXP _track, SEXP _update, SEXP _envir) {
     try {
-        Naryn naryn(_envir, asLogical(_update));
+        Naryn naryn(_envir, Rf_asLogical(_update));
 
-        if (!isString(_track) || Rf_length(_track) != 1)
+        if (!Rf_isString(_track) || Rf_length(_track) != 1)
             verror("'track' argument must be a string");
 
-        string trackname = {CHAR(asChar(_track))};
+        string trackname = {CHAR(Rf_asChar(_track))};
 
         if (!g_db->logical_track(trackname)) {
             if (g_db->track(trackname)) {
@@ -127,7 +127,7 @@ SEXP emr_remove_logical(SEXP _track, SEXP _update, SEXP _envir) {
             verror("Track %s doesn't exist as a logical track",
                    trackname.c_str());
         }
-        g_db->remove_logical_track(trackname.c_str(), asLogical(_update));
+        g_db->remove_logical_track(trackname.c_str(), Rf_asLogical(_update));
         vdebug("Removed logical track: %s", trackname.c_str());
 
     } catch (TGLException &e) {
@@ -143,15 +143,15 @@ SEXP emr_is_logical(SEXP _track, SEXP _envir) {
     try {
         Naryn naryn(_envir);
 
-        if (!isString(_track) || Rf_length(_track) != 1)
+        if (!Rf_isString(_track) || Rf_length(_track) != 1)
             verror("'track' argument must be a string");
 
-        string trackname = {CHAR(asChar(_track))};
+        string trackname = {CHAR(Rf_asChar(_track))};
         if (g_db->logical_track(trackname)) {
-            rreturn(ScalarLogical(true));
+            rreturn(Rf_ScalarLogical(true));
         }
 
-        rreturn(ScalarLogical(false));
+        rreturn(Rf_ScalarLogical(false));
 
     } catch (TGLException &e) {
         rerror("%s", e.msg());
@@ -167,7 +167,7 @@ SEXP emr_logical_track_info(SEXP _track, SEXP _envir) {
         Naryn naryn(_envir);
 
         // check the arguments
-        if (!isString(_track) || Rf_length(_track) != 1)
+        if (!Rf_isString(_track) || Rf_length(_track) != 1)
             verror("Track argument is not a string");
 
         enum { SOURCE, VALUES, NUM_COLS };
@@ -192,7 +192,7 @@ SEXP emr_logical_track_info(SEXP _track, SEXP _envir) {
         rprotect(names = RSaneAllocVector(STRSXP, NUM_COLS));
 
         rprotect(rsource = RSaneAllocVector(STRSXP, 1));
-        SET_STRING_ELT(rsource, 0, mkChar(track->source.c_str()));
+        SET_STRING_ELT(rsource, 0, Rf_mkChar(track->source.c_str()));
 
         unsigned num_values = track->values.size();        
 
@@ -209,11 +209,11 @@ SEXP emr_logical_track_info(SEXP _track, SEXP _envir) {
         }
 
         for (int i = 0; i < NUM_COLS; ++i)
-            SET_STRING_ELT(names, i, mkChar(COL_NAMES[i]));
+            SET_STRING_ELT(names, i, Rf_mkChar(COL_NAMES[i]));
 
         SET_VECTOR_ELT(answer, SOURCE, rsource);
         SET_VECTOR_ELT(answer, VALUES, rvalues);
-        setAttrib(answer, R_NamesSymbol, names);
+        Rf_setAttrib(answer, R_NamesSymbol, names);
 
         return answer;
     } catch (TGLException &e) {
@@ -229,7 +229,7 @@ SEXP emr_expr_logical_tracks(SEXP _expr, SEXP _envir) {
         Naryn naryn(_envir);
 
         // check the arguments
-        if (!isString(_expr) || Rf_length(_expr) != 1)
+        if (!Rf_isString(_expr) || Rf_length(_expr) != 1)
             verror("Expression argument is not a string");
 
         string expr(CHAR(STRING_ELT(_expr, 0)));
@@ -257,7 +257,7 @@ SEXP emr_expr_logical_tracks(SEXP _expr, SEXP _envir) {
         for (auto itrack_name = logical_tracks.begin();
              itrack_name < logical_tracks.end(); ++itrack_name)
             SET_STRING_ELT(answer, itrack_name - logical_tracks.begin(),
-                           mkChar(itrack_name->c_str()));
+                           Rf_mkChar(itrack_name->c_str()));
 
         return answer;
     } catch (TGLException &e) {
@@ -273,7 +273,7 @@ SEXP emr_expr_physical_tracks(SEXP _expr, SEXP _envir) {
         Naryn naryn(_envir);
 
         // check the arguments
-        if (!isString(_expr) || Rf_length(_expr) != 1)
+        if (!Rf_isString(_expr) || Rf_length(_expr) != 1)
             verror("Expression argument is not a string");
 
         string expr(CHAR(STRING_ELT(_expr, 0)));
@@ -300,7 +300,7 @@ SEXP emr_expr_physical_tracks(SEXP _expr, SEXP _envir) {
         for (auto itrack_name = tracks.begin();
                 itrack_name < tracks.end(); ++itrack_name)
             SET_STRING_ELT(answer, itrack_name - tracks.begin(),
-                            mkChar(itrack_name->c_str()));
+                            Rf_mkChar(itrack_name->c_str()));
 
         return answer;
         }
@@ -318,7 +318,7 @@ SEXP emr_expr_virtual_tracks(SEXP _expr, SEXP _envir) {
         Naryn naryn(_envir);
 
         // check the arguments
-        if (!isString(_expr) || Rf_length(_expr) != 1)
+        if (!Rf_isString(_expr) || Rf_length(_expr) != 1)
             verror("Expression argument is not a string");
 
         string expr(CHAR(STRING_ELT(_expr, 0)));
@@ -330,10 +330,10 @@ SEXP emr_expr_virtual_tracks(SEXP _expr, SEXP _envir) {
         vector<SEXP> vtracks;
 
         // retrieve virtual track names (virtual tracks are at a variable called EMR_VTRACKS in the .naryn environment)        
-        rprotect(emr_vtracks = findVar(install("EMR_VTRACKS"), findVar(install(".naryn"), g_naryn->env())));
+        rprotect(emr_vtracks = Rf_findVar(Rf_install("EMR_VTRACKS"), Rf_findVar(Rf_install(".naryn"), g_naryn->env())));
 
-        if (!isNull(emr_vtracks) && !isSymbol(emr_vtracks)) {
-            if (!isVector(emr_vtracks)){
+        if (!Rf_isNull(emr_vtracks) && !Rf_isSymbol(emr_vtracks)) {
+            if (!Rf_isVector(emr_vtracks)){
                 verror(
                     "Invalid format of EMR_VTRACKS variable (1).\n"
                     "To continue working with virtual tracks please remove "
@@ -341,10 +341,10 @@ SEXP emr_expr_virtual_tracks(SEXP _expr, SEXP _envir) {
             }
 
             vtracks.push_back(emr_vtracks);
-            SEXP vtracknames = getAttrib(vtracks.back(), R_NamesSymbol);
+            SEXP vtracknames = Rf_getAttrib(vtracks.back(), R_NamesSymbol);
 
-            if (!isVector(vtracks.back()) ||
-                (Rf_length(vtracks.back()) && !isString(vtracknames)) ||
+            if (!Rf_isVector(vtracks.back()) ||
+                (Rf_length(vtracks.back()) && !Rf_isString(vtracknames)) ||
                 (Rf_length(vtracknames) != Rf_length(vtracks.back()))){
                 verror(
                     "Invalid format of EMR_VTRACKS variable (2).\n"
@@ -357,7 +357,7 @@ SEXP emr_expr_virtual_tracks(SEXP _expr, SEXP _envir) {
 
         // look for virtual tracks
         for (uint64_t i = 0; i < vtracks.size(); ++i) {
-            if (isString(rvtracknames[i])) {
+            if (Rf_isString(rvtracknames[i])) {
                 for (int itrack = 0; itrack < Rf_length(rvtracknames[i]);
                      ++itrack) {
                     string track = CHAR(STRING_ELT(rvtracknames[i], itrack));
@@ -380,7 +380,7 @@ SEXP emr_expr_virtual_tracks(SEXP _expr, SEXP _envir) {
         for (auto itrack_name = tracks.begin(); itrack_name < tracks.end();
              ++itrack_name)
             SET_STRING_ELT(answer, itrack_name - tracks.begin(),
-                           mkChar(itrack_name->c_str()));
+                           Rf_mkChar(itrack_name->c_str()));
 
         return answer;
     } catch (TGLException &e) {
@@ -397,10 +397,10 @@ SEXP emr_ltrack_dependencies(SEXP _track, SEXP _envir) {
         Naryn naryn(_envir);
         vector<string> logical_dependent_tracks;
 
-        if (!isString(_track) || Rf_length(_track) != 1)
+        if (!Rf_isString(_track) || Rf_length(_track) != 1)
             verror("'track' argument must be a string");
 
-        string trackname = {CHAR(asChar(_track))};
+        string trackname = {CHAR(Rf_asChar(_track))};
         logical_dependent_tracks = g_db->dependent_logical_tracks(trackname);
 
         SEXP answer;
@@ -409,7 +409,7 @@ SEXP emr_ltrack_dependencies(SEXP _track, SEXP _envir) {
         for (auto itrack_name = logical_dependent_tracks.begin(); itrack_name < logical_dependent_tracks.end();
              ++itrack_name)
             SET_STRING_ELT(answer, itrack_name - logical_dependent_tracks.begin(),
-                           mkChar(itrack_name->c_str()));
+                           Rf_mkChar(itrack_name->c_str()));
 
         return answer;
 

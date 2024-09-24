@@ -17,7 +17,7 @@ SEXP emr_dbinit(SEXP _dbdirs, SEXP _load_on_demand, SEXP _do_load, SEXP envir) {
     try {
         Naryn naryn(envir, false);
 
-        if (!isLogical(_do_load) || Rf_length(_do_load) != 1)
+        if (!Rf_isLogical(_do_load) || Rf_length(_do_load) != 1)
             verror("'do_reload' argument must be a logical value");
 
         if (Rf_length(_dbdirs) != Rf_length(_load_on_demand)) {
@@ -27,13 +27,13 @@ SEXP emr_dbinit(SEXP _dbdirs, SEXP _load_on_demand, SEXP _do_load, SEXP envir) {
         vector<string> dbdirs; 
         vector<bool> load_on_demand; 
 
-        if (!isNull(_dbdirs)) {
+        if (!Rf_isNull(_dbdirs)) {
             for (int i = 0; i < Rf_length(_dbdirs); i++){
                 dbdirs.push_back(CHAR(STRING_ELT(_dbdirs, i)));
             }
         }
 
-        if (!isNull(_load_on_demand)) {
+        if (!Rf_isNull(_load_on_demand)) {
             for (int i = 0; i < Rf_length(_load_on_demand); i++){
                 load_on_demand.push_back(LOGICAL_ELT(_load_on_demand, i));
             }
@@ -41,7 +41,7 @@ SEXP emr_dbinit(SEXP _dbdirs, SEXP _load_on_demand, SEXP _do_load, SEXP envir) {
 
         if (!g_db) g_db = new EMRDb;
 
-        g_db->init(dbdirs, load_on_demand, asLogical(_do_load));
+        g_db->init(dbdirs, load_on_demand, Rf_asLogical(_do_load));
 
     } catch (TGLException &e) {
         delete g_db;
@@ -90,22 +90,22 @@ SEXP emr_db_subset(SEXP _src, SEXP _fraction, SEXP _complementary,
     try {
         Naryn naryn(_envir);
 
-        if (isNull(_src))
+        if (Rf_isNull(_src))
             g_db->clear_ids_subset(false);
         else {
-            if (!isReal(_fraction) || Rf_length(_fraction) != 1)
+            if (!Rf_isReal(_fraction) || Rf_length(_fraction) != 1)
                 verror("\"fraction\" argument must be a numeric value");
 
-            if (!isLogical(_complementary) || Rf_length(_complementary) != 1 ||
+            if (!Rf_isLogical(_complementary) || Rf_length(_complementary) != 1 ||
                 LOGICAL(_complementary)[0] == NA_LOGICAL)
                 verror("\"complementary\" argument must be a logical value");
 
-            double fraction = asReal(_fraction);
-            bool complementary = asLogical(_complementary);
+            double fraction = Rf_asReal(_fraction);
+            bool complementary = Rf_asLogical(_complementary);
             string src;
             vector<unsigned> ids;
 
-            if (isString(_src) && Rf_length(_src) == 1) {
+            if (Rf_isString(_src) && Rf_length(_src) == 1) {
                 src = CHAR(STRING_ELT(_src, 0));
                 EMRTrack *track = g_db->track(src.c_str());
                 const EMRLogicalTrack *logical_track =
@@ -185,7 +185,7 @@ SEXP emr_db_subset_info(SEXP _envir) {
 
         rprotect(answer = RSaneAllocVector(VECSXP, NUM_COLS));
         rprotect(names = RSaneAllocVector(STRSXP, NUM_COLS));
-        rprotect(src = mkString(g_db->ids_subset_src().c_str()));
+        rprotect(src = Rf_mkString(g_db->ids_subset_src().c_str()));
         rprotect(fraction = RSaneAllocVector(REALSXP, 1));
         rprotect(complementary = RSaneAllocVector(LGLSXP, 1));
 
@@ -193,13 +193,13 @@ SEXP emr_db_subset_info(SEXP _envir) {
         LOGICAL(complementary)[0] = g_db->ids_subset_complementary();
 
         for (int i = 0; i < NUM_COLS; ++i)
-            SET_STRING_ELT(names, i, mkChar(COL_NAMES[i]));
+            SET_STRING_ELT(names, i, Rf_mkChar(COL_NAMES[i]));
 
         SET_VECTOR_ELT(answer, SRC, src);
         SET_VECTOR_ELT(answer, FRACTION, fraction);
         SET_VECTOR_ELT(answer, COMPLEMENTARY, complementary);
 
-        setAttrib(answer, R_NamesSymbol, names);
+        Rf_setAttrib(answer, R_NamesSymbol, names);
         rreturn(answer);
     } catch (TGLException &e) {
         rerror("%s", e.msg());
@@ -216,7 +216,7 @@ SEXP emr_track_exists(SEXP _track, SEXP _db_id, SEXP envir)
         Naryn naryn(envir);
 
         string track = CHAR(STRING_ELT(_track, 0));
-        string db_id = CHAR(asChar(_db_id));
+        string db_id = CHAR(Rf_asChar(_db_id));
 
         SEXP answer;        
         rprotect(answer = RSaneAllocVector(LGLSXP, 1));
@@ -274,7 +274,7 @@ SEXP emr_track_names(SEXP envir) {
 
         for (int db_idx = 0; db_idx < (int)rootdirs.size(); db_idx++) {
             for ( auto track_name : g_db->track_names(rootdirs[db_idx]) )
-                SET_STRING_ELT(answer, idx++, mkChar(track_name.c_str()));
+                SET_STRING_ELT(answer, idx++, Rf_mkChar(track_name.c_str()));
         }
 
         return answer;
@@ -293,14 +293,14 @@ SEXP emr_track_db_names(SEXP _db_id, SEXP envir) {
         Naryn naryn(envir);
 
         SEXP answer;
-        string db_id = CHAR(asChar(_db_id));
+        string db_id = CHAR(Rf_asChar(_db_id));
 
         rprotect(answer = RSaneAllocVector(STRSXP, g_db->track_names(db_id).size()));
         for (auto itrack_name = g_db->track_names(db_id).begin();
             itrack_name < g_db->track_names(db_id).end(); ++itrack_name)
             SET_STRING_ELT(answer,
                            itrack_name - g_db->track_names(db_id).begin(),
-                           mkChar(itrack_name->c_str()));
+                           Rf_mkChar(itrack_name->c_str()));
 
         return answer;
     } catch (TGLException &e) {
@@ -323,7 +323,7 @@ SEXP emr_logical_track_names(SEXP envir) {
         for (auto itrack_name = ltrack_names.begin();
              itrack_name < ltrack_names.end(); ++itrack_name)
             SET_STRING_ELT(answer, itrack_name - ltrack_names.begin(),
-                           mkChar(itrack_name->c_str()));
+                           Rf_mkChar(itrack_name->c_str()));
 
         return answer;
     } catch (TGLException &e) {

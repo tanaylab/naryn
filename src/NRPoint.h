@@ -39,9 +39,9 @@ void NRPoint::convert_rpoints_vals(SEXP rsrc, EMRTrackData<T> &data, const char 
             rsrc = eval_in_R(PRCODE(rsrc), PRENV(rsrc));
     }
 
-    SEXP colnames = getAttrib(rsrc, R_NamesSymbol);
+    SEXP colnames = Rf_getAttrib(rsrc, R_NamesSymbol);
 
-    if (!isVector(rsrc) || !isString(colnames) || Rf_length(colnames) < NUM_PVAL_COLS - 1)
+    if (!Rf_isVector(rsrc) || !Rf_isString(colnames) || Rf_length(colnames) < NUM_PVAL_COLS - 1)
         TGLError<NRPoint>(BAD_FORMAT, "%sInvalid format", error_msg_prefix);
 
     bool ref_used = Rf_length(colnames) > REF && !strcmp(CHAR(STRING_ELT(colnames, REF)), COL_NAMES[REF]);
@@ -58,7 +58,7 @@ void NRPoint::convert_rpoints_vals(SEXP rsrc, EMRTrackData<T> &data, const char 
 
         rcol[i] = VECTOR_ELT(rsrc, rcolidx);
 
-        if (strcmp(CHAR(STRING_ELT(colnames, rcolidx)), COL_NAMES[i]) || (!isReal(rcol[i]) && !isInteger(rcol[i])) ||
+        if (strcmp(CHAR(STRING_ELT(colnames, rcolidx)), COL_NAMES[i]) || (!Rf_isReal(rcol[i]) && !Rf_isInteger(rcol[i])) ||
             (rcolidx && Rf_length(VECTOR_ELT(rsrc, rcolidx - 1)) != Rf_length(rcol[i])))
             TGLError<NRPoint>(BAD_FORMAT, "%sInvalid format", error_msg_prefix);
 
@@ -68,10 +68,10 @@ void NRPoint::convert_rpoints_vals(SEXP rsrc, EMRTrackData<T> &data, const char 
     unsigned num_points = (unsigned)Rf_length(rcol[ID]);
 
     for (unsigned i = 0; i < num_points; ++i) {
-        unsigned id = (unsigned)(isReal(rcol[ID]) ? REAL(rcol[ID])[i] : INTEGER(rcol[ID])[i]);
-        EMRTimeStamp::Hour hour = (EMRTimeStamp::Hour)(isReal(rcol[TIME]) ? REAL(rcol[TIME])[i] : INTEGER(rcol[TIME])[i]);
-        EMRTimeStamp::Refcount ref = ref_used ? (EMRTimeStamp::Refcount)(isReal(rcol[REF]) ? REAL(rcol[REF])[i] : INTEGER(rcol[REF])[i]) : EMRTimeStamp::NA_REFCOUNT;
-        T val = (T)(isReal(rcol[VALUE]) ? REAL(rcol[VALUE])[i] : INTEGER(rcol[VALUE])[i]);
+        unsigned id = (unsigned)(Rf_isReal(rcol[ID]) ? REAL(rcol[ID])[i] : INTEGER(rcol[ID])[i]);
+        EMRTimeStamp::Hour hour = (EMRTimeStamp::Hour)(Rf_isReal(rcol[TIME]) ? REAL(rcol[TIME])[i] : INTEGER(rcol[TIME])[i]);
+        EMRTimeStamp::Refcount ref = ref_used ? (EMRTimeStamp::Refcount)(Rf_isReal(rcol[REF]) ? REAL(rcol[REF])[i] : INTEGER(rcol[REF])[i]) : EMRTimeStamp::NA_REFCOUNT;
+        T val = (T)(Rf_isReal(rcol[VALUE]) ? REAL(rcol[VALUE])[i] : INTEGER(rcol[VALUE])[i]);
 
         data.add(id, EMRTimeStamp(hour, ref), val);
     }

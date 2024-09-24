@@ -35,16 +35,16 @@ void NRTrackExpressionVars::parse_expr(const string &expr, unsigned stime, unsig
 
         // look for virtual tracks using emr_vtrack.exists R function
         SEXP e;
-        PROTECT(e = lang2(install("emr_vtrack.exists"),
-                          mkString(var.c_str())));
-        bool vtrack_exists = asLogical(R_tryEval(e, g_naryn->env(), NULL));
+        PROTECT(e = Rf_lang2(Rf_install("emr_vtrack.exists"),
+                          Rf_mkString(var.c_str())));
+        bool vtrack_exists = Rf_asLogical(R_tryEval(e, g_naryn->env(), NULL));
         UNPROTECT(1);
 
         if (vtrack_exists) {            
             // get the virtual track from R and add it
-            PROTECT(e = lang3(install(".emr_vtrack.get"),
-                                mkString(var.c_str()),
-                                ScalarLogical(0)));
+            PROTECT(e = Rf_lang3(Rf_install(".emr_vtrack.get"),
+                                Rf_mkString(var.c_str()),
+                                Rf_ScalarLogical(0)));
             SEXP vtrack = R_tryEval(e, g_naryn->env(), NULL);
             UNPROTECT(1);
             add_vtrack_var(var, vtrack, false, stime, etime);
@@ -98,7 +98,7 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
 
     SEXP rsrc = get_rvector_col(rvtrack, "src", vtrack.c_str(), true);
 
-    if (isString(rsrc)) {
+    if (Rf_isString(rsrc)) {
         if (Rf_length(rsrc) != 1)
             verror("Invalid format of a virtual track %s", vtrack.c_str());
 
@@ -112,10 +112,10 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
     } else {    // 'src' must be then list(data.frame, T/F)
         char buf[1000];
 
-        if (!isVector(rsrc) || Rf_length(rsrc) != 2 || !isLogical(VECTOR_ELT(rsrc, 1)))
+        if (!Rf_isVector(rsrc) || Rf_length(rsrc) != 2 || !Rf_isLogical(VECTOR_ELT(rsrc, 1)))
             verror("Invalid source used in a virtual track %s", vtrack.c_str());
 
-        is_categorical = asLogical(VECTOR_ELT(rsrc, 1));
+        is_categorical = Rf_asLogical(VECTOR_ELT(rsrc, 1));
         NRPoint::convert_rpoints_vals(VECTOR_ELT(rsrc, 0), data, "Virtual's track 'src' attribute: ");
 
         snprintf(buf, sizeof(buf), ".emr_%s.src.df.%lu", vtrack.c_str(), m_imanagers.size());
@@ -124,17 +124,17 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
 
     SEXP rtshift = get_rvector_col(rvtrack, "time_shift", vtrack.c_str(), false);
 
-    if (isNull(rtshift))
+    if (Rf_isNull(rtshift))
         imanager.sshift = imanager.eshift = 0;
     else {
-        if (!(isReal(rtshift) || isInteger(rtshift)) || Rf_length(rtshift) < 1 || Rf_length(rtshift) > 2)
+        if (!(Rf_isReal(rtshift) || Rf_isInteger(rtshift)) || Rf_length(rtshift) < 1 || Rf_length(rtshift) > 2)
             verror("Virtual track %s: 'time.shift' must be an integer or a pair of integers", vtrack.c_str());
 
         if (Rf_length(rtshift) == 1)
-            imanager.sshift = imanager.eshift = isReal(rtshift) ? (int)REAL(rtshift)[0] : INTEGER(rtshift)[0];
+            imanager.sshift = imanager.eshift = Rf_isReal(rtshift) ? (int)REAL(rtshift)[0] : INTEGER(rtshift)[0];
         else {
-            imanager.sshift = isReal(rtshift) ? (int)REAL(rtshift)[0] : INTEGER(rtshift)[0];
-            imanager.eshift = isReal(rtshift) ? (int)REAL(rtshift)[1] : INTEGER(rtshift)[1];
+            imanager.sshift = Rf_isReal(rtshift) ? (int)REAL(rtshift)[0] : INTEGER(rtshift)[0];
+            imanager.eshift = Rf_isReal(rtshift) ? (int)REAL(rtshift)[1] : INTEGER(rtshift)[1];
             if (imanager.sshift > imanager.eshift)
                 swap(imanager.sshift, imanager.eshift);
         }
@@ -145,9 +145,9 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
     }
 
     SEXP rkeepref = get_rvector_col(rvtrack, "keepref", vtrack.c_str(), true);
-    if (!isLogical(rkeepref) || Rf_length(rkeepref) != 1 || asLogical(rkeepref) == NA_LOGICAL)
+    if (!Rf_isLogical(rkeepref) || Rf_length(rkeepref) != 1 || Rf_asLogical(rkeepref) == NA_LOGICAL)
         verror("Virtual track %s: keepref must be a logical value", vtrack.c_str());
-    imanager.keepref = asLogical(rkeepref);
+    imanager.keepref = Rf_asLogical(rkeepref);
 
     if (imanager.keepref && (imanager.sshift || imanager.eshift))
         verror("Time shift is not allowed when keepref is 'TRUE'");
@@ -160,13 +160,13 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
     SEXP rparams = get_rvector_col(rvtrack, "params", vtrack.c_str(), false);
     string func;
 
-    if (isNull(rfunc)) {
+    if (Rf_isNull(rfunc)) {
         if (is_categorical)
             func = EMRTrack::FUNC_INFOS[EMRTrack::VALUE].name;
         else
             func = EMRTrack::FUNC_INFOS[EMRTrack::AVG].name;
     } else {
-        if (!isString(rfunc))
+        if (!Rf_isString(rfunc))
             verror("Function argument must be a string");
 
         func = CHAR(STRING_ELT(rfunc, 0));
@@ -188,9 +188,9 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
                 verror("Function %s is not supported with quantitative data", EMRTrack::FUNC_INFOS[ifunc].name);
 
             if (ifunc == EMRTrack::QUANTILE) {
-                if (isNull(rparams))
+                if (Rf_isNull(rparams))
                     verror("Virtual track %s: function %s requires an additional parameter - percentile", vtrack.c_str(), func.c_str());
-                if (!isReal(rparams) || Rf_length(rparams) != 1)
+                if (!Rf_isReal(rparams) || Rf_length(rparams) != 1)
                     verror("Virtual track %s: invalid parameters used for function %s", vtrack.c_str(), func.c_str());
                 var.percentile = REAL(rparams)[0];
                 if (var.percentile < 0 || var.percentile > 1)
@@ -199,26 +199,26 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
                 var.percentile = numeric_limits<double>::quiet_NaN();
 
                 if (is_categorical) {
-                    if (!isNull(rparams)) {       
+                    if (!Rf_isNull(rparams)) {       
                         // params are a single NA value   
-                        if (isLogical(rparams) && 
+                        if (Rf_isLogical(rparams) && 
                             Rf_length(rparams) == 1 && 
                             LOGICAL(rparams)[0] == NA_LOGICAL){
                             vals.insert(NAN);                            
-                        } else if (!isReal(rparams) && !isInteger(rparams)) {
+                        } else if (!Rf_isReal(rparams) && !Rf_isInteger(rparams)) {
                             verror("Virtual track %s: invalid parameters used for function %s", vtrack.c_str(), func.c_str());
                         } else {
                             for (int i = 0; i < Rf_length(rparams); ++i){ 
                                 // The track might contain its data as float and not double. In this case a track value might not be equal to its double representation,
                                 // like (float)0.3 != (double)0.3. So let's "downgrade" all our values to the least precise type.
-                                vals.insert(isReal(rparams)
+                                vals.insert(Rf_isReal(rparams)
                                                 ? (float)REAL(rparams)[i]
                                                 : (float)INTEGER(rparams)[i]);
                                 
                             }
                         }
                     }
-                } else if (!isNull(rparams)) {
+                } else if (!Rf_isNull(rparams)) {
                     if (EMRTrack::FUNC_INFOS[ifunc].categorical)
                         verror("Virtual track %s: function %s does not accept any parameters when applied to quantative data", vtrack.c_str(), func.c_str());
                     verror("Virtual track %s: function %s does not accept any parameters", vtrack.c_str(), func.c_str());
@@ -234,7 +234,7 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
     SEXP rid_map = get_rvector_col(rvtrack, "id_map", vtrack.c_str(), false);
 
     imanager.id_map.clear();
-    if (!isNull(rid_map)) {
+    if (!Rf_isNull(rid_map)) {
         enum { ID1, ID2, TIME_SHIFT, NUM_COLS };
         static const char *COL_NAMES[NUM_COLS] = { "id1", "id2", "time.shift" };
 
@@ -245,12 +245,12 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
                 rid_map = eval_in_R(PRCODE(rid_map), PRENV(rid_map));
         }
 
-        if (!isVector(rid_map) || xlength(rid_map) < NUM_COLS - 1)
+        if (!Rf_isVector(rid_map) || Rf_xlength(rid_map) < NUM_COLS - 1)
             verror("Virtual track %s: invalid format of 'id.map'", vtrack.c_str());
 
-        SEXP colnames = getAttrib(rid_map, R_NamesSymbol);
+        SEXP colnames = Rf_getAttrib(rid_map, R_NamesSymbol);
 
-        if (!isString(colnames) || xlength(colnames) < NUM_COLS - 1)
+        if (!Rf_isString(colnames) || Rf_xlength(colnames) < NUM_COLS - 1)
             verror("Virtual track %s: invalid format of 'id.map'", vtrack.c_str());
 
         for (unsigned i = 0; i < NUM_COLS - 1; i++) {
@@ -258,7 +258,7 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
                 verror("Virtual track %s: invalid format of 'id.map'", vtrack.c_str());
         }
 
-        bool time_shift_used = xlength(rid_map) >= NUM_COLS && xlength(colnames) >= NUM_COLS &&
+        bool time_shift_used = Rf_xlength(rid_map) >= NUM_COLS && Rf_xlength(colnames) >= NUM_COLS &&
             !strcmp(CHAR(STRING_ELT(colnames, TIME_SHIFT)), COL_NAMES[TIME_SHIFT]);
 
         if (time_shift_used && imanager.keepref)
@@ -267,22 +267,22 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
         SEXP rids1 = VECTOR_ELT(rid_map, ID1);
         SEXP rids2 = VECTOR_ELT(rid_map, ID2);
         SEXP rtime_shift = time_shift_used ? VECTOR_ELT(rid_map, TIME_SHIFT) : R_NilValue;
-        unsigned num_ids = (unsigned)xlength(rids1);
+        unsigned num_ids = (unsigned)Rf_xlength(rids1);
 
-        if ((!isReal(rids1) && !isInteger(rids1)) || 
-            (!isReal(rids2) && !isInteger(rids2)) || 
-            (xlength(rids1) != xlength(rids2)) ||
-            (time_shift_used && xlength(rids1) != xlength(rtime_shift))){
+        if ((!Rf_isReal(rids1) && !Rf_isInteger(rids1)) || 
+            (!Rf_isReal(rids2) && !Rf_isInteger(rids2)) || 
+            (Rf_xlength(rids1) != Rf_xlength(rids2)) ||
+            (time_shift_used && Rf_xlength(rids1) != Rf_xlength(rtime_shift))){
             verror("Virtual track %s: invalid format of 'id.map'", vtrack.c_str());
         }
 
         for (unsigned i = 0; i < num_ids; ++i) {
-            double id1 = isReal(rids1) ? REAL(rids1)[i] : INTEGER(rids1)[i];
-            double id2 = isReal(rids2) ? REAL(rids2)[i] : INTEGER(rids2)[i];
+            double id1 = Rf_isReal(rids1) ? REAL(rids1)[i] : INTEGER(rids1)[i];
+            double id2 = Rf_isReal(rids2) ? REAL(rids2)[i] : INTEGER(rids2)[i];
             int time_shift = 0;
 
             if (time_shift_used) {
-                time_shift = isReal(rtime_shift) ? REAL(rtime_shift)[i] : INTEGER(rtime_shift)[i];
+                time_shift = Rf_isReal(rtime_shift) ? REAL(rtime_shift)[i] : INTEGER(rtime_shift)[i];
             }
 
             if (!g_db->id_exists((unsigned)id1) || id1 != (int)id1) {
@@ -306,13 +306,13 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
 
     try {
         // time to build the intermediate track if src==data.frame
-        if (!only_check && !isString(rsrc)) {
+        if (!only_check && !Rf_isString(rsrc)) {
             track = EMRTrack::construct(imanager.name.c_str(), (EMRTrack::Func)ifunc, is_categorical ? EMRTrack::IS_CATEGORICAL : 0, data);
             track_ownership = true;
         }
 
-        if (!isNull(rfilter)) {
-            if (!isString(rsrc))
+        if (!Rf_isNull(rfilter)) {
+            if (!Rf_isString(rsrc))
                 verror("Virtual track %s: filter cannot be used when 'src' is a data frame", vtrack.c_str());
 
             if (only_check) {
@@ -362,7 +362,7 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
     }
 
     SEXP rlogical = get_rvector_col(rvtrack, "logical", vtrack.c_str(), false);
-    if (!isNull(rlogical)) {
+    if (!Rf_isNull(rlogical)) {
         SEXP rlsource = get_rvector_col(rlogical, "src", vtrack.c_str(), false);
         var.logical_track_source = CHAR(STRING_ELT(rlsource, 0));        
     }
@@ -397,7 +397,7 @@ void NRTrackExpressionVars::define_r_vars(unsigned size)
 {
     for (TrackVars::iterator ivar = m_track_vars.begin(); ivar != m_track_vars.end(); ivar++) {
         rprotect(ivar->rvar = RSaneAllocVector(REALSXP, size));
-        defineVar(install(ivar->var_name.c_str()), ivar->rvar, g_naryn->env());
+        Rf_defineVar(Rf_install(ivar->var_name.c_str()), ivar->rvar, g_naryn->env());
         ivar->var = REAL(ivar->rvar);
         for (int i = 0; i < (int)size; ++i)
             ivar->var[i] = numeric_limits<double>::quiet_NaN();

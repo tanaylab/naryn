@@ -14,12 +14,12 @@ void NRTimeIntervals::convert_rtime_intervals(SEXP rintervs, EMRTimeIntervals *i
             rintervs = eval_in_R(PRCODE(rintervs), PRENV(rintervs));
     }
 
-    if (!isVector(rintervs))
+    if (!Rf_isVector(rintervs))
         TGLError<NRTimeIntervals>(BAD_FORMAT, "%sInvalid format of time intervals", error_msg_prefix);
 
-    SEXP colnames = getAttrib(rintervs, R_NamesSymbol);
+    SEXP colnames = Rf_getAttrib(rintervs, R_NamesSymbol);
 
-    if (!isString(colnames) || Rf_length(colnames) < NUM_COLS)
+    if (!Rf_isString(colnames) || Rf_length(colnames) < NUM_COLS)
         TGLError<NRTimeIntervals>(BAD_FORMAT, "%sInvalid format of time intervals", error_msg_prefix);
 
     for (unsigned i = 0; i < NUM_COLS; i++) {
@@ -36,17 +36,17 @@ void NRTimeIntervals::convert_rtime_intervals(SEXP rintervs, EMRTimeIntervals *i
             TGLError<NRTimeIntervals>(BAD_FORMAT, "%sInvalid format of time intervals", error_msg_prefix);
     }
 
-    if ((!isReal(rstimes) && !isInteger(rstimes)) || (!isReal(retimes) && !isInteger(retimes))){
+    if ((!Rf_isReal(rstimes) && !Rf_isInteger(rstimes)) || (!Rf_isReal(retimes) && !Rf_isInteger(retimes))){
         TGLError<NRTimeIntervals>(BAD_FORMAT, "%sInvalid format of time intervals", error_msg_prefix);
     }
 
     for (unsigned i = 0; i < num_intervs; i++) {
-        if ((isReal(rstimes) && std::isnan(REAL(rstimes)[i])) || (isReal(retimes) && std::isnan(REAL(retimes)[i]))){
+        if ((Rf_isReal(rstimes) && std::isnan(REAL(rstimes)[i])) || (Rf_isReal(retimes) && std::isnan(REAL(retimes)[i]))){
             TGLError<NRTimeIntervals>(BAD_VALUE, "%sInvalid format of time intervals, row %d", error_msg_prefix, i + 1);
         }
 
-        int stime = isReal(rstimes) ? REAL(rstimes)[i] : INTEGER(rstimes)[i];
-        int etime = isReal(retimes) ? REAL(retimes)[i] : INTEGER(retimes)[i];
+        int stime = Rf_isReal(rstimes) ? REAL(rstimes)[i] : INTEGER(rstimes)[i];
+        int etime = Rf_isReal(retimes) ? REAL(retimes)[i] : INTEGER(retimes)[i];
 
         if (stime < 0)
             TGLError<NRTimeIntervals>(BAD_VALUE, "%sInvalid start time (%d) at time intervals, row %d", error_msg_prefix, stime, i + 1);
