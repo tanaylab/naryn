@@ -36,7 +36,7 @@ void NRPoint::convert_rpoints_vals(SEXP rsrc, EMRTrackData<T> &data, const char 
         if (PRENV(rsrc) == R_NilValue)
             rsrc = PRVALUE(rsrc);
         else
-            rsrc = eval_in_R(PRCODE(rsrc), PRENV(rsrc));
+            rsrc = eval_in_R(R_PromiseExpr(rsrc), PRENV(rsrc));
     }
 
     SEXP colnames = Rf_getAttrib(rsrc, R_NamesSymbol);

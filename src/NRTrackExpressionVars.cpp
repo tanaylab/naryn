@@ -242,7 +242,7 @@ void NRTrackExpressionVars::add_vtrack_var(const string &vtrack, SEXP rvtrack, b
             if (PRENV(rid_map) == R_NilValue)
                 rid_map = PRVALUE(rid_map);
             else
-                rid_map = eval_in_R(PRCODE(rid_map), PRENV(rid_map));
+                rid_map = eval_in_R(R_PromiseExpr(rid_map), PRENV(rid_map));
         }
 
         if (!Rf_isVector(rid_map) || Rf_xlength(rid_map) < NUM_COLS - 1)
