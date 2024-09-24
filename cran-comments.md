@@ -2,4 +2,4 @@
 
 0 errors | 0 warnings | 0 notes
 
-* Fixed compilation warnings on M1 Mac.
+* Fixed *noRemap* additional issue.

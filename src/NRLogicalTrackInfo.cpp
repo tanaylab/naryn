@@ -4,6 +4,9 @@
 #include "NRTrackExpressionScanner.h"
 #include "EMRPoint.h"
 
+#ifndef R_NO_REMAP
+#  define R_NO_REMAP
+#endif
 #include <R.h>
 #include <Rinternals.h>
 
@@ -65,7 +68,7 @@ SEXP emr_logical_track_user_info(SEXP _track, SEXP _expr, SEXP _stime, SEXP _eti
         vector<string> dbdirs; 
         vector<bool> load_on_demand; 
 
-        if (!isNull(_dbdirs)) {
+        if (!Rf_isNull(_dbdirs)) {
             for (int i = 0; i < Rf_length(_dbdirs); i++){
                 dbdirs.push_back(CHAR(STRING_ELT(_dbdirs, i)));
             }
@@ -112,9 +115,9 @@ SEXP emr_logical_track_user_info(SEXP _track, SEXP _expr, SEXP _stime, SEXP _eti
 
         string path(
             new_g_db->logical_track_filename(string(logical_trackname)));
-        SET_STRING_ELT(rpath, 0, mkChar(path.c_str()));
-        SET_STRING_ELT(rtype, 0, mkChar(EMRTrack::TRACK_TYPE_NAMES[track->track_type()]));
-        SET_STRING_ELT(rdata_type, 0, mkChar(EMRTrack::DATA_TYPE_NAMES[track->data_type()]));
+        SET_STRING_ELT(rpath, 0, Rf_mkChar(path.c_str()));
+        SET_STRING_ELT(rtype, 0, Rf_mkChar(EMRTrack::TRACK_TYPE_NAMES[track->track_type()]));
+        SET_STRING_ELT(rdata_type, 0, Rf_mkChar(EMRTrack::DATA_TYPE_NAMES[track->data_type()]));
         LOGICAL(rcategorical)[0] = track->is_categorical();
         INTEGER(rnum_vals)[0] = summary.num_vals;
         INTEGER(rnum_unique_vals)[0] = summary.unique_vals.size();
@@ -126,7 +129,7 @@ SEXP emr_logical_track_user_info(SEXP _track, SEXP _expr, SEXP _stime, SEXP _eti
         INTEGER(rmax_time)[0] = summary.maxtime;
 
         for (int i = 0; i < NUM_COLS; i++)
-            SET_STRING_ELT(names, i, mkChar(COL_NAMES[i]));
+            SET_STRING_ELT(names, i, Rf_mkChar(COL_NAMES[i]));
 
 		SET_VECTOR_ELT(answer, CATEGORICAL, rcategorical);        
         SET_VECTOR_ELT(answer, PATH, rpath);
@@ -141,7 +144,7 @@ SEXP emr_logical_track_user_info(SEXP _track, SEXP _expr, SEXP _stime, SEXP _eti
         SET_VECTOR_ELT(answer, MIN_TIME, rmin_time);
         SET_VECTOR_ELT(answer, MAX_TIME, rmax_time);
 
-        setAttrib(answer, R_NamesSymbol, names);
+        Rf_setAttrib(answer, R_NamesSymbol, names);
 
         swap(g_db, new_g_db);
         delete new_g_db;

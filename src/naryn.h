@@ -14,6 +14,9 @@
 #include <sys/stat.h>
 
 
+#ifndef R_NO_REMAP
+#  define R_NO_REMAP
+#endif
 #include <R.h>
 #include <Rinternals.h>
 #include <Rinterface.h>
@@ -67,7 +70,7 @@ void runprotect(SEXP &expr);
 // Unprotects objects exprs and sets them to R_NilValue. Works slower than runprotect(unsigned)!
 void runprotect(vector<SEXP> &exprs);
 
-// Call runprotect_all if you wish to unprotect all object that are still protected
+// Call runprotect_all if you wish to runprotect all object that are still protected
 void runprotect_all();
 
 struct SEXPCleaner {
@@ -97,7 +100,7 @@ void RSaneSerialize(SEXP rexp, const char *fname);
 SEXP RSaneUnserialize(FILE *fp);
 SEXP RSaneUnserialize(const char *fname);
 
-// Same as above: replaces allocVector which can fail on memory allocation and then R makes a longmp, skipping all the destructors
+// Same as above: replaces Rf_allocVector which can fail on memory allocation and then R makes a longmp, skipping all the destructors
 SEXP RSaneAllocVector(SEXPTYPE type, R_xlen_t len);
 
 SEXP get_rvector_col(SEXP v, const char *colname, const char *varname, bool error_if_missing);

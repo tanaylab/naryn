@@ -1,4 +1,7 @@
 #include <cmath>
+#ifndef R_NO_REMAP
+#  define R_NO_REMAP
+#endif
 #include <R.h>
 #include <Rinternals.h>
 
@@ -34,7 +37,7 @@ SEXP emr_covariance(SEXP _exprs, SEXP _breaks, SEXP _include_lowest, SEXP _right
 
         const char *STAT_NAMES[NUM_STATS] = { "n", "e", "var", "cov", "cor" };
 
-		if (!isString(_exprs) || Rf_length(_exprs) < 1)
+		if (!Rf_isString(_exprs) || Rf_length(_exprs) < 1)
 			verror("Track expressions argument must be a vector of strings");
 
         unsigned num_exprs = (unsigned)Rf_length(_exprs);
@@ -150,17 +153,17 @@ SEXP emr_covariance(SEXP _exprs, SEXP _breaks, SEXP _include_lowest, SEXP _right
         SET_VECTOR_ELT(dimnames, num_breaks_exprs + 1, dimname[1]);
 
         for (int i = 0; i < NUM_STATS; ++i) {
-            setAttrib(rstat[i], R_DimSymbol, dim);
-            setAttrib(rstat[i], R_DimNamesSymbol, dimnames);
+            Rf_setAttrib(rstat[i], R_DimSymbol, dim);
+            Rf_setAttrib(rstat[i], R_DimNamesSymbol, dimnames);
             SET_VECTOR_ELT(answer, i, rstat[i]);
         }
 
-        setAttrib(answer, install("breaks"), breaks);
+        Rf_setAttrib(answer, Rf_install("breaks"), breaks);
 
         rprotect(stat_names = RSaneAllocVector(STRSXP, NUM_STATS));
         for (int i = 0; i < NUM_STATS; i++)
-            SET_STRING_ELT(stat_names, i, mkChar(STAT_NAMES[i]));
-        setAttrib(answer, R_NamesSymbol, stat_names);
+            SET_STRING_ELT(stat_names, i, Rf_mkChar(STAT_NAMES[i]));
+        Rf_setAttrib(answer, R_NamesSymbol, stat_names);
 
         rreturn(answer);
 	} catch (TGLException &e) {

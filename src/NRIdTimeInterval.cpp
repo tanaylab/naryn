@@ -15,12 +15,12 @@ void NRIdTimeIntervals::convert_rid_time_intervals(SEXP rintervs, EMRIdTimeInter
             rintervs = eval_in_R(PRCODE(rintervs), PRENV(rintervs));
     }
 
-    if (!isVector(rintervs))
+    if (!Rf_isVector(rintervs))
         TGLError<NRIdTimeIntervals>(BAD_FORMAT, "%sInvalid format of ID - time intervals", error_msg_prefix);
 
-    SEXP colnames = getAttrib(rintervs, R_NamesSymbol);
+    SEXP colnames = Rf_getAttrib(rintervs, R_NamesSymbol);
 
-    if (!isString(colnames) || Rf_length(colnames) < NUM_COLS)
+    if (!Rf_isString(colnames) || Rf_length(colnames) < NUM_COLS)
         TGLError<NRIdTimeIntervals>(BAD_FORMAT, "%sInvalid format of ID - time intervals", error_msg_prefix);
 
     for (unsigned i = 0; i < NUM_COLS; i++) {
@@ -39,18 +39,18 @@ void NRIdTimeIntervals::convert_rid_time_intervals(SEXP rintervs, EMRIdTimeInter
         }
     }
 
-    if ((!isReal(rids) && !isInteger(rids)) || (!isReal(rstimes) && !isInteger(rstimes)) || (!isReal(retimes) && !isInteger(retimes))){
+    if ((!Rf_isReal(rids) && !Rf_isInteger(rids)) || (!Rf_isReal(rstimes) && !Rf_isInteger(rstimes)) || (!Rf_isReal(retimes) && !Rf_isInteger(retimes))){
         TGLError<NRIdTimeIntervals>(BAD_FORMAT, "%sInvalid format of ID - time intervals", error_msg_prefix);
     }
 
     for (unsigned i = 0; i < num_intervs; i++) {
-        if ((isReal(rids) && std::isnan(REAL(rids)[i])) || (isReal(rstimes) && std::isnan(REAL(rstimes)[i])) || (isReal(retimes) && std::isnan(REAL(retimes)[i]))){
+        if ((Rf_isReal(rids) && std::isnan(REAL(rids)[i])) || (Rf_isReal(rstimes) && std::isnan(REAL(rstimes)[i])) || (Rf_isReal(retimes) && std::isnan(REAL(retimes)[i]))){
             TGLError<NRIdTimeIntervals>(BAD_VALUE, "%sInvalid format of ID - time intervals, row %d", error_msg_prefix, i + 1);
         }
 
-        int id = isReal(rids) ? REAL(rids)[i] : INTEGER(rids)[i];
-        int stime = isReal(rstimes) ? REAL(rstimes)[i] : INTEGER(rstimes)[i];
-        int etime = isReal(retimes) ? REAL(retimes)[i] : INTEGER(retimes)[i];
+        int id = Rf_isReal(rids) ? REAL(rids)[i] : INTEGER(rids)[i];
+        int stime = Rf_isReal(rstimes) ? REAL(rstimes)[i] : INTEGER(rstimes)[i];
+        int etime = Rf_isReal(retimes) ? REAL(retimes)[i] : INTEGER(retimes)[i];
 
         if (id < 0){
             TGLError<NRIdTimeIntervals>(BAD_VALUE, "%sInvalid id (%d) at ID - time intervals, row %d", error_msg_prefix, id, i + 1);

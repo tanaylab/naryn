@@ -92,7 +92,7 @@ SEXP EMRLogicalTrack::vtrack() const{
     rprotect(answer = RSaneAllocVector(VECSXP, NUM_NAMES));    
     
     rprotect(source = RSaneAllocVector(STRSXP, 1));
-    SET_STRING_ELT(source, 0, mkChar(this->get_source()));
+    SET_STRING_ELT(source, 0, Rf_mkChar(this->get_source()));
     SET_VECTOR_ELT(answer, SRC, source);
 
     // keepref is always true
@@ -113,8 +113,8 @@ SEXP EMRLogicalTrack::vtrack() const{
     } 
 
     for (int i = 0; i < NUM_NAMES; i++)
-        SET_STRING_ELT(column_names, i, mkChar(VTRACK_NAMES[i]));    
-    setAttrib(answer, R_NamesSymbol, column_names);
+        SET_STRING_ELT(column_names, i, Rf_mkChar(VTRACK_NAMES[i]));    
+    Rf_setAttrib(answer, R_NamesSymbol, column_names);
     
     return answer;
 }
