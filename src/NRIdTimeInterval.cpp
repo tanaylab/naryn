@@ -12,7 +12,7 @@ void NRIdTimeIntervals::convert_rid_time_intervals(SEXP rintervs, EMRIdTimeInter
         if (PRENV(rintervs) == R_NilValue)
             rintervs = PRVALUE(rintervs);
         else
-            rintervs = eval_in_R(PRCODE(rintervs), PRENV(rintervs));
+            rintervs = eval_in_R(R_PromiseExpr(rintervs), PRENV(rintervs));
     }
 
     if (!Rf_isVector(rintervs))
