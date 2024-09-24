@@ -5,6 +5,9 @@
 #include "StreamSampler.h"
 #include "StreamPercentiler.h"
 
+#ifndef R_NO_REMAP
+#  define R_NO_REMAP
+#endif
 #include <R.h>
 #include <Rinternals.h>
 
@@ -59,10 +62,10 @@ SEXP C_emr_quantiles(SEXP _expr, SEXP _percentiles, SEXP _stime, SEXP _etime, SE
     try {
         Naryn naryn(_envir);
 
-        if (!isString(_expr) || Rf_length(_expr) != 1)
+        if (!Rf_isString(_expr) || Rf_length(_expr) != 1)
             verror("Track argument is not a string");
 
-        if (!isReal(_percentiles) || Rf_length(_percentiles) < 1)
+        if (!Rf_isReal(_percentiles) || Rf_length(_percentiles) < 1)
             verror("Percentile argument is not a vector of numbers");
 
         vector<Percentile> percentiles(Rf_length(_percentiles));
@@ -105,10 +108,10 @@ SEXP C_emr_quantiles(SEXP _expr, SEXP _percentiles, SEXP _stime, SEXP _etime, SE
             REAL(answer)[ip->index] = medians[ip->index];
 
             snprintf(buf, sizeof(buf), "%g", ip->percentile);
-            SET_STRING_ELT(colnames, ip->index, mkChar(buf));
+            SET_STRING_ELT(colnames, ip->index, Rf_mkChar(buf));
         }
 
-        setAttrib(answer, R_NamesSymbol, colnames);
+        Rf_setAttrib(answer, R_NamesSymbol, colnames);
 
         rreturn(answer);
     } catch (TGLException &e) {

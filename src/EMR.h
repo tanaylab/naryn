@@ -16,7 +16,10 @@ using namespace std::rel_ops;
 
 #else
 
-    #include <R.h>
+    #ifndef R_NO_REMAP
+#  define R_NO_REMAP
+#endif
+#include <R.h>
     #include <Rinternals.h>
 
     #ifdef length

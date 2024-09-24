@@ -13,7 +13,7 @@ SEXP emr_ids_dist(SEXP _ids, SEXP _tracks, SEXP _envir)
 	try {
         Naryn naryn(_envir);
 
-        if (!isString(_tracks) || Rf_length(_tracks) < 1)
+        if (!Rf_isString(_tracks) || Rf_length(_tracks) < 1)
             verror("'tracks' argument must be a vector of strings");
 
         vector<unsigned> ids;
@@ -21,7 +21,7 @@ SEXP emr_ids_dist(SEXP _ids, SEXP _tracks, SEXP _envir)
         vector<unsigned> res;
         EMRProgressReporter progress;
 
-        if (isString(_ids) && Rf_length(_ids) == 1) { // it's a track name
+        if (Rf_isString(_ids) && Rf_length(_ids) == 1) { // it's a track name
             const char *trackname = CHAR(STRING_ELT(_ids, 0));
             EMRTrack *track = g_db->track(trackname);
             if (!track)
@@ -58,7 +58,7 @@ SEXP emr_ids_dist(SEXP _ids, SEXP _tracks, SEXP _envir)
         for (vector<unsigned>::const_iterator ires = res.begin(); ires != res.end(); ++ires)
             INTEGER(answer)[ires - res.begin()] = *ires;
 
-        setAttrib(answer, R_NamesSymbol, _tracks);
+        Rf_setAttrib(answer, R_NamesSymbol, _tracks);
 
         rreturn(answer);
 	} catch (TGLException &e) {
@@ -74,7 +74,7 @@ SEXP emr_ids_dist_with_iterator(SEXP _ids, SEXP _tracks, SEXP _stime, SEXP _etim
 	try {
         Naryn naryn(_envir);
 
-        if (!isString(_tracks) || Rf_length(_tracks) < 1)
+        if (!Rf_isString(_tracks) || Rf_length(_tracks) < 1)
             verror("'tracks' argument must be a vector of strings");
 
         vector<unsigned> ids;
@@ -83,7 +83,7 @@ SEXP emr_ids_dist_with_iterator(SEXP _ids, SEXP _tracks, SEXP _stime, SEXP _etim
         SEXP riterator;
         EMRProgressReporter progress;
 
-        if (isString(_ids) && Rf_length(_ids) == 1) { // it's a track name
+        if (Rf_isString(_ids) && Rf_length(_ids) == 1) { // it's a track name
             const char *trackname = CHAR(STRING_ELT(_ids, 0));
             EMRTrack *track = g_db->track(trackname);
             if (!track)
@@ -113,7 +113,7 @@ SEXP emr_ids_dist_with_iterator(SEXP _ids, SEXP _tracks, SEXP _stime, SEXP _etim
 
             SET_STRING_ELT(riterator, 0, STRING_ELT(_tracks, itrack - tracks.begin()));
             scanner.report_progress(false);
-            for (scanner.begin(riterator, NRTrackExprScanner::REAL_T, _stime, _etime, riterator, ScalarLogical(true), _filter); !scanner.isend(); scanner.next())
+            for (scanner.begin(riterator, NRTrackExprScanner::REAL_T, _stime, _etime, riterator, Rf_ScalarLogical(true), _filter); !scanner.isend(); scanner.next())
                 used_ids.insert(scanner.point().id);
 
             res.push_back(used_ids.size());
@@ -130,7 +130,7 @@ SEXP emr_ids_dist_with_iterator(SEXP _ids, SEXP _tracks, SEXP _stime, SEXP _etim
         for (vector<unsigned>::const_iterator ires = res.begin(); ires != res.end(); ++ires)
             INTEGER(answer)[ires - res.begin()] = *ires;
 
-        setAttrib(answer, R_NamesSymbol, _tracks);
+        Rf_setAttrib(answer, R_NamesSymbol, _tracks);
 
         rreturn(answer);
 	} catch (TGLException &e) {
@@ -156,7 +156,7 @@ SEXP emr_ids_vals_dist(SEXP _ids, SEXP _tracks, SEXP _stime, SEXP _etime, SEXP _
 	try {
         Naryn naryn(_envir);
 
-        if (!isString(_tracks) || Rf_length(_tracks) < 1)
+        if (!Rf_isString(_tracks) || Rf_length(_tracks) < 1)
             verror("'tracks' argument must be a vector of strings");
 
         unordered_set<unsigned> ids;
@@ -167,7 +167,7 @@ SEXP emr_ids_vals_dist(SEXP _ids, SEXP _tracks, SEXP _stime, SEXP _etime, SEXP _
         SEXP riterator;
         uint64_t tot_num_vals = 0;
 
-        if (isString(_ids) && Rf_length(_ids) == 1) { // it's a track name
+        if (Rf_isString(_ids) && Rf_length(_ids) == 1) { // it's a track name
             const char *trackname = CHAR(STRING_ELT(_ids, 0));
             EMRTrack *track = g_db->track(trackname);
 
@@ -214,7 +214,7 @@ SEXP emr_ids_vals_dist(SEXP _ids, SEXP _tracks, SEXP _stime, SEXP _etime, SEXP _
             SET_STRING_ELT(riterator, 0, STRING_ELT(_tracks, itrack - tracks.begin()));
 
             scanner.report_progress(false);
-            for (scanner.begin(riterator, NRTrackExprScanner::REAL_T, _stime, _etime, riterator, ScalarLogical(true), _filter); !scanner.isend(); scanner.next()) {
+            for (scanner.begin(riterator, NRTrackExprScanner::REAL_T, _stime, _etime, riterator, Rf_ScalarLogical(true), _filter); !scanner.isend(); scanner.next()) {
                 double val = scanner.real();
                 uint64_t val_size_t;                
                 memcpy(&val_size_t, &val, sizeof(val));
@@ -251,10 +251,10 @@ SEXP emr_ids_vals_dist(SEXP _ids, SEXP _tracks, SEXP _stime, SEXP _etime, SEXP _
         rprotect(row_names = RSaneAllocVector(INTSXP, tot_num_vals));
 
         for (vector<EMRTrack *>::const_iterator itrack = tracks.begin(); itrack != tracks.end(); ++itrack)
-            SET_STRING_ELT(rtracks, itrack - tracks.begin(), mkChar((*itrack)->name()));
+            SET_STRING_ELT(rtracks, itrack - tracks.begin(), Rf_mkChar((*itrack)->name()));
 
         for (int i = 0; i < NUM_COLS; i++)
-            SET_STRING_ELT(col_names, i, mkChar(COL_NAMES[i]));
+            SET_STRING_ELT(col_names, i, Rf_mkChar(COL_NAMES[i]));
 
         uint64_t idx = 0;
         vector<ValCount> valcounts;
@@ -284,11 +284,11 @@ SEXP emr_ids_vals_dist(SEXP _ids, SEXP _tracks, SEXP _stime, SEXP _etime, SEXP _
         SET_VECTOR_ELT(answer, VAL, rvals);
         SET_VECTOR_ELT(answer, COUNT, rcounts);
 
-        setAttrib(rtracks_idx, R_LevelsSymbol, rtracks);
-        setAttrib(rtracks_idx, R_ClassSymbol, mkString("factor"));
-        setAttrib(answer, R_NamesSymbol, col_names);
-        setAttrib(answer, R_ClassSymbol, mkString("data.frame"));
-        setAttrib(answer, R_RowNamesSymbol, row_names);
+        Rf_setAttrib(rtracks_idx, R_LevelsSymbol, rtracks);
+        Rf_setAttrib(rtracks_idx, R_ClassSymbol, Rf_mkString("factor"));
+        Rf_setAttrib(answer, R_NamesSymbol, col_names);
+        Rf_setAttrib(answer, R_ClassSymbol, Rf_mkString("data.frame"));
+        Rf_setAttrib(answer, R_RowNamesSymbol, row_names);
 
         rreturn(answer);
 	} catch (TGLException &e) {

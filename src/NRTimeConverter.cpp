@@ -1,5 +1,8 @@
 #include <limits>
 
+#ifndef R_NO_REMAP
+#  define R_NO_REMAP
+#endif
 #include <R.h>
 #include <Rinternals.h>
 
@@ -21,7 +24,7 @@ SEXP C_emr_time2hour(SEXP _t, SEXP _envir)
 	try {
 		Naryn naryn(_envir, false);
         
-        if (!isInteger(_t) && !isReal(_t))
+        if (!Rf_isInteger(_t) && !Rf_isReal(_t))
             verror("Invalid format of 'time' argument");
 
         SEXP answer = R_NilValue;
@@ -29,7 +32,7 @@ SEXP C_emr_time2hour(SEXP _t, SEXP _envir)
 
         for (int i = 0; i < Rf_length(_t); ++i) {
             bool ret_na = false;
-            if (isInteger(_t)){
+            if (Rf_isInteger(_t)){
                 if (INTEGER(_t)[i] == NA_INTEGER){
                     ret_na = true;
                 }                
@@ -39,7 +42,7 @@ SEXP C_emr_time2hour(SEXP _t, SEXP _envir)
                 }
             }
             
-            double t = isInteger(_t) ? INTEGER(_t)[i] : REAL(_t)[i];
+            double t = Rf_isInteger(_t) ? INTEGER(_t)[i] : REAL(_t)[i];
 
             if (std::isnan(t) || ret_na) {
                 REAL(answer)[i] = NA_REAL;
@@ -66,7 +69,7 @@ SEXP C_emr_time2dayofmonth(SEXP _t, SEXP _envir)
 	try {
 		Naryn naryn(_envir, false);
         
-        if (!isInteger(_t) && !isReal(_t))
+        if (!Rf_isInteger(_t) && !Rf_isReal(_t))
             verror("Invalid format of 'time' argument");
 
         SEXP answer = R_NilValue;
@@ -74,7 +77,7 @@ SEXP C_emr_time2dayofmonth(SEXP _t, SEXP _envir)
 
         for (int i = 0; i < Rf_length(_t); ++i) {
             bool ret_na = false;
-            if (isInteger(_t)){
+            if (Rf_isInteger(_t)){
                 if (INTEGER(_t)[i] == NA_INTEGER){
                     ret_na = true;
                 }                
@@ -84,7 +87,7 @@ SEXP C_emr_time2dayofmonth(SEXP _t, SEXP _envir)
                 }
             }
             
-            double t = isInteger(_t) ? INTEGER(_t)[i] : REAL(_t)[i];
+            double t = Rf_isInteger(_t) ? INTEGER(_t)[i] : REAL(_t)[i];
 
             if (std::isnan(t) || ret_na) {
                 REAL(answer)[i] = NA_REAL;
@@ -111,7 +114,7 @@ SEXP C_emr_time2month(SEXP _t, SEXP _envir)
 	try {
 		Naryn naryn(_envir, false);
         
-        if (!isInteger(_t) && !isReal(_t))
+        if (!Rf_isInteger(_t) && !Rf_isReal(_t))
             verror("Invalid format of 'time' argument");
 
         SEXP answer = R_NilValue;
@@ -119,7 +122,7 @@ SEXP C_emr_time2month(SEXP _t, SEXP _envir)
 
         for (int i = 0; i < Rf_length(_t); ++i) {
             bool ret_na = false;
-            if (isInteger(_t)){
+            if (Rf_isInteger(_t)){
                 if (INTEGER(_t)[i] == NA_INTEGER){
                     ret_na = true;
                 }                
@@ -129,7 +132,7 @@ SEXP C_emr_time2month(SEXP _t, SEXP _envir)
                 }
             }
             
-            double t = isInteger(_t) ? INTEGER(_t)[i] : REAL(_t)[i];
+            double t = Rf_isInteger(_t) ? INTEGER(_t)[i] : REAL(_t)[i];
 
             if (std::isnan(t) || ret_na) {
                 REAL(answer)[i] = NA_REAL;
@@ -156,7 +159,7 @@ SEXP C_emr_time2year(SEXP _t, SEXP _envir)
 	try {
 		Naryn naryn(_envir, false);
         
-        if (!isInteger(_t) && !isReal(_t))
+        if (!Rf_isInteger(_t) && !Rf_isReal(_t))
             verror("Invalid format of 'time' argument");
 
         SEXP answer = R_NilValue;
@@ -164,7 +167,7 @@ SEXP C_emr_time2year(SEXP _t, SEXP _envir)
 
         for (int i = 0; i < Rf_length(_t); ++i) {
             bool ret_na = false;
-            if (isInteger(_t)){
+            if (Rf_isInteger(_t)){
                 if (INTEGER(_t)[i] == NA_INTEGER){
                     ret_na = true;
                 }                
@@ -174,7 +177,7 @@ SEXP C_emr_time2year(SEXP _t, SEXP _envir)
                 }
             }
 
-            double t = isInteger(_t) ? INTEGER(_t)[i] : REAL(_t)[i];
+            double t = Rf_isInteger(_t) ? INTEGER(_t)[i] : REAL(_t)[i];
 
             if (std::isnan(t) || ret_na) {
                 REAL(answer)[i] = NA_REAL;
@@ -206,12 +209,12 @@ SEXP C_emr_date2time(SEXP _date, SEXP _envir)
 
         SEXP rcols[NUM_COLS];
         
-        if (!isVector(_date) || Rf_length(_date) != NUM_COLS)
+        if (!Rf_isVector(_date) || Rf_length(_date) != NUM_COLS)
             verror("Invalid format of 'date' argument");
 
         for (int i = 0; i < NUM_COLS; ++i) {
             rcols[i] = VECTOR_ELT(_date, i);
-            if ((!isInteger(rcols[i]) && !isReal(rcols[i])) || 
+            if ((!Rf_isInteger(rcols[i]) && !Rf_isReal(rcols[i])) || 
                 (i > 0 && Rf_length(rcols[i]) != Rf_length(rcols[i - 1]))){
                 verror("Invalid format of 'date' argument");
             }
@@ -223,10 +226,10 @@ SEXP C_emr_date2time(SEXP _date, SEXP _envir)
         rprotect(answer = RSaneAllocVector(INTSXP, num_rows));
 
         for (int i = 0; i < num_rows; ++i) {
-            double hour = isInteger(rcols[HOUR]) ? INTEGER(rcols[HOUR])[i] : REAL(rcols[HOUR])[i];
-            double day = isInteger(rcols[DAY]) ? INTEGER(rcols[DAY])[i] : REAL(rcols[DAY])[i];
-            double month = isInteger(rcols[MONTH]) ? INTEGER(rcols[MONTH])[i] : REAL(rcols[MONTH])[i];
-            double year = isInteger(rcols[YEAR]) ? INTEGER(rcols[YEAR])[i] : REAL(rcols[YEAR])[i];
+            double hour = Rf_isInteger(rcols[HOUR]) ? INTEGER(rcols[HOUR])[i] : REAL(rcols[HOUR])[i];
+            double day = Rf_isInteger(rcols[DAY]) ? INTEGER(rcols[DAY])[i] : REAL(rcols[DAY])[i];
+            double month = Rf_isInteger(rcols[MONTH]) ? INTEGER(rcols[MONTH])[i] : REAL(rcols[MONTH])[i];
+            double year = Rf_isInteger(rcols[YEAR]) ? INTEGER(rcols[YEAR])[i] : REAL(rcols[YEAR])[i];
 
             if (hour < 0 || (int)hour != hour)
                 verror("Invalid hour value %g", hour);

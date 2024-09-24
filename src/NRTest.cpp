@@ -1,26 +1,26 @@
-// #include <dirent.h>
-// #include <limits.h>
-// #include <unistd.h>
-// #include <sys/stat.h>
-// #include <sys/types.h>
-// #include <iostream>
+#include <dirent.h>
+#include <limits.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <iostream>
 
-// #include "EMRDb.h"
-// #include "EMRProgressReporter.h"
-// #include "EMRTimesIterator.h"
-// #include "EMRTrack.h"
-// #include "EMRTrackIterator.h"
-// #include "naryn.h"
-// #include "NRIteratorFilter.h"
-// #include "NRTimeInterval.h"
-// #include "strutil.h"
+#include "EMRDb.h"
+#include "EMRProgressReporter.h"
+#include "EMRTimesIterator.h"
+#include "EMRTrack.h"
+#include "EMRTrackIterator.h"
+#include "naryn.h"
+#include "NRIteratorFilter.h"
+#include "NRTimeInterval.h"
+#include "strutil.h"
 
-// #include <R_ext/BLAS.h>
-// #include <R_ext/Parse.h>
+#include <R_ext/BLAS.h>
+#include <R_ext/Parse.h>
 
-// typedef unordered_map<int, EMRTrackData<float> *> Datasets;
+typedef unordered_map<int, EMRTrackData<float> *> Datasets;
 
-// extern "C" {
+extern "C" {
 
 // SEXP test_parse_expr(SEXP r_expr, SEXP envir) {
 //     try {
@@ -41,24 +41,24 @@
 //     return R_NilValue;
 // }
 
-// SEXP logical_track_vtrack(SEXP _track, SEXP envir){
-//     try {
-//         Naryn naryn(envir);        
-//         const char *trackname = CHAR(STRING_ELT(_track, 0));        
-//         const EMRLogicalTrack *ltrack = g_db->logical_track(trackname);
+SEXP logical_track_vtrack(SEXP _track, SEXP envir){
+    try {
+        Naryn naryn(envir);        
+        const char *trackname = CHAR(STRING_ELT(_track, 0));        
+        const EMRLogicalTrack *ltrack = g_db->logical_track(trackname);
         
-//         if (!ltrack) verror("Track %s does not exist", trackname);
+        if (!ltrack) verror("Track %s does not exist", trackname);
         
-//         return (ltrack->vtrack());
+        return (ltrack->vtrack());
 
-//     } catch (TGLException &e) {
-//         rerror("%s", e.msg());
-//     } catch (const bad_alloc &e) {
-//         rerror("Out of memory");
-//     }
+    } catch (TGLException &e) {
+        rerror("%s", e.msg());
+    } catch (const bad_alloc &e) {
+        rerror("Out of memory");
+    }
 
-//     return R_NilValue;
-// }
+    return R_NilValue;
+}
 
 // SEXP netta_bug(SEXP envir) {
 //     try {
@@ -618,10 +618,10 @@
 
 // //     while (1) {
 // //         SEXP data = CAR(tree);
-// //         if (isLanguage(data)) {
+// //         if (Rf_isLanguage(data)) {
 // //             print_tree(data, depth + 1);
 // //         } else {
-// //             const char *str = CHAR(asChar(data));
+// //             const char *str = CHAR(Rf_asChar(data));
 // //             if (is_op && strcmp(str, "&") && strcmp(str, "|") && strcmp(str, "!") && strcmp(str, "(")) {
 // //                 REprintf("FUNCTION\n");
 // //                 is_function = true;
@@ -632,17 +632,17 @@
 
 // //                 while (1) {
 // //                     tree = CDR(tree);
-// //                     if (isNull(tree))
+// //                     if (Rf_isNull(tree))
 // //                         break;
 // //                     data = CAR(tree);
 // //                     SEXP res = eval_in_R(data, g_naryn->env());
-// //                     if (isReal(res)) {
+// //                     if (Rf_isReal(res)) {
 // //                         for (int i = 0; i < Rf_length(res); ++i) {
 // //                             for (int j = 0; j < depth; ++j)
 // //                                 REprintf("  ");
 // //                             REprintf("REAL %g\n", REAL(res)[i]);
 // //                         }
-// //                     } else if (isLogical(res)) {
+// //                     } else if (Rf_isLogical(res)) {
 // //                         for (int i = 0; i < Rf_length(res); ++i) {
 // //                             for (int j = 0; j < depth; ++j)
 // //                                 REprintf("  ");
@@ -659,7 +659,7 @@
 // //             is_op = false;
 // //         }
 // //         tree = CDR(tree);
-// //         if (isNull(tree))
+// //         if (Rf_isNull(tree))
 // //             break;
 // //     }
 // // }
@@ -672,10 +672,10 @@
 // // 	try {
 // // 		Naryn naryn(_envir);
 
-// //         if (isLanguage(_expr))
+// //         if (Rf_isLanguage(_expr))
 // //             print_tree(_expr, 0);
 // //         else
-// //             REprintf("PLAIN %s\n", CHAR(asChar(_expr)));
+// //             REprintf("PLAIN %s\n", CHAR(Rf_asChar(_expr)));
 // // 	} catch (TGLException &e) {
 // // 		rerror("%s", e.msg());
 // //     } catch (const bad_alloc &e) {
@@ -691,7 +691,7 @@
 // 		Naryn naryn(_envir);
 
 //         NRIteratorFilter filter;
-//         filter.init(_expr, asInteger(_stime), asInteger(_etime));
+//         filter.init(_expr, Rf_asInteger(_stime), Rf_asInteger(_etime));
 //         filter.debug_print();
 
 //         while (1) {
@@ -734,14 +734,14 @@
 // 	try {
 // 		Naryn naryn(_envir);
 
-//         unsigned stime = asInteger(_stime);
-//         unsigned etime = asInteger(_etime);
+//         unsigned stime = Rf_asInteger(_stime);
+//         unsigned etime = Rf_asInteger(_etime);
 //         EMRTimeIntervals intervs;
 //         NRTimeIntervals::convert_rtime_intervals(_times, &intervs);
 
 //         EMRTimesIterator itr;
 
-//         itr.init(intervs, asLogical(_keepref), stime, etime);
+//         itr.init(intervs, Rf_asLogical(_keepref), stime, etime);
 //         itr.begin();
 
 //         while (1) {
@@ -784,15 +784,15 @@
 // 	try {
 // 		Naryn naryn(_envir);
 
-//         int num_processes = asInteger(_num_processes);
+//         int num_processes = Rf_asInteger(_num_processes);
 
 //         Naryn::prepare4multitasking();
 //         for (int i = 0; i < num_processes; ++i) {
 //             if (!g_naryn->launch_process()) { // kid process
 //                 if (g_naryn->debug()){
-//                     SEXP rvar = GetOption(install("emr_child_run_delay"), R_NilValue);
-//                     if (isReal(rvar) || isInteger(rvar))
-//                         sleep(asInteger(rvar));
+//                     SEXP rvar = Rf_GetOption(Rf_install("emr_child_run_delay"), R_NilValue);
+//                     if (Rf_isReal(rvar) || Rf_isInteger(rvar))
+//                         sleep(Rf_asInteger(rvar));
 //                 }
 
 //                 char buf[1000];
@@ -807,7 +807,7 @@
 //         uint64_t bytes_read = 0;
 
 //         vdebug("Starting read test\n");
-//         uint64_t timeout = asInteger(_timeout);
+//         uint64_t timeout = Rf_asInteger(_timeout);
 //         Naryn::set_alarm(timeout * 1000);
 //         while (1) {
 //             if (Naryn::read_multitask_fifo(buf, sizeof(buf)) == EOF)
@@ -837,20 +837,20 @@
 // 	try {
 // 		Naryn naryn(_envir);
 
-//         if (!isString(_expr) || Rf_length(_expr) != 1)
+//         if (!Rf_isString(_expr) || Rf_length(_expr) != 1)
 //             verror("'expr' argument must be a string");
 
-//         if ((!isInteger(_n) && !isReal(_n)) || Rf_length(_n) != 1)
+//         if ((!Rf_isInteger(_n) && !Rf_isReal(_n)) || Rf_length(_n) != 1)
 //             verror("'n' argument must be an integer value");
 
-//         // const char *expr_str = { CHAR(asChar(_expr)) };
-//         int n = asInteger(_n);
+//         // const char *expr_str = { CHAR(Rf_asChar(_expr)) };
+//         int n = Rf_asInteger(_n);
 
 //         SEXP aaa, bbb;
 //         rprotect(aaa = RSaneAllocVector(REALSXP, 1));
 //         rprotect(bbb = RSaneAllocVector(REALSXP, 1));
-//         defineVar(install("aaa"), aaa, g_naryn->env());
-//         defineVar(install("bbb"), bbb, g_naryn->env());
+//         Rf_defineVar(Rf_install("aaa"), aaa, g_naryn->env());
+//         Rf_defineVar(Rf_install("bbb"), bbb, g_naryn->env());
 
 //         // parse R expression
 //         ParseStatus status;
@@ -876,5 +876,5 @@
 // 	rreturn(R_NilValue);
 // }
 
-// }
+}
 

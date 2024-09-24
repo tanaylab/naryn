@@ -55,7 +55,7 @@ void NRTrackExprScanner::convert_rtrack_exprs(SEXP rtrack_exprs, vector<string> 
 {
 	track_exprs.clear();
 
-	if (!isString(rtrack_exprs) || Rf_length(rtrack_exprs) < 1)
+	if (!Rf_isString(rtrack_exprs) || Rf_length(rtrack_exprs) < 1)
 		verror("Tracks expressions argument must be a vector of strings");
 
 	unsigned num_track_exprs = (unsigned)Rf_length(rtrack_exprs);
@@ -67,14 +67,14 @@ void NRTrackExprScanner::convert_rtrack_exprs(SEXP rtrack_exprs, vector<string> 
 
 void NRTrackExprScanner::convert_rscope(SEXP rstime, SEXP retime, unsigned *pstime, unsigned *petime, bool *is_implicit_scope)
 {
-    if ((!isNull(rstime) && ((!isReal(rstime) && !isInteger(rstime)) || Rf_length(rstime) != 1)) ||
-        (!isNull(retime) && ((!isReal(retime) && !isInteger(retime)) || Rf_length(retime) != 1)))
+    if ((!Rf_isNull(rstime) && ((!Rf_isReal(rstime) && !Rf_isInteger(rstime)) || Rf_length(rstime) != 1)) ||
+        (!Rf_isNull(retime) && ((!Rf_isReal(retime) && !Rf_isInteger(retime)) || Rf_length(retime) != 1)))
 		verror("Invalid time scope");
 
-	double stime = isNull(rstime) ? 0 : asReal(rstime);
-    double etime = isNull(retime) ? EMRTimeStamp::MAX_HOUR : asReal(retime);
+	double stime = Rf_isNull(rstime) ? 0 : Rf_asReal(rstime);
+    double etime = Rf_isNull(retime) ? EMRTimeStamp::MAX_HOUR : Rf_asReal(retime);
 
-    *is_implicit_scope = isNull(rstime) || isNull(retime);
+    *is_implicit_scope = Rf_isNull(rstime) || Rf_isNull(retime);
 
 	if (stime != (int)stime || stime < 0)
 		verror("Time scope start time must be a positive integer");
@@ -91,10 +91,10 @@ void NRTrackExprScanner::convert_rscope(SEXP rstime, SEXP retime, unsigned *psti
 
 bool NRTrackExprScanner::convert_rkeepref(SEXP rkeepref)
 {
-    if (!isLogical(rkeepref) || Rf_length(rkeepref) != 1 || asLogical(rkeepref) == NA_LOGICAL)
+    if (!Rf_isLogical(rkeepref) || Rf_length(rkeepref) != 1 || Rf_asLogical(rkeepref) == NA_LOGICAL)
         verror("Invalid format of iter.keepref parameter");
 
-    return asLogical(rkeepref);
+    return Rf_asLogical(rkeepref);
 }
 
 void NRTrackExprScanner::define_r_vars(unsigned eval_buf_limit)
@@ -109,8 +109,8 @@ void NRTrackExprScanner::define_r_vars(unsigned eval_buf_limit)
     for (unsigned i = 0; i < eval_buf_limit; ++i){
         m_itr_times[i] = 0;
     }
-    SEXP env = findVar(install(".GlobalEnv"), g_naryn->env());
-    defineVar(install("EMR_TIME"), m_ritr_times, env);
+    SEXP env = Rf_findVar(Rf_install(".GlobalEnv"), g_naryn->env());
+    Rf_defineVar(Rf_install("EMR_TIME"), m_ritr_times, env);
 
     for (unsigned iexpr = 0; iexpr < m_track_exprs.size(); ++iexpr) {
         const NRTrackExpressionVars::TrackVar *var = m_expr_vars.var(m_track_exprs[iexpr].c_str());
@@ -173,7 +173,7 @@ void NRTrackExprScanner::check(const vector<string> &track_exprs, unsigned stime
     		SEXP expr = R_NilValue;
             SEXPCleaner expr_cleaner(expr);
     		rprotect(expr = RSaneAllocVector(STRSXP, 1));
-    		SET_STRING_ELT(expr, 0, mkChar(m_track_exprs[iexpr].c_str()));
+    		SET_STRING_ELT(expr, 0, Rf_mkChar(m_track_exprs[iexpr].c_str()));
 
     		// parse R expression
     		ParseStatus status;
@@ -224,7 +224,7 @@ bool NRTrackExprScanner::begin(const vector<string> &track_exprs, ValType valtyp
         }
 	}
 
-    if (isNull(filter)){
+    if (Rf_isNull(filter)){
         const EMRTrackExpressionIterator &itr = m_itr.itr();
         if ((typeid(itr) == typeid(EMRBeatIterator) ||
              typeid(itr) == typeid(EMRBeatExtIterator)) &&
@@ -437,17 +437,17 @@ void NRTrackExprScanner::kid_main_loop(vector<unsigned> &ids_subset)
                 if (Rf_length(m_eval_bufs[iexpr]) != (int)m_eval_buf_limit)
                     verror("Evaluation of expression \"%s\" produces a vector of size %d while expecting size %d",
                             m_track_exprs[iexpr].c_str(), Rf_length(m_eval_bufs[iexpr]), m_eval_buf_limit);
-                if (isReal(m_eval_bufs[iexpr])) {
+                if (Rf_isReal(m_eval_bufs[iexpr])) {
                     if (m_valtype != REAL_T)
                         verror("Expression \"%s\" does not produce a numeric result.", m_track_exprs[iexpr].c_str());
                     m_eval_doubles[iexpr] = REAL(m_eval_bufs[iexpr]);
-                } else if (isLogical(m_eval_bufs[iexpr])) {
+                } else if (Rf_isLogical(m_eval_bufs[iexpr])) {
                     if (m_valtype != LOGICAL_T)
                         verror("Expression \"%s\" does not produce a logical result.", m_track_exprs[iexpr].c_str());
                     m_eval_ints[iexpr] = LOGICAL(m_eval_bufs[iexpr]);
                 } else
                     verror("Evaluation of expression \"%s\" produces a vector of unsupported type %s",
-                            m_track_exprs[iexpr].c_str(), type2char(TYPEOF(m_eval_bufs[iexpr])));
+                            m_track_exprs[iexpr].c_str(), Rf_type2char(TYPEOF(m_eval_bufs[iexpr])));
             }
         }
 
@@ -507,15 +507,15 @@ SEXP NRTrackExprScanner::create_logical_track_filter(SEXP riterator, SEXP filter
     SEXP e;
 
     if (filter == R_NilValue){
-        PROTECT(e = lang2(install(".create_logical_track_filter"), riterator));
+        PROTECT(e = Rf_lang2(Rf_install(".create_logical_track_filter"), riterator));
     } else {
-        PROTECT(e = lang3(install(".create_logical_track_filter"), riterator, filter));
+        PROTECT(e = Rf_lang3(Rf_install(".create_logical_track_filter"), riterator, filter));
     }
 
     SEXP res = R_tryEval(e, g_naryn->env(), NULL);
     UNPROTECT(1);
 
-    PROTECT(e = lang2(install(".emr_filter"), e));
+    PROTECT(e = Rf_lang2(Rf_install(".emr_filter"), e));
     res = R_tryEval(e, g_naryn->env(), NULL);
     UNPROTECT(1);
 
@@ -527,25 +527,25 @@ void NRTrackExprScanner::create_expr_iterator(IteratorWithFilter *itr, SEXP rite
 {
     EMRTrackExpressionIterator *expr_itr = NULL;
 
-    if ((isReal(riterator) || isInteger(riterator)) && Rf_length(riterator) == 1) {           // iterator == period
-        int period = asInteger(riterator);
+    if ((Rf_isReal(riterator) || Rf_isInteger(riterator)) && Rf_length(riterator) == 1) {           // iterator == period
+        int period = Rf_asInteger(riterator);
 
         if (period <= 0)
             verror("Invalid value is used for iterator policy (code: %d)", __LINE__);
         if (is_implicit_scope)
             verror("Cannot use an implicit time scope with Beat Iterator: please specify 'stime' and 'etime'");
-        expr_itr = new EMRBeatIterator(asInteger(riterator), keepref, stime, etime);
-    } else if (isString(riterator) && Rf_length(riterator) == 1 && g_db->track(CHAR(asChar(riterator)))){ // iterator == physical track
-        expr_itr = new EMRTrackIterator(g_db->track(CHAR(asChar(riterator))), keepref, stime, etime);
-    } else if (isString(riterator) && Rf_length(riterator) == 1 && g_db->logical_track(CHAR(asChar(riterator)))) { // iterator == logical track
+        expr_itr = new EMRBeatIterator(Rf_asInteger(riterator), keepref, stime, etime);
+    } else if (Rf_isString(riterator) && Rf_length(riterator) == 1 && g_db->track(CHAR(Rf_asChar(riterator)))){ // iterator == physical track
+        expr_itr = new EMRTrackIterator(g_db->track(CHAR(Rf_asChar(riterator))), keepref, stime, etime);
+    } else if (Rf_isString(riterator) && Rf_length(riterator) == 1 && g_db->logical_track(CHAR(Rf_asChar(riterator)))) { // iterator == logical track
         const EMRLogicalTrack *logical_track  =
-            g_db->logical_track(CHAR(asChar(riterator)));        
+            g_db->logical_track(CHAR(Rf_asChar(riterator)));        
         expr_itr = new EMRTrackIterator(g_db->track(logical_track->source.c_str()), keepref, stime, etime);
         
         if (logical_track->has_values()){
             filter = create_logical_track_filter(riterator, filter);
         }
-    } else if (isNull(riterator)) {
+    } else if (Rf_isNull(riterator)) {
         string track_name, var_name;
         EMRTrack *track = NULL;
 
@@ -576,7 +576,7 @@ void NRTrackExprScanner::create_expr_iterator(IteratorWithFilter *itr, SEXP rite
                     if (logical_track->has_values()){
                         SEXP ltrack_name;
                         rprotect(ltrack_name = RSaneAllocVector(STRSXP, 1));
-                        SET_STRING_ELT(ltrack_name, 0, mkChar(logical_track_name.c_str()));
+                        SET_STRING_ELT(ltrack_name, 0, Rf_mkChar(logical_track_name.c_str()));
                         filter = create_logical_track_filter(ltrack_name, filter);                        
                     }                    
                 }
@@ -678,21 +678,21 @@ void NRTrackExprScanner::create_expr_iterator(IteratorWithFilter *itr, SEXP rite
             }
         }
 
-        if (!success && isVector(riterator) && Rf_length(riterator) == 2) {
+        if (!success && Rf_isVector(riterator) && Rf_length(riterator) == 2) {
             SEXP rperiod = VECTOR_ELT(riterator, 0);
             SEXP rinit = VECTOR_ELT(riterator, 1);
 
-            if ((isReal(rperiod) || isInteger(rperiod)) && Rf_length(rperiod) == 1) {
-                int period = asInteger(rperiod);
+            if ((Rf_isReal(rperiod) || Rf_isInteger(rperiod)) && Rf_length(rperiod) == 1) {
+                int period = Rf_asInteger(rperiod);
 
                 if (period <= 0)
                     verror("Invalid value is used for iterator policy (code: %d)", __LINE__);
 
-                if (isString(rinit) && Rf_length(rinit) == 1 && g_db->track(CHAR(asChar(rinit)))) {
+                if (Rf_isString(rinit) && Rf_length(rinit) == 1 && g_db->track(CHAR(Rf_asChar(rinit)))) {
                     if (is_implicit_scope)
                         verror("Cannot use an implicit time scope with Extended Beat Iterator: please specify 'stime' and 'etime'");
 
-                    EMRTrackIterator *itr = new EMRTrackIterator(g_db->track(CHAR(asChar(rinit))), keepref, 0, etime);
+                    EMRTrackIterator *itr = new EMRTrackIterator(g_db->track(CHAR(Rf_asChar(rinit))), keepref, 0, etime);
                     try {
                         expr_itr = new EMRBeatExtIterator(period, itr, keepref, stime, etime);
                     } catch (...) {
@@ -731,10 +731,10 @@ void NRTrackExprScanner::create_expr_iterator(IteratorWithFilter *itr, SEXP rite
     }
 
     // convert the filter to language (let R parse the expression)
-    if (!isLanguage(filter)){
+    if (!Rf_isLanguage(filter)){
         string command;
         command = string(".emr_filter('") +
-            string(CHAR(asChar(filter))) + 
+            string(CHAR(Rf_asChar(filter))) + 
             string("')");
 
         filter = run_in_R(command.c_str(), g_naryn->env());

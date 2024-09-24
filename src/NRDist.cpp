@@ -1,3 +1,6 @@
+#ifndef R_NO_REMAP
+#  define R_NO_REMAP
+#endif
 #include <R.h>
 #include <Rinternals.h>
 
@@ -19,7 +22,7 @@ SEXP C_emr_dist(SEXP _exprs, SEXP _breaks, SEXP _include_lowest, SEXP _right, SE
 	try {
         Naryn naryn(_envir);
 
-		if (!isString(_exprs) || Rf_length(_exprs) < 1)
+		if (!Rf_isString(_exprs) || Rf_length(_exprs) < 1)
 			verror("Track expressions argument must be a vector of strings");
 
         unsigned num_exprs = (unsigned)Rf_length(_exprs);
@@ -59,9 +62,9 @@ SEXP C_emr_dist(SEXP _exprs, SEXP _breaks, SEXP _include_lowest, SEXP _right, SE
         rprotect(dimnames = RSaneAllocVector(VECSXP, num_exprs));
         rprotect(breaks = RSaneAllocVector(VECSXP, num_exprs));
         bins_manager.set_dims(dim, dimnames, breaks);
-        setAttrib(answer, R_DimSymbol, dim);
-        setAttrib(answer, R_DimNamesSymbol, dimnames);
-        setAttrib(answer, install("breaks"), breaks);
+        Rf_setAttrib(answer, R_DimSymbol, dim);
+        Rf_setAttrib(answer, R_DimNamesSymbol, dimnames);
+        Rf_setAttrib(answer, Rf_install("breaks"), breaks);
         rreturn(answer);
 	} catch (TGLException &e) {
 		rerror("%s", e.msg());

@@ -3,6 +3,9 @@
 #include "naryn.h"
 #include "NRTrackExpressionScanner.h"
 
+#ifndef R_NO_REMAP
+#  define R_NO_REMAP
+#endif
 #include <R.h>
 #include <Rinternals.h>
 
@@ -67,7 +70,7 @@ SEXP C_emr_summary(SEXP _expr, SEXP _stime, SEXP _etime, SEXP _iterator_policy, 
 	try {
         Naryn naryn(_envir);
 
-		if (!isString(_expr) || Rf_length(_expr) != 1)
+		if (!Rf_isString(_expr) || Rf_length(_expr) != 1)
 			verror("The value of 'expr' parameter must be a string");
 
         IntervalSummary summary;
@@ -91,9 +94,9 @@ SEXP C_emr_summary(SEXP _expr, SEXP _stime, SEXP _etime, SEXP _iterator_policy, 
         REAL(answer)[STDEV] = summary.num_non_nan_bins > 1 ? summary.get_stdev() : numeric_limits<double>::quiet_NaN();
 
         for (int i = 0; i < NUM_COLS; i++)
-            SET_STRING_ELT(colnames, i, mkChar(IntervalSummaryColNames[i]));
+            SET_STRING_ELT(colnames, i, Rf_mkChar(IntervalSummaryColNames[i]));
 
-        setAttrib(answer, R_NamesSymbol, colnames);
+        Rf_setAttrib(answer, R_NamesSymbol, colnames);
 
         rreturn(answer);
 	} catch (TGLException &e) {
