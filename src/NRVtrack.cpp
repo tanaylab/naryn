@@ -126,7 +126,7 @@ SEXP emr_check_vtrack_attr_id_map(SEXP _id_map, SEXP _envir) {
                 if (PRENV(_id_map) == R_NilValue)
                     _id_map = PRVALUE(_id_map);
                 else
-                    _id_map = eval_in_R(PRCODE(_id_map), PRENV(_id_map));
+                    _id_map = eval_in_R(R_PromiseExpr(_id_map), PRENV(_id_map));
             }
 
             if (!Rf_isVector(_id_map) || Rf_xlength(_id_map) < NUM_COLS - 1)
