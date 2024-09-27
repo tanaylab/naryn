@@ -9,10 +9,10 @@ void NRIdTimeIntervals::convert_rid_time_intervals(SEXP rintervs, EMRIdTimeInter
     intervs->clear();
 
     if (TYPEOF(rintervs) == PROMSXP) {
-        if (PRENV(rintervs) == R_NilValue)
-            rintervs = PRVALUE(rintervs);
+        if (NARYN_PRENV(rintervs) == R_NilValue)
+            rintervs = NARYN_PRVALUE(rintervs);
         else
-            rintervs = eval_in_R(R_PromiseExpr(rintervs), PRENV(rintervs));
+            rintervs = eval_in_R(NARYN_PREXPR(rintervs), NARYN_PRENV(rintervs));
     }
 
     if (!Rf_isVector(rintervs))

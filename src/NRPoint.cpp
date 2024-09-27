@@ -93,10 +93,10 @@ void NRPoint::convert_rpoints(SEXP rpoints, vector<EMRPoint> *points, const char
     points->clear();
 
     if (TYPEOF(rpoints) == PROMSXP) {
-        if (PRENV(rpoints) == R_NilValue)
-            rpoints = PRVALUE(rpoints);
+        if (NARYN_PRENV(rpoints) == R_NilValue)
+            rpoints = NARYN_PRVALUE(rpoints);
         else
-            rpoints = eval_in_R(R_PromiseExpr(rpoints), PRENV(rpoints));
+            rpoints = eval_in_R(NARYN_PREXPR(rpoints), NARYN_PRENV(rpoints));
     }
 
     if (!Rf_isVector(rpoints))
@@ -193,10 +193,10 @@ void NRPoint::convert_rids(SEXP rids, vector<unsigned> *ids, const char *error_m
     ids->clear();
 
     if (TYPEOF(rids) == PROMSXP) {
-        if (PRENV(rids) == R_NilValue)
-            rids = PRVALUE(rids);
+        if (NARYN_PRENV(rids) == R_NilValue)
+            rids = NARYN_PRVALUE(rids);
         else
-            rids = eval_in_R(R_PromiseExpr(rids), PRENV(rids));
+            rids = eval_in_R(NARYN_PREXPR(rids), NARYN_PRENV(rids));
     }
 
     if (!Rf_isVector(rids))
