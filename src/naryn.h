@@ -38,6 +38,10 @@
     #define RNARYN
 #endif
 
+#define NARYN_PRENV(x) TAG(x)
+#define NARYN_PRVALUE(x) CAR(x)
+#define NARYN_PREXPR(x) R_BytecodeExpr(CDR(x))
+
 using namespace std;
 
 // should be used instead of R_CheckUserInterrupt. Throws exception if the command is interrupted.
