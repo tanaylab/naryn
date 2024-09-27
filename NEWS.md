@@ -1,3 +1,7 @@
+# naryn 2.6.30 
+
+* Removed non-API calls to R in the C++ code.
+
 # naryn 2.6.29 
 
 * Fixed *noRemap* additional issue by adding `Rf_` prefix in the c++ code.
@@ -5,7 +9,7 @@
 # naryn 2.6.28 
 
 * Fix: `emr_track.mv` did not move track attributes. 
-* "exists" virtual track function without parameters now checks for existance of any value.
+* "exists" virtual track function without parameters now checks for existence of any value.
 
 # naryn 2.6.27
 

@@ -3,6 +3,7 @@
 
 #include "EMRPoint.h"
 #include "EMRTrack.h"
+#include "naryn.h"
 #include <cstdint>
 
 struct NRPoint {
@@ -33,10 +34,10 @@ template<class T>
 void NRPoint::convert_rpoints_vals(SEXP rsrc, EMRTrackData<T> &data, const char *error_msg_prefix)
 {
     if (TYPEOF(rsrc) == PROMSXP) {
-        if (PRENV(rsrc) == R_NilValue)
-            rsrc = PRVALUE(rsrc);
+        if (NARYN_PRENV(rsrc) == R_NilValue)
+            rsrc = NARYN_PRVALUE(rsrc);
         else
-            rsrc = eval_in_R(R_PromiseExpr(rsrc), PRENV(rsrc));
+            rsrc = eval_in_R(NARYN_PREXPR(rsrc), NARYN_PRENV(rsrc));
     }
 
     SEXP colnames = Rf_getAttrib(rsrc, R_NamesSymbol);

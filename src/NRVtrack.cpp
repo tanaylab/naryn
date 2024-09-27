@@ -123,10 +123,10 @@ SEXP emr_check_vtrack_attr_id_map(SEXP _id_map, SEXP _envir) {
             NRTrackExpressionVars::IdMap id_map;
 
             if (TYPEOF(_id_map) == PROMSXP) {
-                if (PRENV(_id_map) == R_NilValue)
-                    _id_map = PRVALUE(_id_map);
+                if (NARYN_PRENV(_id_map) == R_NilValue)
+                    _id_map = NARYN_PRVALUE(_id_map);
                 else
-                    _id_map = eval_in_R(R_PromiseExpr(_id_map), PRENV(_id_map));
+                    _id_map = eval_in_R(NARYN_PREXPR(_id_map), NARYN_PRENV(_id_map));
             }
 
             if (!Rf_isVector(_id_map) || Rf_xlength(_id_map) < NUM_COLS - 1)

@@ -16,6 +16,7 @@
 #undef error
 #endif
 
+#include "naryn.h"
 #include "EMRTimeInterval.h"
 #include "EMRTimeStamp.h"
 
