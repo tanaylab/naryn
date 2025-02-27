@@ -3,6 +3,8 @@ template:
     bootstrap: 5
     bootswatch: cosmo
 
+url: https://tanaylab.github.io/naryn/
+
 home:
   sidebar:
     structure: [links, license, authors, dev]
