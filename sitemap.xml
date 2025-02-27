@@ -1,285 +1,99 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>/404.html</loc>
-  </url>
-  <url>
-    <loc>/LICENSE-text.html</loc>
-  </url>
-  <url>
-    <loc>/LICENSE.html</loc>
-  </url>
-  <url>
-    <loc>/articles/advanced.html</loc>
-  </url>
-  <url>
-    <loc>/articles/index.html</loc>
-  </url>
-  <url>
-    <loc>/articles/naryn.html</loc>
-  </url>
-  <url>
-    <loc>/authors.html</loc>
-  </url>
-  <url>
-    <loc>/index.html</loc>
-  </url>
-  <url>
-    <loc>/news/index.html</loc>
-  </url>
-  <url>
-    <loc>/reference/dot-create_logical_track_filter.html</loc>
-  </url>
-  <url>
-    <loc>/reference/dot-emr_expr_vars.html</loc>
-  </url>
-  <url>
-    <loc>/reference/dot-emr_filter.html</loc>
-  </url>
-  <url>
-    <loc>/reference/dot-emr_vtrack.get.html</loc>
-  </url>
-  <url>
-    <loc>/reference/dot-naryn.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_annotate.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_cor.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_date2time.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_db.connect.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_db.reload.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_db.subset.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_db.subset.ids.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_db.subset.info.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_db.unload.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_dist.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_download_example_data.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_entries.get.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_entries.get_all.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_entries.ls.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_entries.reload.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_entries.rm.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_entries.rm_all.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_entries.set.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_extract.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_filter.attr.src.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_filter.clear.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_filter.create.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_filter.create_from_name.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_filter.exists.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_filter.info.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_filter.ls.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_filter.name.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_filter.rm.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_filters.info.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_ids_coverage.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_ids_vals_coverage.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_monthly_iterator.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_quantiles.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_screen.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_summary.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_time.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_time2date.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_time2dayofmonth.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_time2hour.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_time2month.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_time2year.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_track.addto.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_track.attr.export.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_track.attr.get.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_track.attr.rm.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_track.attr.set.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_track.create.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_track.dbs.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_track.exists.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_track.ids.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_track.import.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_track.info.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_track.logical.create.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_track.logical.exists.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_track.logical.info.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_track.logical.rm.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_track.ls.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_track.mv.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_track.percentile.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_track.readonly.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_track.rm.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_track.unique.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_track.var.get.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_track.var.ls.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_track.var.rm.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_track.var.set.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_vtrack.attr.src.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_vtrack.clear.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_vtrack.create.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_vtrack.create_from_name.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_vtrack.exists.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_vtrack.info.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_vtrack.ls.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_vtrack.name.html</loc>
-  </url>
-  <url>
-    <loc>/reference/emr_vtrack.rm.html</loc>
-  </url>
-  <url>
-    <loc>/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>/reference/naryn-package.html</loc>
-  </url>
-  <url>
-    <loc>/reference/pipe.html</loc>
-  </url>
-  <url>
-    <loc>/reference/string_to_var.html</loc>
-  </url>
-  <url>
-    <loc>/reference/var_to_string.html</loc>
-  </url>
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>/404.html</loc></url>
+<url><loc>/LICENSE-text.html</loc></url>
+<url><loc>/LICENSE.html</loc></url>
+<url><loc>/articles/advanced.html</loc></url>
+<url><loc>/articles/index.html</loc></url>
+<url><loc>/articles/naryn.html</loc></url>
+<url><loc>/authors.html</loc></url>
+<url><loc>/index.html</loc></url>
+<url><loc>/news/index.html</loc></url>
+<url><loc>/reference/dot-create_logical_track_filter.html</loc></url>
+<url><loc>/reference/dot-emr_expr_vars.html</loc></url>
+<url><loc>/reference/dot-emr_filter.html</loc></url>
+<url><loc>/reference/dot-emr_vtrack.get.html</loc></url>
+<url><loc>/reference/dot-naryn.html</loc></url>
+<url><loc>/reference/emr_annotate.html</loc></url>
+<url><loc>/reference/emr_cor.html</loc></url>
+<url><loc>/reference/emr_date2time.html</loc></url>
+<url><loc>/reference/emr_db.connect.html</loc></url>
+<url><loc>/reference/emr_db.reload.html</loc></url>
+<url><loc>/reference/emr_db.subset.html</loc></url>
+<url><loc>/reference/emr_db.subset.ids.html</loc></url>
+<url><loc>/reference/emr_db.subset.info.html</loc></url>
+<url><loc>/reference/emr_db.unload.html</loc></url>
+<url><loc>/reference/emr_dist.html</loc></url>
+<url><loc>/reference/emr_download_example_data.html</loc></url>
+<url><loc>/reference/emr_entries.get.html</loc></url>
+<url><loc>/reference/emr_entries.get_all.html</loc></url>
+<url><loc>/reference/emr_entries.ls.html</loc></url>
+<url><loc>/reference/emr_entries.reload.html</loc></url>
+<url><loc>/reference/emr_entries.rm.html</loc></url>
+<url><loc>/reference/emr_entries.rm_all.html</loc></url>
+<url><loc>/reference/emr_entries.set.html</loc></url>
+<url><loc>/reference/emr_extract.html</loc></url>
+<url><loc>/reference/emr_filter.attr.src.html</loc></url>
+<url><loc>/reference/emr_filter.clear.html</loc></url>
+<url><loc>/reference/emr_filter.create.html</loc></url>
+<url><loc>/reference/emr_filter.create_from_name.html</loc></url>
+<url><loc>/reference/emr_filter.exists.html</loc></url>
+<url><loc>/reference/emr_filter.info.html</loc></url>
+<url><loc>/reference/emr_filter.ls.html</loc></url>
+<url><loc>/reference/emr_filter.name.html</loc></url>
+<url><loc>/reference/emr_filter.rm.html</loc></url>
+<url><loc>/reference/emr_filters.info.html</loc></url>
+<url><loc>/reference/emr_ids_coverage.html</loc></url>
+<url><loc>/reference/emr_ids_vals_coverage.html</loc></url>
+<url><loc>/reference/emr_monthly_iterator.html</loc></url>
+<url><loc>/reference/emr_quantiles.html</loc></url>
+<url><loc>/reference/emr_screen.html</loc></url>
+<url><loc>/reference/emr_summary.html</loc></url>
+<url><loc>/reference/emr_time.html</loc></url>
+<url><loc>/reference/emr_time2char.html</loc></url>
+<url><loc>/reference/emr_time2date.html</loc></url>
+<url><loc>/reference/emr_time2dayofmonth.html</loc></url>
+<url><loc>/reference/emr_time2hour.html</loc></url>
+<url><loc>/reference/emr_time2month.html</loc></url>
+<url><loc>/reference/emr_time2posix.html</loc></url>
+<url><loc>/reference/emr_time2year.html</loc></url>
+<url><loc>/reference/emr_track.addto.html</loc></url>
+<url><loc>/reference/emr_track.attr.export.html</loc></url>
+<url><loc>/reference/emr_track.attr.get.html</loc></url>
+<url><loc>/reference/emr_track.attr.rm.html</loc></url>
+<url><loc>/reference/emr_track.attr.set.html</loc></url>
+<url><loc>/reference/emr_track.create.html</loc></url>
+<url><loc>/reference/emr_track.dbs.html</loc></url>
+<url><loc>/reference/emr_track.exists.html</loc></url>
+<url><loc>/reference/emr_track.ids.html</loc></url>
+<url><loc>/reference/emr_track.import.html</loc></url>
+<url><loc>/reference/emr_track.info.html</loc></url>
+<url><loc>/reference/emr_track.logical.create.html</loc></url>
+<url><loc>/reference/emr_track.logical.exists.html</loc></url>
+<url><loc>/reference/emr_track.logical.info.html</loc></url>
+<url><loc>/reference/emr_track.logical.rm.html</loc></url>
+<url><loc>/reference/emr_track.ls.html</loc></url>
+<url><loc>/reference/emr_track.mv.html</loc></url>
+<url><loc>/reference/emr_track.percentile.html</loc></url>
+<url><loc>/reference/emr_track.readonly.html</loc></url>
+<url><loc>/reference/emr_track.rm.html</loc></url>
+<url><loc>/reference/emr_track.unique.html</loc></url>
+<url><loc>/reference/emr_track.var.get.html</loc></url>
+<url><loc>/reference/emr_track.var.ls.html</loc></url>
+<url><loc>/reference/emr_track.var.rm.html</loc></url>
+<url><loc>/reference/emr_track.var.set.html</loc></url>
+<url><loc>/reference/emr_vtrack.attr.src.html</loc></url>
+<url><loc>/reference/emr_vtrack.clear.html</loc></url>
+<url><loc>/reference/emr_vtrack.create.html</loc></url>
+<url><loc>/reference/emr_vtrack.create_from_name.html</loc></url>
+<url><loc>/reference/emr_vtrack.exists.html</loc></url>
+<url><loc>/reference/emr_vtrack.info.html</loc></url>
+<url><loc>/reference/emr_vtrack.ls.html</loc></url>
+<url><loc>/reference/emr_vtrack.name.html</loc></url>
+<url><loc>/reference/emr_vtrack.rm.html</loc></url>
+<url><loc>/reference/index.html</loc></url>
+<url><loc>/reference/naryn-package.html</loc></url>
+<url><loc>/reference/pipe.html</loc></url>
+<url><loc>/reference/string_to_var.html</loc></url>
+<url><loc>/reference/var_to_string.html</loc></url>
 </urlset>
+
