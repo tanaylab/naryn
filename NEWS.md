@@ -1,3 +1,5 @@
+# naryn (development version)
+
 # naryn 2.6.30 
 
 * Removed non-API calls to R in the C++ code.
