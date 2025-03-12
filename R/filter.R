@@ -74,7 +74,7 @@
         extract_filter <- NULL
     }
 
-    vtrack_filters_result <- emr_extract(vtracks, iterator = iterator, keepref = keepref, stime = stime, etime = etime, filter = extract_filter)
+    vtrack_filters_result <- emr_extract(vtracks, iterator = iterator, keepref = keepref, stime = stime, etime = etime, filter = extract_filter, names=vtracks)
 
     return(vtrack_filters_result)
 }
