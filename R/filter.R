@@ -196,8 +196,9 @@
                 )
             })
         },
-        error = {
+        error = function(cond) {
             .emr_recreate_vtrack_filters(orig_filters)
+            stop(cond)
         }
     )
 
