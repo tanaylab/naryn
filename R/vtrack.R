@@ -422,7 +422,6 @@ emr_vtrack.create <- function(vtrack, src, func = NULL, params = NULL, keepref =
 }
 
 
-
 #' Get or set attributes of a virtual track
 #'
 #' Get or set attributes of a virtual track.
@@ -640,7 +639,6 @@ emr_vtrack.attr.filter <- function(vtrack, filter) {
 }
 
 
-
 #' Checks whether the virtual track exists
 #'
 #' Checks whether the virtual track exists.
@@ -671,7 +669,6 @@ emr_vtrack.exists <- function(vtrack) {
 }
 
 
-
 #' Returns the definition of a virtual track
 #'
 #' Returns the definition of a virtual track.
@@ -695,7 +692,6 @@ emr_vtrack.info <- function(vtrack) {
 
     .emr_vtrack.get(vtrack)
 }
-
 
 
 #' Returns a list of virtual track names
@@ -741,7 +737,6 @@ emr_vtrack.ls <- function(pattern = "", ignore.case = FALSE, perl = FALSE, fixed
         sort(vtracknames)
     }
 }
-
 
 
 #' Deletes a virtual track

@@ -226,7 +226,6 @@
 }
 
 
-
 #' Generate a default name for a naryn filter
 #'
 #' Generate a default name for a naryn filter
@@ -747,7 +746,6 @@ emr_filter.attr.expiration <- function(filter, expiration) {
 }
 
 
-
 #' Checks whether the named filter exists
 #'
 #' Checks whether the named filter exists.
@@ -829,7 +827,6 @@ emr_filters.info <- function(filter) {
 }
 
 
-
 #' Returns a list of named filters
 #'
 #' Returns a list of named filters.
@@ -874,7 +871,6 @@ emr_filter.ls <- function(pattern = "", ignore.case = FALSE, perl = FALSE, fixed
         sort(filternames)
     }
 }
-
 
 
 #' Deletes a named filter
