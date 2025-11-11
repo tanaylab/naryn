@@ -96,7 +96,7 @@ Upon completion the connection is established with the database and a few
 variables are added to the .naryn environment. These variables should not be
 modified by the user!
 
-\tabular{lll}{
+\tabular{ll}{
 .naryn$EMR_GROOT \tab First db dir of tracks in the order of connections \cr
 .naryn$EMR_UROOT \tab Last db dir of tracks in the order of connection (user dir) \cr
 .naryn$EMR_ROOTS \tab Vector of directories (db_dirs) \cr

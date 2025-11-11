@@ -302,7 +302,7 @@ pid_t Naryn::launch_process()
         sigaction(SIGALRM, &s_old_sigalrm_act, NULL);
 		sigaction(SIGCHLD, &s_old_sigchld_act, NULL);
 
-		SEXP r_multitasking_stdout = Rf_GetOption(Rf_install("emr_multitasking_stdout"), R_NilValue);
+		SEXP r_multitasking_stdout = Rf_GetOption1(Rf_install("emr_multitasking_stdout"));
 
         int devnull;
         if ((devnull = open("/dev/null", O_RDWR)) == -1){
@@ -495,43 +495,43 @@ void Naryn::load_options()
 {
 	SEXP rvar;
 
-    rvar = Rf_GetOption(Rf_install("emr_debug"), R_NilValue);
+    rvar = Rf_GetOption1(Rf_install("emr_debug"));
     if (Rf_isLogical(rvar)){
         m_debug = Rf_asLogical(rvar);
     }
 
-    rvar = Rf_GetOption(Rf_install("emr_multitasking"), R_NilValue);
+    rvar = Rf_GetOption1(Rf_install("emr_multitasking"));
     if (Rf_isLogical(rvar)){
         m_multitasking_avail = Rf_asLogical(rvar);
     }
 
-    rvar = Rf_GetOption(Rf_install("emr_min.processes"), R_NilValue);
+    rvar = Rf_GetOption1(Rf_install("emr_min.processes"));
     if ((Rf_isReal(rvar) || Rf_isInteger(rvar)) && Rf_asInteger(rvar) >= 1){
         m_min_processes = Rf_asInteger(rvar);
     }
 
-    rvar = Rf_GetOption(Rf_install("emr_max.processes"), R_NilValue);
+    rvar = Rf_GetOption1(Rf_install("emr_max.processes"));
     if ((Rf_isReal(rvar) || Rf_isInteger(rvar)) && Rf_asInteger(rvar) >= 1){
         m_max_processes = Rf_asInteger(rvar);
     }
     m_max_processes = max(m_min_processes, m_max_processes);
 
-	rvar = Rf_GetOption(Rf_install("emr_max.data.size"), R_NilValue);
+	rvar = Rf_GetOption1(Rf_install("emr_max.data.size"));
 	if ((Rf_isReal(rvar) || Rf_isInteger(rvar)) && Rf_asReal(rvar) >= 1){
 		m_max_data_size = (uint64_t)Rf_asReal(rvar);
     }
 
-    rvar = Rf_GetOption(Rf_install("emr_eval.buf.size"), R_NilValue);
+    rvar = Rf_GetOption1(Rf_install("emr_eval.buf.size"));
     if ((Rf_isReal(rvar) || Rf_isInteger(rvar)) && Rf_asInteger(rvar) >= 1){
         m_eval_buf_size = Rf_asInteger(rvar);
     }
 
-	rvar = Rf_GetOption(Rf_install("emr_quantile.edge.data.size"), R_NilValue);
+	rvar = Rf_GetOption1(Rf_install("emr_quantile.edge.data.size"));
 	if ((Rf_isReal(rvar) || Rf_isInteger(rvar)) && Rf_asReal(rvar) >= 0){
 		m_quantile_edge_data_size = (uint64_t)Rf_asReal(rvar);
     }
 
-    rvar = Rf_GetOption(Rf_install("emr_warning.itr.no.filter.size"), R_NilValue);
+    rvar = Rf_GetOption1(Rf_install("emr_warning.itr.no.filter.size"));
     if ((Rf_isReal(rvar) || Rf_isInteger(rvar)) && Rf_asReal(rvar) >= 1){
         m_beat_itr_warning_size = (uint64_t)Rf_asReal(rvar);
     }

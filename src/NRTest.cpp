@@ -790,7 +790,7 @@ SEXP logical_track_vtrack(SEXP _track, SEXP envir){
 //         for (int i = 0; i < num_processes; ++i) {
 //             if (!g_naryn->launch_process()) { // kid process
 //                 if (g_naryn->debug()){
-//                     SEXP rvar = Rf_GetOption(Rf_install("emr_child_run_delay"), R_NilValue);
+//                     SEXP rvar = Rf_GetOption1(Rf_install("emr_child_run_delay"));
 //                     if (Rf_isReal(rvar) || Rf_isInteger(rvar))
 //                         sleep(Rf_asInteger(rvar));
 //                 }
