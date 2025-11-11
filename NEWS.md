@@ -1,4 +1,6 @@
-# naryn (development version)
+# naryn 2.6.31 
+
+* Removed non-API calls to `Rf_GetOption` in the C++ code.
 
 # naryn 2.6.30 
 
