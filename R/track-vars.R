@@ -64,7 +64,6 @@ emr_track.var.get <- function(track, var) {
 }
 
 
-
 #' Returns a list of track variables for a track
 #'
 #' Returns a list of track variables for a track.
@@ -119,7 +118,6 @@ emr_track.var.ls <- function(track, pattern = "", ignore.case = FALSE, perl = FA
 }
 
 
-
 #' Deletes a track variable
 #'
 #' Deletes a track variable.
@@ -172,7 +170,6 @@ emr_track.var.rm <- function(track, var) {
         unlink(dirname, recursive = TRUE)
     }
 }
-
 
 
 #' Assigns value to a track variable

@@ -77,7 +77,6 @@
 }
 
 
-
 #' Adds new records to a track
 #'
 #' Adds new records to a track from a TAB-delimited file or a data frame.
@@ -239,7 +238,6 @@ emr_track.create <- function(track, space, categorical, expr, stime = NULL, etim
 }
 
 
-
 #' Checks whether the track exists
 #'
 #' Checks whether the track exists.
@@ -298,7 +296,6 @@ multiple_tracks_exist <- function(tracks, db_id = NULL) {
 }
 
 
-
 #' Returns track ids
 #'
 #' Returns the ids contained by the track.
@@ -325,7 +322,6 @@ emr_track.ids <- function(track) {
 
     .emr_call("emr_track_ids", track, .emr_env())
 }
-
 
 
 #' Imports a track from a file or data-frame
@@ -624,8 +620,6 @@ emr_track.logical.ls <- function(..., ignore.case = FALSE, perl = FALSE, fixed =
 }
 
 
-
-
 #' Moves (renames) a track
 #'
 #' Moves (renames) a track
@@ -714,7 +708,6 @@ emr_track.mv <- function(src, tgt, space = NULL) {
 }
 
 
-
 #' Returns track percentile of the values
 #'
 #' Returns track percentile of the values.
@@ -768,7 +761,6 @@ emr_track.percentile <- function(track, val, lower = TRUE) {
 
     .emr_call("emr_track_percentile", track, val, lower, .emr_env())
 }
-
 
 
 #' Gets or sets "read-only" property of a track
