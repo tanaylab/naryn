@@ -98,7 +98,6 @@ emr_cor <- function(..., cor.exprs = NULL, include.lowest = FALSE, right = TRUE,
 }
 
 
-
 #' Calculates distribution of track expressions
 #'
 #' Calculates distribution of track expressions' values over the given set of
@@ -298,7 +297,6 @@ emr_extract <- function(expr, tidy = FALSE, sort = FALSE, names = NULL, stime = 
 
     .emr_call("C_emr_extract", expr, names, tidy, sort, stime, etime, iterator, keepref, filter, .emr_env())
 }
-
 
 
 #' Returns ids coverage per track
@@ -534,7 +532,6 @@ emr_ids_vals_coverage <- function(ids, tracks, stime = NULL, etime = NULL, filte
 }
 
 
-
 #' Calculates quantiles of a track expression
 #'
 #' Calculates quantiles of a track expression for the given percentiles.
@@ -574,7 +571,6 @@ emr_quantiles <- function(expr, percentiles = 0.5, stime = NULL, etime = NULL, i
 
     .emr_call("C_emr_quantiles", expr, percentiles, stime, etime, iterator, keepref, filter, .emr_env())
 }
-
 
 
 #' Finds Id-Time points that match track expression
@@ -620,7 +616,6 @@ emr_screen <- function(expr, sort = FALSE, stime = NULL, etime = NULL, iterator 
 
     .emr_call("C_emr_screen", expr, sort, stime, etime, iterator, keepref, filter, .emr_env())
 }
-
 
 
 #' Calculates summary statistics of track expression

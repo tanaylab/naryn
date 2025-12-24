@@ -63,7 +63,7 @@
 #' variables are added to the .naryn environment. These variables should not be
 #' modified by the user!
 #'
-#' \tabular{lll}{
+#' \tabular{ll}{
 #' .naryn$EMR_GROOT \tab First db dir of tracks in the order of connections \cr
 #' .naryn$EMR_UROOT \tab Last db dir of tracks in the order of connection (user dir) \cr
 #' .naryn$EMR_ROOTS \tab Vector of directories (db_dirs) \cr
@@ -208,7 +208,6 @@ emr_db.init_examples <- function(n_dbs = 1) {
 }
 
 
-
 #' Reloads database
 #'
 #' Reloads database
@@ -292,7 +291,6 @@ emr_db.subset <- function(src = "", fraction = NULL, complementary = NULL) {
 }
 
 
-
 #' Returns the ids that constitute the current ids subset
 #'
 #' Returns the ids that constitute the current ids subset.
@@ -310,7 +308,6 @@ emr_db.subset.ids <- function() {
     .emr_checkroot()
     .emr_call("emr_db_subset_ids", .emr_env())
 }
-
 
 
 #' Returns information about the current subset

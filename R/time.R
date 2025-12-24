@@ -30,7 +30,6 @@ emr_time2hour <- function(time) {
 }
 
 
-
 #' Converts time from internal format to a day of month
 #'
 #' Converts time from internal format to a day of month.
@@ -61,7 +60,6 @@ emr_time2dayofmonth <- function(time) {
 
     .emr_call("C_emr_time2dayofmonth", time, .emr_env())
 }
-
 
 
 #' Converts time from internal format to a month
@@ -96,7 +94,6 @@ emr_time2month <- function(time) {
 }
 
 
-
 #' Converts time from internal format to a year
 #'
 #' Converts time from internal format to a year.
@@ -126,7 +123,6 @@ emr_time2year <- function(time) {
 
     .emr_call("C_emr_time2year", time, .emr_env())
 }
-
 
 
 #' Converts date and hour to internal time format

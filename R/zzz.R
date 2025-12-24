@@ -6,8 +6,7 @@
 .naryn$entries <- list()
 .naryn$entries_timestamp <- list()
 
-.onLoad <- function(lib, pkg) {
-}
+.onLoad <- function(lib, pkg) {}
 
 .onAttach <- function(lib, pkg) {
     Sys.umask("007")

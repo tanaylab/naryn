@@ -85,7 +85,6 @@ test_that("emr_track.logical.create tracks works in batch mode length of values 
 })
 
 
-
 test_that("emr_track.logical.create fails when track length do not equal names length", {
     expect_error(emr_track.logical.create(c("a", "b"), c("ph1")))
 })

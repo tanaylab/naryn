@@ -121,7 +121,6 @@ emr_track.attr.get <- function(track = NULL, attr = NULL) {
 }
 
 
-
 #' Deletes a track attribute
 #'
 #' Deletes a track attribute.
@@ -167,7 +166,6 @@ emr_track.attr.rm <- function(track, attr) {
 
     retv <- 0 # suppress return value
 }
-
 
 
 #' Assigns a value to the track attribute
