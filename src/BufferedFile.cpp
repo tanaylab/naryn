@@ -1,6 +1,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <limits.h>
+#include <unistd.h>
 #include "BufferedFile.h"
 #include "TGLException.h"
 
@@ -15,13 +16,18 @@ int64_t BufferedFile::file_size(const char *path)
 
 int BufferedFile::open(const char *path, const char *mode, bool lock, bool atomic) {
     close(); // Close existing
-    m_real_filename = (string)path;
+    m_real_filename = std::string(path);
     m_is_atomic = atomic;
 
     if (m_is_atomic && (strcmp(mode, "w") == 0 || strcmp(mode, "wb") == 0)) {
         // Create a unique temp file: filename.tmp.PID
         char buf[PATH_MAX];
-        snprintf(buf, sizeof(buf), "%s.tmp.%d", path, getpid());
+        char host[64] = "unknown";
+        if (gethostname(host, sizeof(host)) != 0) {
+            strncpy(host, "unknown", sizeof(host));
+        }
+        host[sizeof(host) - 1] = '\0';
+        snprintf(buf, sizeof(buf), "%s.tmp.%s.%d", path, host, getpid());
         m_temp_filename = buf;
         m_filename = m_temp_filename; // Parent class uses m_filename
     } else {
@@ -58,6 +64,22 @@ int BufferedFile::open(const char *path, const char *mode, bool lock, bool atomi
 	return -1;
 }
 
+void BufferedFile::discard()
+{
+    if (m_fp) {
+        fclose(m_fp);
+        m_fp = NULL;
+    }
+
+    if (m_is_atomic && !m_temp_filename.empty()) {
+        unlink(m_temp_filename.c_str());
+        m_temp_filename.clear();
+    }
+
+    m_eof = true;
+    m_phys_pos = -1;
+}
+
 int BufferedFile::close()
 {
 	if (m_fp) {
@@ -65,12 +87,16 @@ int BufferedFile::close()
 		m_fp = NULL;
         
         // ATOMIC COMMIT
-        if (m_is_atomic && !m_temp_filename.empty() && retv == 0) {
-            if (rename(m_temp_filename.c_str(), m_real_filename.c_str()) != 0) {
-                // Log error or handle failure
-                unlink(m_temp_filename.c_str()); // Cleanup
-                return -1;
+        if (m_is_atomic && !m_temp_filename.empty()) {
+            if (retv == 0) {
+                if (rename(m_temp_filename.c_str(), m_real_filename.c_str()) != 0) {
+                    unlink(m_temp_filename.c_str());
+                    retv = -1;
+                }
+            } else {
+                unlink(m_temp_filename.c_str());
             }
+            m_temp_filename.clear();
         }
 
 		m_eof = true;

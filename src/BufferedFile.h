@@ -29,6 +29,8 @@ public:
 
 	// see fclose for return value
 	int close();
+    // close without committing an atomic rename
+    void discard();
 
 	// see fgetc for return value
 	int getc();

@@ -336,6 +336,7 @@ void EMRDb::update_logical_tracks_file() {
         bf.close();
     }
     catch (...) {
+        bf.discard();
         release_writer_lock(lock_fd);
         throw;
     }
@@ -940,6 +941,8 @@ void EMRDb::reload() {
 void EMRDb::create_track_list_file(string db_id, BufferedFile *_pbf) {
     DIR *dir = NULL;
     int lock_fd = -1;
+    BufferedFile bf;
+    BufferedFile *pbf = _pbf ? _pbf : &bf;
 
     vdebug("Rescanning %s dir to acquire list of tracks", db_id.c_str());
 
@@ -948,9 +951,6 @@ void EMRDb::create_track_list_file(string db_id, BufferedFile *_pbf) {
     }
 
     try {
-        BufferedFile bf;
-        BufferedFile *pbf = _pbf ? _pbf : &bf;
-
         if (!_pbf) {
             vdebug("Opening %s track list for write", db_id.c_str());
             string filename = track_list_filename(db_id);
@@ -1006,6 +1006,7 @@ void EMRDb::create_track_list_file(string db_id, BufferedFile *_pbf) {
         if (dir){
             closedir(dir);
         }
+        pbf->discard();
         if (lock_fd != -1) release_writer_lock(lock_fd);
         throw;
     }
@@ -1241,6 +1242,7 @@ void EMRDb::load_track(const char *track_name, const string& db_id){
     vdebug("Adding track %s to DB\n", track_name);
     
     int lock_fd = acquire_writer_lock(track_list_filename(db_id));
+    BufferedFile bf;
 
     try {
         load_track_list(db_id, NULL); // lock track list for write
@@ -1268,7 +1270,6 @@ void EMRDb::load_track(const char *track_name, const string& db_id){
             itrack->second = TrackInfo(track, filename.c_str(), track->timestamp(), db_id);
         }
             
-        BufferedFile bf;
         if (bf.open(track_list_filename(db_id).c_str(), "w", false, true)) {
              verror("Failed to open file %s: %s", track_list_filename(db_id).c_str(), strerror(errno));
         }
@@ -1276,6 +1277,7 @@ void EMRDb::load_track(const char *track_name, const string& db_id){
         bf.close();
     }
     catch (...) {
+        bf.discard();
         release_writer_lock(lock_fd);
         throw;
     }
@@ -1291,6 +1293,7 @@ void EMRDb::unload_track(const char *track_name, const bool& overridden, const b
 
     string db_id = itrack->second.db_id;
     int lock_fd = -1;
+    BufferedFile bf;
 
     if (!soft) {
         lock_fd = acquire_writer_lock(track_list_filename(db_id));
@@ -1340,7 +1343,6 @@ void EMRDb::unload_track(const char *track_name, const bool& overridden, const b
         m_tracks.erase(track_name);
 
         if (!soft) {
-            BufferedFile bf;
             if (bf.open(track_list_filename(db_id).c_str(), "w", false, true)) {
                  verror("Failed to open file %s: %s", track_list_filename(db_id).c_str(), strerror(errno));
             }
@@ -1349,6 +1351,7 @@ void EMRDb::unload_track(const char *track_name, const bool& overridden, const b
         }
     }
     catch (...) {
+        bf.discard();
         if (lock_fd != -1) release_writer_lock(lock_fd);
         throw;
     }
