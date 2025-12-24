@@ -58,6 +58,7 @@ extern SEXP emr_track_unique(SEXP, SEXP);
 extern SEXP emr_track_percentile(SEXP, SEXP, SEXP, SEXP);
 extern SEXP emr_get_tracks_attrs(SEXP, SEXP, SEXP);
 extern SEXP emr_set_track_attr(SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP update_tracks_attrs_file(SEXP, SEXP);
 extern SEXP emr_track_dbs(SEXP, SEXP);
 extern SEXP emr_track_db(SEXP, SEXP);
 extern SEXP emr_track_create(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
@@ -121,6 +122,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"emr_track_percentile", (DL_FUNC) &emr_track_percentile, 4},
     {"emr_get_tracks_attrs", (DL_FUNC) &emr_get_tracks_attrs, 3},
     {"emr_set_track_attr", (DL_FUNC) &emr_set_track_attr, 5},
+    {"update_tracks_attrs_file", (DL_FUNC) &update_tracks_attrs_file, 2},
     {"emr_track_dbs", (DL_FUNC) &emr_track_dbs, 2},
     {"emr_track_db", (DL_FUNC) &emr_track_db, 2},
     {"emr_track_create", (DL_FUNC) &emr_track_create, 11},

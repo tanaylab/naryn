@@ -25,7 +25,7 @@ public:
 	// returns 0 on success, -1 on failure.
     // if lock is true, fcntl lock is acquired according to the mode (see: fcntl, F_SETLKW);
     // file is unlocked on close() or destructor.
-	int open(const char *path, const char *mode, bool lock = false);
+	int open(const char *path, const char *mode, bool lock = false, bool atomic = false);
 
 	// see fclose for return value
 	int close();
@@ -67,6 +67,9 @@ protected:
 	FILE       *m_fp{NULL};
 	int         m_eof;
 	std::string m_filename;
+    std::string m_real_filename;
+    std::string m_temp_filename;
+    bool        m_is_atomic{false};
 	char       *m_buf{NULL};
 	unsigned    m_bufsize;
 	int64_t     m_file_size;

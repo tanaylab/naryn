@@ -139,7 +139,7 @@ public:
                         const char *val, const bool &update);
 
     // Writes data into tracks attributes file.
-    void update_tracks_attrs_file(string db_id, bool locked);
+    void update_tracks_attrs_file(string db_id);
 
     unsigned id(uint64_t idx);
     uint64_t id2idx(unsigned id);  // returns id index given id
@@ -205,6 +205,10 @@ protected:
     string logical_tracks_filename() const { return m_rootdirs[0] + "/" + LOGICAL_TRACKS_FILENAME;}
     string ids_filename() const { return m_rootdirs[0] + "/" + IDS_FILENAME; }
 
+    // Helper to acquire a persistent lock file for writing
+    int acquire_writer_lock(const string &base_filename);
+    void release_writer_lock(int fd);
+
     // make sure that rootdirs are readable
     void validate_rootdirs(const vector<string> &rootdirs);
 
@@ -214,15 +218,6 @@ protected:
     void clear_ids();
 
     void cache_tracks();
-
-    // opens and locks track list file according to the mode: "r", "r+", "w"
-    void lock_track_list(string db_id, BufferedFile &lock, const char *mode);
-
-    // opens and locks track list files (both global and user) according to the mode: "r", "r+", "w"
-    void lock_track_lists(vector<BufferedFile> &locks, const char *mode);
-
-    // opens and locks logical track list file according to the mode: "r", "r+", "w"
-    void lock_logical_track_list(BufferedFile &lock, const char *mode);
 
     // Scans root directory for tracks, creates track list file with the gathered data.
     void create_track_list_file(string db_id, BufferedFile *pbf);
@@ -237,17 +232,14 @@ protected:
     // Removes outdated tracks from memory.
     void load_track_list(string db_id, BufferedFile *pbf, bool force=false);
 
-    // Loads track list before update (opens the file for r+w and locks it).
-    void load_track_list(string db_id, BufferedFile &bf, bool force=false);
-
     // Loads logical track list
     void load_logical_tracks();
 
     // Scans root directory for tracks attributes, creates tracks attributes file with the gathered data.
-    void create_tracks_attrs_file(string db_id, bool locked);
+    void create_tracks_attrs_file(string db_id);
 
     // Loads track attributes file. If corrupted or missing, recreates it.
-    void load_tracks_attrs(string db_id, bool locked);
+    void load_tracks_attrs(string db_id);
 
     void create_ids_file();
     void load_ids();

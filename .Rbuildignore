@@ -19,3 +19,5 @@
 ^docs$
 ^naryndb/$
 ^naryndb$
+^dev$
+^AGENTS.md$
