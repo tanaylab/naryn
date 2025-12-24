@@ -1,3 +1,7 @@
+# naryn 2.7.0
+
+* **breaking change**: Use a new locking mechanism for the database files. Please do not use old and new versions of the package in the same database.
+
 # naryn 2.6.31 
 
 * Removed non-API calls to `Rf_GetOption` in the C++ code.
