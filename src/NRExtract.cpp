@@ -65,7 +65,7 @@ SEXP C_emr_extract(SEXP _exprs, SEXP _names, SEXP _tidy, SEXP _sort, SEXP _stime
 
             // assemble the answer
             vector<EMRPoint *> ppoints;
-            SEXP answer = NRPoint::convert_points(out_points, NRPoint::NUM_POINT_COLS + NUM_COLS, false, do_sort, &ppoints);
+            SEXP answer = NRPoint::convert_points(out_points, static_cast<unsigned>(NRPoint::NUM_POINT_COLS) + NUM_COLS, false, do_sort, &ppoints);
             SEXP rexprs, rexpr_idx, rexpr_vals;
 
             rprotect(rexpr_idx = RSaneAllocVector(INTSXP, out_points.size()));
@@ -86,10 +86,10 @@ SEXP C_emr_extract(SEXP _exprs, SEXP _names, SEXP _tidy, SEXP _sort, SEXP _stime
 
             SEXP col_names = Rf_getAttrib(answer, R_NamesSymbol);
             for (unsigned i = 0; i < NUM_COLS; ++i)
-                SET_STRING_ELT(col_names, NRPoint::NUM_POINT_COLS + i, Rf_mkChar(COLNAMES[i]));
+                SET_STRING_ELT(col_names, static_cast<unsigned>(NRPoint::NUM_POINT_COLS) + i, Rf_mkChar(COLNAMES[i]));
 
-            SET_VECTOR_ELT(answer, NRPoint::NUM_POINT_COLS + EXPR, rexpr_idx);
-            SET_VECTOR_ELT(answer, NRPoint::NUM_POINT_COLS + VAL, rexpr_vals);
+            SET_VECTOR_ELT(answer, static_cast<unsigned>(NRPoint::NUM_POINT_COLS) + EXPR, rexpr_idx);
+            SET_VECTOR_ELT(answer, static_cast<unsigned>(NRPoint::NUM_POINT_COLS) + VAL, rexpr_vals);
 
             Rf_setAttrib(rexpr_idx, R_LevelsSymbol, rexprs);
             Rf_setAttrib(rexpr_idx, R_ClassSymbol, Rf_mkString("factor"));

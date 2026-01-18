@@ -2,4 +2,4 @@
 
 0 errors | 0 warnings | 0 notes
 
-* Removed non-API calls to `Rf_GetOption`.
+* Fixed C++20 deprecation warnings: removed `std::rel_ops` usage and fixed deprecated enum arithmetic.
