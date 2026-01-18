@@ -5,7 +5,6 @@
 #include <utility>
 #include <cstdint>
 
-using namespace std::rel_ops;
 
 #ifdef PYTHON
 
@@ -36,7 +35,11 @@ using namespace std::rel_ops;
 #endif
 
 inline bool operator==(const struct timespec &t1, const struct timespec &t2) { return t1.tv_sec == t2.tv_sec && t1.tv_nsec == t2.tv_nsec; }
+inline bool operator!=(const struct timespec &t1, const struct timespec &t2) { return !(t1 == t2); }
 inline bool operator<(const struct timespec &t1, const struct timespec &t2) { return t1.tv_sec < t2.tv_sec || (t1.tv_sec == t2.tv_sec && t1.tv_nsec < t2.tv_nsec); }
+inline bool operator>(const struct timespec &t1, const struct timespec &t2) { return t2 < t1; }
+inline bool operator<=(const struct timespec &t1, const struct timespec &t2) { return !(t2 < t1); }
+inline bool operator>=(const struct timespec &t1, const struct timespec &t2) { return !(t1 < t2); }
 
 #endif
 

@@ -1,4 +1,8 @@
-# naryn 2.6.31 
+# naryn 2.6.32
+
+* Fixed C++20 deprecation warnings: removed `std::rel_ops` usage and fixed enum arithmetic.
+
+# naryn 2.6.31
 
 * Removed non-API calls to `Rf_GetOption` in the C++ code.
 
