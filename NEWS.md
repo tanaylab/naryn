@@ -1,3 +1,7 @@
+# naryn 2.6.34
+
+* Fixed CRAN pre-test warning about `pipe.Rd` documenting usage for re-exported `%>%`.
+
 # naryn 2.6.33
 
 * Replaced non-API C entry point `Rf_findVar` with `R_getVar`/`R_getVarEx` for R 4.6.0 compatibility.
