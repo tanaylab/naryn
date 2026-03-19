@@ -21,6 +21,25 @@
 #include <Rinternals.h>
 #include <Rinterface.h>
 
+// Backward-compatible shim for R < 4.5.0
+#include <Rversion.h>
+#if R_VERSION < R_Version(4, 5, 0)
+static inline SEXP R_getVar(SEXP sym, SEXP rho, Rboolean inherits) {
+    SEXP val = inherits ? Rf_findVar(sym, rho) : Rf_findVarInFrame(sym, rho);
+    if (val == R_UnboundValue)
+        Rf_error("object '%s' not found", CHAR(PRINTNAME(sym)));
+    MARK_NOT_MUTABLE(val);
+    return val;
+}
+static inline SEXP R_getVarEx(SEXP sym, SEXP rho, Rboolean inherits, SEXP ifnotfound) {
+    SEXP val = inherits ? Rf_findVar(sym, rho) : Rf_findVarInFrame(sym, rho);
+    if (val == R_UnboundValue)
+        return ifnotfound;
+    MARK_NOT_MUTABLE(val);
+    return val;
+}
+#endif
+
 #include "Thread.h"
 
 #ifdef length

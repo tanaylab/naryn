@@ -330,7 +330,7 @@ SEXP emr_expr_virtual_tracks(SEXP _expr, SEXP _envir) {
         vector<SEXP> vtracks;
 
         // retrieve virtual track names (virtual tracks are at a variable called EMR_VTRACKS in the .naryn environment)        
-        rprotect(emr_vtracks = Rf_findVar(Rf_install("EMR_VTRACKS"), Rf_findVar(Rf_install(".naryn"), g_naryn->env())));
+        rprotect(emr_vtracks = R_getVarEx(Rf_install("EMR_VTRACKS"), R_getVar(Rf_install(".naryn"), g_naryn->env(), (Rboolean)TRUE), (Rboolean)TRUE, R_NilValue));
 
         if (!Rf_isNull(emr_vtracks) && !Rf_isSymbol(emr_vtracks)) {
             if (!Rf_isVector(emr_vtracks)){

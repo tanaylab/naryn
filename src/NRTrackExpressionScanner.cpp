@@ -109,7 +109,7 @@ void NRTrackExprScanner::define_r_vars(unsigned eval_buf_limit)
     for (unsigned i = 0; i < eval_buf_limit; ++i){
         m_itr_times[i] = 0;
     }
-    SEXP env = Rf_findVar(Rf_install(".GlobalEnv"), g_naryn->env());
+    SEXP env = R_getVar(Rf_install(".GlobalEnv"), g_naryn->env(), (Rboolean)TRUE);
     Rf_defineVar(Rf_install("EMR_TIME"), m_ritr_times, env);
 
     for (unsigned iexpr = 0; iexpr < m_track_exprs.size(); ++iexpr) {
