@@ -21,3 +21,4 @@
 ^naryndb$
 ^AGENTS\.md$
 ^.claude$
+^\.Rd2pdf.*$
