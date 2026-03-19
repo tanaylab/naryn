@@ -18,7 +18,7 @@ void NRIteratorFilter::init(SEXP filter, unsigned stime, unsigned etime)
     vector<SEXP> filters;
     
     // retrieve filter names (named filters are at a variable called EMR_FILTERS inside the .naryn environment)    
-    rprotect(emr_filters = R_getVarEx(Rf_install("EMR_FILTERS"), R_getVar(Rf_install(".naryn"), g_naryn->env(), TRUE), TRUE, R_NilValue));
+    rprotect(emr_filters = R_getVarEx(Rf_install("EMR_FILTERS"), R_getVar(Rf_install(".naryn"), g_naryn->env(), (Rboolean)TRUE), (Rboolean)TRUE, R_NilValue));
 
     if (!Rf_isNull(emr_filters) && !Rf_isSymbol(emr_filters)) {        
 
@@ -183,7 +183,7 @@ EMRIteratorFilterItem *NRIteratorFilter::create_filter_item(vector<SEXP> &filter
             return filter;
         }
 
-        SEXP rval = R_getVarEx(Rf_install(str), g_naryn->env(), TRUE, R_NilValue);
+        SEXP rval = R_getVarEx(Rf_install(str), g_naryn->env(), (Rboolean)TRUE, R_NilValue);
         bool success = false;
 
         EMRPoints points;
