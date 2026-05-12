@@ -20,5 +20,6 @@
 ^naryndb/$
 ^naryndb$
 ^AGENTS\.md$
-^.claude$
+^\.claude$
 ^\.Rd2pdf.*$
+^dev$

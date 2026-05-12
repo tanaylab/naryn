@@ -436,8 +436,8 @@ SEXP emr_set_track_attr(SEXP _track, SEXP _attr, SEXP _value, SEXP _update, SEXP
 SEXP update_tracks_attrs_file(SEXP _db, SEXP _envir) {
     try {
         Naryn naryn(_envir, false);
-        string db_id(CHAR(Rf_asChar(_db)));
-        g_db->update_tracks_attrs_file(db_id, false);
+        string db_id = CHAR(Rf_asChar(_db));
+        g_db->update_tracks_attrs_file(db_id);
     } catch (TGLException &e) {
         rerror("%s", e.msg());
     } catch (const bad_alloc &e) {
@@ -518,4 +518,3 @@ SEXP emr_track_db(SEXP _track, SEXP _envir) {
     return R_NilValue;
 }
 }
-
