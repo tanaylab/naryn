@@ -1,3 +1,8 @@
+# naryn 2.7.2
+
+* `emr_track.create` and `emr_track.import` can now rewrite a track in its own db when `override = TRUE`. Previously `override` only covered shadowing a track from another db, and rewriting in place required `emr_track.rm()` first - which left the track missing for the whole rebuild, so anything reading it in that window failed.
+* Track writes are now staged to a temporary file and renamed into place. `rename(2)` replaces the target atomically, so a concurrent reader always sees either the complete previous track or the complete new one. `emr_track.import` already staged, but unlinked the target before the move, which reopened the same window.
+
 # naryn 2.7.1
 
 * Merged the CRAN-portability fixes from 2.6.32-2.6.34 onto the new locking mechanism introduced in 2.7.0.

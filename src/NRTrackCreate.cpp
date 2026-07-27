@@ -11,8 +11,13 @@
 #undef error
 #endif
 
+#include <unistd.h>
+
+#include <string>
+
 #include "EMRDb.h"
 #include "EMRTrack.h"
+#include "FileUtils.h"
 #include "naryn.h"
 #include "NRTrackExpressionScanner.h"
 
@@ -46,10 +51,14 @@ SEXP emr_track_create(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _expr, S
 
         string trackname = { CHAR(Rf_asChar(_track)) };
 
-        if (g_db->track(trackname) && (g_db->track_info(trackname)->db_id == db_id)){
-            verror("Track %s already exists", trackname.c_str());
+        // Rewriting a track in its own db needs override, same as shadowing one from another
+        // db. The write below is staged and renamed into place, so an in-place rewrite never
+        // leaves readers with a missing or half-written track - callers no longer have to
+        // emr_track.rm() first and expose that window themselves.
+        if (g_db->track(trackname) && (g_db->track_info(trackname)->db_id == db_id) && !toverride){
+            verror("Track %s already exists, see override argument", trackname.c_str());
         }
-            
+
         // User must explicitly pass an overriding argument
         if (g_db->track(trackname) && (g_db->track_info(trackname)->db_id != db_id) && !toverride){
             verror("Track %s already exists in db %s, see override argument", trackname.c_str(), g_db->track_info(trackname)->db_id.c_str());
@@ -85,7 +94,19 @@ SEXP emr_track_create(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _expr, S
 			g_naryn->verify_max_data_size(data.data.size(), "Result");
 		}
 
-        EMRTrack::serialize(track_filename.c_str(), categorical, data);
+        // Stage next to the target (same directory, so same filesystem) and rename into place.
+        // rename(2) replaces an existing file atomically, so a concurrent reader sees either the
+        // complete previous track or the complete new one - never a partial or absent file. The
+        // pid in the suffix keeps two writers of the same track from clobbering each other's
+        // staging file; the rename itself then just decides who wins.
+        string tmp_filename = track_filename + ".tmp." + std::to_string(getpid());
+        try {
+            EMRTrack::serialize(tmp_filename.c_str(), categorical ? EMRTrack::IS_CATEGORICAL : 0, data);
+            FileUtils::move_file(tmp_filename.c_str(), track_filename.c_str());
+        } catch (...) {
+            unlink(tmp_filename.c_str());
+            throw;
+        }
 
         if (has_overlap) {
             g_db->unload_track(trackname.c_str(), true, true);

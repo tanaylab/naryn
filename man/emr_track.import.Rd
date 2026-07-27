@@ -22,7 +22,10 @@ emr_track.import(
 
 \item{src}{file name or data-frame containing the track records}
 
-\item{override}{Boolean indicating whether the creation intends to override an existing track (default FALSE)}
+\item{override}{Boolean indicating whether the write intends to replace an existing track (default FALSE).
+Covers both shadowing a track that lives in another db and rewriting one in this db. The new track is
+written to a staging file and renamed into place, so readers never observe the track missing or partial
+- there is no need to \code{emr_track.rm()} it first.}
 
 \item{remove_unknown}{if 'TRUE', removes unknown ids (ids that are not present at 'patients.dob' track) from the data. Otherwise, an error is thrown.}
 }
