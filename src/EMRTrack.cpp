@@ -236,7 +236,9 @@ void EMRTrack::save_attrs(const char *track, const char *filename, const TrackAt
 
 	BufferedFile bfile;
 
-	if (bfile.open(filename, "wb"))
+	// Staged and renamed into place, like every other metadata write: readers of this file take
+	// no lock, so an in-place truncate-and-rewrite would expose a partial (or empty) attrs file.
+	if (bfile.open(filename, "wb", false, true))
 		TGLError<EMRTrack>(FILE_ERROR, "Failed to write attributes file %s: %s", filename, strerror(errno));
 
 	for (TrackAttrs::const_iterator iattr = attrs.begin(); iattr != attrs.end(); ++iattr) {
@@ -246,6 +248,12 @@ void EMRTrack::save_attrs(const char *track, const char *filename, const TrackAt
 		}
 	}
 
-	if (bfile.error())
+	if (bfile.error()) {
+		bfile.discard();
+		TGLError<EMRTrack>(FILE_ERROR, "Failed to write attributes file %s: %s", filename, strerror(errno));
+	}
+
+	// close() performs the rename; a failure there means the update was thrown away.
+	if (bfile.close())
 		TGLError<EMRTrack>(FILE_ERROR, "Failed to write attributes file %s: %s", filename, strerror(errno));
 }

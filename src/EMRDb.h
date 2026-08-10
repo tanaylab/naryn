@@ -2,6 +2,7 @@
 #define EMRDB_H_INCLUDED
 
 #include <map>
+#include <set>
 #include <sys/mman.h>
 #include <unordered_map>
 #include <unordered_set>
@@ -205,9 +206,16 @@ protected:
     string logical_tracks_filename() const { return m_rootdirs[0] + "/" + LOGICAL_TRACKS_FILENAME;}
     string ids_filename() const { return m_rootdirs[0] + "/" + IDS_FILENAME; }
 
-    // Helper to acquire a persistent lock file for writing
+    // Helper to acquire a persistent lock file for writing. Reentrant: a nested acquire of a
+    // path this process already holds returns -1 and releases nothing, because closing any fd
+    // on a file drops all of the process's fcntl locks on it.
     int acquire_writer_lock(const string &base_filename);
     void release_writer_lock(int fd);
+
+    // Writer locks currently held by this process, by lock-file path and by fd. Not guarded by
+    // a mutex: naryn runs single-threaded under R.
+    std::set<string> m_held_lock_paths;
+    std::map<int, string> m_held_lock_fds;
 
     // make sure that rootdirs are readable
     void validate_rootdirs(const vector<string> &rootdirs);

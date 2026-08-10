@@ -97,6 +97,9 @@ int BufferedFile::close()
                 unlink(m_temp_filename.c_str());
             }
             m_temp_filename.clear();
+            // Report the file callers actually asked for, not the staging name, in any error
+            // message raised after this point.
+            m_filename = m_real_filename;
         }
 
 		m_eof = true;

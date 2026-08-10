@@ -332,8 +332,10 @@ void EMRDb::update_logical_tracks_file() {
             verror("Error while writing file %s: %s\n", bf.file_name().c_str(),
                    strerror(errno));
 
-        // release lock
-        bf.close();
+        // close() commits the staged file with a rename. If that fails the update is thrown
+        // away and the old file stays, so it has to be reported like any other write error.
+        if (bf.close())
+            verror("Failed to commit file %s: %s", filename.c_str(), strerror(errno));
     }
     catch (...) {
         bf.discard();
@@ -755,12 +757,36 @@ int EMRDb::get_db_idx(const string& db_id) {
     
 }
 
-// Helper to acquire a persistent lock file for writing
+// Helper to acquire a persistent lock file for writing.
+//
+// Reentrancy matters here, and not for style reasons: fcntl locks are per (process, file), not
+// per fd, and closing ANY fd on a locked file drops every lock the process holds on it. So a
+// nested acquire/release of the same path - load_track() holds the track list lock and calls
+// load_track_list(), which on a missing or corrupt list calls create_track_list_file(), which
+// locks the same path - would silently release the outer lock at the inner release, leaving the
+// rest of the outer critical section unprotected. We therefore hand the nested caller -1
+// ("someone above you already holds this") and let release_writer_lock ignore it; every call
+// site already treats -1 as "nothing to release".
 int EMRDb::acquire_writer_lock(const string &base_filename) {
     string lock_path = base_filename + ".lock";
-    
-    // Open/Create the lock file
-    int fd = open(lock_path.c_str(), O_RDWR | O_CREAT, 0666);
+
+    if (m_held_lock_paths.find(lock_path) != m_held_lock_paths.end()) {
+        return -1; // already held further up this call stack
+    }
+
+    // The db can be written by more than one uid (a shared/curated db plus per-user dbs), so the
+    // lock file must be writable by all of them. The mode passed to open() is masked by umask,
+    // which would typically leave it 0644 and owned by whoever happened to create it first -
+    // every other user then fails to open it O_RDWR. Create it exclusively and fchmod past the
+    // umask; if it already exists, just open it.
+    int fd = open(lock_path.c_str(), O_RDWR | O_CREAT | O_EXCL, 0666);
+    if (fd != -1) {
+        if (fchmod(fd, 0666) == -1) {
+            vdebug("Failed to chmod lock file %s: %s", lock_path.c_str(), strerror(errno));
+        }
+    } else if (errno == EEXIST) {
+        fd = open(lock_path.c_str(), O_RDWR);
+    }
     if (fd == -1) {
          verror("Failed to open lock file %s: %s", lock_path.c_str(), strerror(errno));
     }
@@ -768,7 +794,7 @@ int EMRDb::acquire_writer_lock(const string &base_filename) {
     struct flock fl;
     memset(&fl, 0, sizeof(fl));
     fl.l_type = F_WRLCK; // Exclusive Write Lock
-    
+
     // Blocking wait for lock
     while (fcntl(fd, F_SETLKW, &fl) == -1) {
         if (errno != EINTR) {
@@ -776,14 +802,23 @@ int EMRDb::acquire_writer_lock(const string &base_filename) {
             verror("Failed to lock %s: %s", lock_path.c_str(), strerror(errno));
         }
     }
-    
+
+    m_held_lock_paths.insert(lock_path);
+    m_held_lock_fds[fd] = lock_path;
     return fd;
 }
 
 void EMRDb::release_writer_lock(int fd) {
-    if (fd != -1) {
-        close(fd); // Closing fd releases the fcntl lock automatically
+    if (fd == -1) {
+        return; // nested acquire: the outer holder owns the lock and will release it
     }
+
+    auto ifd = m_held_lock_fds.find(fd);
+    if (ifd != m_held_lock_fds.end()) {
+        m_held_lock_paths.erase(ifd->second);
+        m_held_lock_fds.erase(ifd);
+    }
+    close(fd); // Closing fd releases the fcntl lock automatically
 }
 
 void EMRDb::validate_rootdirs(const vector<string>& rootdirs){
@@ -1000,7 +1035,9 @@ void EMRDb::create_track_list_file(string db_id, BufferedFile *_pbf) {
         // write the results into track list file
         update_track_list_file(track_list, db_id, *pbf);
 
-        if (!_pbf) pbf->close();
+        if (!_pbf && pbf->close())
+            verror("Failed to commit file %s: %s",
+                   track_list_filename(db_id).c_str(), strerror(errno));
     }
     catch (...) {
         if (dir){
@@ -1274,7 +1311,9 @@ void EMRDb::load_track(const char *track_name, const string& db_id){
              verror("Failed to open file %s: %s", track_list_filename(db_id).c_str(), strerror(errno));
         }
         update_track_list_file(m_tracks, db_id, bf);
-        bf.close();
+        if (bf.close())
+            verror("Failed to commit file %s: %s",
+                   track_list_filename(db_id).c_str(), strerror(errno));
     }
     catch (...) {
         bf.discard();
@@ -1347,7 +1386,9 @@ void EMRDb::unload_track(const char *track_name, const bool& overridden, const b
                  verror("Failed to open file %s: %s", track_list_filename(db_id).c_str(), strerror(errno));
             }
             update_track_list_file(m_tracks, db_id, bf);
-            bf.close();
+            if (bf.close())
+                verror("Failed to commit file %s: %s",
+                       track_list_filename(db_id).c_str(), strerror(errno));
         }
     }
     catch (...) {
@@ -1427,30 +1468,42 @@ void EMRDb::set_track_attr(const char *trackname, const char *attr,
         track_attrs_fname = track_attrs_filename(db_id, trackname);
     }
     
-    TrackAttrs track_attrs = EMRTrack::load_attrs(trackname, track_attrs_fname.c_str());
+    // Setting one attribute is a read-modify-write of the whole per-track attrs file, so it
+    // needs the writer lock even though save_attrs itself is atomic: without it two concurrent
+    // setters both read the old set and the second one's write drops the first one's attribute.
+    int lock_fd = acquire_writer_lock(track_attrs_fname);
 
-    if (val) {
-        track_attrs[attr] = val;
+    try {
+        TrackAttrs track_attrs = EMRTrack::load_attrs(trackname, track_attrs_fname.c_str());
+
+        if (val) {
+            track_attrs[attr] = val;
+        }
+        else {
+            track_attrs.erase(attr);
+        }
+
+        EMRTrack::save_attrs(trackname, track_attrs_fname.c_str(), track_attrs);
+
+        load_tracks_attrs(db_id);
+
+        if (track_attrs.empty()){
+            m_track2attrs[db_id].erase(trackname);
+        }
+        else {
+            m_track2attrs[db_id][trackname] = track_attrs;
+        }
     }
-    else {
-        track_attrs.erase(attr);
-    }    
-
-    EMRTrack::save_attrs(trackname, track_attrs_fname.c_str(), track_attrs);
-
-    load_tracks_attrs(db_id);
-
-    if (track_attrs.empty()){
-        m_track2attrs[db_id].erase(trackname);
+    catch (...) {
+        release_writer_lock(lock_fd);
+        throw;
     }
-    else {
-        m_track2attrs[db_id][trackname] = track_attrs;
-    }
+    release_writer_lock(lock_fd);
 
     if (update){
         update_tracks_attrs_file(db_id);
     }
-    
+
 }
 
 void EMRDb::load_tracks_attrs(string db_id)
@@ -1632,9 +1685,11 @@ void EMRDb::update_tracks_attrs_file(string db_id) {
         if (bf.error()){
             verror("Error while writing file %s: %s\n", bf.file_name().c_str(), strerror(errno));
         }
-        bf.close();
+        if (bf.close())
+            verror("Failed to commit file %s: %s", filename.c_str(), strerror(errno));
     }
     catch (...) {
+        bf.discard();
         release_writer_lock(lock_fd);
         throw;
     }
