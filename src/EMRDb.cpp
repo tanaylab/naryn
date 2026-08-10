@@ -198,8 +198,15 @@ void EMRDb::load_logical_tracks_from_disk() {
 
             snprintf(filename, sizeof(filename), "%s/%s", logical_tracks_dir().c_str(),
                     dirp->d_name);
-            if (stat(filename, &fs))
+            // A name can vanish between readdir and stat: metadata writes stage a
+            // <file>.tmp.<host>.<pid> in this directory and rename it away, and NFS leaves
+            // .nfsXXXX silly-rename entries that disappear when the last reader closes. Neither
+            // is ours to index, and neither is an error - skip and carry on.
+            if (stat(filename, &fs)) {
+                if (errno == ENOENT)
+                    continue;
                 verror("Failed to stat file %s: %s", filename, strerror(errno));
+            }
 
             // is it a normal file having file extension of a track?
             if (S_ISREG(fs.st_mode) &&
@@ -774,19 +781,10 @@ int EMRDb::acquire_writer_lock(const string &base_filename) {
         return -1; // already held further up this call stack
     }
 
-    // The db can be written by more than one uid (a shared/curated db plus per-user dbs), so the
-    // lock file must be writable by all of them. The mode passed to open() is masked by umask,
-    // which would typically leave it 0644 and owned by whoever happened to create it first -
-    // every other user then fails to open it O_RDWR. Create it exclusively and fchmod past the
-    // umask; if it already exists, just open it.
-    int fd = open(lock_path.c_str(), O_RDWR | O_CREAT | O_EXCL, 0666);
-    if (fd != -1) {
-        if (fchmod(fd, 0666) == -1) {
-            vdebug("Failed to chmod lock file %s: %s", lock_path.c_str(), strerror(errno));
-        }
-    } else if (errno == EEXIST) {
-        fd = open(lock_path.c_str(), O_RDWR);
-    }
+    // 0666 here lands as 0660 in practice: Naryn's ctor sets umask(07), so the lock file gets the
+    // same group-writable mode as every other file naryn writes. That is deliberate - anyone with
+    // write access to the db already has to be in its group, so no extra widening is warranted.
+    int fd = open(lock_path.c_str(), O_RDWR | O_CREAT, 0666);
     if (fd == -1) {
          verror("Failed to open lock file %s: %s", lock_path.c_str(), strerror(errno));
     }
@@ -1013,10 +1011,14 @@ void EMRDb::create_track_list_file(string db_id, BufferedFile *_pbf) {
 
             snprintf(filename, sizeof(filename), "%s/%s", db_id.c_str(), dirp->d_name);
 
+            // See the logical-tracks scan: a staging or NFS silly-rename entry can disappear
+            // between readdir and stat. Not an error, just not something to index.
             if (stat(filename, &fs)){
+                if (errno == ENOENT)
+                    continue;
                 verror("Failed to stat file %s: %s", filename, strerror(errno));
             }
-                
+
             if (S_ISREG(fs.st_mode) && (uint64_t)len > TRACK_FILE_EXT.size() &&
                 !strncmp(dirp->d_name + len - TRACK_FILE_EXT.size(),
                          TRACK_FILE_EXT.c_str(), TRACK_FILE_EXT.size())) {
@@ -1468,10 +1470,14 @@ void EMRDb::set_track_attr(const char *trackname, const char *attr,
         track_attrs_fname = track_attrs_filename(db_id, trackname);
     }
     
-    // Setting one attribute is a read-modify-write of the whole per-track attrs file, so it
-    // needs the writer lock even though save_attrs itself is atomic: without it two concurrent
-    // setters both read the old set and the second one's write drops the first one's attribute.
-    int lock_fd = acquire_writer_lock(track_attrs_fname);
+    // Setting one attribute is a read-modify-write of two files: the per-track attrs file, and
+    // the db's aggregate .attrs cache that every reader is actually served from. Both have to sit
+    // in ONE critical section, and it has to be the aggregate's lock - a per-track lock would let
+    // two setters on *different* tracks run concurrently, each rewrite the whole aggregate from
+    // its own view, and the loser's attribute would vanish from every fresh session while its
+    // per-track file still held the value. Lock the aggregate for the whole function; the nested
+    // acquire inside update_tracks_attrs_file below sees we already hold it and no-ops.
+    int lock_fd = acquire_writer_lock(tracks_attrs_filename(db_id));
 
     try {
         TrackAttrs track_attrs = EMRTrack::load_attrs(trackname, track_attrs_fname.c_str());
@@ -1493,17 +1499,16 @@ void EMRDb::set_track_attr(const char *trackname, const char *attr,
         else {
             m_track2attrs[db_id][trackname] = track_attrs;
         }
+
+        if (update){
+            update_tracks_attrs_file(db_id);
+        }
     }
     catch (...) {
         release_writer_lock(lock_fd);
         throw;
     }
     release_writer_lock(lock_fd);
-
-    if (update){
-        update_tracks_attrs_file(db_id);
-    }
-
 }
 
 void EMRDb::load_tracks_attrs(string db_id)
