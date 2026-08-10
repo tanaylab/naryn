@@ -53,7 +53,9 @@ public:
 
 	bool opened() const { return m_fp != NULL; }
 
-	const std::string &file_name() const { return m_filename; }
+	// The file the caller asked for. On an atomic write that is the destination, not the staging
+	// path - error messages naming a .tmp.<host>.<pid> file help nobody.
+	const std::string &file_name() const { return m_is_atomic ? m_real_filename : m_filename; }
 
 	int64_t file_size() const { return m_file_size; }
 
