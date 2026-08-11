@@ -1,6 +1,10 @@
 # naryn 2.7.2
 
-* Fixed three holes in the 2.7.0 locking mechanism: the per-track attributes file was still written in place (and `emr_track.attr.set` took no lock at all, so a concurrent set on another track could drop an attribute from the aggregate cache); a nested writer-lock acquire on the same path silently released the outer lock, because closing any fd on a file drops every `fcntl` lock the process holds on it; and a failed commit rename was discarded silently instead of raising an error.
+* Fixed four holes in the 2.7.0 locking mechanism, where readers stopped taking a lock and rely on writes being committed by `rename`:
+    * The per-track attributes file was still written in place, so a reader could observe it partial or empty. It is now staged and renamed like every other metadata write.
+    * `emr_track.attr.set` took no lock at all, while being a read-modify-write of both the per-track file and the db's aggregate attributes cache. Two setters on *different* tracks never contended, and the loser's attribute disappeared from the cache that fresh sessions read.
+    * A nested writer-lock acquire on the same path silently released the outer lock, because closing any fd on a file drops every `fcntl` lock the process holds on it. The helper is now reentrant.
+    * A failed commit rename was discarded silently instead of raising an error.
 * Directory scans no longer abort when a file disappears between `readdir` and `stat` - staged `.tmp` files and NFS silly-rename entries are transient and are now skipped.
 
 # naryn 2.7.1
