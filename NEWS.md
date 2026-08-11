@@ -2,6 +2,8 @@
 
 * `emr_track.create` and `emr_track.import` can now rewrite a track in its own db when `override = TRUE`. Previously `override` only covered shadowing a track from another db, and rewriting in place required `emr_track.rm()` first - which left the track missing for the whole rebuild, so anything reading it in that window failed.
 * Track writes are now staged to a temporary file and renamed into place. `rename(2)` replaces the target atomically, so a concurrent reader always sees either the complete previous track or the complete new one. `emr_track.import` already staged, but unlinked the target before the move, which reopened the same window.
+* Note that rewriting a track in place is not the same as `emr_track.rm()` followed by a fresh write: the track's attributes, variables and file permissions are kept, so anything the previous write set and the new one does not will survive the rewrite. Remove the track first if you need a clean slate.
+* A read-only track can no longer be overridden in its own db, matching `emr_track.rm`, `emr_track.mv` and `emr_track.addto`.
 
 # naryn 2.7.1
 

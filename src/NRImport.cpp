@@ -1,8 +1,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <string>
-
 #include "EMRDb.h"
 #include "EMRTrack.h"
 #include "FileUtils.h"
@@ -181,21 +179,20 @@ SEXP emr_import(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _src, SEXP _ad
         }
 
 
-        // Stage next to the target (same directory, so same filesystem) and rename into place.
-        // rename(2) replaces an existing file atomically, so a concurrent reader sees either the
-        // complete previous track or the complete new one - never a partial or absent file. The
-        // unlink that used to precede the move reopened exactly that window, and is not needed:
-        // rename replaces the target by itself. The pid in the suffix keeps two writers of the
-        // same track from clobbering each other's staging file.
-        string tmp_filename = track_filename + ".tmp." + std::to_string(getpid());
-        try {
-            EMRTrack::serialize(tmp_filename.c_str(), categorical ? EMRTrack::IS_CATEGORICAL : 0, data);
-            FileUtils::move_file(tmp_filename.c_str(), track_filename.c_str());
-        } catch (...) {
-            unlink(tmp_filename.c_str());
-            throw;
-        }
+        // Rewriting in place really writes this file, unlike shadowing a track from another db,
+        // so honour "read-only" the way emr_track.rm/mv/addto do. Nothing below would stop it:
+        // read-only is a mode on the track file, and rename(2) does not consult the target's
+        // mode, only the directory's.
+        if (access(track_filename.c_str(), F_OK) == 0 && access(track_filename.c_str(), W_OK) != 0)
+            verror("Cannot override track %s: it is read-only.", trackname.c_str());
 
+        // Staged and renamed into place, so a concurrent reader sees either the complete previous
+        // track or the complete new one - never a partial or absent file. The unlink that used to
+        // precede the move reopened exactly that window, and is not needed: rename replaces the
+        // target by itself.
+        FileUtils::atomic_write(track_filename.c_str(), [&](const char *path) {
+            EMRTrack::serialize(path, categorical ? EMRTrack::IS_CATEGORICAL : 0, data);
+        });
 
         if (has_overlap){
             g_db->unload_track(trackname.c_str(), true, true);

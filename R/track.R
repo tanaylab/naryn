@@ -198,7 +198,10 @@ emr_track.addto <- function(track, src, force = FALSE, remove_unknown = FALSE) {
 #' @param override Boolean indicating whether the write intends to replace an existing track (default FALSE).
 #' Covers both shadowing a track that lives in another db and rewriting one in this db. The new track is
 #' written to a staging file and renamed into place, so readers never observe the track missing or partial
-#' - there is no need to \code{emr_track.rm()} it first.
+#' - there is no need to \code{emr_track.rm()} it first. Rewriting in place keeps the existing track's
+#' attributes, variables and file permissions, unlike \code{emr_track.rm()} followed by a fresh write,
+#' which discards them: anything the previous write set and the new one does not will still be there
+#' afterwards. A read-only track is never overridden in its own db.
 #'
 #' @return None.
 #'
@@ -353,7 +356,10 @@ emr_track.ids <- function(track) {
 #' @param override Boolean indicating whether the write intends to replace an existing track (default FALSE).
 #' Covers both shadowing a track that lives in another db and rewriting one in this db. The new track is
 #' written to a staging file and renamed into place, so readers never observe the track missing or partial
-#' - there is no need to \code{emr_track.rm()} it first.
+#' - there is no need to \code{emr_track.rm()} it first. Rewriting in place keeps the existing track's
+#' attributes, variables and file permissions, unlike \code{emr_track.rm()} followed by a fresh write,
+#' which discards them: anything the previous write set and the new one does not will still be there
+#' afterwards. A read-only track is never overridden in its own db.
 #' @param remove_unknown if 'TRUE', removes unknown ids (ids that are not present at 'patients.dob' track) from the data. Otherwise, an error is thrown.
 #'
 #' @return None.

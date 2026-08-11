@@ -1,8 +1,11 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
+#include <string>
 #if defined(__APPLE__)
     #include <copyfile.h>
 #else
@@ -56,5 +59,42 @@ void FileUtils::move_file(const char *src, const char *tgt) {
             }
         } else
             TGLError(errno, "Error moving file %s to %s: %s\n", src, tgt);
+    }
+}
+
+void FileUtils::atomic_write(const char *tgt, const std::function<void(const char *)> &writer) {
+    // The staging file sits next to the target, so the rename below stays inside one filesystem.
+    std::string stage = std::string(tgt) + ".tmp.XXXXXX";
+    int fd = mkstemp(&stage[0]);
+
+    if (fd == -1)
+        TGLError(errno, "Error creating a staging file for %s: %s", tgt, strerror(errno));
+    close(fd);
+
+    // mkstemp creates the file 0600 and writer() only truncates it, so the mode has to be set
+    // here: the target's own mode if it has one, and whatever the umask calls for otherwise.
+    struct stat tgtstat;
+    mode_t mode;
+
+    if (stat(tgt, &tgtstat) != -1)
+        mode = tgtstat.st_mode & 07777;
+    else {
+        mode_t mask = umask(0);
+        umask(mask);
+        mode = 0666 & ~mask;
+    }
+
+    if (chmod(stage.c_str(), mode) == -1) {
+        auto olderrno = errno;
+        unlink(stage.c_str());
+        TGLError(olderrno, "Error setting permissions of %s: %s", stage.c_str(), strerror(olderrno));
+    }
+
+    try {
+        writer(stage.c_str());
+        FileUtils::move_file(stage.c_str(), tgt);
+    } catch (...) {
+        unlink(stage.c_str());
+        throw;
     }
 }
