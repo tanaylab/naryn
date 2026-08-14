@@ -1,4 +1,4 @@
-# naryn 2.7.2
+# naryn 2.7.3
 
 * Fixed four holes in the 2.7.0 locking mechanism, where readers stopped taking a lock and rely on writes being committed by `rename`:
     * The per-track attributes file was still written in place, so a reader could observe it partial or empty. It is now staged and renamed like every other metadata write.
