@@ -7,7 +7,7 @@
 
 # naryn 2.7.1
 
-* Fixed a segfault on a track expression that does not parse to a usable expression. Two distinct cases: input that parses to nothing (`""`, whitespace, or a bare comment), where `R_ParseVector` reports `PARSE_OK` but returns a zero-length list; and the literal `NULL`, which parses to a length-1 list whose only element is `R_NilValue`. Both were dereferenced and crashed the R process. They now produce a normal, catchable R error.
+* Fixed a segfault on any track expression that does not yield exactly one usable parsed expression. Three routes to the same crash: input that parses to nothing (`""`, whitespace, a bare comment), where `R_ParseVector` reports `PARSE_OK` but returns a zero-length list; the literal `NULL`, which parses to a length-1 list whose only element is `R_NilValue`; and - the largest set - anything `parse()` outright rejects (`";"`, `"track +"`, `"foo("`, an unterminated string), where the R error was swallowed by `R_tryEval` inside `get_expression_vars()` and the C++ caller carried on to crash later. Measured across 29 degenerate inputs: 22 crashed the R process before, none do now, and legitimate expressions are unaffected.
 
 * Merged the CRAN-portability fixes from 2.6.32-2.6.34 onto the new locking mechanism introduced in 2.7.0.
 
