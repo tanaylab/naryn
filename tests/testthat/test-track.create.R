@@ -138,5 +138,9 @@ test_that("emr_track.create errors instead of segfaulting on an empty expression
     expect_error(emr_track.create("test_track1", "user", FALSE, "", keepref = TRUE))
     expect_error(emr_track.create("test_track1", "user", FALSE, "   ", keepref = TRUE))
     expect_error(emr_track.create("test_track1", "user", FALSE, "# comment only", keepref = TRUE))
+    # "NULL" is the same crash by another route: it parses to a length-1 list whose only element is
+    # R_NilValue, so a length check alone does not catch it.
+    expect_error(emr_track.create("test_track1", "user", FALSE, "NULL", keepref = TRUE))
+    expect_error(emr_track.create("test_track1", "user", FALSE, " NULL ", keepref = TRUE))
     expect_false(emr_track.exists("test_track1"))
 })

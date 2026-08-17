@@ -184,8 +184,14 @@ void NRTrackExprScanner::check(const vector<string> &track_exprs, unsigned stime
             // R_ParseVector reports PARSE_OK for input that parses to no expression at all: "",
             // whitespace, or a bare comment all yield a zero-length list. Reading element 0 of that
             // hands a garbage SEXP to Rf_eval and segfaults the whole R process.
-            if (Rf_length(parsed_expr) < 1)
-                verror("Track expression \"%s\" is empty", m_track_exprs[iexpr].c_str());
+            //
+            // The literal "NULL" is the same crash by a different route: it parses to a length-1
+            // list whose only element *is* R_NilValue. Storing that in m_eval_exprs also collides
+            // with the sentinel begin() uses for "this expression is a virtual track", so the
+            // expression is never evaluated, m_eval_doubles[iexpr] stays NULL, and the segfault
+            // lands later instead. Both cases have to be rejected here.
+            if (Rf_length(parsed_expr) < 1 || Rf_isNull(VECTOR_ELT(parsed_expr, 0)))
+                verror("Track expression \"%s\" is empty or evaluates to NULL", m_track_exprs[iexpr].c_str());
     		m_eval_exprs[iexpr] = VECTOR_ELT(parsed_expr, 0);
         }
 	}
