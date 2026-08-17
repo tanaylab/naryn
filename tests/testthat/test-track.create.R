@@ -140,17 +140,17 @@ test_that("emr_track.create errors instead of segfaulting on an empty expression
     # against unpatched naryn, testing nothing.
     emr_track.rm("test_track1", TRUE)
     for (bad in list(
-        "",                 # zero-length parse
-        "   ",              # ditto, whitespace
-        "\t\n",            # ditto
-        "# comment only",   # ditto, parses to nothing
-        "NULL",             # length-1 parse whose only element IS R_NilValue
+        "", # zero-length parse
+        "   ", # ditto, whitespace
+        "\t\n", # ditto
+        "# comment only", # ditto, parses to nothing
+        "NULL", # length-1 parse whose only element IS R_NilValue
         " NULL ",
-        ";",                # parse() throws; the error is swallowed by R_tryEval
+        ";", # parse() throws; the error is swallowed by R_tryEval
         ";;",
         ",",
         "()",
-        "dense_track +",    # a plausible user typo
+        "dense_track +", # a plausible user typo
         "'unterminated",
         "foo("
     )) {
