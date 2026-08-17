@@ -37,7 +37,13 @@
     res <- c()
 
     if (!is.null(expr) && expr != "") {
-        res <- all.vars(as.list(parse(text = expr))[[1]])
+        parsed <- parse(text = expr)
+        # parse() yields nothing at all for whitespace or a bare comment, and [[1]] on that raised
+        # "subscript out of bounds". get_expression_vars() swallows the error (R_tryEval), so the
+        # caller carried on with no variables and segfaulted further down instead of failing here.
+        if (length(parsed) > 0) {
+            res <- all.vars(as.list(parsed)[[1]])
+        }
     }
     return(res)
 }

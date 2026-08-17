@@ -181,6 +181,11 @@ void NRTrackExprScanner::check(const vector<string> &track_exprs, unsigned stime
     		rprotect(parsed_expr = R_ParseVector(expr, -1, &status, R_NilValue));
     		if (status != PARSE_OK)
     			verror("R parsing of expression \"%s\" failed", m_track_exprs[iexpr].c_str());
+            // R_ParseVector reports PARSE_OK for input that parses to no expression at all: "",
+            // whitespace, or a bare comment all yield a zero-length list. Reading element 0 of that
+            // hands a garbage SEXP to Rf_eval and segfaults the whole R process.
+            if (Rf_length(parsed_expr) < 1)
+                verror("Track expression \"%s\" is empty", m_track_exprs[iexpr].c_str());
     		m_eval_exprs[iexpr] = VECTOR_ELT(parsed_expr, 0);
         }
 	}

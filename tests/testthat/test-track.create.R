@@ -128,3 +128,15 @@ test_that("emr_track.rm doesn't fail when given character(0)", {
     emr_track.rm(character(0))
     expect_true(TRUE)
 })
+
+test_that("emr_track.create errors instead of segfaulting on an empty expression", {
+    # R_ParseVector returns PARSE_OK for input that parses to no expression at all, so before this
+    # guard the C++ side read element 0 of a zero-length list and killed the R process outright
+    # (exit 139, "caught segfault / address (nil), cause 'memory not mapped'"). An uncatchable
+    # crash in a long-lived worker process is much worse than a failed call.
+    emr_track.rm("test_track1", TRUE)
+    expect_error(emr_track.create("test_track1", "user", FALSE, "", keepref = TRUE))
+    expect_error(emr_track.create("test_track1", "user", FALSE, "   ", keepref = TRUE))
+    expect_error(emr_track.create("test_track1", "user", FALSE, "# comment only", keepref = TRUE))
+    expect_false(emr_track.exists("test_track1"))
+})

@@ -7,6 +7,8 @@
 
 # naryn 2.7.1
 
+* Fixed a segfault on a track expression that parses to nothing (`""`, whitespace, or a bare comment). `R_ParseVector` reports `PARSE_OK` for such input but returns a zero-length list, and reading element 0 of it crashed the R process instead of raising an error. Such expressions now produce a normal, catchable R error.
+
 * Merged the CRAN-portability fixes from 2.6.32-2.6.34 onto the new locking mechanism introduced in 2.7.0.
 
 # naryn 2.7.0
