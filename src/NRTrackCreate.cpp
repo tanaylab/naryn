@@ -11,8 +11,11 @@
 #undef error
 #endif
 
+#include <unistd.h>
+
 #include "EMRDb.h"
 #include "EMRTrack.h"
+#include "FileUtils.h"
 #include "naryn.h"
 #include "NRTrackExpressionScanner.h"
 
@@ -46,10 +49,14 @@ SEXP emr_track_create(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _expr, S
 
         string trackname = { CHAR(Rf_asChar(_track)) };
 
-        if (g_db->track(trackname) && (g_db->track_info(trackname)->db_id == db_id)){
-            verror("Track %s already exists", trackname.c_str());
+        // Rewriting a track in its own db needs override, same as shadowing one from another
+        // db. The write below is staged and renamed into place, so an in-place rewrite never
+        // leaves readers with a missing or half-written track - callers no longer have to
+        // emr_track.rm() first and expose that window themselves.
+        if (g_db->track(trackname) && (g_db->track_info(trackname)->db_id == db_id) && !toverride){
+            verror("Track %s already exists, see override argument", trackname.c_str());
         }
-            
+
         // User must explicitly pass an overriding argument
         if (g_db->track(trackname) && (g_db->track_info(trackname)->db_id != db_id) && !toverride){
             verror("Track %s already exists in db %s, see override argument", trackname.c_str(), g_db->track_info(trackname)->db_id.c_str());
@@ -85,7 +92,18 @@ SEXP emr_track_create(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _expr, S
 			g_naryn->verify_max_data_size(data.data.size(), "Result");
 		}
 
-        EMRTrack::serialize(track_filename.c_str(), categorical, data);
+        // Rewriting in place really writes this file, unlike shadowing a track from another db,
+        // so honour "read-only" the way emr_track.rm/mv/addto do. Nothing below would stop it:
+        // read-only is a mode on the track file, and rename(2) does not consult the target's
+        // mode, only the directory's.
+        if (access(track_filename.c_str(), F_OK) == 0 && access(track_filename.c_str(), W_OK) != 0)
+            verror("Cannot override track %s: it is read-only.", trackname.c_str());
+
+        // Staged and renamed into place, so a concurrent reader sees either the complete previous
+        // track or the complete new one - never a partial or absent file.
+        FileUtils::atomic_write(track_filename.c_str(), [&](const char *path) {
+            EMRTrack::serialize(path, categorical ? EMRTrack::IS_CATEGORICAL : 0, data);
+        });
 
         if (has_overlap) {
             g_db->unload_track(trackname.c_str(), true, true);

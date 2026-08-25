@@ -57,9 +57,12 @@ SEXP emr_import(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _src, SEXP _ad
                 verror("%s directory is not set", db_id.c_str());
             }
 
-            //Error only if exists in the same db, otherwise try overriding
-            if (g_db->track(trackname) && (g_db->track_info(trackname)->db_id == db_id)) {
-                verror("Track %s already exists", trackname.c_str());
+            // Rewriting a track in its own db needs override, same as shadowing one from
+            // another db. The write below is staged and renamed into place, so an in-place
+            // rewrite never leaves readers with a missing or half-written track - callers no
+            // longer have to emr_track.rm() first and expose that window themselves.
+            if (g_db->track(trackname) && (g_db->track_info(trackname)->db_id == db_id) && !toverride) {
+                verror("Track %s already exists, see override argument", trackname.c_str());
             }
             //User must explicitly pass an overriding argument
             if (g_db->track(trackname) && (g_db->track_info(trackname)->db_id != db_id) && !toverride) {
@@ -90,7 +93,9 @@ SEXP emr_import(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _src, SEXP _ad
 
             track_filename = db_id + string("/") + trackname + EMRDb::TRACK_FILE_EXT;
 
-            if (access(track_filename.c_str(), F_OK) != -1)
+            // A stray file with no track registered for it: still refuse to clobber it silently,
+            // but override is an explicit "rewrite this track", so let it through.
+            if (!toverride && access(track_filename.c_str(), F_OK) != -1)
                 verror("File %s already exists", track_filename.c_str());
         }
 
@@ -174,15 +179,21 @@ SEXP emr_import(SEXP _track, SEXP _db_id, SEXP _categorical, SEXP _src, SEXP _ad
         }
 
 
-        if (access(track_filename.c_str(), F_OK) != -1) {
-            string tmp_filename = track_filename + ".tmp";
-            EMRTrack::serialize(tmp_filename.c_str(), categorical ? EMRTrack::IS_CATEGORICAL : 0, data);
-            unlink(track_filename.c_str());
-            FileUtils::move_file(tmp_filename.c_str(), track_filename.c_str());
-        } else {
-            EMRTrack::serialize(track_filename.c_str(), categorical, data);
-        }
-        
+        // Rewriting in place really writes this file, unlike shadowing a track from another db,
+        // so honour "read-only" the way emr_track.rm/mv/addto do. Nothing below would stop it:
+        // read-only is a mode on the track file, and rename(2) does not consult the target's
+        // mode, only the directory's.
+        if (access(track_filename.c_str(), F_OK) == 0 && access(track_filename.c_str(), W_OK) != 0)
+            verror("Cannot override track %s: it is read-only.", trackname.c_str());
+
+        // Staged and renamed into place, so a concurrent reader sees either the complete previous
+        // track or the complete new one - never a partial or absent file. The unlink that used to
+        // precede the move reopened exactly that window, and is not needed: rename replaces the
+        // target by itself.
+        FileUtils::atomic_write(track_filename.c_str(), [&](const char *path) {
+            EMRTrack::serialize(path, categorical ? EMRTrack::IS_CATEGORICAL : 0, data);
+        });
+
         if (has_overlap){
             g_db->unload_track(trackname.c_str(), true, true);
         }

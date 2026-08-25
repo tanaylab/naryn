@@ -36,8 +36,20 @@
 .emr_expr_vars <- function(expr) {
     res <- c()
 
-    if (!is.null(expr) && expr != "") {
-        res <- all.vars(as.list(parse(text = expr))[[1]])
+    if (!is.null(expr) && length(expr) == 1 && !is.na(expr) && expr != "") {
+        # Both failure modes have to be handled here, because get_expression_vars() calls this via
+        # R_tryEval with a NULL error flag: anything that goes wrong is silently discarded and the
+        # C++ caller proceeds with no variables, so the crash lands further down instead of failing
+        # cleanly here.
+        #   * parse() *throws* for a syntax error (";", "track +", "foo(") - by far the larger set,
+        #     and an escaping R error also leaves the interpreter in a state the C++ side then
+        #     crashes in. Caught, so the scanner's own R_ParseVector reports it properly instead.
+        #   * parse() *succeeds with zero length* for whitespace or a bare comment, where [[1]]
+        #     raised "subscript out of bounds".
+        parsed <- tryCatch(parse(text = expr), error = function(e) NULL)
+        if (length(parsed) > 0) {
+            res <- all.vars(as.list(parsed)[[1]])
+        }
     }
     return(res)
 }
