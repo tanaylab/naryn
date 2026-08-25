@@ -824,6 +824,12 @@ SEXP run_in_R(const char *command, SEXP envir)
 	if (status != PARSE_OK)
 		verror("Failed to parse expression \"%s\"", command);
 
+    // PARSE_OK does not imply a usable parsed expression. "", whitespace and bare comments parse to
+    // a zero-length list, and the literal "NULL" parses to a length-1 list holding R_NilValue;
+    // passing either on to Rf_eval segfaults instead of raising an R error.
+    if (Rf_length(parsed_expr) < 1 || Rf_isNull(VECTOR_ELT(parsed_expr, 0)))
+        verror("Expression \"%s\" is empty or evaluates to NULL", command);
+
 	return eval_in_R(VECTOR_ELT(parsed_expr, 0), envir);
 }
 

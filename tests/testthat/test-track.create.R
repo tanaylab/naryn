@@ -128,3 +128,36 @@ test_that("emr_track.rm doesn't fail when given character(0)", {
     emr_track.rm(character(0))
     expect_true(TRUE)
 })
+
+test_that("emr_track.create errors instead of segfaulting on an empty expression", {
+    # R_ParseVector returns PARSE_OK for input that parses to no expression at all, so before this
+    # guard the C++ side read element 0 of a zero-length list and killed the R process outright
+    # (exit 139, "caught segfault / address (nil), cause 'memory not mapped'"). An uncatchable
+    # crash in a long-lived worker process is much worse than a failed call.
+    # iterator= is essential to these being regression tests at all. Without it,
+    # create_expr_iterator() cannot infer a policy from an expression that contributes no track
+    # vars, so it errors *before* the guard under test is reached - and the assertions then pass
+    # against unpatched naryn, testing nothing.
+    emr_track.rm("test_track1", TRUE)
+    for (bad in list(
+        "", # zero-length parse
+        "   ", # ditto, whitespace
+        "\t\n", # ditto
+        "# comment only", # ditto, parses to nothing
+        "NULL", # length-1 parse whose only element IS R_NilValue
+        " NULL ",
+        ";", # parse() throws; the error is swallowed by R_tryEval
+        ";;",
+        ",",
+        "()",
+        "dense_track +", # a plausible user typo
+        "'unterminated",
+        "foo("
+    )) {
+        expect_error(
+            emr_track.create("test_track1", "user", FALSE, bad, iterator = "dense_track"),
+            info = sprintf("expression %s must error, not segfault", deparse(bad))
+        )
+    }
+    expect_false(emr_track.exists("test_track1"))
+})

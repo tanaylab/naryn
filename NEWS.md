@@ -1,3 +1,7 @@
+# naryn 2.7.3
+
+* Fixed a segfault on any track expression that does not yield exactly one usable parsed expression. Three routes to the same crash: input that parses to nothing (`""`, whitespace, a bare comment), where `R_ParseVector` reports `PARSE_OK` but returns a zero-length list; the literal `NULL`, which parses to a length-1 list whose only element is `R_NilValue`; and - the largest set - anything `parse()` outright rejects (`";"`, `"track +"`, `"foo("`, an unterminated string), where the R error was swallowed by `R_tryEval` inside `get_expression_vars()` and the C++ caller carried on to crash later. Measured across 29 degenerate inputs: 22 crashed the R process before, none do now, and legitimate expressions are unaffected.
+
 # naryn 2.7.2
 
 * `emr_track.create` and `emr_track.import` can now rewrite a track in its own db when `override = TRUE`. Previously `override` only covered shadowing a track from another db, and rewriting in place required `emr_track.rm()` first - which left the track missing for the whole rebuild, so anything reading it in that window failed.
