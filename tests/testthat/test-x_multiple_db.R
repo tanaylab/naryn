@@ -706,3 +706,39 @@ test_that("emr_db.connect fails when .naryn doesn't have read permissions", {
     })
     expect_error(emr_db.connect(db))
 })
+
+test_that("overriding a track does not strand it outside its own track list", {
+    prev_roots <- .naryn$EMR_ROOTS
+    shared <- copy_test_db(prev_roots[1])
+    user <- tempfile(pattern = "userdb_", tmpdir = test_path(".."))
+    dir.create(user)
+    user <- normalizePath(user)
+    withr::defer({
+        unlink(c(shared, user), recursive = TRUE)
+        emr_db.connect(prev_roots)
+    })
+
+    emr_db.connect(c(shared, user), do_reload = TRUE)
+    src <- data.frame(id = c(2, 5, 10), time = c(1000, 2000, 3000), ref = 1, value = 1)
+    emr_track.import("shadowed", shared, categorical = TRUE, src = src)
+
+    # the user's copy overrides the one in the shared db and has to stay the winner
+    emr_track.import("shadowed", user, categorical = TRUE, src = src, override = TRUE)
+    expect_equal(emr_track.current_db("shadowed"), user, ignore_attr = TRUE)
+    expect_equal(emr_track.dbs("shadowed"), c(shared, user), ignore_attr = TRUE)
+
+    # writing anything else rewrites the user db's track list from memory: the
+    # overriding track used to be attributed to the shared db by then and was
+    # dropped from the list, leaving a .nrtrack file naryn could no longer see
+    emr_track.import("unrelated", user, categorical = TRUE, src = src)
+    emr_db.reload()
+
+    expect_true(emr_track.exists("shadowed", user))
+    expect_equal(emr_track.current_db("shadowed"), user, ignore_attr = TRUE)
+
+    # the stray file used to make any rebuild fail with "File ... already exists"
+    expect_error(
+        emr_track.import("shadowed", user, categorical = TRUE, src = src, override = TRUE),
+        NA
+    )
+})

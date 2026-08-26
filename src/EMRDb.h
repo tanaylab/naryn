@@ -157,6 +157,9 @@ public:
     bool is_in_subset(unsigned id) const { return m_ids_subset.empty() || m_ids_subset.find(id) != m_ids_subset.end(); }
     void clear_ids_subset(bool warn);
     int get_db_idx(const string& db_id);
+    // Records db_id as another db holding a copy of a track, keeping
+    // TrackInfo::dbs ordered by db priority and free of duplicates.
+    void add_db(vector<string> &dbs, const string &db_id);
 
 protected:
 	typedef unordered_map<string, TrackInfo> Name2Track;

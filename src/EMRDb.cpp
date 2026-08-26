@@ -764,6 +764,23 @@ int EMRDb::get_db_idx(const string& db_id) {
     
 }
 
+void EMRDb::add_db(vector<string> &dbs, const string &db_id) {
+
+    int idx = get_db_idx(db_id);
+    vector<string>::iterator itr = dbs.begin();
+
+    for (; itr != dbs.end(); ++itr) {
+        if (*itr == db_id) {
+            return;
+        }
+        if (get_db_idx(*itr) > idx) {
+            break;
+        }
+    }
+
+    dbs.insert(itr, db_id);
+}
+
 // Helper to acquire a persistent lock file for writing.
 //
 // Reentrancy matters here, and not for style reasons: fcntl locks are per (process, file), not
@@ -924,6 +941,12 @@ void EMRDb::clear(string db_id) {
             delete itrack->second.track;
             itrack = m_tracks.erase(itrack);
         } else {
+            // the db is going away, so it no longer shadows anything either
+            vector<string> &dbs = itrack->second.dbs;
+            vector<string>::iterator pos = std::find(dbs.begin(), dbs.end(), db_id);
+            if (pos != dbs.end()) {
+                dbs.erase(pos);
+            }
             ++itrack;
         }
     }
@@ -1194,35 +1217,70 @@ void EMRDb::load_track_list(string db_id, BufferedFile *_pbf, bool force){
         break;
     }
 
+    // A track list file states which tracks have a file in db_id, and nothing about
+    // the other dbs. Which copy of a track wins is decided by db priority alone: the
+    // copy in the last connected db. Loading one db's list must therefore never hand
+    // a track over to a db of lower priority, and must carry over the cascade of
+    // shadowed dbs kept in TrackInfo::dbs, which the file itself does not hold.
+    int this_db_idx = get_db_idx(db_id);
+
+    // tracks db_id has a file for, but that a db of higher priority owns
+    unordered_set<string> shadowed;
+
     for (auto &fresh_track : track_list) {
         Name2Track::iterator itrack = m_tracks.find(fresh_track.first);
 
-        if (itrack != m_tracks.end() && itrack->second.db_id != fresh_track.second.db_id){
+        if (itrack == m_tracks.end()){
+            continue;
+        }
 
-            //Overriding mechanism
-            if (fresh_track.first == DOB_TRACKNAME) {
-                verror("Can not override patients.dob track");
-            }
-
-            vector<string>::iterator pos = std::find(m_track_names[itrack->second.db_id].begin(), 
-                                                     m_track_names[itrack->second.db_id].end(), 
-                                                     itrack->first);
-
-            if (pos != m_track_names[itrack->second.db_id].end()){
-                m_track_names[itrack->second.db_id].erase(pos);
-            }
-            
-            //when coming to override, save the cascade of dbs
-            //already overridden. Then, add the latest one.
+        // db_id restating a track it already owns
+        if (itrack->second.db_id == db_id){
             fresh_track.second.dbs = itrack->second.dbs;
+            continue;
+        }
 
-            vector<string>::iterator db_exists = std::find(fresh_track.second.dbs.begin(), fresh_track.second.dbs.end(), itrack->second.db_id);
+        //Overriding mechanism
+        if (fresh_track.first == DOB_TRACKNAME) {
+            verror("Can not override patients.dob track");
+        }
 
-            if (db_exists == fresh_track.second.dbs.end() && get_db_idx(itrack->second.db_id) < get_db_idx(fresh_track.second.db_id)){
-                fresh_track.second.dbs.push_back(itrack->second.db_id);
-            }
+        // A db of higher priority owns the track and goes on owning it. Only record
+        // that db_id holds a copy too, so that its track list file keeps the entry
+        // and emr_track.dbs reports it.
+        if (this_db_idx < get_db_idx(itrack->second.db_id)){
+            add_db(itrack->second.dbs, db_id);
+            shadowed.insert(fresh_track.first);
+            continue;
+        }
 
-            itrack->second.overridden = 1;
+        // db_id has the higher priority => its copy overrides the one in memory
+        vector<string>::iterator pos = std::find(m_track_names[itrack->second.db_id].begin(), 
+                                                 m_track_names[itrack->second.db_id].end(), 
+                                                 itrack->first);
+
+        if (pos != m_track_names[itrack->second.db_id].end()){
+            m_track_names[itrack->second.db_id].erase(pos);
+        }
+
+        //when coming to override, save the cascade of dbs
+        //already overridden. Then, add the latest one.
+        fresh_track.second.dbs = itrack->second.dbs;
+        add_db(fresh_track.second.dbs, itrack->second.db_id);
+
+        itrack->second.overridden = 1;
+    }
+
+    // db_id no longer has a file for these tracks => drop it from their cascade
+    for (auto &track : m_tracks) {
+        if (track.second.db_id == db_id || track.second.overridden){
+            continue;
+        }
+
+        vector<string>::iterator pos = std::find(track.second.dbs.begin(), track.second.dbs.end(), db_id);
+
+        if (pos != track.second.dbs.end() && track_list.find(track.first) == track_list.end()){
+            track.second.dbs.erase(pos);
         }
     }
 
@@ -1268,6 +1326,9 @@ void EMRDb::load_track_list(string db_id, BufferedFile *_pbf, bool force){
     m_track_names[db_id].reserve(track_list.size());
     for (const auto &track : track_list)
     {
+        if (shadowed.find(track.first) != shadowed.end()){
+            continue;
+        }
         m_tracks.insert(track);
         m_track_names[db_id].emplace_back(track.first);
     }
@@ -1288,15 +1349,38 @@ void EMRDb::load_track(const char *track_name, const string& db_id){
 
         Name2Track::iterator itrack = m_tracks.find(track_name);
 
-        if (itrack == m_tracks.end()){
-            // Check if it's already in track_names (maybe from reload?)
-            auto &names = m_track_names[db_id];
-            if (std::find(names.begin(), names.end(), track_name) == names.end()) {
-                names.push_back(track_name);
+        // TrackInfo is built from scratch below, so the cascade of dbs that also hold
+        // a copy of this track has to be rebuilt with it. It cannot be copied from the
+        // entry in memory: on an overriding write that entry has already been unloaded.
+        // Read it off the filesystem instead - it is the only account that survives.
+        // Losing it drops the track from those dbs' track list files and strands their
+        // .nrtrack files, invisible to emr_track.exists but in the way of any rebuild.
+        vector<string> dbs;
+
+        for (int i = 0; i < get_db_idx(db_id); ++i) {
+            if (access(track_filename(m_rootdirs[i], track_name).c_str(), F_OK) != -1) {
+                add_db(dbs, m_rootdirs[i]);
             }
-        } else {
+        }
+
+        if (itrack != m_tracks.end()) {
+            if (itrack->second.db_id != db_id) {
+                // taking the track over from a db of lower priority
+                auto &prev_names = m_track_names[itrack->second.db_id];
+                auto prev_pos = std::find(prev_names.begin(), prev_names.end(), track_name);
+                if (prev_pos != prev_names.end()) {
+                    prev_names.erase(prev_pos);
+                }
+            }
+
             delete itrack->second.track;
             m_tracks.erase(itrack);
+        }
+
+        // Check if it's already in track_names (maybe from reload?)
+        auto &names = m_track_names[db_id];
+        if (std::find(names.begin(), names.end(), track_name) == names.end()) {
+            names.push_back(track_name);
         }
 
         EMRTrack *track = EMRTrack::unserialize(track_name, filename.c_str());
@@ -1304,10 +1388,12 @@ void EMRDb::load_track(const char *track_name, const string& db_id){
                                             // have loaded this track already
         
         if (itrack == m_tracks.end()){
-            m_tracks.emplace(track_name, TrackInfo(track, filename.c_str(), track->timestamp(), db_id));
+            itrack = m_tracks.emplace(track_name, TrackInfo(track, filename.c_str(), track->timestamp(), db_id)).first;
         } else {      
             itrack->second = TrackInfo(track, filename.c_str(), track->timestamp(), db_id);
         }
+
+        itrack->second.dbs = dbs;
             
         if (bf.open(track_list_filename(db_id).c_str(), "w", false, true)) {
              verror("Failed to open file %s: %s", track_list_filename(db_id).c_str(), strerror(errno));
