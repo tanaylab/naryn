@@ -1,3 +1,12 @@
+# naryn 2.7.4
+
+* Fixed four holes in the 2.7.0 locking mechanism, where readers stopped taking a lock and rely on writes being committed by `rename`:
+    * The per-track attributes file was still written in place, so a reader could observe it partial or empty. It is now staged and renamed like every other metadata write.
+    * `emr_track.attr.set` took no lock at all, while being a read-modify-write of both the per-track file and the db's aggregate attributes cache. Two setters on *different* tracks never contended, and the loser's attribute disappeared from the cache that fresh sessions read.
+    * A nested writer-lock acquire on the same path silently released the outer lock, because closing any fd on a file drops every `fcntl` lock the process holds on it. The helper is now reentrant.
+    * A failed commit rename was discarded silently instead of raising an error.
+* Directory scans no longer abort when a file disappears between `readdir` and `stat` - staged `.tmp` files and NFS silly-rename entries are transient and are now skipped.
+
 # naryn 2.7.3
 
 * Fixed a segfault on any track expression that does not yield exactly one usable parsed expression. Three routes to the same crash: input that parses to nothing (`""`, whitespace, a bare comment), where `R_ParseVector` reports `PARSE_OK` but returns a zero-length list; the literal `NULL`, which parses to a length-1 list whose only element is `R_NilValue`; and - the largest set - anything `parse()` outright rejects (`";"`, `"track +"`, `"foo("`, an unterminated string), where the R error was swallowed by `R_tryEval` inside `get_expression_vars()` and the C++ caller carried on to crash later. Measured across 29 degenerate inputs: 22 crashed the R process before, none do now, and legitimate expressions are unaffected.

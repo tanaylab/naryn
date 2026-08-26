@@ -87,14 +87,22 @@ int BufferedFile::close()
 		m_fp = NULL;
         
         // ATOMIC COMMIT
+        // Callers report the failure with strerror(errno), so errno has to survive the cleanup
+        // unlink below: POSIX leaves it unspecified after a *successful* call, so a working
+        // unlink is free to overwrite the error the caller is about to print, and a failing one
+        // certainly does.
         if (m_is_atomic && !m_temp_filename.empty()) {
             if (retv == 0) {
                 if (rename(m_temp_filename.c_str(), m_real_filename.c_str()) != 0) {
+                    int commit_errno = errno;
                     unlink(m_temp_filename.c_str());
+                    errno = commit_errno;
                     retv = -1;
                 }
             } else {
+                int commit_errno = errno;
                 unlink(m_temp_filename.c_str());
+                errno = commit_errno;
             }
             m_temp_filename.clear();
         }
