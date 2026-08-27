@@ -706,3 +706,118 @@ test_that("emr_db.connect fails when .naryn doesn't have read permissions", {
     })
     expect_error(emr_db.connect(db))
 })
+
+test_that("overriding a track does not strand it outside its own track list", {
+    prev_roots <- .naryn$EMR_ROOTS
+    shared <- copy_test_db(prev_roots[1])
+    user <- tempfile(pattern = "userdb_", tmpdir = test_path(".."))
+    dir.create(user)
+    user <- normalizePath(user)
+    withr::defer({
+        unlink(c(shared, user), recursive = TRUE)
+        emr_db.connect(prev_roots)
+    })
+
+    emr_db.connect(c(shared, user), do_reload = TRUE)
+    src <- data.frame(id = c(2, 5, 10), time = c(1000, 2000, 3000), ref = 1, value = 1)
+    emr_track.import("shadowed", shared, categorical = TRUE, src = src)
+
+    # the user's copy overrides the one in the shared db and has to stay the winner
+    emr_track.import("shadowed", user, categorical = TRUE, src = src, override = TRUE)
+    expect_equal(emr_track.current_db("shadowed"), user, ignore_attr = TRUE)
+    expect_equal(emr_track.dbs("shadowed"), c(shared, user), ignore_attr = TRUE)
+
+    # writing anything else rewrites the user db's track list from memory: the
+    # overriding track used to be attributed to the shared db by then and was
+    # dropped from the list, leaving a .nrtrack file naryn could no longer see
+    emr_track.import("unrelated", user, categorical = TRUE, src = src)
+    emr_db.reload()
+
+    expect_true(emr_track.exists("shadowed", user))
+    expect_equal(emr_track.current_db("shadowed"), user, ignore_attr = TRUE)
+
+    # the stray file used to make any rebuild fail with "File ... already exists"
+    expect_error(
+        emr_track.import("shadowed", user, categorical = TRUE, src = src, override = TRUE),
+        NA
+    )
+})
+
+# names and timestamps as they are recorded in a db's track list file on disk,
+# which is what a fresh session reads
+read_track_list <- function(db) {
+    f <- file.path(db, ".naryn")
+    if (!file.exists(f)) {
+        return(NULL)
+    }
+    raw <- readBin(f, "raw", file.size(f))
+    out <- list()
+    i <- 1
+    while (i <= length(raw)) {
+        z <- which(raw[i:length(raw)] == as.raw(0))[1]
+        if (is.na(z)) break
+        name <- rawToChar(raw[i:(i + z - 2)])
+        secs <- readBin(raw[(i + z):(i + z + 7)], "integer", n = 1, size = 8)
+        out[[name]] <- secs
+        i <- i + z + 16
+    }
+    out
+}
+
+test_that("a shadowed track is listed with its own file's timestamp", {
+    prev_roots <- .naryn$EMR_ROOTS
+    shared <- copy_test_db(prev_roots[1])
+    user <- tempfile(pattern = "userdb_", tmpdir = test_path(".."))
+    dir.create(user)
+    user <- normalizePath(user)
+    withr::defer({
+        unlink(c(shared, user), recursive = TRUE)
+        emr_db.connect(prev_roots)
+    })
+
+    emr_db.connect(c(shared, user), do_reload = TRUE)
+    src <- data.frame(id = c(2, 5, 10), time = c(1000, 2000, 3000), ref = 1, value = 1)
+    emr_track.import("shadowed", shared, categorical = TRUE, src = src)
+    Sys.sleep(1.1) # so the two copies cannot share a whole-second mtime
+    emr_track.import("shadowed", user, categorical = TRUE, src = src, override = TRUE)
+
+    # rewrite the shared db's track list while the track is shadowed - this is the
+    # write that used to stamp the entry with the user db's mtime
+    emr_track.import("unrelated", shared, categorical = TRUE, src = src)
+
+    # the shared db keeps the entry, but stamped with ITS file, not the user's copy -
+    # otherwise a session connecting the shared db alone compares against a foreign mtime
+    listed <- read_track_list(shared)
+    expect_true("shadowed" %in% names(listed))
+    # expect_identical, not expect_equal: the two copies' mtimes differ by a second out
+    # of ~1.8e9, which is inside expect_equal's relative tolerance
+    expect_identical(
+        listed[["shadowed"]],
+        as.integer(file.mtime(file.path(shared, "shadowed.nrtrack")))
+    )
+})
+
+test_that("writing under an unregistered copy in a db of higher priority warns", {
+    prev_roots <- .naryn$EMR_ROOTS
+    shared <- copy_test_db(prev_roots[1])
+    user <- tempfile(pattern = "userdb_", tmpdir = test_path(".."))
+    dir.create(user)
+    user <- normalizePath(user)
+    withr::defer({
+        unlink(c(shared, user), recursive = TRUE)
+        emr_db.connect(prev_roots)
+    })
+
+    emr_db.connect(c(shared, user), do_reload = TRUE)
+    src <- data.frame(id = c(2, 5, 10), time = c(1000, 2000, 3000), ref = 1, value = 1)
+    emr_track.import("donor", shared, categorical = TRUE, src = src)
+
+    # a stray file in the db of higher priority: on disk, in no track list. Every guard
+    # in NRImport/NRTrackCreate tests m_tracks, so none of them can see this.
+    file.copy(file.path(shared, "donor.nrtrack"), file.path(user, "stray.nrtrack"))
+
+    expect_warning(
+        emr_track.import("stray", shared, categorical = TRUE, src = src),
+        "takes priority"
+    )
+})

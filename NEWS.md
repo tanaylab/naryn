@@ -1,3 +1,14 @@
+# naryn 2.7.5
+
+* Fixed the db that owns a track being decided by which track list was read last instead of by db priority. Reading a db's track list handed it every track it has a file for, even when a db of higher priority held the track - and `emr_track.create`/`emr_track.import` with `override = TRUE` force exactly that read, by touching every track list file so the overridden copy can be picked up again. The overriding write therefore undid itself:
+    * reads went back to the overridden copy, silently returning the old data;
+    * the track was then attributed to the wrong db, so the next write to its own db rewrote that db's track list without it, leaving a `.nrtrack` file that `emr_track.exists` could not see and that made every later rebuild fail with `File ... already exists`;
+    * `emr_track.rm` removed the overridden copy, in another db, instead of the overriding one.
+* Fixed `TrackInfo::dbs`, the list of other dbs holding a copy of a track, being dropped whenever a track was loaded on its own rather than through a full reload. It is now rebuilt from the filesystem, which also repairs entries recorded by earlier versions.
+* Disconnecting a db now removes it from the cascade of the tracks it used to shadow, so `emr_track.dbs` no longer reports a db that is no longer connected.
+* A track list file now records each shadowed copy with its own file's modification time rather than the owning db's, so a session that later connects that db without the owner no longer compares its cached track against a foreign timestamp.
+* Writing a track into a db while a db of higher priority holds an unregistered file for the same name now warns. Every existing guard tests the tracks loaded in memory, so this case - the stranded state above, seen from the other side - went through silently.
+
 # naryn 2.7.4
 
 * Fixed four holes in the 2.7.0 locking mechanism, where readers stopped taking a lock and rely on writes being committed by `rename`:
