@@ -767,6 +767,14 @@ int EMRDb::get_db_idx(const string& db_id) {
 void EMRDb::add_db(vector<string> &dbs, const string &db_id) {
 
     int idx = get_db_idx(db_id);
+
+    // A db that is not connected has no place in a cascade, and its -1 would sort to
+    // the front. clear() drops a db from every cascade when it is disconnected, so
+    // this should not come up - state it rather than rely on that.
+    if (idx == -1) {
+        return;
+    }
+
     vector<string>::iterator itr = dbs.begin();
 
     for (; itr != dbs.end(); ++itr) {
@@ -1089,20 +1097,32 @@ void EMRDb::update_track_list_file(const Name2Track &tracks, string db_id, Buffe
 
         in_dbs = pos != name2track.second.dbs.end();
 
-        if (((name2track.second.db_id == db_id) || in_dbs) &&
-            (bf.write(name2track.first.c_str(), name2track.first.size() + 1) !=
-                 name2track.first.size() + 1 ||
-             (bf.write(&name2track.second.timestamp.tv_sec,
-                       sizeof(name2track.second.timestamp.tv_sec)) !=
-              sizeof(name2track.second.timestamp.tv_sec)) ||
-             (bf.write(&name2track.second.timestamp.tv_nsec,
-                       sizeof(name2track.second.timestamp.tv_nsec)) !=
-              sizeof(name2track.second.timestamp.tv_nsec)))){
-                verror("Failed to write file %s: %s", bf.file_name().c_str(), strerror(errno));
+        if (!((name2track.second.db_id == db_id) || in_dbs)){
+            continue;
         }
 
-        in_dbs = false; 
-            
+        // TrackInfo::timestamp describes the copy in the db that owns the track. For a
+        // shadowed copy that is another db's file, and writing it here would leave
+        // load_track_list comparing this db's cached track against a foreign mtime.
+        // Stat the local file instead.
+        struct timespec timestamp = name2track.second.timestamp;
+
+        if (in_dbs && name2track.second.db_id != db_id) {
+            struct stat fs;
+
+            if (!stat(track_filename(db_id, name2track.first).c_str(), &fs)) {
+                timestamp = get_file_mtime(fs);
+            }
+        }
+
+        if (bf.write(name2track.first.c_str(), name2track.first.size() + 1) !=
+                name2track.first.size() + 1 ||
+            (bf.write(&timestamp.tv_sec, sizeof(timestamp.tv_sec)) !=
+             sizeof(timestamp.tv_sec)) ||
+            (bf.write(&timestamp.tv_nsec, sizeof(timestamp.tv_nsec)) !=
+             sizeof(timestamp.tv_nsec))){
+                verror("Failed to write file %s: %s", bf.file_name().c_str(), strerror(errno));
+        }
     }
 
     bf.truncate(); // file might be open for update and not just for write
@@ -1326,6 +1346,11 @@ void EMRDb::load_track_list(string db_id, BufferedFile *_pbf, bool force){
     m_track_names[db_id].reserve(track_list.size());
     for (const auto &track : track_list)
     {
+        // m_tracks.insert() would be a no-op for a shadowed track anyway, since the db
+        // that owns it already holds this key, so what this guard really controls is
+        // m_track_names[db_id]. The asymmetry is deliberate: this db's track list file
+        // does list the shadowed track, so emr_track.dbs reports it, while
+        // emr_track.ls(db_id = this db) does not.
         if (shadowed.find(track.first) != shadowed.end()){
             continue;
         }
@@ -1356,10 +1381,24 @@ void EMRDb::load_track(const char *track_name, const string& db_id){
         // Losing it drops the track from those dbs' track list files and strands their
         // .nrtrack files, invisible to emr_track.exists but in the way of any rebuild.
         vector<string> dbs;
+        int this_db_idx = get_db_idx(db_id);
 
-        for (int i = 0; i < get_db_idx(db_id); ++i) {
-            if (access(track_filename(m_rootdirs[i], track_name).c_str(), F_OK) != -1) {
+        for (int i = 0; i < (int)m_rootdirs.size(); ++i) {
+            if (i == this_db_idx ||
+                access(track_filename(m_rootdirs[i], track_name).c_str(), F_OK) == -1) {
+                continue;
+            }
+
+            if (i < this_db_idx) {
                 add_db(dbs, m_rootdirs[i]);
+            }
+            else {
+                // A db that outranks this one holds a file for the track without having it
+                // registered - the stranded state this bookkeeping exists to avoid, and one
+                // no caller catches, since they all test m_tracks rather than the disk.
+                // Taking ownership here would bury that copy, so name it instead.
+                vwarning("Track %s also exists in %s, which takes priority over %s, but is not listed there. That copy stays hidden until %s is reloaded.",
+                         track_name, m_rootdirs[i].c_str(), db_id.c_str(), m_rootdirs[i].c_str());
             }
         }
 

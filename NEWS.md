@@ -6,6 +6,8 @@
     * `emr_track.rm` removed the overridden copy, in another db, instead of the overriding one.
 * Fixed `TrackInfo::dbs`, the list of other dbs holding a copy of a track, being dropped whenever a track was loaded on its own rather than through a full reload. It is now rebuilt from the filesystem, which also repairs entries recorded by earlier versions.
 * Disconnecting a db now removes it from the cascade of the tracks it used to shadow, so `emr_track.dbs` no longer reports a db that is no longer connected.
+* A track list file now records each shadowed copy with its own file's modification time rather than the owning db's, so a session that later connects that db without the owner no longer compares its cached track against a foreign timestamp.
+* Writing a track into a db while a db of higher priority holds an unregistered file for the same name now warns. Every existing guard tests the tracks loaded in memory, so this case - the stranded state above, seen from the other side - went through silently.
 
 # naryn 2.7.4
 
